@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>particle.js</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">particle.js</div>
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+        integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.142.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'https://unpkg.com/three@0.142.0/examples/jsm/controls/OrbitControls.js';
+        import Stats from 'https://unpkg.com/three@0.142.0/examples/jsm/libs/stats.module.js';
+
+        const stats = new Stats();
+        document.body.appendChild(stats.dom);
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        window.onresize = function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+
+        function drawAxis(lineWidth) {
+            const lineX = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(lineWidth, 0, 0)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0xff0000 })
+            );
+            scene.add(lineX);
+            const lineY = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(0, lineWidth, 0)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0x00ff00 })
+            );
+            scene.add(lineY);
+            const lineZ = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(0, 0, lineWidth)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0x0000ff })
+            );
+            scene.add(lineZ);
+        }
+
+        let particleId = 0;
+        const geometry = new THREE.SphereGeometry(5);
+        class Particle {
+            constructor() {
+                this.id = particleId++;
+
+                this.position = new THREE.Vector3();
+                this.velocity = new THREE.Vector3();
+                this.acceleration = new THREE.Vector3();
+                this.mass = 0;
+                this.charge = 0;
+                this.force = new THREE.Vector3();
+
+                var r = Math.round(Math.random() * 255);
+                var g = Math.round(Math.random() * 255);
+                var b = Math.round(Math.random() * 255);
+                var material = new THREE.MeshBasicMaterial({ color: "rgb("+r+","+g+","+b+")" });
+                this.sphere = new THREE.Mesh(geometry, material);
+                scene.add(this.sphere);
+            }
+
+            interact(other) {
+                if (this.id == other.id) return;
+
+                var distance = other.position.clone();
+                distance.sub(this.position);
+
+                var absDistanceSq = distance.lengthSq();
+                //const error = 0.001; if (absDistanceSq < error) absDistanceSq = error;
+                if (absDistanceSq == 0.0) return;
+
+                var force = 0.0;
+                force += this.mass * other.mass;
+                force -= this.charge * other.charge;
+                force /= absDistanceSq;
+                if (force == 0.0) return;
+                
+                //distance.normalize();
+                distance.multiplyScalar(force);
+                this.force.add(distance);
+            }
+
+            update() {
+                if (this.mass != 0.0) {
+                    this.force.divideScalar(Math.abs(this.mass));
+                }
+
+                //this.force.divideScalar(100.0);
+                //this.force.round();
+
+                this.velocity.add(this.force);
+                this.position.add(this.velocity);
+
+                this.sphere.position.x = this.position.x;
+                this.sphere.position.y = this.position.y;
+                this.sphere.position.z = this.position.z;
+
+                this.force.setScalar(0);
+            }
+        }
+
+        let particleList = [];
+
+        function createParticles() {
+            /*var p = new Particle;
+            p.mass = 1000;
+            p.charge = 0;
+            particleList.push(p);*/
+
+            for (var i = 0; i < 64; ++i) {
+                var r = 128 * Math.random();
+                var phi = Math.PI * Math.random();
+                var theta = 2 * Math.PI * Math.random();
+
+                var x = r * Math.cos(phi) * Math.sin(theta);
+                var y = r * Math.sin(phi) * Math.sin(theta);
+                var z = r * Math.cos(theta);
+                //z = 0;
+
+                var p = new Particle;
+                p.mass = Math.round(10 * (Math.random() - 0.0));
+                p.charge = Math.round(10 * (Math.random() - 0.5));
+                p.position.set(x, y, z);
+                particleList.push(p);
+
+                console.log(p);
+            }
+        }
+
+        function simulate() {
+            particleList.forEach((p1, i) => {
+                particleList.forEach((p2, j) => {
+                    p1.interact(p2);
+                });
+            });
+
+            let energy = 0.0;
+            particleList.forEach((p1, i) => {
+                p1.update();
+                energy += (p1.mass * p1.velocity.lengthSq());
+            });
+
+            $("#info").html("E: " + Math.round(energy/particleList.length));
+
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            controls.update();
+            stats.update();
+
+            simulate();
+
+            renderer.render(scene, camera);
+        }
+
+        drawAxis(50);
+        createParticles();
+        camera.position.set(0, 0, 1000);
+        animate();
+    </script>
+</body>
+
+</html>

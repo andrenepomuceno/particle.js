@@ -28,16 +28,17 @@
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
     <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.142.0/build/three.module.js"
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.142.0/build/three.module.js"
+            }
         }
-    }
     </script>
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'https://unpkg.com/three@0.142.0/examples/jsm/controls/OrbitControls.js';
         import Stats from 'https://unpkg.com/three@0.142.0/examples/jsm/libs/stats.module.js';
+        import WebGL from 'https://unpkg.com/three@0.142.0/examples/jsm/capabilities/WebGL.js';
 
         const stats = new Stats();
         document.getElementById("container").appendChild(stats.dom);
@@ -86,7 +87,7 @@
                 this.sphere = new THREE.Mesh(geometry, material);
                 scene.add(this.sphere);
             }
-
+        
             interact(other) {
                 if (this.id == other.id) return;
 
@@ -183,21 +184,31 @@
             renderer.render(scene, camera);
         }
 
-        function createParticlesSphere(particles, radius, mass, charge, shell) {
+        function createParticlesSphere(particles, r1, r2, mass, charge, mode = 0) {
             for (var i = 0; i < particles; ++i) {
-                let r;
-                if (shell) {
-                    r = radius;
+                let r, x, y, z;
+                if (mode == 1) {
+                    r = r1 + (r2 - r1) * Math.random();
+                    let phi = Math.PI * Math.random();
+                    let theta = 2 * Math.PI * Math.random();
+                    x = r * Math.cos(phi) * Math.sin(theta);
+                    y = r * Math.sin(phi) * Math.sin(theta);
+                    z = r * Math.cos(theta);
                 } else {
-                    r = radius * Math.random();
-                }
-                let phi = Math.PI * Math.random();
-                let theta = 2 * Math.PI * Math.random();
+                    // density proportional to r^2
+                    let r13 = Math.pow(r1, 3);
+                    let r23 = Math.pow(r2, 3);
+                    let t = r13 + (r23 - r13) * Math.random();
+                    r = Math.pow(t, 1 / 3);
 
-                let x = r * Math.cos(phi) * Math.sin(theta);
-                let y = r * Math.sin(phi) * Math.sin(theta);
-                let z = r * Math.cos(theta);
-                //z = 0;
+                    let theta = 2 * Math.PI * Math.random();
+                    let z0 = -1 + 2 * Math.random();
+                    let x0 = Math.sqrt(1 - z0 * z0) * Math.cos(theta);
+                    let y0 = Math.sqrt(1 - z0 * z0) * Math.sin(theta);
+                    x = r * x0;
+                    y = r * y0;
+                    z = r * z0;
+                }
 
                 let p = new Particle;
                 p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
@@ -227,16 +238,16 @@
 
         const quantizedPosition = false;
         const forceConstant = 1;
-        const massConstant = 1/10;
+        const massConstant = 1 / 27;
         const chargeConstant = 1;
         const minDistance = 0;
 
         function simulationSetup() {
-            const initialParticles = 512;
-            const radiusRange = 1000;
-            const massRange = 8;
-            const chargeRange = 8;
-            createParticlesSphere(initialParticles, radiusRange, massRange, chargeRange, true);
+            const initialParticles = 1024;
+            const radiusRange = 512;
+            const massRange = 32;
+            const chargeRange = 32;
+            createParticlesSphere(initialParticles, radiusRange, radiusRange, massRange, chargeRange, 0);
             //createParticlesCube(initialParticles, radiusRange, massRange, chargeRange);
             particleList.forEach((p, i) => {
                 p.render();
@@ -247,7 +258,7 @@
         }
 
         function cameraSetup() {
-            const cameraDistance = 2000;
+            const cameraDistance = 2500;
             const cameraPhi = 30 * Math.PI / 180.0;
             const cameraTheta = 45 * Math.PI / 180.0;
             const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
@@ -271,11 +282,11 @@
                     pause = !pause;
                     break;
 
-                case 'r':
+                case 'c':
                     controls.reset();
                     break;
 
-                case 'c':
+                case 'r':
                     cleanup();
                     simulationSetup();
                     break;
@@ -285,7 +296,12 @@
         simulationSetup();
         cameraSetup();
         drawAxis(100);
-        animate();
+        if (WebGL.isWebGLAvailable()) {
+            animate();
+        } else {
+            const warning = WebGL.getWebGLErrorMessage();
+            document.getElementById('container').appendChild(warning);
+        }
     </script>
 </body>
 

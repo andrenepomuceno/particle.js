@@ -4,12 +4,26 @@
 <head>
     <meta charset="utf-8">
     <title>particle.js</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            display: block;
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
     <div id="info">particle.js</div>
-    <div id="main"></div>
+    <div id="container"></div>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
@@ -26,57 +40,33 @@
         import Stats from 'https://unpkg.com/three@0.142.0/examples/jsm/libs/stats.module.js';
 
         const stats = new Stats();
-        document.body.appendChild(stats.dom);
+        document.getElementById("container").appendChild(stats.dom);
 
         const scene = new THREE.Scene();
-
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
-
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 0, 0);
-        controls.update();
-
+        document.getElementById("container").appendChild(renderer.domElement);
         window.onresize = function () {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
 
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
         function drawAxis(lineWidth) {
-            const lineX = new THREE.Line(
-                new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(lineWidth, 0, 0)
-                ]),
-                new THREE.LineBasicMaterial({ color: 0xff0000 })
-            );
-            scene.add(lineX);
-            const lineY = new THREE.Line(
-                new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(0, lineWidth, 0)
-                ]),
-                new THREE.LineBasicMaterial({ color: 0x00ff00 })
-            );
-            scene.add(lineY);
-            const lineZ = new THREE.Line(
-                new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(0, 0, lineWidth)
-                ]),
-                new THREE.LineBasicMaterial({ color: 0x0000ff })
-            );
-            scene.add(lineZ);
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
         }
 
         let particleList = [];
         let particleId = 0;
-        const geometry = new THREE.SphereGeometry(5);
         let colisions = 0;
+        const geometry = new THREE.SphereGeometry(5);
 
         class Particle {
             constructor() {
@@ -89,10 +79,10 @@
                 this.charge = 0;
                 this.force = new THREE.Vector3();
 
-                let r = Math.round(30 + Math.random() * 225);
-                let g = Math.round(30 + Math.random() * 225);
-                let b = Math.round(30 + Math.random() * 225);
-                let material = new THREE.MeshBasicMaterial({ color: "rgb(" + r + "," + g + "," + b + ")" });
+                const r = Math.round(30 + Math.random() * 225);
+                const g = Math.round(30 + Math.random() * 225);
+                const b = Math.round(30 + Math.random() * 225);
+                const material = new THREE.MeshBasicMaterial({ color: "rgb(" + r + "," + g + "," + b + ")" });
                 this.sphere = new THREE.Mesh(geometry, material);
                 scene.add(this.sphere);
             }
@@ -139,9 +129,22 @@
                     this.position.round();
                 }
 
-                this.sphere.position.set(this.position.x, this.position.y, this.position.z);
-
                 this.force.setScalar(0);
+            }
+
+            render() {
+                this.sphere.position.set(this.position.x, this.position.y, this.position.z);
+            }
+        }
+
+        function checkColision() {
+            for (let i = 0; i < particleList.length - 1; ++i) {
+                let p1 = particleList[i];
+                for (let j = i + 1; j < particleList.length; ++j) {
+                    let p2 = particleList[j];
+                    if (!p1.position.equal(p2.position))
+                        continue;
+                }
             }
         }
 
@@ -155,6 +158,7 @@
             let energy = 0.0;
             particleList.forEach((p1, i) => {
                 p1.update();
+                p1.render();
                 energy += (p1.mass * p1.velocity.lengthSq());
             });
 
@@ -163,50 +167,61 @@
         }
 
         let cicles = 0;
+        let pause = true;
+
         function animate() {
             requestAnimationFrame(animate);
 
             controls.update();
             stats.update();
 
-            simulate();
+            if (!pause) {
+                simulate();
+                ++cicles;
+            }
 
             renderer.render(scene, camera);
-
-            ++cicles;
-
-
         }
 
-        function createParticles(particles, radius, mass, charge) {
-            /*var p = new Particle;
-            p.mass = 16;
-            p.charge = 0;
-            particleList.push(p);*/
-
+        function createParticlesSphere(particles, radius, mass, charge, shell) {
             for (var i = 0; i < particles; ++i) {
-                let r = radius;// * Math.random();
+                let r;
+                if (shell) {
+                    r = radius;
+                } else {
+                    r = radius * Math.random();
+                }
                 let phi = Math.PI * Math.random();
                 let theta = 2 * Math.PI * Math.random();
 
                 let x = r * Math.cos(phi) * Math.sin(theta);
                 let y = r * Math.sin(phi) * Math.sin(theta);
                 let z = r * Math.cos(theta);
-
-                if (quantizedPosition) {
-                    x = Math.round(x);
-                    y = Math.round(y);
-                    z = Math.round(z);
-                }
                 //z = 0;
 
                 let p = new Particle;
                 p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
                 p.charge = Math.round(charge * (Math.random() - 0.5));
                 p.position.set(x, y, z);
-                particleList.push(p);
 
-                console.log(p);
+                particleList.push(p);
+            }
+        }
+
+        function createParticlesCube(particles, size, mass, charge) {
+            for (var i = 0; i < particles; ++i) {
+
+                let x = size * (Math.random() - 0.5);
+                let y = size * (Math.random() - 0.5);
+                let z = size * (Math.random() - 0.5);
+                //z = 0;
+
+                let p = new Particle;
+                p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
+                p.charge = Math.round(charge * (Math.random() - 0.5));
+                p.position.set(x, y, z);
+
+                particleList.push(p);
             }
         }
 
@@ -215,19 +230,61 @@
         const massConstant = 1/10;
         const chargeConstant = 1;
         const minDistance = 0;
-        const initialParticles = 256;
 
+        function simulationSetup() {
+            const initialParticles = 512;
+            const radiusRange = 1000;
+            const massRange = 8;
+            const chargeRange = 8;
+            createParticlesSphere(initialParticles, radiusRange, massRange, chargeRange, true);
+            //createParticlesCube(initialParticles, radiusRange, massRange, chargeRange);
+            particleList.forEach((p, i) => {
+                p.render();
+                if (quantizedPosition) {
+                    p.position.round();
+                }
+            });
+        }
+
+        function cameraSetup() {
+            const cameraDistance = 2000;
+            const cameraPhi = 30 * Math.PI / 180.0;
+            const cameraTheta = 45 * Math.PI / 180.0;
+            const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
+            const cameraY = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            const cameraZ = cameraDistance * Math.cos(cameraTheta);
+            camera.position.set(cameraX, cameraY, cameraZ);
+            controls.saveState();
+        }
+
+        function cleanup() {
+            particleList.forEach((p, i) => {
+                scene.remove(p.sphere);
+            });
+            particleList = [];
+            particleId = 0;
+        }
+
+        document.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case ' ':
+                    pause = !pause;
+                    break;
+
+                case 'r':
+                    controls.reset();
+                    break;
+
+                case 'c':
+                    cleanup();
+                    simulationSetup();
+                    break;
+            }
+        })
+
+        simulationSetup();
+        cameraSetup();
         drawAxis(100);
-        createParticles(initialParticles, 500, 10, 10);
-
-        let r = 2000;
-        let phi = 30 * Math.PI / 180.0;
-        let theta = 45 * Math.PI / 180.0;
-        let x = r * Math.cos(phi) * Math.sin(theta);
-        let y = r * Math.sin(phi) * Math.sin(theta);
-        let z = r * Math.cos(theta);
-        camera.position.set(x, y, z);
-
         animate();
     </script>
 </body>

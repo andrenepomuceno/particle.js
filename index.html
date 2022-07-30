@@ -58,16 +58,10 @@
         controls.target.set(0, 0, 0);
         controls.update();
 
-        function drawAxis(lineWidth) {
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
-        }
-
         let particleList = [];
         let particleId = 0;
         let colisions = 0;
-        const geometry = new THREE.SphereGeometry(5);
+        const geometryMap = new Map();
 
         class Particle {
             constructor() {
@@ -79,15 +73,16 @@
                 this.mass = 0;
                 this.charge = 0;
                 this.force = new THREE.Vector3();
+            }
 
-                const r = Math.round(30 + Math.random() * 225);
-                const g = Math.round(30 + Math.random() * 225);
-                const b = Math.round(30 + Math.random() * 225);
-                const material = new THREE.MeshBasicMaterial({ color: "rgb(" + r + "," + g + "," + b + ")" });
-                this.sphere = new THREE.Mesh(geometry, material);
+            addToScene(radius = 5) {
+                if (geometryMap.has(radius) == false) {
+                    geometryMap.set(radius, new THREE.SphereGeometry(radius));
+                }
+                this.sphere = new THREE.Mesh(geometryMap.get(radius), new THREE.MeshBasicMaterial());
                 scene.add(this.sphere);
             }
-        
+
             interact(other) {
                 if (this.id == other.id) return;
 
@@ -184,11 +179,11 @@
             renderer.render(scene, camera);
         }
 
-        function createParticlesSphere(particles, r1, r2, mass, charge, mode = 0) {
+        function createParticlesSphere(particles, r1, r2, mass, charge, mode = 0, xoffset = 0, yoffset = 0, zoffset = 0, vz = 0) {
             for (var i = 0; i < particles; ++i) {
-                let r, x, y, z;
+                let x, y, z;
                 if (mode == 1) {
-                    r = r1 + (r2 - r1) * Math.random();
+                    let r = r1 + (r2 - r1) * Math.random();
                     let phi = Math.PI * Math.random();
                     let theta = 2 * Math.PI * Math.random();
                     x = r * Math.cos(phi) * Math.sin(theta);
@@ -199,7 +194,7 @@
                     let r13 = Math.pow(r1, 3);
                     let r23 = Math.pow(r2, 3);
                     let t = r13 + (r23 - r13) * Math.random();
-                    r = Math.pow(t, 1 / 3);
+                    let r = Math.pow(t, 1 / 3);
 
                     let theta = 2 * Math.PI * Math.random();
                     let z0 = -1 + 2 * Math.random();
@@ -210,10 +205,11 @@
                     z = r * z0;
                 }
 
-                let p = new Particle;
+                let p = new Particle();
                 p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
                 p.charge = Math.round(charge * (Math.random() - 0.5));
-                p.position.set(x, y, z);
+                p.position.set(xoffset + x, yoffset + y, zoffset + z);
+                p.velocity.z = vz;
 
                 particleList.push(p);
             }
@@ -236,36 +232,85 @@
             }
         }
 
+        // physics parameters
         const quantizedPosition = false;
         const forceConstant = 1;
-        const massConstant = 1 / 27;
-        const chargeConstant = 1;
+        const massConstant = 1/23;
+        const chargeConstant = 7;
         const minDistance = 0;
 
+        // animation parameters
+        const enableMassRadius = true;
+        const enableChargeColor = true;
+
+        // camera
+        const cameraDistance = 3000;
+        const cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
+        const cameraTheta = 0 * Math.PI / 180.0; // rotation [0,2Pi]
+
         function simulationSetup() {
-            const initialParticles = 1024;
-            const radiusRange = 512;
+            const initialParticles = 1024/2;
+            const radiusRange = 256;
             const massRange = 32;
             const chargeRange = 32;
-            createParticlesSphere(initialParticles, radiusRange, radiusRange, massRange, chargeRange, 0);
+
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, 0, -1000, 0, 0, -20);
+            //createParticlesSphere(2*initialParticles, 0, radiusRange, massRange, chargeRange, 0);
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, 0, 1000, 0, 0, 20);
+            
             //createParticlesCube(initialParticles, radiusRange, massRange, chargeRange);
+
+            sceneSetup(massRange, chargeRange);
+        }
+
+        function sceneSetup(massRange, chargeRange) {
             particleList.forEach((p, i) => {
-                p.render();
+                let radius = 5;
+                if (enableMassRadius) {
+                    radius += Math.round(10 * p.mass / (1 + massRange));
+                }
+                p.addToScene(radius);
+
+                let color;
+                if (enableChargeColor) {
+                    let r = 0, g = 0, b = 0;
+                    const min = 30;
+                    const max = 255;
+                    if (p.charge > 0) {
+                        b = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
+                        color = "rgb(" + r + "," + g + "," + b + ")";
+                    } else if (p.charge < 0) {
+                        r = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
+                        color = "rgb(" + r + "," + g + "," + b + ")";
+                    } else {
+                        color = 0xffffff;
+                    }
+                } else {
+                    color = randomColor();
+                }
+                p.sphere.material.color.set(color);
+
                 if (quantizedPosition) {
                     p.position.round();
                 }
+
+                p.render();
             });
         }
 
         function cameraSetup() {
-            const cameraDistance = 2500;
-            const cameraPhi = 30 * Math.PI / 180.0;
-            const cameraTheta = 45 * Math.PI / 180.0;
             const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
             const cameraY = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
             const cameraZ = cameraDistance * Math.cos(cameraTheta);
             camera.position.set(cameraX, cameraY, cameraZ);
+            camera.position.set(0, 4000, 0);
             controls.saveState();
+        }
+
+        function drawAxis(lineWidth) {
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
         }
 
         function cleanup() {
@@ -301,6 +346,19 @@
         } else {
             const warning = WebGL.getWebGLErrorMessage();
             document.getElementById('container').appendChild(warning);
+        }
+
+        function randomColor() {
+            const min = 10;
+            const max = 255;
+            const r = Math.round(min + (max - min) * Math.random());
+            const g = Math.round(min + (max - min) * Math.random());
+            const b = Math.round(min + (max - min) * Math.random());
+            return "rgb(" + r + "," + g + "," + b + ")";
+        }
+
+        function random(a, b) {
+            return a + (b - a) * Math.random();
         }
     </script>
 </body>

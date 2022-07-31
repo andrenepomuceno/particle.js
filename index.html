@@ -189,8 +189,8 @@
                 let [x, y, z] = randomSpheric(r1, r2, mode);
 
                 let p = new Particle();
-                p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
-                p.charge = Math.round(charge * (Math.random() - 0.5));
+                p.mass = Math.round(random(1, mass));
+                p.charge = Math.round(random(-charge, charge));
                 p.position.set(x, y, z);
                 p.position.add(center);
                 p.velocity.add(velocity);
@@ -208,8 +208,8 @@
                 //z = 0;
 
                 let p = new Particle;
-                p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
-                p.charge = Math.round(charge * (Math.random() - 0.5));
+                p.mass = Math.round(random(1, mass));
+                p.charge = Math.round(random(-charge, charge));
                 p.position.set(x, y, z);
 
                 particleList.push(p);
@@ -228,43 +228,35 @@
         const enableChargeColor = true;
 
         // camera
-        const cameraDistance = 3000;
-        const cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
+        let cameraDistance = 3000;
+        const cameraPhi = 0 * Math.PI / 180.0; // up/down [0,Pi]
         const cameraTheta = 0 * Math.PI / 180.0; // rotation [0,2Pi]
 
         function simulation0() {
-            const initialParticles = Math.round(1024 / 2);
-            const radiusRange = 64;
-            const massRange = 0;
-            const chargeRange = 3;
+            massConstant = 1;
+            chargeConstant = 1;
 
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-1000, 200, 0), new THREE.Vector3(10, 0, 0));
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(1000, -200, 0), new THREE.Vector3(-10, 0, 0));
+            const initialParticles = 1024;
+            const radiusRange = 1024;
+            const massRange = 1;
+            const chargeRange = 1;
+
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
 
             sceneSetup(massRange, chargeRange);
         }
 
-        function simulationGrid3D() {
-            const gridSize = 4;
-            const spacing = 500;
-            const initialParticles = Math.round(1024 / gridSize / gridSize / gridSize);
-            const radiusRange = 64;
-            const massRange = 0;
-            const chargeRange = 3;
+        function simulation1() {
+            massConstant = 1;
+            chargeConstant = 1;
 
-            for (let i = 0; i < gridSize; ++i) {
-                let cx = i - gridSize / 2 + 0.5;
-                cx *= spacing;
-                for (let j = 0; j < gridSize; ++j) {
-                    let cy = j - gridSize / 2 + 0.5;
-                    cy *= spacing;
-                    for (let k = 0; k < gridSize; ++k) {
-                        let cz = k - gridSize / 2 + 0.5;
-                        cz *= spacing;
-                        createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(cx, cy, cz), new THREE.Vector3());
-                    }
-                }
-            }
+            const initialParticles = Math.round(1024 / 2);
+            const radiusRange = 32;
+            const massRange = 1;
+            const chargeRange = 1;
+
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-1000, 200, 0), new THREE.Vector3(10, 0, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(1000, -200, 0), new THREE.Vector3(-10, 0, 0));
 
             sceneSetup(massRange, chargeRange);
         }
@@ -290,11 +282,42 @@
             sceneSetup(massRange, chargeRange);
         }
 
+        function simulationGrid3D() {
+            massConstant = 1 / 113;
+            chargeConstant = 1;
+
+            const gridSize = 3;
+            const spacing = 500;
+            const initialParticles = Math.round(1024 / gridSize / gridSize / gridSize);
+            const radiusRange = 128;
+            const massRange = 128;
+            const chargeRange = 128;
+
+            for (let i = 0; i < gridSize; ++i) {
+                let cx = i - gridSize / 2 + 0.5;
+                cx *= spacing;
+                for (let j = 0; j < gridSize; ++j) {
+                    let cy = j - gridSize / 2 + 0.5;
+                    cy *= spacing;
+                    for (let k = 0; k < gridSize; ++k) {
+                        let cz = k - gridSize / 2 + 0.5;
+                        cz *= spacing;
+                        createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(cx, cy, cz), new THREE.Vector3());
+                    }
+                }
+            }
+
+            sceneSetup(massRange, chargeRange);
+        }
+
         function simulationCross() {
+            cameraDistance = 4000;
+            massConstant = 1/17;
+            chargeConstant = 1;
             const initialParticles = Math.round(1024 / 6);
             const radiusRange = 64;
-            const massRange = 1;
-            const chargeRange = 3;
+            const massRange = 16;
+            const chargeRange = 16;
             const space = 1000;
             const v = 10;
 
@@ -309,20 +332,20 @@
         }
 
         function simulationSpheres() {
-            massConstant = 1/3;
-            chargeConstant = 5;
+            massConstant = 1;
+            chargeConstant = 1;
 
             const spheres = 8;
             const initialParticles = Math.round(1024 / spheres);
-            const radiusRange = 40;
-            const massRange = 0;
-            const chargeRange = 3;
-            const r1 = 1500;
-            const r2 = 1500;
+            const radiusRange = 16;
+            const massRange = 1;
+            const chargeRange = 1;
+            const r1 = 0;
+            const r2 = 1000;
 
             for (var i = 0; i < spheres; ++i) {
                 let [x, y, z] = randomSpheric(r1, r2);
-                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3());
+                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, z), new THREE.Vector3());
             }
 
             sceneSetup(massRange, chargeRange);
@@ -330,18 +353,16 @@
 
         function simulationSetup() {
             //simulation0();
-            //simulationGrid3D();
+            //simulation1();
             //simulationGrid2D();
-            //simulationCross();
-            simulationSpheres();
+            //simulationGrid3D();
+            simulationCross();
+            //simulationSpheres();
         }
 
         function cameraSetup() {
-            const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
-            const cameraY = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-            const cameraZ = cameraDistance * Math.cos(cameraTheta);
-            camera.position.set(cameraX, cameraY, cameraZ);
-            camera.position.set(0, 0, 5000);
+            let [x, y, z] = sphericalToCartesian(cameraDistance, cameraPhi, cameraTheta);
+            camera.position.set(x, y, z);
             controls.saveState();
         }
 
@@ -366,6 +387,11 @@
                         color = "rgb(" + r + "," + g + "," + b + ")";
                     } else {
                         color = 0xffffff;
+                    }
+
+                    if (p.mass < 0) {
+                        g = 127;
+                        color = "rgb(" + r + "," + g + "," + b + ")";
                     }
                 } else {
                     color = randomColor();
@@ -434,9 +460,7 @@
                 let r = r1 + (r2 - r1) * Math.random();
                 let phi = Math.PI * Math.random();
                 let theta = 2 * Math.PI * Math.random();
-                x = r * Math.cos(phi) * Math.sin(theta);
-                y = r * Math.sin(phi) * Math.sin(theta);
-                z = r * Math.cos(theta);
+                [x, y, z] = sphericalToCartesian(r, phi, theta);
             } else {
                 // density proportional to r^2
                 let r13 = Math.pow(r1, 3);
@@ -452,6 +476,13 @@
                 y = r * y0;
                 z = r * z0;
             }
+            return [x, y, z];
+        }
+
+        function sphericalToCartesian(r, phi, theta) {
+            let x = r * Math.cos(phi) * Math.sin(theta);
+            let y = r * Math.sin(phi) * Math.sin(theta);
+            let z = r * Math.cos(theta);
             return [x, y, z];
         }
 

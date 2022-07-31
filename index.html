@@ -26,7 +26,7 @@
     <div id="info" class="text" style="top: 10px;">particle.js</div>
     <div id="container"></div>
     <div id="about" class="text" style="bottom: 10px;"><b>MOUSE</b><br>[LEFT] Rotate camera<br>[RIGHT] Move
-        camera<br>[WHEEL] Zoom<br><br><b>KEYBOARD</b><br>[SPACE] Pause/Resume<br>[R] Reset simulation<br>[C] Default
+        camera<br>[WHEEL] Zoom<br><br><b>KEYBOARD</b><br>[SPACE] Pause/Resume<br>[N] Next frame<br>[R] Reset simulation<br>[C] Default
         camera<br>[V] XY
         camera<br>[0-9] Switch simulation<br>[H] Show/Hide text<br>[A] Show/Hide axis</div>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
@@ -174,7 +174,8 @@
             controls.update();
             stats.update();
 
-            if (!pause) {
+            if (!pause || nextFrame) {
+                nextFrame = false;
                 simulate();
                 ++cicles;
             }
@@ -182,7 +183,7 @@
             renderer.render(scene, camera);
         }
 
-        function createParticles(particles, [m1, m2], [q1, q2], center, velocity, positionGenerator) {
+        function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, center = new THREE.Vector3(), velocity = new THREE.Vector3()) {
             for (var i = 0; i < particles; ++i) {
                 let [x, y, z] = positionGenerator();
                 let p = new Particle();
@@ -195,18 +196,18 @@
             }
         }
 
-        function createParticlesSphere(particles, r1, r2, mass, charge, center, velocity, mode = 0) {
-            createParticles(particles, [1, mass], [-charge, charge], center, velocity, (x, y, z) => randomSpheric(r1, r2, mode));
+        function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center, velocity, mode = 0) {
+            createParticles(particles, massRange, chargeRange, (x, y, z) => randomSpheric(r1, r2, mode), center, velocity);
         }
 
         function createParticlesCube(particles, size, mass, charge, center, velocity) {
-            createParticles(particles, [1, mass], [-charge, charge], center, velocity, (x, y, z) => {
+            createParticles(particles, massRange, chargeRange, (x, y, z) => {
                 return [
                     random(-size, size),
                     random(-size, size),
                     random(-size, size)
                 ];
-            });
+            }, center, velocity);
         }
 
         // physics parameters
@@ -215,8 +216,8 @@
         const minDistance = 0;
         let massConstant = 1
         let chargeConstant = 1;
-        let chargeRange = 1;
-        let massRange = 1;
+        let chargeRange = [-1, 1];
+        let massRange = [1, 1];
 
         // animation parameters
         const enableMassRadius = true;
@@ -224,36 +225,38 @@
 
         // camera
         let cameraDistance = 3000;
-        const cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
-        const cameraTheta = 45 * Math.PI / 180.0; // rotation [0,2Pi]
+        let cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
+        let cameraTheta = 45 * Math.PI / 180.0; // rotation [0,2Pi]
 
-        function simulationTwoParticles() {
-            cameraDistance = 1000;
-            massConstant = 1 / 2;
-            chargeConstant = 1;
-            massRange = 1000;
-            chargeRange = 1;
+        function simulationAtom() {
+            cameraDistance = 4000;
+            //cameraPhi = cameraTheta = 0;
 
-            let x = 128;
-            let v = 16;
-            particleList.push(new Particle());
-            particleList.at(-1).mass = massRange;
-            particleList.at(-1).charge = 1;
-            particleList.at(-1).position.set(0, 0, 0);
-            particleList.at(-1).velocity.set(0, 0, 0);
-            particleList.push(new Particle());
-            particleList.at(-1).mass = 1;
-            particleList.at(-1).charge = -1;
-            particleList.at(-1).position.set(x, 0, 0);
-            particleList.at(-1).velocity.set(-v, v, 0);
+            massConstant = 1/8;
+            chargeConstant = 5;
+            massRange = [1, 1836];
+            chargeRange = [-1, 1];
+
+            let r = 100;
+
+            createParticles(4, [1836, 1836], [0, 1], () => {
+                let pos = randomSpheric(0, r);
+                return [pos[0], pos[1], pos[2]];
+            });
+
+            createParticles(512, [1, 1], [-1, -1], () => {
+                let pos = randomSpheric(0, 16 * r);
+                return [pos[0], pos[1], pos[2]];
+            });
         }
 
         function simulation0() {
             cameraDistance = 5000;
+
             massConstant = 1;
             chargeConstant = 1;
-            massRange = 2;
-            chargeRange = 1;
+            massRange = [1, 2];
+            chargeRange = [-1, 1];
 
             const initialParticles = 1024;
             const radiusRange = 512;
@@ -264,8 +267,8 @@
         function simulation1() {
             massConstant = 1;
             chargeConstant = 1;
-            massRange = 1;
-            chargeRange = 1;
+            massRange = [1, 1];
+            chargeRange = [-1, 1];
 
             const initialParticles = Math.round(1024 / 2);
             const radiusRange = 32;
@@ -281,8 +284,8 @@
             cameraDistance = 5000
             massConstant = 1 / 100;
             chargeConstant = 1;
-            massRange = 5;
-            chargeRange = 1;
+            massRange = [1, 5];
+            chargeRange = [-1, 1];
 
             const gridSize = 16;
             const spacing = 128;
@@ -304,8 +307,8 @@
             cameraDistance = 4000;
             massConstant = 1 / 10;
             chargeConstant = 1;
-            massRange = 8;
-            chargeRange = 8;
+            massRange = [1, 8];
+            chargeRange = [-8, 8];
 
             const gridSize = 3;
             const spacing = 500;
@@ -331,8 +334,8 @@
             cameraDistance = 4000;
             massConstant = 1 / 23;
             chargeConstant = 1;
-            massRange = 16;
-            chargeRange = 3;
+            massRange = [1, 16];
+            chargeRange = [-3, 3];
 
             const initialParticles = Math.round(1024 / 7);
             const radiusRange = 128;
@@ -351,8 +354,8 @@
             cameraDistance = 4000;
             massConstant = 1 / 13;
             chargeConstant = 1;
-            massRange = 8;
-            chargeRange = 3;
+            massRange = [1, 8];
+            chargeRange = [-3, 3];
 
             const spheres = 11;
             const initialParticles = Math.round(1024 / spheres);
@@ -367,7 +370,7 @@
             }
         }
 
-        let simulation = -1;
+        let simulation = 0;
         function simulationSetup() {
             switch (simulation) {
                 default:
@@ -390,7 +393,7 @@
                     simulationSpheres();
                     break;
                 case 0:
-                    simulationTwoParticles()
+                    simulationAtom()
                     break;
             }
             sceneSetup(massRange, chargeRange);
@@ -408,13 +411,15 @@
                 //p.position.z = 0;
                 let radius = 5;
                 if (enableMassRadius) {
-                    radius += Math.round(10 * Math.abs(p.mass) / (1 + massRange));
+                    const absMass = Math.abs(Math.max(massRange[0], massRange[1]));
+                    radius += Math.round(10 * Math.abs(p.mass) / absMass);
                 }
                 p.addToScene(radius);
 
                 let color;
                 if (enableChargeColor) {
-                    color = generateParticleColor(p);
+                    const absCharge = Math.abs(Math.max(chargeRange[0], chargeRange[1]));
+                    color = generateParticleColor(p, absCharge);
                 } else {
                     color = randomColor();
                 }
@@ -438,6 +443,7 @@
 
         let hideText = false;
         let hideAxis = false;
+        let nextFrame = false;
         document.addEventListener("keydown", (event) => {
             let key = event.key;
             switch (key) {
@@ -473,6 +479,11 @@
 
                 case 'v':
                     camera.position.set(0, 0, cameraDistance);
+                    controls.update();
+                    break;
+
+                case 'n':
+                    nextFrame = true;
                     break;
 
                 default:
@@ -546,7 +557,7 @@
             });
         }
 
-        function generateParticleColor(p) {
+        function generateParticleColor(p, absCharge) {
             let r = 0, g = 0, b = 0;
             const min = 30;
             const max = 255;
@@ -556,9 +567,9 @@
             }
 
             if (p.charge > 0) {
-                b = Math.round(min + (max - min) * Math.abs(p.charge) / chargeRange);
+                b = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
             } else if (p.charge < 0) {
-                r = Math.round(min + (max - min) * Math.abs(p.charge) / chargeRange);
+                r = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
             } else {
                 if (p.mass >= 0) {
                     r = g = b = 255;
@@ -570,9 +581,9 @@
             return "rgb(" + r + "," + g + "," + b + ")";
         }
 
-        showAxis();
-        simulationSetup();
         if (WebGL.isWebGLAvailable()) {
+            showAxis();
+            simulationSetup();
             animate();
         } else {
             const warning = WebGL.getWebGLErrorMessage();

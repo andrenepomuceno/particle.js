@@ -136,6 +136,10 @@
             render() {
                 this.sphere.position.set(this.position.x, this.position.y, this.position.z);
             }
+
+            print() {
+                console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
+            }
         }
 
         function checkColision() {
@@ -222,6 +226,8 @@
         const minDistance = 0;
         let massConstant = 1
         let chargeConstant = 1;
+        let chargeRange = 1;
+        let massRange = 1;
 
         // animation parameters
         const enableMassRadius = true;
@@ -235,11 +241,11 @@
         function simulation0() {
             massConstant = 1;
             chargeConstant = 1;
+            massRange = 1;
+            chargeRange = 1;
 
             const initialParticles = 1024;
             const radiusRange = 1024;
-            const massRange = 1;
-            const chargeRange = 1;
 
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
 
@@ -249,11 +255,11 @@
         function simulation1() {
             massConstant = 1;
             chargeConstant = 1;
+            massRange = 1;
+            chargeRange = 1;
 
             const initialParticles = Math.round(1024 / 2);
             const radiusRange = 32;
-            const massRange = 1;
-            const chargeRange = 1;
 
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-1000, 200, 0), new THREE.Vector3(10, 0, 0));
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(1000, -200, 0), new THREE.Vector3(-10, 0, 0));
@@ -262,12 +268,15 @@
         }
 
         function simulationGrid2D() {
+            massConstant = 1;
+            chargeConstant = 1;
+            massRange = 1;
+            chargeRange = 1;
+
             const gridSize = 16;
             const spacing = 256;
             const initialParticles = Math.round(1024 / gridSize / gridSize);
             const radiusRange = 16;
-            const massRange = 0;
-            const chargeRange = 3;
 
             for (let i = 0; i < gridSize; ++i) {
                 let cx = i - gridSize / 2 + 0.5;
@@ -285,13 +294,13 @@
         function simulationGrid3D() {
             massConstant = 1 / 113;
             chargeConstant = 1;
+            massRange = 128;
+            chargeRange = 128;
 
             const gridSize = 3;
             const spacing = 500;
             const initialParticles = Math.round(1024 / gridSize / gridSize / gridSize);
             const radiusRange = 128;
-            const massRange = 128;
-            const chargeRange = 128;
 
             for (let i = 0; i < gridSize; ++i) {
                 let cx = i - gridSize / 2 + 0.5;
@@ -312,16 +321,17 @@
 
         function simulationCross() {
             cameraDistance = 4000;
-            massConstant = 1/17;
-            chargeConstant = 1;
-            const initialParticles = Math.round(1024 / 6);
+            massConstant = 1 / 23;
+            chargeConstant = 5;
+            massRange = 16;
+            chargeRange = 2;
+
+            const initialParticles = Math.round(1024 / 7);
             const radiusRange = 64;
-            const massRange = 16;
-            const chargeRange = 16;
             const space = 1000;
             const v = 10;
 
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
+            createParticlesSphere(2 * initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(space, 0, 0), new THREE.Vector3(0, -v, 0));
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(0, space, 0), new THREE.Vector3(v, 0, 0));
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-space, 0, 0), new THREE.Vector3(0, v, 0));
@@ -338,8 +348,9 @@
             const spheres = 8;
             const initialParticles = Math.round(1024 / spheres);
             const radiusRange = 16;
-            const massRange = 1;
-            const chargeRange = 1;
+            massRange = 1;
+            chargeRange = 1;
+
             const r1 = 0;
             const r2 = 1000;
 
@@ -376,23 +387,7 @@
 
                 let color;
                 if (enableChargeColor) {
-                    let r = 0, g = 0, b = 0;
-                    const min = 30;
-                    const max = 255;
-                    if (p.charge > 0) {
-                        b = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
-                        color = "rgb(" + r + "," + g + "," + b + ")";
-                    } else if (p.charge < 0) {
-                        r = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
-                        color = "rgb(" + r + "," + g + "," + b + ")";
-                    } else {
-                        color = 0xffffff;
-                    }
-
-                    if (p.mass < 0) {
-                        g = 127;
-                        color = "rgb(" + r + "," + g + "," + b + ")";
-                    }
+                    color = generateParticleColor(p);
                 } else {
                     color = randomColor();
                 }
@@ -427,6 +422,12 @@
                 case 'r':
                     cleanup();
                     simulationSetup();
+                    break;
+
+                case 'p':
+                    particleList.forEach((p, i) => {
+                        p.print();
+                    });
                     break;
             }
         })
@@ -490,6 +491,27 @@
             scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
             scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
             scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
+        }
+
+        function generateParticleColor(p) {
+            let r = 0, g = 0, b = 0, color = 0xffffff;
+            const min = 30;
+
+            const max = 255;
+            if (p.charge > 0) {
+                b = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
+                color = "rgb(" + r + "," + g + "," + b + ")";
+            } else if (p.charge < 0) {
+                r = Math.round(min + (max - min) * Math.abs(2 * p.charge / chargeRange));
+                color = "rgb(" + r + "," + g + "," + b + ")";
+            }
+
+            if (p.mass < 0) {
+                g = 127;
+                color = "rgb(" + r + "," + g + "," + b + ")";
+            }
+
+            return color;
         }
     </script>
 </body>

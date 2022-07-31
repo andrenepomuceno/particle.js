@@ -142,17 +142,6 @@
             }
         }
 
-        function checkColision() {
-            for (let i = 0; i < particleList.length - 1; ++i) {
-                let p1 = particleList[i];
-                for (let j = i + 1; j < particleList.length; ++j) {
-                    let p2 = particleList[j];
-                    if (!p1.position.equal(p2.position))
-                        continue;
-                }
-            }
-        }
-
         function simulate() {
             let energy = 0.0;
             for (let i = 0; i < particleList.length; ++i) {
@@ -166,18 +155,6 @@
                 p1.render();
                 energy += (p1.mass * p1.velocity.lengthSq());
             }
-
-            /*particleList.forEach((p1, i) => {
-                particleList.forEach((p2, j) => {
-                    p1.interact(p2);
-                });
-            });
-            let energy = 0.0;
-            particleList.forEach((p1, i) => {
-                p1.update();
-                p1.render();
-                energy += (p1.mass * p1.velocity.lengthSq());
-            });*/
 
             let particles = particleList.length;
             $("#info").html("E: " + Math.round(energy / particles) + " P: " + particles + " C: " + colisions + " T: " + cicles);

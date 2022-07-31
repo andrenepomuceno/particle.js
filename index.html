@@ -9,9 +9,8 @@
             margin: 0;
         }
 
-        #info {
+        .text {
             position: absolute;
-            top: 10px;
             width: 100%;
             text-align: center;
             z-index: 100;
@@ -22,8 +21,9 @@
 </head>
 
 <body>
-    <div id="info">particle.js</div>
+    <div id="info" class="text" style="top: 10px;">particle.js</div>
     <div id="container"></div>
+    <div id="about" class="text" style="bottom: 10px;">Shortcuts:<br>[R] reset simulation [C] reset camera [0-9] switch simulation </div>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
@@ -224,8 +224,8 @@
 
         // camera
         let cameraDistance = 3000;
-        const cameraPhi = 0 * Math.PI / 180.0; // up/down [0,Pi]
-        const cameraTheta = 0 * Math.PI / 180.0; // rotation [0,2Pi]
+        const cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
+        const cameraTheta = 45 * Math.PI / 180.0; // rotation [0,2Pi]
 
         function simulationTwoParticles() {
             cameraDistance = 1000;
@@ -272,9 +272,12 @@
 
             const initialParticles = Math.round(1024 / 2);
             const radiusRange = 32;
+            const x = 500;
+            const y = x;
+            const v = 16;
 
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-1000, 200, 0), new THREE.Vector3(10, 0, 0));
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(1000, -200, 0), new THREE.Vector3(-10, 0, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3(-v, 0, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-x, -y, 0), new THREE.Vector3(v, 0, 0));
 
             sceneSetup(massRange, chargeRange);
         }
@@ -286,8 +289,8 @@
             massRange = 5;
             chargeRange = 1;
 
-            const gridSize = 32;
-            const spacing = 16;
+            const gridSize = 16;
+            const spacing = 128;
             const initialParticles = Math.round(1024 / gridSize / gridSize);
             const radiusRange = 8;
 
@@ -305,10 +308,11 @@
         }
 
         function simulationGrid3D() {
-            massConstant = 1 / 113;
+            cameraDistance = 4000;
+            massConstant = 1 / 10;
             chargeConstant = 1;
-            massRange = 128;
-            chargeRange = 128;
+            massRange = 8;
+            chargeRange = 8;
 
             const gridSize = 3;
             const spacing = 500;
@@ -376,14 +380,33 @@
             sceneSetup(massRange, chargeRange);
         }
 
+        let simulation = -1;
         function simulationSetup() {
-            //simulationTwoParticles()
-            //simulation0();
-            //simulation1();
-            //simulationGrid2D();
-            //simulationGrid3D();
-            simulationCross();
-            //simulationSpheres();
+            switch (simulation) {
+                default:
+                case 1:
+                    simulationCross();
+                    break;
+                case 5:
+                    simulation0();
+                    break;
+                case 2:
+                    simulation1();
+                    break;
+                case 3:
+                    simulationGrid2D();
+                    break;
+                case 4:
+                    simulationGrid3D();
+                    break;
+                case 6:
+                    simulationSpheres();
+                    break;
+                case 0:
+                    simulationTwoParticles()
+                    break;
+            }
+            cameraSetup();
         }
 
         function cameraSetup() {
@@ -426,7 +449,8 @@
         }
 
         document.addEventListener("keydown", (event) => {
-            switch (event.key) {
+            let key = event.key;
+            switch (key) {
                 case ' ':
                     pause = !pause;
                     break;
@@ -445,12 +469,22 @@
                         p.print();
                     });
                     break;
+
+                default:
+                    if (key >= '0' && key <= '9') {
+                        pause = true;
+                        simulation = key - '0';
+                        console.log(simulation);
+                        cleanup();
+                        simulationSetup();
+                    }
+                    break;
+
             }
         })
 
-        simulationSetup();
-        cameraSetup();
         drawAxis(100);
+        simulationSetup();        
         if (WebGL.isWebGLAvailable()) {
             animate();
         } else {

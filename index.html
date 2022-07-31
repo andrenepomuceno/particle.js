@@ -25,7 +25,9 @@
 <body>
     <div id="info" class="text" style="top: 10px;">particle.js</div>
     <div id="container"></div>
-    <div id="about" class="text" style="bottom: 10px;"><b>MOUSE</b><br>[LEFT] Rotate camera<br>[RIGHT] Move camera<br>[WHEEL] Zoom<br><br><b>KEYBOARD</b><br>[SPACE] Pause/Resume<br>[R] Reset simulation<br>[C] Default camera<br>[V] XY
+    <div id="about" class="text" style="bottom: 10px;"><b>MOUSE</b><br>[LEFT] Rotate camera<br>[RIGHT] Move
+        camera<br>[WHEEL] Zoom<br><br><b>KEYBOARD</b><br>[SPACE] Pause/Resume<br>[R] Reset simulation<br>[C] Default
+        camera<br>[V] XY
         camera<br>[0-9] Switch simulation<br>[H] Show/Hide text<br>[A] Show/Hide axis</div>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
@@ -180,36 +182,31 @@
             renderer.render(scene, camera);
         }
 
-        function createParticlesSphere(particles, r1, r2, mass, charge, center, velocity, mode = 0) {
+        function createParticles(particles, [m1, m2], [q1, q2], center, velocity, positionGenerator) {
             for (var i = 0; i < particles; ++i) {
-                let [x, y, z] = randomSpheric(r1, r2, mode);
-
+                let [x, y, z] = positionGenerator();
                 let p = new Particle();
-                p.mass = Math.round(random(1, mass));
-                p.charge = Math.round(random(-charge, charge));
+                p.mass = Math.round(random(m1, m2));
+                p.charge = Math.round(random(q1, q2));
                 p.position.set(x, y, z);
                 p.position.add(center);
                 p.velocity.add(velocity);
-
                 particleList.push(p);
             }
         }
 
-        function createParticlesCube(particles, size, mass, charge) {
-            for (var i = 0; i < particles; ++i) {
+        function createParticlesSphere(particles, r1, r2, mass, charge, center, velocity, mode = 0) {
+            createParticles(particles, [1, mass], [-charge, charge], center, velocity, (x, y, z) => randomSpheric(r1, r2, mode));
+        }
 
-                let x = size * (Math.random() - 0.5);
-                let y = size * (Math.random() - 0.5);
-                let z = size * (Math.random() - 0.5);
-                //z = 0;
-
-                let p = new Particle;
-                p.mass = Math.round(random(1, mass));
-                p.charge = Math.round(random(-charge, charge));
-                p.position.set(x, y, z);
-
-                particleList.push(p);
-            }
+        function createParticlesCube(particles, size, mass, charge, center, velocity) {
+            createParticles(particles, [1, mass], [-charge, charge], center, velocity, (x, y, z) => {
+                return [
+                    random(-size, size),
+                    random(-size, size),
+                    random(-size, size)
+                ];
+            });
         }
 
         // physics parameters
@@ -249,8 +246,6 @@
             particleList.at(-1).charge = -1;
             particleList.at(-1).position.set(x, 0, 0);
             particleList.at(-1).velocity.set(-v, v, 0);
-
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulation0() {
@@ -264,7 +259,6 @@
             const radiusRange = 512;
 
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulation1() {
@@ -281,8 +275,6 @@
 
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3(-v, 0, 0));
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-x, -y, 0), new THREE.Vector3(v, 0, 0));
-
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulationGrid2D() {
@@ -306,8 +298,6 @@
                     createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(cx, cy, 0), new THREE.Vector3());
                 }
             }
-
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulationGrid3D() {
@@ -335,8 +325,6 @@
                     }
                 }
             }
-
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulationCross() {
@@ -357,8 +345,6 @@
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-space, 0, 0), new THREE.Vector3(0, v, 0));
             createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(0, -space, 0), new THREE.Vector3(-v, 0, 0));
             createParticlesSphere(initialParticles, 0, 10000, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
-
-            sceneSetup(massRange, chargeRange);
         }
 
         function simulationSpheres() {
@@ -379,8 +365,6 @@
                 let [x, y, z] = randomSpheric(r1, r2);
                 createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3());
             }
-
-            sceneSetup(massRange, chargeRange);
         }
 
         let simulation = -1;
@@ -409,6 +393,7 @@
                     simulationTwoParticles()
                     break;
             }
+            sceneSetup(massRange, chargeRange);
             cameraSetup();
         }
 

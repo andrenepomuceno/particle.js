@@ -40,6 +40,11 @@
         import Stats from 'https://unpkg.com/three@0.142.0/examples/jsm/libs/stats.module.js';
         import WebGL from 'https://unpkg.com/three@0.142.0/examples/jsm/capabilities/WebGL.js';
 
+        import { EffectComposer } from 'https://unpkg.com/three@0.142.0/examples/jsm/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'https://unpkg.com/three@0.142.0/examples/jsm/postprocessing/RenderPass.js';
+        import { SavePass } from 'https://unpkg.com/three@0.142.0/examples/jsm/postprocessing/SavePass.js';
+        import { ShaderPass } from 'https://unpkg.com/three@0.142.0/examples/jsm/postprocessing/ShaderPass.js';
+
         const stats = new Stats();
         document.getElementById("container").appendChild(stats.dom);
 
@@ -179,37 +184,16 @@
             renderer.render(scene, camera);
         }
 
-        function createParticlesSphere(particles, r1, r2, mass, charge, mode = 0, xoffset = 0, yoffset = 0, zoffset = 0, vz = 0) {
+        function createParticlesSphere(particles, r1, r2, mass, charge, center, velocity, mode = 0) {
             for (var i = 0; i < particles; ++i) {
-                let x, y, z;
-                if (mode == 1) {
-                    let r = r1 + (r2 - r1) * Math.random();
-                    let phi = Math.PI * Math.random();
-                    let theta = 2 * Math.PI * Math.random();
-                    x = r * Math.cos(phi) * Math.sin(theta);
-                    y = r * Math.sin(phi) * Math.sin(theta);
-                    z = r * Math.cos(theta);
-                } else {
-                    // density proportional to r^2
-                    let r13 = Math.pow(r1, 3);
-                    let r23 = Math.pow(r2, 3);
-                    let t = r13 + (r23 - r13) * Math.random();
-                    let r = Math.pow(t, 1 / 3);
-
-                    let theta = 2 * Math.PI * Math.random();
-                    let z0 = -1 + 2 * Math.random();
-                    let x0 = Math.sqrt(1 - z0 * z0) * Math.cos(theta);
-                    let y0 = Math.sqrt(1 - z0 * z0) * Math.sin(theta);
-                    x = r * x0;
-                    y = r * y0;
-                    z = r * z0;
-                }
+                let [x, y, z] = randomSpheric(r1, r2, mode);
 
                 let p = new Particle();
                 p.mass = 1 + Math.round(mass * (Math.random() - 0.0));
                 p.charge = Math.round(charge * (Math.random() - 0.5));
-                p.position.set(xoffset + x, yoffset + y, zoffset + z);
-                p.velocity.z = vz;
+                p.position.set(x, y, z);
+                p.position.add(center);
+                p.velocity.add(velocity);
 
                 particleList.push(p);
             }
@@ -235,9 +219,9 @@
         // physics parameters
         const quantizedPosition = false;
         const forceConstant = 1;
-        const massConstant = 1/23;
-        const chargeConstant = 7;
         const minDistance = 0;
+        let massConstant = 1
+        let chargeConstant = 1;
 
         // animation parameters
         const enableMassRadius = true;
@@ -248,19 +232,117 @@
         const cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
         const cameraTheta = 0 * Math.PI / 180.0; // rotation [0,2Pi]
 
-        function simulationSetup() {
-            const initialParticles = 1024/2;
-            const radiusRange = 256;
-            const massRange = 32;
-            const chargeRange = 32;
+        function simulation0() {
+            const initialParticles = Math.round(1024 / 2);
+            const radiusRange = 64;
+            const massRange = 0;
+            const chargeRange = 3;
 
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, 0, -1000, 0, 0, -20);
-            //createParticlesSphere(2*initialParticles, 0, radiusRange, massRange, chargeRange, 0);
-            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, 0, 1000, 0, 0, 20);
-            
-            //createParticlesCube(initialParticles, radiusRange, massRange, chargeRange);
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-1000, 200, 0), new THREE.Vector3(10, 0, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(1000, -200, 0), new THREE.Vector3(-10, 0, 0));
 
             sceneSetup(massRange, chargeRange);
+        }
+
+        function simulationGrid3D() {
+            const gridSize = 4;
+            const spacing = 500;
+            const initialParticles = Math.round(1024 / gridSize / gridSize / gridSize);
+            const radiusRange = 64;
+            const massRange = 0;
+            const chargeRange = 3;
+
+            for (let i = 0; i < gridSize; ++i) {
+                let cx = i - gridSize / 2 + 0.5;
+                cx *= spacing;
+                for (let j = 0; j < gridSize; ++j) {
+                    let cy = j - gridSize / 2 + 0.5;
+                    cy *= spacing;
+                    for (let k = 0; k < gridSize; ++k) {
+                        let cz = k - gridSize / 2 + 0.5;
+                        cz *= spacing;
+                        createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(cx, cy, cz), new THREE.Vector3());
+                    }
+                }
+            }
+
+            sceneSetup(massRange, chargeRange);
+        }
+
+        function simulationGrid2D() {
+            const gridSize = 16;
+            const spacing = 256;
+            const initialParticles = Math.round(1024 / gridSize / gridSize);
+            const radiusRange = 16;
+            const massRange = 0;
+            const chargeRange = 3;
+
+            for (let i = 0; i < gridSize; ++i) {
+                let cx = i - gridSize / 2 + 0.5;
+                cx *= spacing;
+                for (let j = 0; j < gridSize; ++j) {
+                    let cy = j - gridSize / 2 + 0.5;
+                    cy *= spacing;
+                    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(cx, cy, 0), new THREE.Vector3());
+                }
+            }
+
+            sceneSetup(massRange, chargeRange);
+        }
+
+        function simulationCross() {
+            const initialParticles = Math.round(1024 / 6);
+            const radiusRange = 64;
+            const massRange = 1;
+            const chargeRange = 3;
+            const space = 1000;
+            const v = 10;
+
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(space, 0, 0), new THREE.Vector3(0, -v, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(0, space, 0), new THREE.Vector3(v, 0, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(-space, 0, 0), new THREE.Vector3(0, v, 0));
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(0, -space, 0), new THREE.Vector3(-v, 0, 0));
+            createParticlesSphere(initialParticles, 0, 10000, massRange, chargeRange, new THREE.Vector3(), new THREE.Vector3());
+
+            sceneSetup(massRange, chargeRange);
+        }
+
+        function simulationSpheres() {
+            massConstant = 1/3;
+            chargeConstant = 5;
+
+            const spheres = 8;
+            const initialParticles = Math.round(1024 / spheres);
+            const radiusRange = 40;
+            const massRange = 0;
+            const chargeRange = 3;
+            const r1 = 1500;
+            const r2 = 1500;
+
+            for (var i = 0; i < spheres; ++i) {
+                let [x, y, z] = randomSpheric(r1, r2);
+                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3());
+            }
+
+            sceneSetup(massRange, chargeRange);
+        }
+
+        function simulationSetup() {
+            //simulation0();
+            //simulationGrid3D();
+            //simulationGrid2D();
+            //simulationCross();
+            simulationSpheres();
+        }
+
+        function cameraSetup() {
+            const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
+            const cameraY = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+            const cameraZ = cameraDistance * Math.cos(cameraTheta);
+            camera.position.set(cameraX, cameraY, cameraZ);
+            camera.position.set(0, 0, 5000);
+            controls.saveState();
         }
 
         function sceneSetup(massRange, chargeRange) {
@@ -296,21 +378,6 @@
 
                 p.render();
             });
-        }
-
-        function cameraSetup() {
-            const cameraX = cameraDistance * Math.cos(cameraPhi) * Math.sin(cameraTheta);
-            const cameraY = cameraDistance * Math.sin(cameraPhi) * Math.sin(cameraTheta);
-            const cameraZ = cameraDistance * Math.cos(cameraTheta);
-            camera.position.set(cameraX, cameraY, cameraZ);
-            camera.position.set(0, 4000, 0);
-            controls.saveState();
-        }
-
-        function drawAxis(lineWidth) {
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
-            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
         }
 
         function cleanup() {
@@ -359,6 +426,39 @@
 
         function random(a, b) {
             return a + (b - a) * Math.random();
+        }
+
+        function randomSpheric(r1, r2, mode = 0) {
+            let x, y, z;
+            if (mode == 1) {
+                let r = r1 + (r2 - r1) * Math.random();
+                let phi = Math.PI * Math.random();
+                let theta = 2 * Math.PI * Math.random();
+                x = r * Math.cos(phi) * Math.sin(theta);
+                y = r * Math.sin(phi) * Math.sin(theta);
+                z = r * Math.cos(theta);
+            } else {
+                // density proportional to r^2
+                let r13 = Math.pow(r1, 3);
+                let r23 = Math.pow(r2, 3);
+                let t = r13 + (r23 - r13) * Math.random();
+                let r = Math.pow(t, 1 / 3);
+
+                let theta = 2 * Math.PI * Math.random();
+                let z0 = -1 + 2 * Math.random();
+                let x0 = Math.sqrt(1 - z0 * z0) * Math.cos(theta);
+                let y0 = Math.sqrt(1 - z0 * z0) * Math.sin(theta);
+                x = r * x0;
+                y = r * y0;
+                z = r * z0;
+            }
+            return [x, y, z];
+        }
+
+        function drawAxis(lineWidth) {
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), lineWidth, 0xff0000));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(), lineWidth, 0x00ff00));
+            scene.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(), lineWidth, 0x0000ff));
         }
     </script>
 </body>

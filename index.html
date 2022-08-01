@@ -67,6 +67,10 @@
         let controls;
         let stats;
 
+        function random(a, b) {
+            return a + (b - a) * Math.random();
+        }
+
         function init() {
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -243,7 +247,7 @@
         }
 
         // globals
-        let simulation = 0;
+        let simulation = simulationAtom;
         let hideText = false;
         let hideAxis = false;
         let nextFrame = false;
@@ -272,32 +276,36 @@
 
         // camera
         let cameraDistance = 3000;
-        let cameraPhi = 30 * Math.PI / 180.0; // up/down [0,Pi]
-        let cameraTheta = 45 * Math.PI / 180.0; // rotation [0,2Pi]
+        let cameraPhi = 30; // up/down [0,Pi]
+        let cameraTheta = 45; // rotation [0,2Pi]
 
         function simulationAtom() {
             cameraDistance = 4000;
             //cameraPhi = cameraTheta = 0;
 
-            massConstant = 1;
-            chargeConstant = 7;
-            massRange = [1, 1836];
+            /*const eMass = 9.1093837015e-31;
+            const pMass = 1.67262192369e-27;
+            const nMass = 1.67492749804e-27;*/
+
+            massConstant = 1/1000;
+            chargeConstant = 1/30;
+            massRange = [1, 1839];
             chargeRange = [-1, 1];
 
-            let r = 128;
+            let r = 8;
 
             createParticles(2, [1836, 1836], [1, 1], () => {
                 let pos = randomSpheric(0, r);
                 return [pos[0], pos[1], pos[2]];
             });
 
-            createParticles(2, [1836, 1836], [0, 0], () => {
+            createParticles(2, [1839, 1839], [0, 0], () => {
                 let pos = randomSpheric(0, r);
                 return [pos[0], pos[1], pos[2]];
             });
 
-            createParticles(512, [1, 1], [-1, -1], () => {
-                let pos = randomSpheric(0, 8 * r);
+            createParticles(700, [1, 1], [-1, -1], () => {
+                let pos = randomSpheric(0, 16 * r);
                 return [pos[0], pos[1], pos[2]];
             });
         }
@@ -356,7 +364,8 @@
         }
 
         function simulationGrid3D() {
-            cameraDistance = 4000;
+            cameraDistance = 1000;
+            cameraPhi = 30; cameraTheta = 45;
             massConstant = 1 / 10;
             chargeConstant = 1;
             massRange = [1, 8];
@@ -384,7 +393,8 @@
 
         function simulationCross() {
             cameraDistance = 4000;
-            massConstant = 1 / 23;
+            cameraPhi = cameraTheta = 0;
+            massConstant = 1 / 17;
             chargeConstant = 1;
             massRange = [1, 16];
             chargeRange = [-3, 3];
@@ -404,6 +414,7 @@
 
         function simulationSpheres() {
             cameraDistance = 3000;
+            cameraPhi = cameraTheta = 0;
             massConstant = 1 / 13;
             chargeConstant = 1;
             massRange = [1, 8];
@@ -423,36 +434,13 @@
         }
 
         function simulationSetup() {
-            switch (simulation) {
-                default:
-                case 1:
-                    simulationCross();
-                    break;
-                case 5:
-                    simulation0();
-                    break;
-                case 2:
-                    simulation1();
-                    break;
-                case 3:
-                    simulationGrid2D();
-                    break;
-                case 4:
-                    simulationGrid3D();
-                    break;
-                case 6:
-                    simulationSpheres();
-                    break;
-                case 0:
-                    simulationAtom()
-                    break;
-            }
+            simulation();
             sceneSetup(massRange, chargeRange);
             cameraSetup();
         }
 
         function cameraSetup() {
-            let [x, y, z] = sphericalToCartesian(cameraDistance, cameraPhi, cameraTheta);
+            let [x, y, z] = sphericalToCartesian(cameraDistance, cameraPhi * Math.PI / 180.0, cameraTheta * Math.PI / 180.0);
             camera.position.set(x, y, z);
             camera.lookAt(0, 0, 0);
 
@@ -550,11 +538,40 @@
                     //sceneSetup();
                     break;
 
+                case '_':
+                    pause = true;
+                    simulation = colisionTest;
+                    cleanup();
+                    simulationSetup();
+                    break;
+
                 default:
                     if (key >= '0' && key <= '9') {
                         pause = true;
-                        simulation = key - '0';
-                        console.log(simulation);
+                        switch (key - '0') {
+                            default:
+                            case 1:
+                                simulation = simulationCross;
+                                break;
+                            case 5:
+                                simulation = simulation0;
+                                break;
+                            case 2:
+                                simulation = simulation1;
+                                break;
+                            case 3:
+                                simulation = simulationGrid2D;
+                                break;
+                            case 4:
+                                simulation = simulationGrid3D;
+                                break;
+                            case 6:
+                                simulation = simulationSpheres;
+                                break;
+                            case 0:
+                                simulation = simulationAtom;
+                                break;
+                        }
                         cleanup();
                         simulationSetup();
                     }
@@ -570,10 +587,6 @@
             const g = Math.round(random(min, max));
             const b = Math.round(random(min, max));
             return "rgb(" + r + "," + g + "," + b + ")";
-        }
-
-        function random(a, b) {
-            return a + (b - a) * Math.random();
         }
 
         function randomSpheric(r1, r2, mode = 0) {
@@ -653,7 +666,7 @@
             massRange = [1, 50];
             chargeRange = [-1, 1];
 
-            let i = -250;
+            /*let i = -250;
             createParticles(10, [1, 1], chargeRange, (x, y, z) => {
                 i += 50;
                 return [i, 0, 0];
@@ -666,9 +679,9 @@
             particleList.push(new Particle());
             particleList.at(-1).mass = 50;
             particleList.at(-1).charge = 1;
-            particleList.at(-1).position.set(400, 0, 0);
+            particleList.at(-1).position.set(400, 0, 0);*/
 
-            /*particleList.push(new Particle());
+            particleList.push(new Particle());
             particleList.at(-1).mass = 1;
             particleList.at(-1).charge = 1;
             particleList.at(-1).position.set(-50, 50, 0);
@@ -693,7 +706,7 @@
             particleList.push(new Particle());
             particleList.at(-1).mass = 100;
             particleList.at(-1).charge = 1;
-            particleList.at(-1).position.set(60, 60, 0);*/
+            particleList.at(-1).position.set(60, 60, 0);
         }
 
         if (WebGL.isWebGLAvailable()) {

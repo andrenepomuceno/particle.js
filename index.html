@@ -25,11 +25,23 @@
 <body>
     <div id="info" class="text" style="top: 10px;">particle.js</div>
     <div id="container"></div>
-    <div id="about" class="text" style="bottom: 10px;"><b>MOUSE</b><br>[LEFT] Rotate camera<br>[RIGHT] Move
-        camera<br>[WHEEL] Zoom<br><br><b>KEYBOARD</b><br>[SPACE] Pause/Resume<br>[N] Next frame<br>[R] Reset
-        simulation<br>[C] Default
-        camera<br>[V] XY
-        camera<br>[0-9] Switch simulation<br>[H] Show/Hide text<br>[A] Show/Hide axis</div>
+    <div id="about" class="text" style="bottom: 10px;">
+        <b>MOUSE</b><br>
+        [LEFT] Rotate camera<br>
+        [RIGHT] Move camera<br>
+        [WHEEL] Zoom<br>
+        <br>
+        <b>KEYBOARD</b><br>
+        [SPACE] Pause/Resume<br>
+        [N] Next frame<br>
+        [R] Reset simulation<br>
+        [C] Default camera<br>
+        [V] XY camera<br>
+        [0-9] Switch simulation<br>
+        [H] Show/Hide text<br>
+        [A] Show/Hide axis<br>
+        [Q] Color mode<br>
+    </div>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
@@ -118,7 +130,6 @@
                 force /= absDistanceSq;
                 if (force == 0.0) return;
 
-                //distance.normalize();
                 distance.multiplyScalar(force);
                 this.force.add(distance);
             }
@@ -129,7 +140,6 @@
                 }
 
                 this.force.multiplyScalar(forceConstant);
-                //this.force.round();
 
                 this.velocity.add(this.force);
                 this.position.add(this.velocity);
@@ -257,8 +267,8 @@
         let massRange = [1, 1];
 
         // animation parameters
-        const enableMassRadius = false;
-        const enableChargeColor = false;
+        const enableMassRadius = true;
+        let enableChargeColor = true;
 
         // camera
         let cameraDistance = 3000;
@@ -352,10 +362,10 @@
             massRange = [1, 8];
             chargeRange = [-8, 8];
 
-            const gridSize = 3;
-            const spacing = 500;
+            const gridSize = 4;
+            const spacing = 400;
             const initialParticles = Math.round(1024 / gridSize / gridSize / gridSize);
-            const radiusRange = 128;
+            const radiusRange = 32;
 
             for (let i = 0; i < gridSize; ++i) {
                 let cx = i - gridSize / 2 + 0.5;
@@ -393,22 +403,22 @@
         }
 
         function simulationSpheres() {
-            cameraDistance = 4000;
+            cameraDistance = 3000;
             massConstant = 1 / 13;
             chargeConstant = 1;
             massRange = [1, 8];
             chargeRange = [-3, 3];
 
-            const spheres = 11;
+            const spheres = 10;
             const initialParticles = Math.round(1024 / spheres);
             const radiusRange = 32;
 
             const r1 = 0;
-            const r2 = 1600;
+            const r2 = 1000;
 
             for (var i = 0; i < spheres; ++i) {
                 let [x, y, z] = randomSpheric(r1, r2);
-                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, 0), new THREE.Vector3());
+                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new THREE.Vector3(x, y, z), new THREE.Vector3());
             }
         }
 
@@ -530,6 +540,16 @@
                     nextFrame = true;
                     break;
 
+                case 'q':
+                    enableChargeColor = !enableChargeColor;
+                    particleList.forEach((p, i) => {
+                        scene.remove(p.sphere);
+                    });
+                    cleanup();
+                    simulationSetup();
+                    //sceneSetup();
+                    break;
+
                 default:
                     if (key >= '0' && key <= '9') {
                         pause = true;
@@ -544,7 +564,7 @@
         })
 
         function randomColor() {
-            const min = 30;
+            const min = 10;
             const max = 255;
             const r = Math.round(random(min, max));
             const g = Math.round(random(min, max));

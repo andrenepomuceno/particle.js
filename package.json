@@ -1,0 +1,25 @@
+{
+  "name": "particle.js",
+  "version": "1.0.0",
+  "description": "JavaScript 3D particle simulator.",
+  "main": "./src/main.js",
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "test": "webpack serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrenepomuceno/particle.js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andrenepomuceno/particle.js/issues"
+  },
+  "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
+  "dependencies": {
+    "jquery": "^3.6.0",
+    "three": "^0.143.0"
+  }
+}

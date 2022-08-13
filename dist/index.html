@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>particle.js</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .text {
+            position: absolute;
+            width: 100%;
+            text-align: right;
+            z-index: 100;
+            display: block;
+            color: white;
+            opacity: 100;
+            right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info" class="text" style="top: 10px;">particle.js</div>
+    <div id="container"></div>
+    <div id="about" class="text" style="bottom: 10px;">
+        <b>MOUSE</b><br>
+        [LEFT] Rotate camera<br>
+        [RIGHT] Move camera<br>
+        [WHEEL] Zoom<br>
+        <br>
+        <b>KEYBOARD</b><br>
+        [SPACE] Pause/Resume<br>
+        [N] Next frame<br>
+        [R] Reset simulation<br>
+        [C] Default camera<br>
+        [V] XY camera<br>
+        [0-9] Switch simulation<br>
+        [H] Show/Hide text<br>
+        [A] Show/Hide axis<br>
+        [Q] Color mode<br>
+    </div>
+    <script src="./main.js"></script>
+</body>
+
+</html>

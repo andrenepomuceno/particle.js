@@ -30,6 +30,8 @@ export class Graphics {
         this.cameraDistance = 3000;
         this.cameraPhi = 30; // up/down [0,Pi]
         this.cameraTheta = 45; // rotation [0,2Pi]
+
+        this.showAxis();
     }
 
     cameraSetup() {

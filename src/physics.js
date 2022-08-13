@@ -1,7 +1,7 @@
 
 export class Physics {
     constructor() {
-        this.quantizedPosition = true;
+        this.quantizedPosition = false;
         this.forceConstant = 1;
         this.minDistance = 0;
         this.enableColision = true;

@@ -5,6 +5,8 @@ import { Physics } from './physics.js'
 
 import * as $ from 'jquery';
 
+let simulation = simulationAtom;
+
 const physics = new Physics();
 
 // animation parameters
@@ -71,7 +73,7 @@ function generateParticleColor(p, absCharge) {
     return "rgb(" + r + "," + g + "," + b + ")";
 }
 
-export function sceneSetup(graphics) {
+function sceneSetup(graphics) {
     particleList.forEach((p, i) => {
         //p.position.z = 0;
         let radius = 5;
@@ -100,7 +102,42 @@ export function sceneSetup(graphics) {
     });
 }
 
-export function simulate(graphics) {
+export function simulationSetup(graphics, idx) {
+    switch (idx) {
+        case 1:
+            simulation = simulationCross;
+            break;
+        case 5:
+            simulation = simulation0;
+            break;
+        case 2:
+            simulation = simulation1;
+            break;
+        case 3:
+            simulation = simulationGrid2D;
+            break;
+        case 4:
+            simulation = simulationGrid3D;
+            break;
+        case 6:
+            simulation = simulationSpheres;
+            break;
+        case 0:
+            simulation = simulationAtom;
+            break;
+        case 99:
+            simulation = colisionTest;
+            break;
+        default:
+            break;
+    }
+
+    simulation(graphics);
+    sceneSetup(graphics);
+    graphics.cameraSetup();
+}
+
+export function simulationStep(graphics) {
     let energy = 0.0;
     for (let i = 0; i < particleList.length; ++i) {
         let p1 = particleList[i];
@@ -124,7 +161,7 @@ export function simulate(graphics) {
     $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + Math.round(energy / particles) + "<br>C: " + colisions);
 }
 
-export function cleanup(graphics) {
+export function simulationCleanup(graphics) {
     particleList.forEach((p, i) => {
         graphics.scene.remove(p.sphere);
     });

@@ -2,16 +2,9 @@ import * as $ from 'jquery';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 
 import { Graphics } from './graphics.js'
-import { 
-    sceneSetup, simulate, cleanup, particleList, toogleChargeColor,
-    simulationAtom,
-    simulation0,
-    simulation1,
-    simulationCross,
-    simulationGrid2D,
-    simulationGrid3D,
-    simulationSpheres,
-    colisionTest
+import {
+    simulationSetup, simulationStep, simulationCleanup, 
+    particleList, toogleChargeColor
 } from './simulation.js';
 
 const graphics = new Graphics();
@@ -19,17 +12,6 @@ let hideText = false;
 let hideAxis = false;
 let nextFrame = false;
 let pause = true;
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    graphics.update();
-
-    if (!pause || nextFrame) {
-        nextFrame = false;
-        simulate(graphics);
-    }
-}
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -43,8 +25,8 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'r':
-            cleanup(graphics);
-            simulationSetup();
+            simulationCleanup(graphics);
+            simulationSetup(graphics);
             break;
 
         case 'p':
@@ -79,57 +61,27 @@ document.addEventListener("keydown", (event) => {
             particleList.forEach((p, i) => {
                 graphics.scene.remove(p.sphere);
             });
-            cleanup(graphics);
-            simulationSetup();
+            simulationCleanup(graphics);
+            simulationSetup(graphics);
             break;
 
         case '_':
             pause = true;
-            simulation = colisionTest;
-            cleanup(graphics);
-            simulationSetup();
+            simulationCleanup(graphics);
+            simulationSetup(graphics, 99);
             break;
 
         default:
             if (key >= '0' && key <= '9') {
                 pause = true;
-                switch (key - '0') {
-                    default:
-                    case 1:
-                        simulation = simulationCross;
-                        break;
-                    case 5:
-                        simulation = simulation0;
-                        break;
-                    case 2:
-                        simulation = simulation1;
-                        break;
-                    case 3:
-                        simulation = simulationGrid2D;
-                        break;
-                    case 4:
-                        simulation = simulationGrid3D;
-                        break;
-                    case 6:
-                        simulation = simulationSpheres;
-                        break;
-                    case 0:
-                        simulation = simulationAtom;
-                        break;
-                }
-                cleanup(graphics);
-                simulationSetup();
+                let idx = key - '0';
+                simulationCleanup(graphics);
+                simulationSetup(graphics, idx);
             }
             break;
 
     }
 })
-
-function simulationSetup() {
-    simulation(graphics);
-    sceneSetup(graphics);
-    graphics.cameraSetup();
-}
 
 window.onresize = function () {
     graphics.camera.aspect = window.innerWidth / window.innerHeight;
@@ -137,11 +89,19 @@ window.onresize = function () {
     graphics.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
-let simulation = simulationAtom;
+function animate() {
+    requestAnimationFrame(animate);
+
+    graphics.update();
+
+    if (!pause || nextFrame) {
+        nextFrame = false;
+        simulationStep(graphics);
+    }
+}
 
 if (WebGL.isWebGLAvailable()) {
-    graphics.showAxis();
-    simulationSetup();
+    simulationSetup(graphics);
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

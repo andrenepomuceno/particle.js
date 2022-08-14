@@ -11,9 +11,15 @@ export class Particle {
         this.mass = 0;
         this.charge = 0;
         this.force = new Vector3();
+        
+        this.fixed = false;
     }
 
     update(physics) {
+        if (this.fixed) {
+            return;
+        }
+
         if (this.mass != 0.0) {
             this.force.divideScalar(Math.abs(this.mass));
         }
@@ -32,5 +38,9 @@ export class Particle {
 
     print() {
         console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
+    }
+
+    cvs() {
+        return this.id + "," + this.mass + "," + this.charge + "," + this.position.toArray() + "," + this.velocity.toArray();
     }
 }

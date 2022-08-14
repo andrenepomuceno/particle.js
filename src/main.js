@@ -58,9 +58,6 @@ document.addEventListener("keydown", (event) => {
 
         case 'q':
             toogleChargeColor();
-            particleList.forEach((p, i) => {
-                graphics.scene.remove(p.sphere);
-            });
             simulationCleanup(graphics);
             simulationSetup(graphics);
             break;

@@ -38,6 +38,7 @@ export class Physics {
         let absDistanceSq = distance.lengthSq();
         if (this.minDistance > 0 && absDistanceSq < this.minDistance) {
             absDistanceSq = this.minDistance;
+            return;
         }
     
         if (absDistanceSq == 0.0) {

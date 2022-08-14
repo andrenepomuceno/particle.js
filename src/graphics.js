@@ -27,11 +27,15 @@ export class Graphics {
         this.controls.target.set(0, 0, 0);
         this.controls.update();
 
+        this.cameraDefault();
+
+        this.showAxis();
+    }
+
+    cameraDefault() {
         this.cameraDistance = 3000;
         this.cameraPhi = 30; // up/down [0,Pi]
         this.cameraTheta = 45; // rotation [0,2Pi]
-
-        this.showAxis();
     }
 
     cameraSetup() {
@@ -60,6 +64,7 @@ export class Graphics {
 
     render(particle) {
         particle.sphere.position.set(particle.position.x, particle.position.y, particle.position.z);
+        //particle.sphere.position.multiplyScalar(0.5);
     }
 
     update() {

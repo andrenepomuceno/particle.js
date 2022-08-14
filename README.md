@@ -2,8 +2,14 @@
 
 JavaScript 3D particle simulator.
 
-## Build and Run
+## Run
 
+Just open `dist/index.html`
+
+## Build
+
+To run the test server on `localhost:8080`
 ```
+npm install
 npm run test
 ````

@@ -20,7 +20,6 @@ let simulation = simulationAtom;
 const enableMassRadius = true;
 let enableChargeColor = true;
 let cicles = 0;
-let colisions = 0;
 
 export function toogleChargeColor() {
     enableChargeColor = !enableChargeColor;
@@ -125,7 +124,7 @@ export function simulationStep(graphics) {
             physics.interact(p1, p2);
             if (physics.enableColision && p1.position.equals(p2.position)) {
                 physics.colide(p1, p2);
-                ++colisions;
+                ++physics.colisions;
             }
         }
         p1.update(physics);
@@ -135,7 +134,7 @@ export function simulationStep(graphics) {
     ++cicles;
 
     let particles = particleList.length;
-    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + Math.round(energy / particles) + "<br>C: " + colisions);
+    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + Math.round(energy / particles) + "<br>C: " + physics.colisions);
 }
 
 export function simulationCleanup(graphics) {
@@ -144,6 +143,6 @@ export function simulationCleanup(graphics) {
     });
     particleList = [];
     //particleId = 0;
-    colisions = 0;
+    //colisions = 0;
     cicles = 0;
 }

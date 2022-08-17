@@ -1,4 +1,14 @@
-import { WebGLRenderer, Scene, PerspectiveCamera, Vector3, SphereGeometry, Mesh, MeshBasicMaterial, ArrowHelper } from 'three';
+import {
+    WebGLRenderer,
+    Scene,
+    PerspectiveCamera,
+    Vector3,
+    SphereGeometry,
+    Mesh,
+    MeshBasicMaterial,
+    ArrowHelper,
+    Raycaster,
+} from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from './helpers';
@@ -30,6 +40,8 @@ export class Graphics {
         this.cameraDefault();
 
         this.showAxis();
+
+        this.raycaster = new Raycaster();
     }
 
     cameraDefault() {
@@ -59,6 +71,7 @@ export class Graphics {
             geometryMap.set(radius, new SphereGeometry(radius));
         }
         particle.sphere = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
+        particle.sphere.particle = particle;
         this.scene.add(particle.sphere);
     }
 
@@ -71,5 +84,19 @@ export class Graphics {
         this.controls.update();
         this.stats.update();
         this.renderer.render(this.scene, this.camera);
+    }
+
+    raycast(pointer) {
+        this.raycaster.setFromCamera(pointer, this.camera);
+        const intersects = this.raycaster.intersectObjects(this.scene.children, false);
+        for (let i = 0; i < intersects.length; i++) {
+            let obj = intersects[i].object;
+            let particle = obj.particle;
+            if (obj == this.raycaster.lastObject) continue;
+            this.raycaster.lastObject = obj;
+            if (particle) {
+                console.log(particle.csv());
+            }
+        }
     }
 }

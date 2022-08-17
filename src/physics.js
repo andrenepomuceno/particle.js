@@ -10,23 +10,24 @@ export class Physics {
         this.chargeConstant = 1;
         this.chargeRange = [-1, 1];
         this.massRange = [1, 1];
+
+        this.colisions = 0;
     }
 
     colide(p1, p2) {
+        ++this.colisions;
+
         let m = p1.mass + p2.mass;
         if (m == 0) {
             return;
         }
     
         let s = 2 * p1.mass * p2.mass / m;
-        let dv1 = p2.velocity.clone().sub(p1.velocity);
-        let dv2 = p1.velocity.clone().sub(p2.velocity);
+        let dv = p2.velocity.clone().sub(p1.velocity);
+        dv.multiplyScalar(s);
     
-        dv1.multiplyScalar(s);
-        dv2.multiplyScalar(s);
-    
-        p1.force.add(dv1);
-        p2.force.add(dv2);
+        p1.force.add(dv);
+        p2.force.sub(dv);
     }
     
     interact(p1, p2) {
@@ -38,7 +39,6 @@ export class Physics {
         let absDistanceSq = distance.lengthSq();
         if (this.minDistance > 0 && absDistanceSq < this.minDistance) {
             absDistanceSq = this.minDistance;
-            return;
         }
     
         if (absDistanceSq == 0.0) {
@@ -48,12 +48,13 @@ export class Physics {
         let force = 0.0;
         force += this.massConstant * p1.mass * p2.mass;
         force -= this.chargeConstant * p1.charge * p2.charge;
-        force /= absDistanceSq;
         if (force == 0.0) return;
-    
+        force /= absDistanceSq;
+        force *= this.forceConstant;
+        
+        distance.normalize();
         distance.multiplyScalar(force);
         p1.force.add(distance);
-    
         p2.force.sub(distance);
     }
 }

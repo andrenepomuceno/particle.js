@@ -24,8 +24,6 @@ export class Particle {
             this.force.divideScalar(Math.abs(this.mass));
         }
 
-        this.force.multiplyScalar(physics.forceConstant);
-
         this.velocity.add(this.force);
         this.position.add(this.velocity);
 
@@ -40,7 +38,7 @@ export class Particle {
         console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
     }
 
-    cvs() {
+    csv() {
         return this.id + "," + this.mass + "," + this.charge + "," + this.position.toArray() + "," + this.velocity.toArray();
     }
 }

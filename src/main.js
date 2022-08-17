@@ -3,9 +3,10 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 
 import { Graphics } from './graphics.js'
 import {
-    simulationSetup, simulationStep, simulationCleanup, 
+    simulationSetup, simulationStep, simulationCleanup,
     particleList, toogleChargeColor
 } from './simulation.js';
+import { Vector2 } from 'three';
 
 const graphics = new Graphics();
 let hideText = false;
@@ -86,8 +87,20 @@ window.onresize = function () {
     graphics.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
+let pointer = new Vector2();
+window.addEventListener('pointermove', function (event) {
+    // calculate pointer position in normalized device coordinates
+    // (-1 to +1) for both components
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
+});
+
 function animate() {
     requestAnimationFrame(animate);
+
+    if (pause) {
+        graphics.raycast(pointer);
+    }
 
     graphics.update();
 

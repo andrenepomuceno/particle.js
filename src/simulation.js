@@ -134,7 +134,7 @@ export function simulationStep(graphics) {
     ++cicles;
 
     let particles = particleList.length;
-    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + Math.round(energy / particles) + "<br>C: " + physics.colisions);
+    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + (energy / particles).toFixed(2) + "<br>C: " + physics.colisions);
 }
 
 export function simulationCleanup(graphics) {

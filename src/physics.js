@@ -54,6 +54,7 @@ export class Physics {
         
         distance.normalize();
         distance.multiplyScalar(force);
+
         p1.force.add(distance);
         p2.force.sub(distance);
     }

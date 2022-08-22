@@ -3,30 +3,49 @@ import { particleList, physics } from './simulation.js'
 import { random, randomSpheric } from './helpers.js'
 import { Particle } from './particle.js'
 
-function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
+function randomVector(range) {
+    return new Vector3(
+        random(-range, range),
+        random(-range, range),
+        random(-range, range)
+    );
+}
+
+function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+    let p = new Particle();
+    p.mass = mass;
+    p.charge = charge;
+    p.position.add(position);
+    p.velocity.add(velocity);
+    p.fixed = fixed;
+    particleList.push(p);
+}
+
+function createParticlesRV(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
     for (var i = 0; i < particles; ++i) {
         let [x, y, z] = positionGenerator();
-        let p = new Particle();
-        p.mass = Math.round(random(m1, m2));
-        p.charge = Math.round(random(q1, q2));
-        p.position.set(x, y, z);
-        p.position.add(center);
-        p.velocity.add(velocity);
-        particleList.push(p);
+        let position = new Vector3(x, y, z);
+        position.add(center);
+        createParticle(
+            Math.round(random(m1, m2)),
+            Math.round(random(q1, q2)),
+            position,
+            randomVector(1)
+        );
     }
 }
 
-function createParticlesFixed(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
+function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
     for (var i = 0; i < particles; ++i) {
         let [x, y, z] = positionGenerator();
-        let p = new Particle();
-        p.mass = Math.round(random(m1, m2));
-        p.charge = Math.round(random(q1, q2));
-        p.position.set(x, y, z);
-        p.position.add(center);
-        p.velocity.add(velocity);
-        p.fixed = true;
-        particleList.push(p);
+        let position = new Vector3(x, y, z);
+        position.add(center);
+        createParticle(
+            Math.round(random(m1, m2)),
+            Math.round(random(q1, q2)),
+            position,
+            velocity
+        );
     }
 }
 
@@ -37,42 +56,49 @@ function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center
 function createParticlesCube(particles, size, mass, charge, center, velocity) {
     createParticles(particles, massRange, chargeRange, (x, y, z) => {
         return [
-            Helpers.random(-size, size),
-            Helpers.random(-size, size),
-            Helpers.random(-size, size)
+            random(-size, size),
+            random(-size, size),
+            random(-size, size)
         ];
     }, center, velocity);
 }
 
 export function simulationAtom(graphics) {
-    graphics.cameraDistance = 5000;
-    //cameraPhi = graphics.cameraTheta = 0;
+    graphics.cameraDistance = 500;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
 
     /*const eMass = 9.1093837015e-31;
     const pMass = 1.67262192369e-27;
     const nMass = 1.67492749804e-27;*/
 
-    physics.forceConstant = 1/10;
-    physics.massConstant = 1/10;
+    physics.forceConstant = 1;
+    physics.massConstant = 1;
     physics.chargeConstant = 100;
     physics.massRange = [1, 1839];
     physics.chargeRange = [-1, 1];
 
-    let r = 64;
-    createParticles(8, [1836, 1836], [1, 1], () => {
+    let r = 10;
+    let vy = 6;
+    let vx = 0;
+
+    createParticles(1, [1839, 1839], [0, 0], () => {
         let pos = randomSpheric(0, r);
-        return [pos[0], pos[1], pos[2]];
-    });
-    createParticles(8, [1839, 1839], [0, 0], () => {
+        //return [pos[0], pos[1], pos[2]];
+        return [r, 0, 0];
+    }, new Vector3(), new Vector3(-vx, vy, 0));
+
+    createParticles(1, [1836, 1836], [1, 1], () => {
         let pos = randomSpheric(0, r);
-        return [pos[0], pos[1], pos[2]];
-    });
+        //return [pos[0], pos[1], pos[2]];
+        return [-r, 0, 0];
+    }, new Vector3(), new Vector3(vx, -vy, 0));
 
     let re = 1024;
-    createParticles(512, [1, 1], [-1, -1], () => {
+    createParticlesRV(512, [1, 1], [-1, -1], () => {
         let pos = randomSpheric(0, re);
         return [pos[0], pos[1], pos[2]];
-    });
+        //return [r, 0, 0];
+    }, new Vector3(), new Vector3());
 
     // let p = new Particle();
     // p.mass = 1e3;

@@ -12,7 +12,7 @@ const graphics = new Graphics();
 let hideText = false;
 let hideAxis = false;
 let nextFrame = false;
-let pause = true;
+let pause = false;
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -63,16 +63,10 @@ document.addEventListener("keydown", (event) => {
             simulationSetup(graphics);
             break;
 
-        case '_':
-            pause = true;
-            simulationCleanup(graphics);
-            simulationSetup(graphics, 99);
-            break;
-
         default:
             if (key >= '0' && key <= '9') {
                 pause = true;
-                let idx = key - '0';
+                let idx = key - '0' - 1;
                 simulationCleanup(graphics);
                 simulationSetup(graphics, idx);
             }
@@ -87,7 +81,7 @@ window.onresize = function () {
     graphics.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
-let pointer = new Vector2();
+let pointer = new Vector2(1e5, 1e5);
 window.addEventListener('pointermove', function (event) {
     // calculate pointer position in normalized device coordinates
     // (-1 to +1) for both components

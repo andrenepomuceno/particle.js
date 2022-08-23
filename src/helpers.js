@@ -1,5 +1,11 @@
-export function random(a, b) {
-    return a + (b - a) * Math.random();
+export function random(a, b, round = false) {
+    let r = Math.random();
+    r *= (b - a);
+    r += a;
+    if (round) {
+        return Math.round(r);
+    }
+    return r;
 }
 
 export function randomColor() {

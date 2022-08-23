@@ -1,90 +1,75 @@
 import * as $ from 'jquery';
-import { Vector3 } from 'three';
-import { Physics } from './physics.js'
-import {
-    simulation0,
-    simulation1,
-    simulationAtom,
-    simulationCross,
-    simulationGrid2D,
-    simulationGrid3D,
-    simulationSpheres,
-    colisionTest
-} from './scenarios.js';
+import { Physics } from './physics.js';
+//import { scenarios0 as simulationList } from './scenarios0.js';
+import { scenarios1 as simulationList } from './scenarios1.js';
 import { randomColor } from './helpers.js';
 
-export let physics;
 export let particleList = [];
 
-let simulation = simulationAtom;
-const enableMassRadius = true;
+let enableMassRadius = true;
 let enableChargeColor = true;
+
+let physics;
+let simulation = simulationList[0];
 let cicles = 0;
+
+const minRadius = 4;
+const maxRadius = 16;
 
 export function toogleChargeColor() {
     enableChargeColor = !enableChargeColor;
 }
 
 export function simulationSetup(graphics, idx) {
-    switch (idx) {
-        case 1:
-            simulation = simulationCross;
-            break;
-        case 5:
-            simulation = simulation0;
-            break;
-        case 2:
-            simulation = simulation1;
-            break;
-        case 3:
-            simulation = simulationGrid2D;
-            break;
-        case 4:
-            simulation = simulationGrid3D;
-            break;
-        case 6:
-            simulation = simulationSpheres;
-            break;
-        case 0:
-            simulation = simulationAtom;
-            break;
-        case 99:
-            simulation = colisionTest;
-            break;
-        default:
-            break;
+    if (idx >= 0 && idx < simulationList.length) {
+        simulation = simulationList[idx];
     }
 
     physics = new Physics();
     graphics.cameraDefault();
-    simulation(graphics);
+    simulation(graphics, physics);
     sceneSetup(graphics);
     graphics.cameraSetup();
 }
 
 function sceneSetup(graphics) {
-    particleList.forEach((p, i) => {
-        let radius = 5;
-        let massRange = physics.massRange;
-        let chargeRange = physics.chargeRange;
-        if (enableMassRadius) {
-            const absMass = Math.abs(Math.max(massRange[0], massRange[1]));
-            radius += Math.round(10 * Math.abs(p.mass) / absMass);
+    let mMin = Infinity, mMax = -Infinity;
+    let qMin = Infinity, qMax = -Infinity;
+    particleList.forEach((p, idx) => {
+        if (p.mass > mMax) {
+            mMax = p.mass;
         }
-        graphics.addToScene(p, radius);
+        if (p.mass < mMin) {
+            mMin = p.mass;
+        }
+
+        if (p.charge > qMax) {
+            qMax = p.charge;
+        }
+        if (p.charge < qMin) {
+            qMin = p.charge;
+        }
+    });
+    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
+    const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
+
+    particleList.forEach((p, i) => {
+        let radius = minRadius;
+        if (enableMassRadius) {
+            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
+        }
 
         let color;
         if (enableChargeColor) {
-            const absCharge = Math.abs(Math.max(chargeRange[0], chargeRange[1]));
             color = generateParticleColor(p, absCharge);
         } else {
             color = randomColor();
         }
-        p.sphere.material.color.set(color);
 
-        if (physics.quantizedPosition) {
-            p.position.round();
-        }
+        graphics.addParticle(p, radius);
+
+        physics.update(p);
+        p.sphere.material.color.set(color);
 
         graphics.render(p);
     });
@@ -95,20 +80,18 @@ function generateParticleColor(p, absCharge) {
     const min = 30;
     const max = 255;
 
-    if (p.mass < 0) {
-        g = 255;
-    }
-
     if (p.charge > 0) {
         b = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
     } else if (p.charge < 0) {
         r = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
     } else {
-        if (p.mass >= 0) {
-            r = g = b = 255;
-        } else {
-            r = g = b = 127;
-        }
+        r = g = b = 255;
+    }
+
+    if (p.nearCharge > 0) {
+        g = 255;
+    } else if (p.nearCharge < 0) {
+        g = 127;
     }
 
     return "rgb(" + r + "," + g + "," + b + ")";
@@ -120,21 +103,16 @@ export function simulationStep(graphics) {
         let p1 = particleList[i];
         for (let j = i + 1; j < particleList.length; ++j) {
             let p2 = particleList[j];
-
             physics.interact(p1, p2);
-            if (physics.enableColision && p1.position.equals(p2.position)) {
-                physics.colide(p1, p2);
-                ++physics.colisions;
-            }
         }
-        p1.update(physics);
+        physics.update(p1);
         graphics.render(p1);
         energy += (p1.mass * p1.velocity.lengthSq());
     }
     ++cicles;
 
     let particles = particleList.length;
-    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + (energy / particles).toFixed(2) + "<br>C: " + physics.colisions);
+    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + (energy / particles).toFixed(2) + "<br>C: " + physics.colisionCounter);
 }
 
 export function simulationCleanup(graphics) {
@@ -142,7 +120,5 @@ export function simulationCleanup(graphics) {
         graphics.scene.remove(p.sphere);
     });
     particleList = [];
-    //particleId = 0;
-    //colisions = 0;
     cicles = 0;
 }

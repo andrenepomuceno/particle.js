@@ -1,7 +1,18 @@
 import { Vector3 } from 'three';
 import { particleList, physics } from './simulation.js'
 import { random, randomSpheric } from './helpers.js'
-import { Particle } from './particle.js'
+import { Particle } from './physics.js'
+
+export const scenarios0 = [
+    colisionTest,
+    simulation0,
+    simulation1,
+    simulationAtom,
+    simulationCross,
+    simulationGrid2D,
+    simulationGrid3D,
+    simulationSpheres,
+];
 
 function randomVector(range) {
     return new Vector3(
@@ -19,20 +30,6 @@ function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity
     p.velocity.add(velocity);
     p.fixed = fixed;
     particleList.push(p);
-}
-
-function createParticlesRV(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
-    for (var i = 0; i < particles; ++i) {
-        let [x, y, z] = positionGenerator();
-        let position = new Vector3(x, y, z);
-        position.add(center);
-        createParticle(
-            Math.round(random(m1, m2)),
-            Math.round(random(q1, q2)),
-            position,
-            randomVector(1)
-        );
-    }
 }
 
 function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
@@ -53,17 +50,33 @@ function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center
     createParticles(particles, massRange, chargeRange, (x, y, z) => randomSpheric(r1, r2, mode), center, velocity);
 }
 
-function createParticlesCube(particles, size, mass, charge, center, velocity) {
-    createParticles(particles, massRange, chargeRange, (x, y, z) => {
-        return [
-            random(-size, size),
-            random(-size, size),
-            random(-size, size)
-        ];
-    }, center, velocity);
+function simulationDev(graphics) {
+    graphics.cameraDistance = 1000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1;
+    physics.chargeConstant = 1;
+
+    let x, y, z;
+
+    createParticle(1836, 1);
+
+    let v0 = 16;
+    let r0 = 1e3;
+    let n = 1e3;
+    for (let i = 0; i < n; ++i) {
+        [x, y, z] = randomSpheric(0, r0);
+        createParticle(
+            1,
+            -1,
+            new Vector3(x, y, z),
+            randomVector(v0)
+        );
+    }
 }
 
-export function simulationAtom(graphics) {
+function simulationAtom(graphics) {
     graphics.cameraDistance = 500;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
@@ -74,8 +87,8 @@ export function simulationAtom(graphics) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 100;
-    physics.massRange = [1, 1839];
-    physics.chargeRange = [-1, 1];
+    let massRange = [1, 1839];
+    let chargeRange = [-1, 1];
 
     let r = 10;
     let vy = 6;
@@ -94,7 +107,7 @@ export function simulationAtom(graphics) {
     }, new Vector3(), new Vector3(vx, -vy, 0));
 
     let re = 1024;
-    createParticlesRV(512, [1, 1], [-1, -1], () => {
+    createParticles(512, [1, 1], [-1, -1], () => {
         let pos = randomSpheric(0, re);
         return [pos[0], pos[1], pos[2]];
         //return [r, 0, 0];
@@ -108,26 +121,26 @@ export function simulationAtom(graphics) {
     // particleList.push(p);
 }
 
-export function simulation0(graphics) {
+function simulation0(graphics) {
     graphics.cameraDistance = 5000;
 
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 2];
-    physics.chargeRange = [-1, 1];
+    let massRange = [1, 2];
+    let chargeRange = [-1, 1];
 
     const initialParticles = 1024;
     const radiusRange = 512;
 
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(), new Vector3());
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(), new Vector3());
 }
 
-export function simulation1(graphics) {
+function simulation1(graphics) {
     graphics.cameraDistance = 4000;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 1];
-    physics.chargeRange = [-1, 1];
+    let massRange = [1, 1];
+    let chargeRange = [-1, 1];
 
     const initialParticles = Math.round(1024 / 2);
     const radiusRange = 32;
@@ -135,17 +148,17 @@ export function simulation1(graphics) {
     const y = x;
     const v = 16;
 
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(x, y, 0), new Vector3(-v, 0, 0));
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(-x, -y, 0), new Vector3(v, 0, 0));
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(x, y, 0), new Vector3(-v, 0, 0));
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(-x, -y, 0), new Vector3(v, 0, 0));
 }
 
-export function simulationGrid2D(graphics) {
+function simulationGrid2D(graphics) {
     graphics.cameraDistance = 5000
     graphics.cameraPhi = 0; graphics.cameraTheta = 0;
     physics.massConstant = 1 / 100;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 5];
-    physics.chargeRange = [-1, 1];
+    let massRange = [1, 5];
+    let chargeRange = [-1, 1];
 
     const gridSize = 16;
     const spacing = 128;
@@ -158,18 +171,18 @@ export function simulationGrid2D(graphics) {
         for (let j = 0; j < gridSize; ++j) {
             let cy = j - gridSize / 2 + 0.5;
             cy *= spacing;
-            createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(cx, cy, 0), new Vector3());
+            createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(cx, cy, 0), new Vector3());
         }
     }
 }
 
-export function simulationGrid3D(graphics) {
+function simulationGrid3D(graphics) {
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = 30; graphics.cameraTheta = 45;
     physics.massConstant = 1 / 10;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 8];
-    physics.chargeRange = [-8, 8];
+    let massRange = [1, 8];
+    let chargeRange = [-8, 8];
 
     const gridSize = 4;
     const spacing = 400;
@@ -185,40 +198,41 @@ export function simulationGrid3D(graphics) {
             for (let k = 0; k < gridSize; ++k) {
                 let cz = k - gridSize / 2 + 0.5;
                 cz *= spacing;
-                createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(cx, cy, cz), new Vector3());
+                createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(cx, cy, cz), new Vector3());
             }
         }
     }
 }
 
-export function simulationCross(graphics) {
-    graphics.cameraDistance = 4000;
+function simulationCross(graphics) {
+    graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    physics.massConstant = 1 / 17;
+    physics.forceConstant = 5;
+    physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 16];
-    physics.chargeRange = [-3, 3];
+    let massRange = [1, 9];
+    let chargeRange = [-3, 3];
 
-    const initialParticles = Math.round(1024 / 7);
+    const initialParticles = Math.round(1024 / 6);
     const radiusRange = 128;
-    const space = 1000;
-    const v = 10;
+    const space = 700;
+    const v = 2;
 
-    createParticlesSphere(2 * initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(), new Vector3());
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(space, 0, 0), new Vector3(0, -v, 0));
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(0, space, 0), new Vector3(v, 0, 0));
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(-space, 0, 0), new Vector3(0, v, 0));
-    createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(0, -space, 0), new Vector3(-v, 0, 0));
-    createParticlesSphere(initialParticles, 0, 10000, physics.massRange, physics.chargeRange, new Vector3(), new Vector3());
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(), new Vector3());
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(space, 0, 0), new Vector3(0, -v, 0));
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(0, space, 0), new Vector3(v, 0, 0));
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(-space, 0, 0), new Vector3(0, v, 0));
+    createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(0, -space, 0), new Vector3(-v, 0, 0));
+    createParticlesSphere(initialParticles, 0, 10000, massRange, chargeRange, new Vector3(), new Vector3());
 }
 
-export function simulationSpheres(graphics) {
+function simulationSpheres(graphics) {
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     physics.massConstant = 1 / 13;
     physics.chargeConstant = 1;
-    physics.massRange = [1, 8];
-    physics.chargeRange = [-3, 3];
+    let massRange = [1, 8];
+    let chargeRange = [-3, 3];
 
     const spheres = 10;
     const initialParticles = Math.round(1024 / spheres);
@@ -229,21 +243,21 @@ export function simulationSpheres(graphics) {
 
     for (var i = 0; i < spheres; ++i) {
         let [x, y, z] = randomSpheric(r1, r2);
-        createParticlesSphere(initialParticles, 0, radiusRange, physics.massRange, physics.chargeRange, new Vector3(x, y, z), new Vector3());
+        createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(x, y, z), new Vector3());
     }
 }
 
-export function colisionTest(graphics) {
+function colisionTest(graphics) {
     graphics.cameraDistance = 500;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.massRange = [1, 50];
-    physics.chargeRange = [-1, 1];
+    let massRange = [1, 50];
+    let chargeRange = [-1, 1];
 
     /*let i = -250;
-    createParticles(10, [1, 1], physics.chargeRange, (x, y, z) => {
+    createParticles(10, [1, 1], chargeRange, (x, y, z) => {
         i += 50;
         return [i, 0, 0];
     })

@@ -1,20 +1,18 @@
-import * as $ from 'jquery';
 import { Physics } from './physics.js';
-//import { scenarios0 as simulationList } from './scenarios0.js';
-import { scenarios1 as simulationList } from './scenarios1.js';
+import { scenarios0 as simulationList } from './scenarios0.js';
+//import { scenarios1 as simulationList } from './scenarios1.js';
 import { randomColor } from './helpers.js';
 
 export let particleList = [];
-
+let simulation = simulationList[0];
 let enableMassRadius = true;
 let enableChargeColor = true;
-
 let physics;
-let simulation = simulationList[0];
 let cicles = 0;
+let energy = 0.0;
 
-const minRadius = 4;
-const maxRadius = 16;
+const minRadius = 10;
+const maxRadius = 30;
 
 export function toogleChargeColor() {
     enableChargeColor = !enableChargeColor;
@@ -23,6 +21,8 @@ export function toogleChargeColor() {
 export function simulationSetup(graphics, idx) {
     if (idx >= 0 && idx < simulationList.length) {
         simulation = simulationList[idx];
+    } else {
+        simulation = simulationList[0];
     }
 
     physics = new Physics();
@@ -80,14 +80,15 @@ function generateParticleColor(p, absCharge) {
     const min = 30;
     const max = 255;
 
-    if (p.charge > 0) {
-        b = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
-    } else if (p.charge < 0) {
-        r = Math.round(min + (max - min) * Math.abs(p.charge) / absCharge);
+    let charge = p.charge;
+    if (charge > 0) {
+        b = Math.round(min + (max - min) * Math.abs(charge) / absCharge);
+    } else if (charge < 0) {
+        r = Math.round(min + (max - min) * Math.abs(charge) / absCharge);
     } else {
         r = g = b = 255;
     }
-
+    
     if (p.nearCharge > 0) {
         g = 255;
     } else if (p.nearCharge < 0) {
@@ -98,7 +99,7 @@ function generateParticleColor(p, absCharge) {
 }
 
 export function simulationStep(graphics) {
-    let energy = 0.0;
+    energy = 0.0;
     for (let i = 0; i < particleList.length; ++i) {
         let p1 = particleList[i];
         for (let j = i + 1; j < particleList.length; ++j) {
@@ -110,9 +111,6 @@ export function simulationStep(graphics) {
         energy += (p1.mass * p1.velocity.lengthSq());
     }
     ++cicles;
-
-    let particles = particleList.length;
-    $("#info").html("N: " + particles + "<br>T: " + cicles + "<br>E (avg): " + (energy / particles).toFixed(2) + "<br>C: " + physics.colisionCounter);
 }
 
 export function simulationCleanup(graphics) {
@@ -121,4 +119,15 @@ export function simulationCleanup(graphics) {
     });
     particleList = [];
     cicles = 0;
+}
+
+export function simulationState() {
+    let particles = particleList.length;
+    return [
+        simulation.name,
+        particles,
+        cicles,
+        (energy / particles).toFixed(2),
+        physics.colisionCounter,
+    ];
 }

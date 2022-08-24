@@ -4,6 +4,7 @@ import { random, randomSpheric } from './helpers.js'
 import { Particle } from './physics.js'
 
 export const scenarios1 = [
+    simulationStrong2,
     simulationStrong1,
     simulationStrong0,
     simulationMove1,
@@ -59,75 +60,86 @@ function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc,
     }
 }
 
-function simulationStrong1(graphics, physics) {
-    graphics.cameraDistance = 2000;
-    //graphics.cameraPhi = graphics.cameraTheta = 0;
+function createNuclei0(x0 = 128 / 3, position = new Vector3(), velocity = new Vector3()) {
+    let m1 = 611;
+    let m2 = 614;
+    let q1 = 2;
+    let q2 = -1;
+
+    createParticle2(m1, q1, -1,
+        new Vector3(-x0, 0, 0).add(position),
+        velocity);
+    createParticle2(m2, q2, 2,
+        new Vector3(0, 0, 0).add(position),
+        velocity);
+    createParticle2(m1, q1, -1,
+        new Vector3(x0, 0, 0).add(position),
+        velocity);
+}
+
+function simulationStrong2(graphics, physics) {
+    graphics.cameraDistance = 5000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1;
-    physics.chargeConstant = 10;
-    physics.nearChargeConstant = 1;
+    physics.massConstant = 1e-2;
+    physics.chargeConstant = Math.pow(64, 2);
+    physics.nearChargeConstant = Math.pow(7, 2);
     physics.nearChargeRange = 128;
 
-    let r0 = physics.nearChargeRange / 2;
-    let r1 = 1024;
-    let v = 0;
-    let p0 = new Vector3(0, 0, 0);
-
-    createParticles2(
-        2,
-        (i) => {
-            return 5;
-        },
-        (i) => {
-            return 2;
-        },
-        (i) => {
-            return -1;
-        },
-        () => {
-            let p = randomSphericVector(0, r0);
-            p.add(p0);
-            return p;
-        },
-        () => {
-            return new Vector3(v, 0, 0);
-        }
+    let x0 = physics.nearChargeRange / 3;
+    let x = 1000;
+    let y = x;
+    let vx = 2;
+    let vy = vx;
+    createNuclei0(
+        x0,
+        new Vector3(-x, y, 0),
+        new Vector3(vx, -vy, 0)
+    );
+    createNuclei0(
+        x0,
+        new Vector3(-x, -y, 0),
+        new Vector3(vx, vy, 0)
     );
 
-    createParticles2(
-        1,
-        (i) => {
-            return 10;
-        },
-        (i) => {
-            return -1;
-        },
-        (i) => {
-            return 2;
-        },
-        () => {
-            let p = randomSphericVector(0, r0);
-            p.add(p0);
-            return p;
-        },
-        () => {
-            return new Vector3(v, 0, 0);
-        }
-    );
-
-    createParticles2(
-        512,
+    let n = 512;
+    let r0 = 2048;
+    createParticles(
+        n,
         (i) => { return 1; },
         (i) => { return -3; },
-        (i) => { return 0; },
         () => {
-            return randomSphericVector(0, r1);
+            let p = randomSphericVector(0, r0);
+            return p;
         },
         () => {
             return randomVector(0);
         }
-    );
+    )
+}
+
+function simulationStrong1(graphics, physics) {
+    graphics.cameraDistance = 4000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = Math.pow(80, 2);
+    physics.nearChargeConstant = Math.pow(5, 2);
+    physics.nearChargeRange = 128;
+
+    let x0 = physics.nearChargeRange / 3;
+    let r1 = 256;
+    let v1 = 15;
+
+    let m0 = 1;
+    let q0 = -3;
+
+    createNuclei0(x0);
+    createParticle2(m0, q0, 0,
+        new Vector3(0, r1, 0),
+        new Vector3(v1, 0, 0));
 }
 
 function simulationStrong0(graphics, physics) {
@@ -146,8 +158,8 @@ function simulationStrong0(graphics, physics) {
     let q = 1;
     let sq = 1;
 
-    createParticle2(m, q, sq, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
-    createParticle2(m, -q, -sq, new Vector3(-x, 0, 0), new Vector3(-v, 0, 0));
+    createParticle2(m, q, sq, new Vector3(x, 0, 0), new Vector3(0, v, 0));
+    createParticle2(m, -q, -sq, new Vector3(-x, 0, 0), new Vector3(-0, v, 0));
 }
 
 function simulationMove1(graphics, physics) {
@@ -245,13 +257,16 @@ function simulationAtom1(graphics, physics) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1e2;
+    physics.nearChargeConstant = 1e2;
+    physics.nearChargeRange = 128;
 
     let r0 = 64;
     let v0 = 1;
-    createParticles(
+    createParticles2(
         64,
         (i) => { return (i % 2) ? (1839) : (1836); },
         (i) => { return (i % 2) ? (0) : (1); },
+        (i) => { return (i % 2) ? (-1) : (1); },
         () => { return randomSphericVector(0, r0); },
         () => { return randomVector(v0); }
     )

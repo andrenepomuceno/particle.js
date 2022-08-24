@@ -35,7 +35,7 @@ export class Physics {
         this.forceConstant = 1;
         this.massConstant = 1;
         this.chargeConstant = 1;
-        this.nearChargeConstant = 0;
+        this.nearChargeConstant = 1;
         this.nearChargeRange = 128;
 
         this.colisionCounter = 0;

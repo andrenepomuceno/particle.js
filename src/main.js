@@ -3,7 +3,7 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 
 import { Graphics } from './graphics.js'
 import {
-    simulationSetup, simulationStep, simulationCleanup,
+    simulationSetup, simulationStep, simulationCleanup, simulationState,
     particleList, toogleChargeColor
 } from './simulation.js';
 import { Vector2 } from 'three';
@@ -13,6 +13,7 @@ let hideText = false;
 let hideAxis = false;
 let nextFrame = false;
 let pause = false;
+let simulationIdx = 0;
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -63,12 +64,25 @@ document.addEventListener("keydown", (event) => {
             simulationSetup(graphics);
             break;
 
+        case '=':
+            ++simulationIdx;
+            simulationCleanup(graphics);
+            simulationSetup(graphics, simulationIdx);
+            break;
+
+        case '-':
+            if (simulationIdx == 0) break;
+            --simulationIdx;
+            simulationCleanup(graphics);
+            simulationSetup(graphics, simulationIdx);
+            break;
+
         default:
             if (key >= '0' && key <= '9') {
                 pause = true;
-                let idx = key - '0' - 1;
+                simulationIdx = key - '0' - 1;
                 simulationCleanup(graphics);
-                simulationSetup(graphics, idx);
+                simulationSetup(graphics, simulationIdx);
             }
             break;
 
@@ -101,6 +115,8 @@ function animate() {
     if (!pause || nextFrame) {
         nextFrame = false;
         simulationStep(graphics);
+        let [name, n, t, e, c] = simulationState();
+        $("#info").html(name + "<br>N: " + n + "<br>T: " + t + "<br>E (avg): " + e + "<br>C: " + c);
     }
 }
 

@@ -160,6 +160,15 @@ window.addEventListener('pointermove', function (event) {
     pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
 });
 
+function updateInfo() {
+    let [name, n, t, e, c] = simulationState();
+    options.info.name = name;
+    options.info.particles = n;
+    options.info.time = t;
+    options.info.energy = e;
+    options.info.collisions = c;
+}
+
 let last = 0;
 function animate(now) {
     requestAnimationFrame(animate);
@@ -177,12 +186,7 @@ function animate(now) {
 
     if (!last || now - last >= 250) {
         last = now;
-        let [name, n, t, e, c] = simulationState();
-        options.info.name = name;
-        options.info.particles = n;
-        options.info.time = t;
-        options.info.energy = e;
-        options.info.collisions = c;
+        updateInfo();
     }
 }
 

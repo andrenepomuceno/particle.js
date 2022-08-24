@@ -4,6 +4,8 @@ import { random, randomSpheric } from './helpers.js'
 import { Particle } from './physics.js'
 
 export const scenarios1 = [
+    simulationNuclei0,
+    simulationNuclei1,
     simulationStrong2,
     simulationStrong1,
     simulationStrong0,
@@ -58,6 +60,59 @@ function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc,
     for (let i = 0; i < n; ++i) {
         createParticle2(massFunc(i, n), chargeFunc(i, n), nearChargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
     }
+}
+
+function simulationNuclei1(graphics, physics) {
+    graphics.cameraDistance = 1000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+
+    physics.forceConstant = 1;
+    physics.massConstant = 0;
+    physics.chargeConstant = 1;
+    physics.nearChargeConstant = 1;
+    physics.nearChargeRange = 128;
+
+    let m0 = 1;
+    let q0 = 1;
+    let nq0 = 1;
+    let x = physics.nearChargeRange / 2;
+    createParticle2(m0, q0, nq0,
+        new Vector3(x, 0, 0));
+    createParticle2(m0, q0, nq0,
+        new Vector3(-x, 0, 0));
+
+    createParticle2(m0, -q0, -nq0,
+        new Vector3(0, x, 0));
+    createParticle2(m0, -q0, -nq0,
+        new Vector3(0, -x, 0));
+}
+
+function simulationNuclei0(graphics, physics) {
+    graphics.cameraDistance = 2000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1;
+    physics.chargeConstant = 1;
+    physics.nearChargeConstant = 64;
+    physics.nearChargeRange = 128;
+
+    let m0 = 1;
+    let m1 = 5;
+    let q0 = 150;
+    let nq0 = 1;
+    let x = physics.nearChargeRange / 3;
+    let y = 500;
+    let v = 7;
+
+    createParticle2(m1, 0, nq0,
+        new Vector3(x, 0, 0));
+    createParticle2(m1, q0, -nq0,
+        new Vector3(-x, 0, 0));
+
+    createParticle2(m0, -q0, 0,
+        new Vector3(0, y, 0),
+        new Vector3(v, 0, 0));
 }
 
 function createNuclei0(x0 = 128 / 3, position = new Vector3(), velocity = new Vector3()) {

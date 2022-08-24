@@ -1,6 +1,6 @@
 import { Physics } from './physics.js';
-import { scenarios0 as simulationList } from './scenarios0.js';
-//import { scenarios1 as simulationList } from './scenarios1.js';
+//import { scenarios0 as simulationList } from './scenarios0.js';
+import { scenarios1 as simulationList } from './scenarios1.js';
 import { randomColor } from './helpers.js';
 
 export let particleList = [];
@@ -21,8 +21,6 @@ export function toogleChargeColor() {
 export function simulationSetup(graphics, idx) {
     if (idx >= 0 && idx < simulationList.length) {
         simulation = simulationList[idx];
-    } else {
-        simulation = simulationList[0];
     }
 
     physics = new Physics();

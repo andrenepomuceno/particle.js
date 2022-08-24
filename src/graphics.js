@@ -66,7 +66,7 @@ export class Graphics {
         });
     }
 
-    addToScene(particle, radius = 5) {
+    addParticle(particle, radius = 5) {
         if (geometryMap.has(radius) == false) {
             geometryMap.set(radius, new SphereGeometry(radius));
         }

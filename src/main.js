@@ -6,7 +6,7 @@ import {
     simulationSetup, simulationStep, simulationCleanup, simulationState,
     particleList, toogleChargeColor
 } from './simulation.js';
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 
 const graphics = new Graphics();
 let hideAxis = false;
@@ -63,9 +63,34 @@ var options = {
         energy: "",
         time: 0,
         collisions: 0,
+    },
+    particle: {
+        id: 0,
+        mass: 0,
+        charge: 0,
+        nearCharge: 0,
+        position: "",
+        velocity: "",
     }
 }
 const gui = new dat.GUI();
+
+const guiInfo = gui.addFolder("Information");
+guiInfo.add(options.info, 'name').name('Name').listen();
+guiInfo.add(options.info, 'particles').name('Particles').listen();
+guiInfo.add(options.info, 'time').name('Time').listen();
+guiInfo.add(options.info, 'energy').name('Energy').listen();
+guiInfo.add(options.info, 'collisions').name('Collisions').listen();
+guiInfo.open();
+
+const guiParticle = gui.addFolder("Particle");
+guiParticle.add(options.particle, 'id').name('ID').listen();
+guiParticle.add(options.particle, 'mass').name('M').listen();
+guiParticle.add(options.particle, 'charge').name('Q').listen();
+guiParticle.add(options.particle, 'nearCharge').name('NQ').listen();
+guiParticle.add(options.particle, 'position').name('P').listen();
+guiParticle.add(options.particle, 'velocity').name('V').listen();
+guiParticle.open();
 
 const guiSimulation = gui.addFolder("Simulation");
 guiSimulation.add(options.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -79,14 +104,6 @@ guiView.add(options.view, 'hideAxis').name("Hide/Show Axis [A]");
 guiView.add(options.view, 'resetCamera').name("Reset Camera [C]");
 guiView.add(options.view, 'xyCamera').name("XY Camera [V]");
 guiView.add(options.view, 'colorMode').name("Color Mode [Q]");
-
-const guiInfo = gui.addFolder("Information");
-guiInfo.add(options.info, 'name').name('Name').listen();
-guiInfo.add(options.info, 'particles').name('Particles').listen();
-guiInfo.add(options.info, 'time').name('Time').listen();
-guiInfo.add(options.info, 'energy').name('Energy').listen();
-guiInfo.add(options.info, 'collisions').name('Collisions').listen();
-guiInfo.open();
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -169,13 +186,26 @@ function updateInfo() {
     options.info.collisions = c;
 }
 
+function updateParticle() {
+    //if (!pause) return;
+    let particle = graphics.raycast(pointer);
+    if (particle) {
+        options.particle.id = particle.id;
+        options.particle.mass = particle.mass;
+        options.particle.charge = particle.charge;
+        options.particle.nearCharge = particle.nearCharge;
+        options.particle.position = vector2String(particle.position, 2);
+        options.particle.velocity = vector2String(particle.velocity, 2);
+    }
+}
+
+function vector2String(vector, precision) {
+    return vector.x.toFixed(precision) + ", " + vector.y.toFixed(precision) + ", " + vector.z.toFixed(precision);
+}
+
 let last = 0;
 function animate(now) {
     requestAnimationFrame(animate);
-
-    if (pause) {
-        graphics.raycast(pointer);
-    }
 
     graphics.update();
 
@@ -186,6 +216,8 @@ function animate(now) {
 
     if (!last || now - last >= 250) {
         last = now;
+
+        updateParticle();
         updateInfo();
     }
 }

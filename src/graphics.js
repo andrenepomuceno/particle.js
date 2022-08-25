@@ -94,9 +94,7 @@ export class Graphics {
             let particle = obj.particle;
             if (obj == this.raycaster.lastObject) continue;
             this.raycaster.lastObject = obj;
-            if (particle) {
-                console.log(particle.csv());
-            }
+            return particle;
         }
     }
 }

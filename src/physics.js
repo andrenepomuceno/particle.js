@@ -45,7 +45,7 @@ export class Physics {
         this.colisionCounter = 0;
     }
 
-    interact(p1, p2) {
+    interact(p1, p2, probe = false) {
         if (p1.id == p2.id) return;
 
         let distance = p2.position.clone();
@@ -53,7 +53,7 @@ export class Physics {
 
         let absDistance2 = distance.lengthSq();
         if (absDistance2 == 0.0) {
-            this.colide(p1, p2);
+            if (!probe) this.colide(p1, p2);
             return;
         }
 
@@ -62,15 +62,14 @@ export class Physics {
         force -= this.chargeConstant * p1.charge * p2.charge;
         force /= absDistance2;
 
-        if (this.nearChargeConstant != 0) {
-            let absDistance = Math.sqrt(absDistance2);
-            if (absDistance < this.nearChargeRange) {
-                let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange;
-                let f = -p1.nearCharge * p2.nearCharge;
-                f *= x;
-                f *= this.nearChargeConstant;
-                force += f;
-            }
+        let absDistance = Math.sqrt(absDistance2);
+        if (absDistance < this.nearChargeRange) {
+            let x = (2 * absDistance - this.nearChargeRange);
+            x /= this.nearChargeRange;
+            let f = -p1.nearCharge * p2.nearCharge;
+            f *= x;
+            f *= this.nearChargeConstant;
+            force += f;
         }
 
         force *= this.forceConstant;

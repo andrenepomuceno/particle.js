@@ -3,9 +3,10 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
     simulationSetup, simulationStep, simulationState,
-    particleList, toogleChargeColor
+    particleList, toogleChargeColor, fieldProbe
 } from './simulation.js';
-import { Vector2, Vector3 } from 'three';
+import { Vector2, Vector3, ArrowHelper } from 'three';
+import { Particle } from './physics.js';
 
 const graphics = new Graphics();
 let hideAxis = false;
@@ -67,6 +68,10 @@ var options = {
         position: "",
         velocity: "",
         color: "",
+        field: {
+            direction: "",
+            amplitude: "",
+        }
     }
 }
 const gui = new dat.GUI();
@@ -87,13 +92,16 @@ guiParticle.add(options.particle, 'nearCharge').name('NearCharge').listen();
 guiParticle.add(options.particle, 'position').name('Position').listen();
 guiParticle.add(options.particle, 'velocity').name('Velocity').listen();
 guiParticle.add(options.particle, 'color').name('Color').listen();
+guiParticle.add(options.particle.field, 'direction').name('Field Dir.').listen();
+guiParticle.add(options.particle.field, 'amplitude').name('Field Amp.').listen();
+guiParticle.open();
 
 const guiSimulation = gui.addFolder("Simulation");
 guiSimulation.add(options.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
 guiSimulation.add(options.simulation, 'step').name("Step [N]");
 guiSimulation.add(options.simulation, 'reset').name("Reset [R]");
-guiSimulation.add(options.simulation, 'next').name("Next [=]");
-guiSimulation.add(options.simulation, 'previous').name("Previous [-]");
+guiSimulation.add(options.simulation, 'next').name("Next [>]");
+guiSimulation.add(options.simulation, 'previous').name("Previous [<]");
 
 const guiView = gui.addFolder("View");
 guiView.add(options.view, 'hideAxis').name("Hide/Show Axis [A]");
@@ -101,7 +109,7 @@ guiView.add(options.view, 'resetCamera').name("Reset Camera [C]");
 guiView.add(options.view, 'xyCamera').name("XY Camera [V]");
 guiView.add(options.view, 'colorMode').name("Color Mode [Q]");
 
-gui.close();
+//gui.close();
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -141,11 +149,11 @@ document.addEventListener("keydown", (event) => {
             options.view.colorMode();
             break;
 
-        case '=':
+        case '>':
             options.simulation.next();
             break;
 
-        case '-':
+        case '<':
             options.simulation.previous();
             break;
 
@@ -195,6 +203,16 @@ function updateParticle() {
         options.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
         let color = particle.sphere.material.color;
         options.particle.color = arrayToString(color.toArray());
+
+        let probe = new Particle();
+        probe.charge = 1;
+        probe.mass = 1;
+        probe.nearCharge = 1;
+        probe.position = particle.position;
+        let field = fieldProbe(probe);
+        let amp = field.length();
+        options.particle.field.amplitude = amp.toFixed(4);
+        options.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
     }
 }
 

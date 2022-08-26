@@ -2,10 +2,11 @@ import { Particle, Physics } from './physics.js';
 //import { scenarios0 as simulationList } from './scenarios0.js';
 import { scenarios1 as simulationList } from './scenarios1.js';
 import { randomColor } from './helpers.js';
+import { ArrowHelper, Vector3 } from 'three';
 
 export let particleList = [];
 let particleRadius = 20;
-let particleRadiusRange = particleRadius/2;
+let particleRadiusRange = particleRadius / 2;
 
 export function setParticleRadius(radius, range) {
     particleRadius = radius;
@@ -19,6 +20,7 @@ let physics;
 let cicles = 0;
 let energy = 0.0;
 let maxDistance = 1e6;
+let fieldVectorList = [];
 
 export function toogleChargeColor() {
     enableChargeColor = !enableChargeColor;
@@ -39,8 +41,8 @@ export function simulationSetup(graphics, idx) {
 }
 
 function sceneSetup(graphics) {
-    let minRadius = particleRadius - particleRadiusRange/2;
-    let maxRadius = particleRadius + particleRadiusRange/2;
+    let minRadius = particleRadius - particleRadiusRange / 2;
+    let maxRadius = particleRadius + particleRadiusRange / 2;
     let mMin = Infinity, mMax = -Infinity;
     let qMin = Infinity, qMax = -Infinity;
     particleList.forEach((p, idx) => {
@@ -77,6 +79,55 @@ function sceneSetup(graphics) {
         graphics.addParticle(p, radius, color);
         graphics.render(p);
     });
+
+    fieldSetup(graphics);
+}
+
+let arrows = Math.pow(20, 3);
+let gridSpacing = 1;
+
+function fieldSetup(graphics) {
+    fieldVectorList.forEach((pos, idx) => {
+        graphics.scene.remove(pos.arrow);
+    });
+    fieldVectorList = [];
+
+    let gridSize0 = Math.round(Math.pow(arrows, 1 / 3));
+    let gridSize = [gridSize0, gridSize0, gridSize0];
+    for (let x = 0; x < gridSize[0]; x++) {
+        let xPos = (x - gridSize[0] / 2 + 1) * gridSpacing;
+        for (let y = 0; y < gridSize[1]; y++) {
+            let yPos = (y - gridSize[1] / 2 + 1) * gridSpacing;
+            for (let z = 0; z < gridSize[2]; z++) {
+                let zPos = (z - gridSize[2] / 2 + 1) * gridSpacing;
+                let pos = new Vector3(xPos, yPos, zPos)
+                fieldVectorList.push(pos);
+                pos.arrow = new ArrowHelper(
+                    new Vector3(1, 0, 0),
+                    pos,
+                    0,
+                    0xffffff
+                );
+                graphics.scene.add(pos.arrow);
+            }
+        }
+    }
+}
+
+function fieldUpdate(m,q,nq) {
+    let probe = new Particle();
+    probe.mass = q;
+    probe.charge = m;
+    probe.nearCharge = nq;
+    fieldVectorList.forEach((pos, idx) => {
+        probe.position = pos;
+        let dir = fieldProbe(probe);
+        let len = dir.length();
+        if (len > gridSpacing) len = gridSpacing;
+        dir.normalize();
+        pos.arrow.setDirection(dir);
+        pos.arrow.setLength(len);
+    });
 }
 
 let barrier = new Particle();
@@ -101,6 +152,8 @@ export function simulationStep(graphics) {
         energy += (p1.mass * p1.velocity.lengthSq());
     }
     ++cicles;
+
+    fieldUpdate(0,0,1);
 }
 
 function simulationCleanup(graphics) {
@@ -110,7 +163,7 @@ function simulationCleanup(graphics) {
     particleList = [];
     cicles = 0;
     particleRadius = 20;
-    particleRadiusRange = particleRadius/2;
+    particleRadiusRange = particleRadius / 2;
 }
 
 export function simulationState() {
@@ -122,6 +175,20 @@ export function simulationState() {
         (energy / particles).toFixed(2),
         physics.colisionCounter,
     ];
+}
+
+export function fieldProbe(probe) {
+    probe.force.setScalar(0);
+
+    particleList.forEach((p, idx) => {
+        physics.interact(probe, p, true);
+        p.force.setScalar(0);
+    });
+
+    let ret = probe.force.clone();
+    probe.force.setScalar(0);
+
+    return ret;
 }
 
 function generateParticleColor(p, absCharge) {
@@ -137,7 +204,7 @@ function generateParticleColor(p, absCharge) {
     } else {
         r = g = b = 255;
     }
-    
+
     if (p.nearCharge > 0) {
         g = 50;
     } else if (p.nearCharge < 0) {

@@ -94,8 +94,8 @@ export class Graphics {
         for (let i = 0; i < intersects.length; i++) {
             let obj = intersects[i].object;
             let particle = obj.particle;
-            if (obj == this.raycaster.lastObject) continue;
-            this.raycaster.lastObject = obj;
+            //if (obj == this.raycaster.lastObject) continue;
+            //this.raycaster.lastObject = obj;
             return particle;
         }
     }

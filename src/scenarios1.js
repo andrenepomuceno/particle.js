@@ -4,6 +4,8 @@ import { random, randomSpheric } from './helpers.js'
 import { Particle } from './physics.js'
 
 export const scenarios1 = [
+    simulationDev,
+    simulationNuclei4,
     simulationNuclei3,
     simulationStrongCube0,
     simulationStrongBlob0,
@@ -66,13 +68,111 @@ function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc,
     }
 }
 
+function simulationDev(graphics, physics) {
+    graphics.cameraDistance = 100;
+    //graphics.cameraPhi = graphics.cameraTheta = 0;
+    setParticleRadius(1, 0);
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1;
+    physics.chargeConstant = 1;
+    physics.nearChargeConstant = -1;
+    physics.nearChargeRange = 10;
+
+    let x = 0;
+    let q = 1e2;
+    let m = 1e2;
+    let nq = 1;
+
+    createParticle2(m, q, nq, new Vector3(-x,0,0), new Vector3(), true);
+    //createParticle2(m, -q, nq, new Vector3(x,0,0), new Vector3(), true);
+}
+
+function simulationNuclei4(graphics, physics) {
+    graphics.cameraDistance = 5000;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+    setParticleRadius(30, 10);
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.nearChargeConstant = -60;
+    physics.nearChargeRange = 256;
+
+    let r = physics.nearChargeRange / 2;
+    let v = 0;
+    let q = 1e2;
+    let nq = 1;
+    let n = 8;
+
+    createParticles2(
+        n,
+        () => { return 1836; },
+        () => {
+            return q;
+        },
+        () => {
+            return nq;
+        },
+        () => {
+            let vec = randomSphericVector(0, r);
+            return vec;
+        },
+        () => {
+            let vec = randomVector(v);
+            return vec;
+        },
+    );
+    
+    createParticles2(
+        n,
+        () => { return 1839; },
+        () => {
+            return 0;
+        },
+        () => {
+            return nq;
+        },
+        () => {
+            let vec = randomSphericVector(0, r);
+            return vec;
+        },
+        () => {
+            let vec = randomVector(v);
+            return vec;
+        },
+    );
+
+    v = 30;
+    n = 1200 - 2*n;
+    createParticles2(n,
+        () => { return 1; },
+        () => { return -q; },
+        (i) => {
+            //return (i % 2) ? (0) : (nq);
+            //return nq;
+            return 0;
+        },
+        () => {
+            let vec = randomSphericVector(2 * r, 10 * r);
+            // vec.z = 0;
+            return vec;
+        },
+        () => {
+            let vec = randomVector(v);
+            //vec.z = 0;
+            return vec;
+        }
+    )
+}
+
 function simulationNuclei3(graphics, physics) {
     graphics.cameraDistance = 20000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     setParticleRadius(30, 10);
 
     physics.forceConstant = 1;
-    physics.massConstant = 1e-6;
+    physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nearChargeConstant = -60;
     physics.nearChargeRange = 1e3;

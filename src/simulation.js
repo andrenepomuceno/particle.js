@@ -1,24 +1,32 @@
-import { Physics } from './physics.js';
+import { Particle, Physics } from './physics.js';
 //import { scenarios0 as simulationList } from './scenarios0.js';
 import { scenarios1 as simulationList } from './scenarios1.js';
 import { randomColor } from './helpers.js';
 
 export let particleList = [];
+let particleRadius = 20;
+let particleRadiusRange = particleRadius/2;
+
+export function setParticleRadius(radius, range) {
+    particleRadius = radius;
+    particleRadiusRange = range;
+}
+
 let simulation = simulationList[0];
 let enableMassRadius = true;
 let enableChargeColor = true;
 let physics;
 let cicles = 0;
 let energy = 0.0;
-
-const minRadius = 10;
-const maxRadius = 30;
+let maxDistance = 1e6;
 
 export function toogleChargeColor() {
     enableChargeColor = !enableChargeColor;
 }
 
 export function simulationSetup(graphics, idx) {
+    simulationCleanup(graphics);
+
     if (idx >= 0 && idx < simulationList.length) {
         simulation = simulationList[idx];
     }
@@ -31,6 +39,8 @@ export function simulationSetup(graphics, idx) {
 }
 
 function sceneSetup(graphics) {
+    let minRadius = particleRadius - particleRadiusRange/2;
+    let maxRadius = particleRadius + particleRadiusRange/2;
     let mMin = Infinity, mMax = -Infinity;
     let qMin = Infinity, qMax = -Infinity;
     particleList.forEach((p, idx) => {
@@ -64,13 +74,54 @@ function sceneSetup(graphics) {
             color = randomColor();
         }
 
-        graphics.addParticle(p, radius);
-
-        physics.update(p);
-        p.sphere.material.color.set(color);
-
+        graphics.addParticle(p, radius, color);
         graphics.render(p);
     });
+}
+
+let barrier = new Particle();
+barrier.mass = 1e100;
+
+export function simulationStep(graphics) {
+    energy = 0.0;
+    for (let i = 0; i < particleList.length; ++i) {
+        let p1 = particleList[i];
+        for (let j = i + 1; j < particleList.length; ++j) {
+            let p2 = particleList[j];
+            physics.interact(p1, p2);
+        }
+        physics.update(p1);
+
+        if (p1.position.length() > maxDistance) {
+            physics.colide(p1, barrier);
+            physics.update(p1);
+        }
+
+        graphics.render(p1);
+        energy += (p1.mass * p1.velocity.lengthSq());
+    }
+    ++cicles;
+}
+
+function simulationCleanup(graphics) {
+    particleList.forEach((p, i) => {
+        graphics.scene.remove(p.sphere);
+    });
+    particleList = [];
+    cicles = 0;
+    particleRadius = 20;
+    particleRadiusRange = particleRadius/2;
+}
+
+export function simulationState() {
+    let particles = particleList.length;
+    return [
+        simulation.name,
+        particles,
+        cicles,
+        (energy / particles).toFixed(2),
+        physics.colisionCounter,
+    ];
 }
 
 function generateParticleColor(p, absCharge) {
@@ -88,44 +139,10 @@ function generateParticleColor(p, absCharge) {
     }
     
     if (p.nearCharge > 0) {
-        g = 255;
+        g = 50;
     } else if (p.nearCharge < 0) {
-        g = 127;
+        g = 200;
     }
 
     return "rgb(" + r + "," + g + "," + b + ")";
-}
-
-export function simulationStep(graphics) {
-    energy = 0.0;
-    for (let i = 0; i < particleList.length; ++i) {
-        let p1 = particleList[i];
-        for (let j = i + 1; j < particleList.length; ++j) {
-            let p2 = particleList[j];
-            physics.interact(p1, p2);
-        }
-        physics.update(p1);
-        graphics.render(p1);
-        energy += (p1.mass * p1.velocity.lengthSq());
-    }
-    ++cicles;
-}
-
-export function simulationCleanup(graphics) {
-    particleList.forEach((p, i) => {
-        graphics.scene.remove(p.sphere);
-    });
-    particleList = [];
-    cicles = 0;
-}
-
-export function simulationState() {
-    let particles = particleList.length;
-    return [
-        simulation.name,
-        particles,
-        cicles,
-        (energy / particles).toFixed(2),
-        physics.colisionCounter,
-    ];
 }

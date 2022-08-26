@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
-    "jquery": "^3.6.0",
     "three": "^0.143.0",
     "dat.gui": "^0.7.9"
   },

@@ -61,18 +61,19 @@ export class Physics {
         force += this.massConstant * p1.mass * p2.mass;
         force -= this.chargeConstant * p1.charge * p2.charge;
         force /= absDistance2;
-        force *= this.forceConstant;
 
         if (this.nearChargeConstant != 0) {
             let absDistance = Math.sqrt(absDistance2);
             if (absDistance < this.nearChargeRange) {
-                let d = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange;
-                let f = - p1.nearCharge * p2.nearCharge;
+                let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange;
+                let f = -p1.nearCharge * p2.nearCharge;
+                f *= x;
                 f *= this.nearChargeConstant;
-                f *= d;
                 force += f;
             }
         }
+
+        force *= this.forceConstant;
 
         distance.normalize();
         distance.multiplyScalar(force);

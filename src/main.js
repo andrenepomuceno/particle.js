@@ -1,9 +1,8 @@
-import * as $ from 'jquery';
 import * as dat from 'dat.gui';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
-    simulationSetup, simulationStep, simulationCleanup, simulationState,
+    simulationSetup, simulationStep, simulationState,
     particleList, toogleChargeColor
 } from './simulation.js';
 import { Vector2, Vector3 } from 'three';
@@ -23,18 +22,15 @@ var options = {
             nextFrame = true;
         },
         reset: function () {
-            simulationCleanup(graphics);
             simulationSetup(graphics);
         },
         next: function () {
             ++simulationIdx;
-            simulationCleanup(graphics);
             simulationSetup(graphics, simulationIdx);
         },
         previous: function () {
             if (simulationIdx == 0) return;
             --simulationIdx;
-            simulationCleanup(graphics);
             simulationSetup(graphics, simulationIdx);
         }
     },
@@ -53,7 +49,6 @@ var options = {
         },
         colorMode: function () {
             toogleChargeColor();
-            simulationCleanup(graphics);
             simulationSetup(graphics);
         }
     },
@@ -71,6 +66,7 @@ var options = {
         nearCharge: 0,
         position: "",
         velocity: "",
+        color: "",
     }
 }
 const gui = new dat.GUI();
@@ -85,12 +81,12 @@ guiInfo.open();
 
 const guiParticle = gui.addFolder("Particle");
 guiParticle.add(options.particle, 'id').name('ID').listen();
-guiParticle.add(options.particle, 'mass').name('M').listen();
-guiParticle.add(options.particle, 'charge').name('Q').listen();
-guiParticle.add(options.particle, 'nearCharge').name('NQ').listen();
-guiParticle.add(options.particle, 'position').name('P').listen();
-guiParticle.add(options.particle, 'velocity').name('V').listen();
-guiParticle.open();
+guiParticle.add(options.particle, 'mass').name('Mass').listen();
+guiParticle.add(options.particle, 'charge').name('Charge').listen();
+guiParticle.add(options.particle, 'nearCharge').name('NearCharge').listen();
+guiParticle.add(options.particle, 'position').name('Position').listen();
+guiParticle.add(options.particle, 'velocity').name('Velocity').listen();
+guiParticle.add(options.particle, 'color').name('Color').listen();
 
 const guiSimulation = gui.addFolder("Simulation");
 guiSimulation.add(options.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -104,6 +100,8 @@ guiView.add(options.view, 'hideAxis').name("Hide/Show Axis [A]");
 guiView.add(options.view, 'resetCamera').name("Reset Camera [C]");
 guiView.add(options.view, 'xyCamera').name("XY Camera [V]");
 guiView.add(options.view, 'colorMode').name("Color Mode [Q]");
+
+gui.close();
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -136,7 +134,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'n':
-            options.simulation.nextFrame();
+            options.simulation.step();
             break;
 
         case 'q':
@@ -155,7 +153,6 @@ document.addEventListener("keydown", (event) => {
             if (key >= '0' && key <= '9') {
                 pause = true;
                 simulationIdx = key - '0' - 1;
-                simulationCleanup(graphics);
                 simulationSetup(graphics, simulationIdx);
             }
             break;
@@ -194,16 +191,24 @@ function updateParticle() {
         options.particle.mass = particle.mass;
         options.particle.charge = particle.charge;
         options.particle.nearCharge = particle.nearCharge;
-        options.particle.position = vector2String(particle.position, 2);
-        options.particle.velocity = vector2String(particle.velocity, 2);
+        options.particle.position = arrayToString(particle.position.toArray(), 2);
+        options.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
+        let color = particle.sphere.material.color;
+        options.particle.color = arrayToString(color.toArray());
     }
 }
 
-function vector2String(vector, precision) {
-    return vector.x.toFixed(precision) + ", " + vector.y.toFixed(precision) + ", " + vector.z.toFixed(precision);
+function arrayToString(array, precision) {
+    let str = "";
+    array.forEach((v, idx) => {
+        str += v.toFixed(precision) + ", ";
+    });
+    return str.slice(0, -2);
 }
 
 let last = 0;
+let totalTime = 0;
+const updateDelay = 250;
 function animate(now) {
     requestAnimationFrame(animate);
 
@@ -214,11 +219,11 @@ function animate(now) {
         simulationStep(graphics);
     }
 
-    if (!last || now - last >= 250) {
+    if (now - last >= updateDelay) {
         last = now;
 
         updateParticle();
-        updateInfo();
+        updateInfo(now);
     }
 }
 

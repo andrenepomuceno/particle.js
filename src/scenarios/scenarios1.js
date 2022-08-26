@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
-import { particleList, setParticleRadius } from './simulation.js'
-import { random, randomSpheric } from './helpers.js'
-import { Particle } from './physics.js'
+import { particleList, setParticleRadius } from '../simulation.js'
+import { random, randomSpheric } from '../helpers.js'
+import { Particle } from '../physics.js'
 
 export const scenarios1 = [
     simulationDev,

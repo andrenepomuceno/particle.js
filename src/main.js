@@ -166,7 +166,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
     }
-})
+});
 
 window.onresize = function () {
     graphics.camera.aspect = window.innerWidth / window.innerHeight;

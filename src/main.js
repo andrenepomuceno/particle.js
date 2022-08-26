@@ -3,18 +3,19 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
     simulationSetup, simulationStep, simulationState,
-    particleList, toogleChargeColor, fieldProbe
+    particleList, toogleChargeColor
 } from './simulation.js';
-import { Vector2, Vector3, ArrowHelper } from 'three';
+import { Vector2 } from 'three';
 import { Particle } from './physics.js';
+import { fieldProbe } from './field.js';
 
 const graphics = new Graphics();
 let hideAxis = false;
 let nextFrame = false;
 let pause = false;
 let simulationIdx = 0;
-
-var options = {
+const gui = new dat.GUI();
+var guiOptions = {
     simulation: {
         pauseResume: function () {
             pause = !pause;
@@ -74,57 +75,58 @@ var options = {
         }
     }
 }
-const gui = new dat.GUI();
 
-const guiInfo = gui.addFolder("Information");
-guiInfo.add(options.info, 'name').name('Name').listen();
-guiInfo.add(options.info, 'particles').name('Particles').listen();
-guiInfo.add(options.info, 'time').name('Time').listen();
-guiInfo.add(options.info, 'energy').name('Energy').listen();
-guiInfo.add(options.info, 'collisions').name('Collisions').listen();
-guiInfo.open();
+function guiSetup() {
+    const guiInfo = gui.addFolder("Information");
+    guiInfo.add(guiOptions.info, 'name').name('Name').listen();
+    guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
+    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
+    guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
+    guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
+    guiInfo.open();
 
-const guiParticle = gui.addFolder("Particle");
-guiParticle.add(options.particle, 'id').name('ID').listen();
-guiParticle.add(options.particle, 'mass').name('Mass').listen();
-guiParticle.add(options.particle, 'charge').name('Charge').listen();
-guiParticle.add(options.particle, 'nearCharge').name('NearCharge').listen();
-guiParticle.add(options.particle, 'position').name('Position').listen();
-guiParticle.add(options.particle, 'velocity').name('Velocity').listen();
-guiParticle.add(options.particle, 'color').name('Color').listen();
-guiParticle.add(options.particle.field, 'direction').name('Field Dir.').listen();
-guiParticle.add(options.particle.field, 'amplitude').name('Field Amp.').listen();
-guiParticle.open();
+    const guiParticle = gui.addFolder("Particle");
+    guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
+    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen();
+    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
+    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
+    guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
+    guiParticle.add(guiOptions.particle, 'velocity').name('Velocity').listen();
+    guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
+    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
+    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Amp.').listen();
+    guiParticle.open();
 
-const guiSimulation = gui.addFolder("Simulation");
-guiSimulation.add(options.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
-guiSimulation.add(options.simulation, 'step').name("Step [N]");
-guiSimulation.add(options.simulation, 'reset').name("Reset [R]");
-guiSimulation.add(options.simulation, 'next').name("Next [>]");
-guiSimulation.add(options.simulation, 'previous').name("Previous [<]");
+    const guiSimulation = gui.addFolder("Simulation");
+    guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
+    guiSimulation.add(guiOptions.simulation, 'step').name("Step [N]");
+    guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
+    guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
+    guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
 
-const guiView = gui.addFolder("View");
-guiView.add(options.view, 'hideAxis').name("Hide/Show Axis [A]");
-guiView.add(options.view, 'resetCamera').name("Reset Camera [C]");
-guiView.add(options.view, 'xyCamera').name("XY Camera [V]");
-guiView.add(options.view, 'colorMode').name("Color Mode [Q]");
+    const guiView = gui.addFolder("View");
+    guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
+    guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
+    guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
+    guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
 
-//gui.close();
+    //gui.close();
+}
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
     switch (key) {
         case ' ':
-            options.info.example = !options.info.example;
-            options.simulation.pauseResume();
+            guiOptions.info.example = !guiOptions.info.example;
+            guiOptions.simulation.pauseResume();
             break;
 
         case 'c':
-            options.view.resetCamera();
+            guiOptions.view.resetCamera();
             break;
 
         case 'r':
-            options.simulation.reset();
+            guiOptions.simulation.reset();
             break;
 
         case 'p':
@@ -134,27 +136,27 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'a':
-            options.view.hideAxis();
+            guiOptions.view.hideAxis();
             break;
 
         case 'v':
-            options.view.xyCamera();
+            guiOptions.view.xyCamera();
             break;
 
         case 'n':
-            options.simulation.step();
+            guiOptions.simulation.step();
             break;
 
         case 'q':
-            options.view.colorMode();
+            guiOptions.view.colorMode();
             break;
 
         case '>':
-            options.simulation.next();
+            guiOptions.simulation.next();
             break;
 
         case '<':
-            options.simulation.previous();
+            guiOptions.simulation.previous();
             break;
 
         default:
@@ -184,25 +186,25 @@ window.addEventListener('pointermove', function (event) {
 
 function updateInfo() {
     let [name, n, t, e, c] = simulationState();
-    options.info.name = name;
-    options.info.particles = n;
-    options.info.time = t;
-    options.info.energy = e;
-    options.info.collisions = c;
+    guiOptions.info.name = name;
+    guiOptions.info.particles = n;
+    guiOptions.info.time = t;
+    guiOptions.info.energy = e;
+    guiOptions.info.collisions = c;
 }
 
 function updateParticle() {
     //if (!pause) return;
     let particle = graphics.raycast(pointer);
     if (particle) {
-        options.particle.id = particle.id;
-        options.particle.mass = particle.mass;
-        options.particle.charge = particle.charge;
-        options.particle.nearCharge = particle.nearCharge;
-        options.particle.position = arrayToString(particle.position.toArray(), 2);
-        options.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
+        guiOptions.particle.id = particle.id;
+        guiOptions.particle.mass = particle.mass;
+        guiOptions.particle.charge = particle.charge;
+        guiOptions.particle.nearCharge = particle.nearCharge;
+        guiOptions.particle.position = arrayToString(particle.position.toArray(), 2);
+        guiOptions.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
         let color = particle.sphere.material.color;
-        options.particle.color = arrayToString(color.toArray());
+        guiOptions.particle.color = arrayToString(color.toArray());
 
         let probe = new Particle();
         probe.charge = 1;
@@ -211,8 +213,8 @@ function updateParticle() {
         probe.position = particle.position;
         let field = fieldProbe(probe);
         let amp = field.length();
-        options.particle.field.amplitude = amp.toFixed(4);
-        options.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
+        guiOptions.particle.field.amplitude = amp.toFixed(4);
+        guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
     }
 }
 
@@ -246,6 +248,7 @@ function animate(now) {
 }
 
 if (WebGL.isWebGLAvailable()) {
+    guiSetup();
     simulationSetup(graphics);
     animate();
 } else {

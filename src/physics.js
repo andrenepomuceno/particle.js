@@ -24,10 +24,6 @@ export class Particle {
     csv() {
         return this.id + "," + this.mass + "," + this.charge + "," + this.nearCharge + "," + this.position.toArray() + "," + this.velocity.toArray();
     }
-
-    positionStr() {
-        return this.position;
-    }
 }
 
 export class Physics {

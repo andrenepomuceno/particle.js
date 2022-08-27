@@ -11,7 +11,7 @@ export class Physics {
         this.massConstant = 1;
         this.chargeConstant = 1;
         this.nearChargeConstant = 1;
-        this.nearChargeRange = 128;
+        this.nearChargeRange = 1e3;
 
         this.colisionCounter = 0;
     }
@@ -37,7 +37,7 @@ export class Physics {
         distance.sub(p1.position);
 
         let absDistance2 = distance.lengthSq();
-        if (absDistance2 < this.minDistance) {
+        if (absDistance2 <= this.minDistance) {
             if (this.enableColision && !probe) this.colide(p1, p2);
             return;
         }
@@ -50,9 +50,13 @@ export class Physics {
         let absDistance = Math.sqrt(absDistance2);
         if (absDistance < this.nearChargeRange) {
             let x = (2 * absDistance - this.nearChargeRange);
+            //let x = absDistance;
+            //x = (x < 0) ? (0) : (x);
             x /= this.nearChargeRange;
+
             let f = -p1.nearCharge * p2.nearCharge;
             f *= x;
+            //f *= x;
             f *= this.nearChargeConstant;
             force += f;
         }

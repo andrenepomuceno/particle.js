@@ -2,20 +2,27 @@ import * as dat from 'dat.gui';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
-    simulationSetup, simulationStep, simulationState, simulationCsv,
-    particleList, setColorMode
+    simulationSetup,
+    simulationStep,
+    simulationState,
+    simulationCsv,
+    setColorMode,
+    particleList
 } from './simulation.js';
-import { Vector2, Vector3 } from 'three';
+import { Vector2 } from 'three';
 import { Particle } from './physics.js';
 import { fieldMove, fieldProbe } from './field.js';
 
 const graphics = new Graphics();
+const gui = new dat.GUI();
+
 let hideAxis = false;
 let nextFrame = false;
 let pause = false;
 let simulationIdx = 0;
 let colorMode = "charge";
-const gui = new dat.GUI();
+let makeSnapshot = false;
+
 var guiOptions = {
     simulation: {
         pauseResume: function () {
@@ -35,6 +42,10 @@ var guiOptions = {
             if (simulationIdx == 0) return;
             --simulationIdx;
             simulationSetup(graphics, simulationIdx);
+        },
+        snapshot: function () {
+            if (!makeSnapshot)
+                makeSnapshot = true;
         }
     },
     view: {
@@ -101,7 +112,7 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Amp.').listen();
-    //guiParticle.open();
+    guiParticle.open();
 
     const guiSimulation = gui.addFolder("Simulation");
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -109,6 +120,7 @@ function guiSetup() {
     guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
     guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
     guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
+    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
 
     const guiView = gui.addFolder("View");
     guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
@@ -137,12 +149,10 @@ function download(data, filename, type) {
     }
 }
 
-let makeScreenShot = false;
 document.addEventListener("keydown", (event) => {
     let key = event.key;
     switch (key) {
         case ' ':
-            guiOptions.info.example = !guiOptions.info.example;
             guiOptions.simulation.pauseResume();
             break;
 
@@ -155,7 +165,13 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'p':
-            makeScreenShot = true;
+            guiOptions.simulation.snapshot();
+            break;
+
+        case 'P':
+            particleList.forEach(v => {
+                console.log(v.csv());
+            });
             break;
 
         case 'a':
@@ -236,10 +252,14 @@ function updateParticle() {
         probe.nearCharge = 1;
         probe.position = particle.position;
         let field = fieldProbe(probe);
-        console.log(field);
         let amp = field.length();
-        guiOptions.particle.field.amplitude = amp.toFixed(4);
+        guiOptions.particle.field.amplitude = amp.toFixed(6);
         guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
+
+        let target = graphics.controls.target;
+        let d = particle.position.clone().sub(target);
+        graphics.camera.position.add(d.x, d.y, d.z);
+        graphics.controls.update();
     }
 }
 
@@ -251,6 +271,15 @@ function arrayToString(array, precision) {
     return str.slice(0, -2);
 }
 
+function snapshot() {
+    let timestamp = new Date().toISOString();
+    let name = simulationState()[0];
+    download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+    graphics.renderer.domElement.toBlob((blob) => {
+        download(blob, name + "-" + timestamp + ".png", "image/png");
+    });
+}
+
 let last = 0;
 let totalTime = 0;
 const updateDelay = 250;
@@ -259,15 +288,9 @@ function animate(now) {
 
     graphics.update();
 
-    if (makeScreenShot) {
-        makeScreenShot = false;
-
-        let timestamp = new Date().toISOString();
-        let name = simulationState()[0];
-        download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
-        graphics.renderer.domElement.toBlob((blob) => {
-            download(blob, name + "-" + timestamp + ".png", "image/png");
-        });
+    if (makeSnapshot) {
+        makeSnapshot = false;
+        snapshot();
     }
 
     if (!pause || nextFrame) {

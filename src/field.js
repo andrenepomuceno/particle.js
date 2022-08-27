@@ -1,6 +1,7 @@
 import { ArrowHelper, Vector3, Color } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
+import { cubeGenerator } from './helpers'
 
 let fieldVectorList = [];
 let globalSpacing = 0;
@@ -26,25 +27,19 @@ export function fieldMove(direction, scale = 1.0) {
 }
 
 export function fieldSetup(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+    fieldCleanup(graphics);
     globalSpacing = spacing;
-    for (let x = 0; x < gridSize[0]; x++) {
-        let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
-        for (let y = 0; y < gridSize[1]; y++) {
-            let yPos = (y - gridSize[1] / 2 + 0.5) * spacing;
-            for (let z = 0; z < gridSize[2]; z++) {
-                let zPos = (z - gridSize[2] / 2 + 0.5) * spacing;
-                let pos = new Vector3(xPos, yPos, zPos).add(center);
-                fieldVectorList.push(pos);
-                pos.arrow = new ArrowHelper(
-                    new Vector3(1, 0, 0),
-                    pos,
-                    0,
-                    0xffffff
-                );
-                graphics.scene.add(pos.arrow);
-            }
-        }
-    }
+    cubeGenerator((x, y, z) => {
+        let pos = new Vector3(x, y, z).add(center);
+        fieldVectorList.push(pos);
+        pos.arrow = new ArrowHelper(
+            new Vector3(1, 0, 0),
+            pos,
+            0,
+            0xffffff
+        );
+        graphics.scene.add(pos.arrow);
+    }, spacing, gridSize, center);
 }
 
 export function fieldCleanup(graphics) {
@@ -56,7 +51,7 @@ export function fieldCleanup(graphics) {
 
 export function fieldUpdate() {
     const forceMin = 0;
-    const forceMax = globalSpacing;
+    const forceMax = 1e3;
 
     let probe = new Particle();
     probe.mass = updateProbe.m;
@@ -66,23 +61,25 @@ export function fieldUpdate() {
         probe.position = pos;
         let force = fieldProbe(probe);
 
-        let forceAmplitude = force.length();
-        if (forceAmplitude > forceMax) forceAmplitude = forceMax;
-        else if (forceAmplitude < forceMin) forceAmplitude = forceMin;
-        let amplitude = (forceAmplitude - forceMin) / (forceMax - forceMin);
+        let forceLen = force.length();
+        if (forceLen > forceMax) forceLen = forceMax;
+        else if (forceLen < forceMin) forceLen = forceMin;
+        let forceLenRel = (forceLen - forceMin) / (forceMax - forceMin);
 
-        if (amplitude < 1e-3)
-            pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3 * amplitude) + '%)'));
-        else if (amplitude < 0.99)
-            pos.arrow.setColor(new Color('hsl(' + 360 * amplitude + ', 100%, 50%)'));
+        if (forceLenRel < 1e-3)
+            pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3 * forceLenRel) + '%)'));
+        else if (forceLenRel < 0.99)
+            pos.arrow.setColor(new Color('hsl(' + 360 * forceLenRel + ', 100%, 50%)'));
         else
             pos.arrow.setColor(new Color(0xffffff));
 
         force.normalize();
         pos.arrow.setDirection(force);
 
-        amplitude = globalSpacing / 4;
-        pos.arrow.setLength(amplitude, amplitude / 3, amplitude / 10);
+        forceLenRel = globalSpacing / 2;
+        let headh = forceLenRel / 2;
+        let headw = headh / 2
+        pos.arrow.setLength(forceLenRel, headh, headw);
     });
 }
 

@@ -16,6 +16,7 @@ let cicles = 0;
 let energy = 0.0;
 let particleRadius = 20;
 let particleRadiusRange = particleRadius / 2;
+let totalMass = 0.0;
 
 let maxDistance = 1e6;
 const barrier = new Particle();
@@ -62,6 +63,8 @@ function drawParticles(graphics) {
         if (p.charge < qMin) {
             qMin = p.charge;
         }
+
+        totalMass += p.mass;
     });
     const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
     const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
@@ -96,6 +99,7 @@ export function simulationSetup(graphics, idx) {
     graphics.cameraDefault();
     particlesSetup(graphics, physics);
     drawParticles(graphics);
+    fieldUpdate();
     graphics.cameraSetup();
 }
 
@@ -135,7 +139,8 @@ function simulationCleanup(graphics) {
     particleRadius = 20;
     particleRadiusRange = particleRadius / 2;
 
-    let maxDistance = 1e6;
+    maxDistance = 1e6;
+    totalMass = 0.0;
 }
 
 export function simulationState() {
@@ -146,6 +151,7 @@ export function simulationState() {
         cicles,
         (energy / particles).toFixed(2),
         physics.colisionCounter,
+        totalMass,
     ];
 }
 

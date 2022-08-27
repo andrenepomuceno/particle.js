@@ -1,37 +1,11 @@
 import { Vector3 } from 'three';
 
-let particleId = 0;
-
-export class Particle {
-    constructor() {
-        this.id = particleId++;
-        this.minDistance = 1e-3;
-
-        this.mass = 0;
-        this.charge = 0;
-        this.nearCharge = 0;
-
-        this.position = new Vector3();
-        this.velocity = new Vector3();
-        this.force = new Vector3();
-
-        this.fixed = false;
-    }
-
-    print() {
-        console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " Sq:" + this.nearCharge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
-    }
-
-    csv() {
-        return this.id + "," + this.mass + "," + this.charge + "," + this.nearCharge + "," + this.position.toArray() + "," + this.velocity.toArray();
-    }
-}
-
 export class Physics {
     constructor() {
         particleId = 0;
 
         this.enableColision = true;
+        this.minDistance = 0.25;
 
         this.forceConstant = 1;
         this.massConstant = 1;
@@ -44,7 +18,7 @@ export class Physics {
 
     interact(p1, p2, probe = false) {
         //if (p1.id == p2.id) return;
-        if (p1 == p2) return;
+        if (p1.id == p2.id) return;
 
         let distance = p2.position.clone();
         distance.sub(p1.position);
@@ -108,5 +82,30 @@ export class Physics {
         p.position.add(p.velocity);
 
         p.force.setScalar(0);
+    }
+}
+
+let particleId = 0;
+export class Particle {
+    constructor() {
+        this.id = particleId++;
+
+        this.mass = 0;
+        this.charge = 0;
+        this.nearCharge = 0;
+
+        this.position = new Vector3();
+        this.velocity = new Vector3();
+        this.force = new Vector3();
+
+        this.fixed = false;
+    }
+
+    print() {
+        console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " Sq:" + this.nearCharge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
+    }
+
+    csv() {
+        return this.id + "," + this.mass + "," + this.charge + "," + this.nearCharge + "," + this.position.toArray() + "," + this.velocity.toArray();
     }
 }

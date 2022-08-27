@@ -48,3 +48,18 @@ export function sphericalToCartesian(r, phi, theta) {
     let z = r * Math.cos(theta);
     return [x, y, z];
 }
+
+export function randomDisc(r1, r2) {
+    let r12 = Math.pow(r1, 2);
+    let r22 = Math.pow(r2, 2);
+    let t = random(r12, r22);
+    let r = Math.pow(t, 1 / 2);
+
+    let theta = 2 * Math.PI * Math.random();
+    let x0 = Math.cos(theta);
+    let y0 = Math.sin(theta);
+    let x = r * x0;
+    let y = r * y0;
+
+    return [x, y, 0];
+}

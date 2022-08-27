@@ -5,9 +5,9 @@ import {
     simulationSetup, simulationStep, simulationState,
     particleList, setColorMode
 } from './simulation.js';
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import { Particle } from './physics.js';
-import { fieldProbe } from './field.js';
+import { fieldMove, fieldProbe } from './field.js';
 
 const graphics = new Graphics();
 let hideAxis = false;
@@ -64,6 +64,7 @@ var guiOptions = {
         energy: "",
         time: 0,
         collisions: 0,
+        mass: 0,
     },
     particle: {
         id: 0,
@@ -85,6 +86,7 @@ function guiSetup() {
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
+    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
     guiInfo.open();
@@ -189,12 +191,13 @@ window.addEventListener('pointermove', function (event) {
 });
 
 function updateInfo() {
-    let [name, n, t, e, c] = simulationState();
+    let [name, n, t, e, c, m] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
     guiOptions.info.time = t;
     guiOptions.info.energy = e;
     guiOptions.info.collisions = c;
+    guiOptions.info.mass = m;
 }
 
 function updateParticle() {
@@ -216,6 +219,7 @@ function updateParticle() {
         probe.nearCharge = 1;
         probe.position = particle.position;
         let field = fieldProbe(probe);
+        console.log(field);
         let amp = field.length();
         guiOptions.particle.field.amplitude = amp.toFixed(4);
         guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);

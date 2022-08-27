@@ -17,9 +17,11 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
 }
 
 export function fieldMove(direction, scale = 1.0) {
+    //TODO
     fieldVectorList.forEach((pos) => {
         pos.add(direction);
-        pos.multiplyScaler(scale);
+        //pos.arrow.translateX(direction.x);
+        pos.multiplyScalar(scale);
     });
 }
 

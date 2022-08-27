@@ -1,10 +1,11 @@
 # particle.js
 
-JavaScript 3D particle simulator.
+JavaScript 3D particle simulator using a simplified model of Physics.
 
-## Run
-
-Just open `dist/index.html`
+Try to simulate 3 forces on point-like particles:
+- Gravity
+- Electromagnetic
+- Near force (an analogy to the Strong Force)
 
 ## Build
 

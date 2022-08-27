@@ -48,7 +48,7 @@ export class Physics {
         distance.sub(p1.position);
 
         let absDistance2 = distance.lengthSq();
-        if (absDistance2 == 0.0) {
+        if (absDistance2 <= 1) {
             if (!probe) this.colide(p1, p2);
             return;
         }

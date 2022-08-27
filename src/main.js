@@ -3,7 +3,7 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
     simulationSetup, simulationStep, simulationState,
-    particleList, toogleChargeColor
+    particleList, setColorMode
 } from './simulation.js';
 import { Vector2 } from 'three';
 import { Particle } from './physics.js';
@@ -14,6 +14,7 @@ let hideAxis = false;
 let nextFrame = false;
 let pause = false;
 let simulationIdx = 0;
+let colorMode = "charge";
 const gui = new dat.GUI();
 var guiOptions = {
     simulation: {
@@ -50,7 +51,10 @@ var guiOptions = {
             graphics.controls.target.set(0, 0, 0);
         },
         colorMode: function () {
-            toogleChargeColor();
+            let newMode;
+            (colorMode == "charge")?(newMode = "random"):(newMode = "charge");
+            colorMode = newMode;
+            setColorMode(newMode);
             simulationSetup(graphics);
         }
     },

@@ -1,23 +1,36 @@
-import { ArrowHelper, Vector3 } from 'three';
+import { ArrowHelper, Vector3, Color } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
 
 let fieldVectorList = [];
-let gridSize0 = 10;
-let gridSpacing = 5;
+let globalSpacing = 0;
 
-export function fieldConfig(size = 10, spacing = 5) {
-    gridSize0 = size;
-    gridSpacing = spacing;
+let updateProbe = {
+    m: 0,
+    q: 0,
+    nq: 0
+}
+export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
+    updateProbe.m = m;
+    updateProbe.q = q;
+    updateProbe.nq = nq;
 }
 
-export function fieldAdd(graphics, gridSize = [gridSize0, gridSize0, gridSize0], center = new Vector3()) {
+export function fieldMove(direction, scale = 1.0) {
+    fieldVectorList.forEach((pos) => {
+        pos.add(direction);
+        pos.multiplyScaler(scale);
+    });
+}
+
+export function fieldSetup(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+    globalSpacing = spacing;
     for (let x = 0; x < gridSize[0]; x++) {
-        let xPos = (x - gridSize[0] / 2 + 0.5) * gridSpacing;
+        let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
         for (let y = 0; y < gridSize[1]; y++) {
-            let yPos = (y - gridSize[1] / 2 + 0.5) * gridSpacing;
+            let yPos = (y - gridSize[1] / 2 + 0.5) * spacing;
             for (let z = 0; z < gridSize[2]; z++) {
-                let zPos = (z - gridSize[2] / 2 + 0.5) * gridSpacing;
+                let zPos = (z - gridSize[2] / 2 + 0.5) * spacing;
                 let pos = new Vector3(xPos, yPos, zPos).add(center);
                 fieldVectorList.push(pos);
                 pos.arrow = new ArrowHelper(
@@ -32,37 +45,42 @@ export function fieldAdd(graphics, gridSize = [gridSize0, gridSize0, gridSize0],
     }
 }
 
-export function fieldSetup(graphics, gridSize = [gridSize0, gridSize0, gridSize0], center = new Vector3()) {
-    fieldCleanup(graphics);
-    fieldAdd(graphics, gridSize, center);
-}
-
-function fieldCleanup(graphics) {
+export function fieldCleanup(graphics) {
     fieldVectorList.forEach((pos) => {
         graphics.scene.remove(pos.arrow);
     });
     fieldVectorList = [];
-
-    gridSize0 = 10;
-    gridSpacing = 5;
 }
 
-export function fieldUpdate(m, q, nq) {
+export function fieldUpdate() {
+    const forceMin = 0;
+    const forceMax = globalSpacing;
+
     let probe = new Particle();
-    probe.mass = m;
-    probe.charge = q;
-    probe.nearCharge = nq;
+    probe.mass = updateProbe.m;
+    probe.charge = updateProbe.q;
+    probe.nearCharge = updateProbe.nq;
     fieldVectorList.forEach((pos) => {
         probe.position = pos;
-        let dir = fieldProbe(probe);
-        let len = dir.length();
-        const minLen = 0.5;
-        const maxLen = gridSpacing;
-        if (len > maxLen) len = maxLen;
-        else if (len < minLen) len = minLen;
-        dir.normalize();
-        pos.arrow.setDirection(dir);
-        pos.arrow.setLength(len);
+        let force = fieldProbe(probe);
+
+        let forceAmplitude = force.length();
+        if (forceAmplitude > forceMax) forceAmplitude = forceMax;
+        else if (forceAmplitude < forceMin) forceAmplitude = forceMin;
+        let amplitude = (forceAmplitude - forceMin) / (forceMax - forceMin);
+
+        if (amplitude < 1e-3)
+            pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3*amplitude) + '%)'));
+        else if (amplitude < 0.99)
+            pos.arrow.setColor(new Color('hsl(' + 360 * amplitude + ', 100%, 50%)'));
+        else
+            pos.arrow.setColor(new Color(0xffffff));
+
+        force.normalize();
+        pos.arrow.setDirection(force);
+
+        amplitude = globalSpacing / 4;
+        pos.arrow.setLength(amplitude, amplitude / 3, amplitude / 10);
     });
 }
 
@@ -70,6 +88,7 @@ export function fieldProbe(probe) {
     probe.force.setScalar(0);
 
     particleList.forEach((p, idx) => {
+        //if (p.position.clone().sub(probe.position).length() > 5e3) return;
         physics.interact(probe, p, true);
         p.force.setScalar(0);
     });

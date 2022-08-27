@@ -1,11 +1,12 @@
 import { Particle, Physics } from './physics.js';
 //import { scenarios0 as simulationList } from './scenarios0.js';
 //import { scenarios1 as simulationList } from './scenarios/scenarios1.js';
-import { fields as simulationList } from './scenarios/fields.js';
+//import { fields as simulationList } from './scenarios/fieldTest.js';
+import { scenarios2 as simulationList } from './scenarios/scenarios2.js';
 import { randomColor } from './helpers.js';
-import { fieldSetup, fieldUpdate } from './field.js'
+import { fieldUpdate, fieldCleanup } from './field.js'
 
-let simulation = simulationList[0];
+let particlesSetup = simulationList[0];
 let enableMassRadius = true;
 let enableChargeColor = true;
 export let physics;
@@ -21,11 +22,20 @@ export function setParticleRadius(radius, range) {
     particleRadiusRange = range;
 }
 
-export function toogleChargeColor() {
-    enableChargeColor = !enableChargeColor;
+export function setColorMode(mode) {
+    switch (mode) {
+        case "random":
+            enableChargeColor = false;
+            break;
+        
+        case "charge":
+        default:
+            enableChargeColor = true
+            break;
+    }
 }
 
-function sceneSetup(graphics) {
+function drawParticles(graphics) {
     let minRadius = particleRadius - particleRadiusRange / 2;
     let maxRadius = particleRadius + particleRadiusRange / 2;
     let mMin = Infinity, mMax = -Infinity;
@@ -68,22 +78,26 @@ function sceneSetup(graphics) {
 
 export function simulationSetup(graphics, idx) {
     simulationCleanup(graphics);
+    fieldCleanup(graphics);
 
     if (idx >= 0 && idx < simulationList.length) {
-        simulation = simulationList[idx];
+        particlesSetup = simulationList[idx];
     }
 
     physics = new Physics();
     graphics.cameraDefault();
-    simulation(graphics, physics);
-    sceneSetup(graphics);
-    fieldSetup(graphics);
+    particlesSetup(graphics, physics);
+    drawParticles(graphics);
     graphics.cameraSetup();
 }
 
 let maxDistance = 1e6;
 const barrier = new Particle();
 barrier.mass = 1e100;
+
+export function setBoundaryDistance(d = 1e6) {
+    maxDistance = d;
+}
 
 function boundaryCheck(p1) {
     if (p1.position.length() > maxDistance) {
@@ -109,7 +123,7 @@ export function simulationStep(graphics) {
     }
     ++cicles;
 
-    fieldUpdate(0, 1, 0);
+    fieldUpdate();
 }
 
 function simulationCleanup(graphics) {
@@ -125,7 +139,7 @@ function simulationCleanup(graphics) {
 export function simulationState() {
     let particles = particleList.length;
     return [
-        simulation.name,
+        particlesSetup.name,
         particles,
         cicles,
         (energy / particles).toFixed(2),

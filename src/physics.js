@@ -5,7 +5,7 @@ export class Physics {
         particleId = 0;
 
         this.enableColision = true;
-        this.minDistance = 0.25;
+        this.minDistance = 1;
 
         this.forceConstant = 1;
         this.massConstant = 1;
@@ -14,6 +14,19 @@ export class Physics {
         this.nearChargeRange = 128;
 
         this.colisionCounter = 0;
+    }
+
+    header() {
+        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange";
+    }
+    csv() {
+        return this.enableColision + ","
+            + this.minDistance + ","
+            + this.forceConstant + ","
+            + this.massConstant + ","
+            + this.chargeConstant + ","
+            + this.nearChargeConstant + ","
+            + this.nearChargeRange;
     }
 
     interact(p1, p2, probe = false) {
@@ -103,6 +116,10 @@ export class Particle {
 
     print() {
         console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " Sq:" + this.nearCharge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
+    }
+
+    header() {
+        return "id,m,q,nq,x,y,z,vx,vy,vz";
     }
 
     csv() {

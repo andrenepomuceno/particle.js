@@ -2,7 +2,7 @@ import * as dat from 'dat.gui';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { Graphics } from './graphics.js'
 import {
-    simulationSetup, simulationStep, simulationState,
+    simulationSetup, simulationStep, simulationState, simulationCsv,
     particleList, setColorMode
 } from './simulation.js';
 import { Vector2, Vector3 } from 'three';
@@ -52,7 +52,7 @@ var guiOptions = {
         },
         colorMode: function () {
             let newMode;
-            (colorMode == "charge")?(newMode = "random"):(newMode = "charge");
+            (colorMode == "charge") ? (newMode = "random") : (newMode = "charge");
             colorMode = newMode;
             setColorMode(newMode);
             simulationSetup(graphics);
@@ -119,6 +119,24 @@ function guiSetup() {
     //gui.close();
 }
 
+function download(data, filename, type) {
+    var file = new Blob([data], { type: type });
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+            url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
+
 document.addEventListener("keydown", (event) => {
     let key = event.key;
     switch (key) {
@@ -136,9 +154,9 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'p':
-            particleList.forEach((p, i) => {
-                p.print();
-            });
+            let timestamp = new Date().toISOString();
+            let name = simulationState()[0];
+            download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
             break;
 
         case 'a':

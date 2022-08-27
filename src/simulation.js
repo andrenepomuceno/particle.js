@@ -2,7 +2,7 @@ import { Particle, Physics } from './physics.js';
 //import { scenarios0 as simulationList } from './scenarios0.js';
 //import { scenarios1 as simulationList } from './scenarios/scenarios1.js';
 //import { fields as simulationList } from './scenarios/fieldTest.js';
-import { scenarios2 as simulationList } from './scenarios/scenarios2.js';
+import { elements as simulationList } from './scenarios/elements.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
 
@@ -32,7 +32,7 @@ export function setColorMode(mode) {
         case "random":
             enableChargeColor = false;
             break;
-        
+
         case "charge":
         default:
             enableChargeColor = true
@@ -65,6 +65,7 @@ function drawParticles(graphics) {
         }
 
         totalMass += p.mass;
+        energy += (p.mass * p.velocity.lengthSq());
     });
     const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
     const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
@@ -141,6 +142,7 @@ function simulationCleanup(graphics) {
 
     maxDistance = 1e6;
     totalMass = 0.0;
+    energy = 0.0;
 }
 
 export function simulationState() {
@@ -153,6 +155,15 @@ export function simulationState() {
         physics.colisionCounter,
         totalMass,
     ];
+}
+
+export function simulationCsv() {
+    let output = particleList[0].header() + "\n";
+    particleList.forEach((p, i) => {
+        output += p.csv() + "\n";
+    });
+    output += physics.header() + "\n" + physics.csv() + "\n";
+    return output;
 }
 
 function generateParticleColor(p, absCharge) {

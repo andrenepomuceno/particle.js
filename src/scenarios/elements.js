@@ -4,18 +4,14 @@ import { fieldProbe, fieldProbeConfig, fieldSetup } from '../field.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
-export const scenarios2 = [
+export const elements = [
     hydrogen,
     helium,
     lithium,
     carbon,
+    nitrogen,
     oxigen,
 ];
-
-let q = 1;
-let v = 0;
-let r0 = 128;
-let r1 = 2 * r0;
 
 function defaultParameters(graphics, physics, camera = 5000) {
     graphics.cameraDistance = camera;
@@ -25,79 +21,60 @@ function defaultParameters(graphics, physics, camera = 5000) {
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nearChargeConstant = -60;
-    physics.nearChargeRange = 1e2;
+    physics.nearChargeRange = 256;
 
     setParticleRadius(30, 10);
-    setBoundaryDistance(10e3);
-
-    q = 100;
-    r0 = physics.nearChargeRange / 2;
-    r1 = 5 * r0;
+    setBoundaryDistance(100e3);
 
     let grid = 100;
-    let spacing = 45*(camera/3000);
-    fieldSetup(graphics, spacing, [grid, grid * 9 / 16, 1]);
-    let amp = 32;
-    fieldProbeConfig(amp, amp * q, 0);
+    let spacing = Math.round(44*(camera/3000));
+    fieldSetup(graphics, spacing, [grid, Math.round(grid * 9 / 16), 1]);
+    let amp = 1e4;
+    fieldProbeConfig(0, amp, 0);
+}
+
+function atom(physics, n) {
+    let r0 = physics.nearChargeRange / 2;
+    let r1 = 3 * r0;
+    let q = 2e2;
+    let v = 10 * Math.sqrt(n);
+    let r2 = r1 * Math.sqrt(n);
+    let ne = 1*n;
+    atom0(
+        n, ne,
+        1, q, 1,
+        r0, r1, r2,
+        v
+    );
 }
 
 function hydrogen(graphics, physics) {
     defaultParameters(graphics, physics, 3000);
-    let n = 1;
-    let v = 10;
-    atom0(
-        n, 3*n,
-        1, q, 1,
-        r0, r1, n * r1,
-        v
-    );
+    atom(physics,1);
 }
 
 function helium(graphics, physics) {
     defaultParameters(graphics, physics, 3000);
-    let n = 2;
-    let v = 10;
-    atom0(
-        n, 3*n,
-        1, q, 1,
-        r0, r1, n * r1,
-        v
-    );
+    atom(physics,2);
 }
 
 function lithium(graphics, physics) {
     defaultParameters(graphics, physics, 3000);
-    let n = 3;
-    let v = 10;
-    atom0(
-        n, 3*n,
-        1, q, 1,
-        r0, r1, n * r1,
-        v
-    );
+    atom(physics,3);
 }
 
 function carbon(graphics, physics) {
     defaultParameters(graphics, physics, 5000);
-    let n = 6;
-    let v = 10;
-    atom0(
-        n, 3*n,
-        1, q, 1,
-        r0, r1, n * r1,
-        v
-    );
+    atom(physics,6);
+}
+
+function nitrogen(graphics, physics) {
+    defaultParameters(graphics, physics, 5000);
+    atom(physics,7);
 }
 
 function oxigen(graphics, physics) {
     defaultParameters(graphics, physics, 5000);
-    let n = 8;
-    let v = 10;
-    atom0(
-        n, 3*n,
-        1, q, 1,
-        r0, r1, n * r1,
-        v
-    );
+    atom(physics,8);
 }
 

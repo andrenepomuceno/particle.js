@@ -6,16 +6,20 @@ import { scenarios2 as simulationList } from './scenarios/scenarios2.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
 
-let particlesSetup = simulationList[0];
-let enableMassRadius = true;
-let enableChargeColor = true;
+export let particleList = [];
 export let physics;
+
+let particlesSetup = simulationList[0];
+const enableMassRadius = true;
+let enableChargeColor = true;
 let cicles = 0;
 let energy = 0.0;
-
-export let particleList = [];
 let particleRadius = 20;
 let particleRadiusRange = particleRadius / 2;
+
+let maxDistance = 1e6;
+const barrier = new Particle();
+barrier.mass = 1e100;
 
 export function setParticleRadius(radius, range) {
     particleRadius = radius;
@@ -33,6 +37,10 @@ export function setColorMode(mode) {
             enableChargeColor = true
             break;
     }
+}
+
+export function setBoundaryDistance(d = 1e6) {
+    maxDistance = d;
 }
 
 function drawParticles(graphics) {
@@ -91,14 +99,6 @@ export function simulationSetup(graphics, idx) {
     graphics.cameraSetup();
 }
 
-let maxDistance = 1e6;
-const barrier = new Particle();
-barrier.mass = 1e100;
-
-export function setBoundaryDistance(d = 1e6) {
-    maxDistance = d;
-}
-
 function boundaryCheck(p1) {
     if (p1.position.length() > maxDistance) {
         physics.colide(p1, barrier);
@@ -134,6 +134,8 @@ function simulationCleanup(graphics) {
     cicles = 0;
     particleRadius = 20;
     particleRadiusRange = particleRadius / 2;
+
+    let maxDistance = 1e6;
 }
 
 export function simulationState() {

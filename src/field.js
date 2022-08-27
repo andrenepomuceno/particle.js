@@ -70,7 +70,7 @@ export function fieldUpdate() {
         let amplitude = (forceAmplitude - forceMin) / (forceMax - forceMin);
 
         if (amplitude < 1e-3)
-            pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3*amplitude) + '%)'));
+            pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3 * amplitude) + '%)'));
         else if (amplitude < 0.99)
             pos.arrow.setColor(new Color('hsl(' + 360 * amplitude + ', 100%, 50%)'));
         else

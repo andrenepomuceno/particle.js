@@ -5,6 +5,7 @@ let particleId = 0;
 export class Particle {
     constructor() {
         this.id = particleId++;
+        this.minDistance = 1e-3;
 
         this.mass = 0;
         this.charge = 0;
@@ -42,14 +43,15 @@ export class Physics {
     }
 
     interact(p1, p2, probe = false) {
-        if (p1.id == p2.id) return;
+        //if (p1.id == p2.id) return;
+        if (p1 == p2) return;
 
         let distance = p2.position.clone();
         distance.sub(p1.position);
 
         let absDistance2 = distance.lengthSq();
-        if (absDistance2 <= 1) {
-            if (!probe) this.colide(p1, p2);
+        if (absDistance2 < this.minDistance) {
+            if (this.enableColision && !probe) this.colide(p1, p2);
             return;
         }
 
@@ -79,8 +81,6 @@ export class Physics {
 
     colide(p1, p2) {
         ++this.colisionCounter;
-
-        if (!this.enableColision) return;
 
         let m = p1.mass + p2.mass;
         if (m == 0) {

@@ -99,7 +99,7 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Amp.').listen();
-    guiParticle.open();
+    //guiParticle.open();
 
     const guiSimulation = gui.addFolder("Simulation");
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");

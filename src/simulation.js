@@ -163,6 +163,8 @@ export function simulationCsv() {
         output += p.csv() + "\n";
     });
     output += physics.header() + "\n" + physics.csv() + "\n";
+    output += "cicles\n";
+    output += cicles + "\n";
     return output;
 }
 

@@ -19,8 +19,8 @@
   },
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
-    "three": "^0.143.0",
-    "dat.gui": "^0.7.9"
+    "dat.gui": "^0.7.9",
+    "three": "^0.143.0"
   },
   "devDependencies": {
     "webpack": "^5.74.0",

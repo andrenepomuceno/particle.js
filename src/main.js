@@ -137,6 +137,7 @@ function download(data, filename, type) {
     }
 }
 
+let makeScreenShot = false;
 document.addEventListener("keydown", (event) => {
     let key = event.key;
     switch (key) {
@@ -154,9 +155,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'p':
-            let timestamp = new Date().toISOString();
-            let name = simulationState()[0];
-            download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+            makeScreenShot = true;
             break;
 
         case 'a':
@@ -259,6 +258,17 @@ function animate(now) {
     requestAnimationFrame(animate);
 
     graphics.update();
+
+    if (makeScreenShot) {
+        makeScreenShot = false;
+
+        let timestamp = new Date().toISOString();
+        let name = simulationState()[0];
+        download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+        graphics.renderer.domElement.toBlob((blob) => {
+            download(blob, name + "-" + timestamp + ".png", "image/png");
+        });
+    }
 
     if (!pause || nextFrame) {
         nextFrame = false;

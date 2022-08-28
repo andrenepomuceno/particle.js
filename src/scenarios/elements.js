@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { fieldCleanup, fieldProbe, fieldProbeConfig, fieldSetup, drawField } from '../field.js';
+import { fieldProbeConfig, fieldSetup } from '../field.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
@@ -33,37 +33,28 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setBoundaryDistance(1e4);
 
     if (mode2d) {
-        let grid = 51;
-        // let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
-        // let ratio = window.innerWidth / window.innerHeight;
-        // let gridArray = [
-        //     grid,
-        //     Math.round(grid / ratio),
-        //     1
-        // ];
-        // fieldSetup(graphics, spacing, gridArray);
-        fieldSetup(graphics, grid);
+        fieldSetup(graphics, 70);
     }
 
     //fieldProbeConfig(1e3, 0, 0);
-    fieldProbeConfig(0, 1e7, 0);
+    fieldProbeConfig(0, 1e6, 0);
     //fieldProbeConfig(0, 0, 1);
 }
 
 function atom(physics, n, center = new Vector3()) {
     let m = 1 / 100;
-    let q = 50;
+    let q = 100;
     let nq = 1;
 
     let r0 = physics.nearChargeRange / 2;
-    let r1 = 2 * r0;
-    let r2 = r1 * (n + 1) * 4;
+    let r1 = 3 * r0;
+    let r2 = 2 * r1 * n;
 
     //let v = 20*Math.sqrt(q/r1);
     let v = 15;
     //console.log(v);
 
-    let ne = 16 * n;
+    let ne = 1 * n;
     atom0(
         n, ne,
         m, q, nq,

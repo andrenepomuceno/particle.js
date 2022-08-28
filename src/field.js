@@ -88,7 +88,7 @@ export function fieldCleanup(graphics) {
 }
 
 export function fieldUpdate() {
-    console.log("fieldUpdate");
+    //console.log("fieldUpdate");
 
     const forceMin = 0;
     const forceMax = 1e3;
@@ -105,6 +105,7 @@ export function fieldUpdate() {
         if (forceLen > forceMax) forceLen = forceMax;
         else if (forceLen < forceMin) forceLen = forceMin;
         let forceLenRel = (forceLen - forceMin) / (forceMax - forceMin);
+        //forceLenRel = Math.log10(1 + 9*forceLenRel);
 
         if (forceLenRel < 1e-3)
             pos.arrow.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3 * forceLenRel) + '%)'));

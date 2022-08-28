@@ -1,6 +1,7 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { TextureLoader, Vector2, Vector3, MeshPhongMaterial } from 'three';
-import { SphereGeometry, Mesh, DoubleSide, Color, ShaderMaterial, BackSide } from 'three';
+import {
+    Vector2,
+} from 'three';
 import * as dat from 'dat.gui';
 
 import { Graphics } from './graphics.js'
@@ -74,7 +75,7 @@ let guiOptions = {
         name: "",
         particles: 0,
         energy: "",
-        time: 0,
+        time: "",
         collisions: 0,
         mass: "",
         radius: "",
@@ -85,13 +86,14 @@ let guiOptions = {
         charge: "",
         nearCharge: "",
         position: "",
-        velocity: "",
+        velocityDir: "",
         velocityAbs: "",
         color: "",
         field: {
             direction: "",
             amplitude: "",
-        }
+        },
+        energy: "",
     }
 }
 
@@ -114,11 +116,12 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
     guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
     guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
-    guiParticle.add(guiOptions.particle, 'velocity').name('Velocity').listen();
-    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
+    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity (abs)').listen();
+    guiParticle.add(guiOptions.particle, 'velocityDir').name('Velocity (dir)').listen();
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
-    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Amp.').listen();
+    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field (abs)').listen();
+    guiParticle.add(guiOptions.particle.field, 'direction').name('Field (dir)').listen();
+    guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     //guiParticle.open();
 
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -236,15 +239,14 @@ function updateInfo(now) {
     let [name, n, t, e, c, m, r] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
-    guiOptions.info.time = t;
+    let realTime = new Date(totalTime).toISOString().substring(11, 19);
+    guiOptions.info.time = realTime + " (" + t + ")";
     guiOptions.info.energy = e;
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toFixed(4);
     guiOptions.info.radius = r.toExponential(2);
 }
 
-let lastTarget = new Vector3();
-let lastDistante = 5000;
 function updateParticle() {
     //if (!pause) return;
     let particle = graphics.raycast(pointer);
@@ -254,8 +256,9 @@ function updateParticle() {
         guiOptions.particle.charge = particle.charge;
         guiOptions.particle.nearCharge = particle.nearCharge;
         guiOptions.particle.position = arrayToString(particle.position.toArray(), 2);
-        guiOptions.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
-        guiOptions.particle.velocityAbs = particle.velocity.length().toFixed(2);
+        guiOptions.particle.velocityDir = arrayToString(
+            particle.velocity.clone().normalize().toArray(), 2);
+        guiOptions.particle.velocityAbs = particle.velocity.length().toFixed(6);
         let color = particle.sphere.material.color;
         guiOptions.particle.color = arrayToString(color.toArray(), 2);
 
@@ -268,15 +271,7 @@ function updateParticle() {
         let amp = field.length();
         guiOptions.particle.field.amplitude = amp.toFixed(6);
         guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
-
-        //let target = graphics.controls.target;
-        /*let scale = graphics.controls.getDistance()/lastDistante;
-        lastDistante = graphics.controls.getDistance();
-
-        let target = particle.position;
-        let move = target.clone().sub(lastTarget);
-        lastTarget = target.clone();
-        fieldMove(move, scale);*/
+        guiOptions.particle.energy = particle.energy().toFixed(6);
 
         guiParticle.open();
     }
@@ -299,10 +294,12 @@ function snapshot() {
     });
 }
 
-let last = 0;
+let lastUpdate = 0;
+let lastTime = 0;
 let totalTime = 0;
-const updateDelay = 250;
-function animate(now) {
+const updateDelay = 100;
+
+function animate(time) {
     requestAnimationFrame(animate);
 
     graphics.update();
@@ -315,14 +312,21 @@ function animate(now) {
     if (!pause || nextFrame) {
         nextFrame = false;
         simulationStep(graphics);
+
+        if (!isNaN(time)) {
+            let dt = time - lastTime;
+            totalTime += dt;
+        }
     }
 
-    if (now - last >= updateDelay) {
-        last = now;
+    if (time - lastUpdate >= updateDelay) {
+        lastUpdate = time;
 
         updateParticle();
-        updateInfo(now);
+        updateInfo(time);
     }
+
+    if (!isNaN(time)) lastTime = time;
 }
 
 function skydome() {

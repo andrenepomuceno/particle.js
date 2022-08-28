@@ -146,6 +146,7 @@ export function createCloud3(n, m, q, nq, r0, r1, v, center = new Vector3()) {
         () => { return q; },
         () => { return nq; },
         () => {
+            //console.log([r0, r1]);
             return randomSphericVector(r0, r1).add(center);
         },
         (i_, n_, x) => {

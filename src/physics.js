@@ -89,6 +89,8 @@ export class Physics {
             return;
         }
 
+        p.force.multiplyScalar(this.forceConstant);
+
         let accel;
         if (p.mass != 0.0) {
             accel = p.force.divideScalar(Math.abs(p.mass));
@@ -119,16 +121,34 @@ export class Particle {
         this.fixed = false;
     }
 
+    energy() {
+        return this.mass * this.velocity.lengthSq();
+    }
+
     print() {
-        console.log("ID:" + this.id + " M:" + this.mass + " Q:" + this.charge + " Sq:" + this.nearCharge + " P:" + this.position.toArray() + " V:" + this.velocity.toArray());
+        console.log(
+            "ID:" + this.id +
+            " M:" + this.mass +
+            " Q:" + this.charge +
+            " Sq:" + this.nearCharge +
+            " P:" + this.position.toArray() +
+            " V:" + this.velocity.toArray() +
+            " E:" + this.energy()
+            );
     }
 
     header() {
-        return "id,m,q,nq,x,y,z,vx,vy,vz";
+        return "id,m,q,nq,x,y,z,vx,vy,vz,e";
     }
 
     csv() {
-        return this.id + "," + this.mass + "," + this.charge + "," + this.nearCharge + "," + this.position.toArray() + "," + this.velocity.toArray();
+        return this.id + "," +
+            this.mass + "," +
+            this.charge + "," +
+            this.nearCharge + "," +
+            this.position.toArray() + "," +
+            this.velocity.toArray() + "," +
+            this.energy();
     }
 
     setColor(color = 0xffffff) {

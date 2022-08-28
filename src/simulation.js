@@ -144,7 +144,7 @@ export function simulationStep(graphics) {
         boundaryCheck(p1);
 
         graphics.render(p1);
-        energy += (p1.mass * p1.velocity.lengthSq());
+        energy += p1.energy();
     }
     ++cicles;
 

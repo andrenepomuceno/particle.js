@@ -32,18 +32,16 @@ const visibleWidthAtZDepth = (depth, camera) => {
     return height * camera.aspect;
 };
 
-export function fieldRedraw(graphics) {
-    let center = graphics.controls.target.clone();
+export function fieldRefresh(graphics, grid = 51) {
+    graphics.cameraSetup();
 
-    let grid = 51;
-    let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera)/grid/2;
-    let ratio = window.innerWidth / window.innerHeight;
+    let center = graphics.controls.target.clone();
+    let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;
     let gridArray = [
         grid,
-        Math.round(grid / ratio),
+        Math.round(grid / graphics.camera.aspect),
         1
     ];
-
     fieldSetup(graphics, spacing, gridArray, center);
 }
 
@@ -113,9 +111,6 @@ export function fieldProbe(probe) {
         physics.interact(probe, p, true);
         p.force.setScalar(0);
     });
-
-    // let ret = probe.force.clone();
-    // probe.force.setScalar(0);
 
     return probe.force;
 }

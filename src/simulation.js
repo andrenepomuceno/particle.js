@@ -6,16 +6,24 @@ import { elements } from './scenarios/elements.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
 
+function initialSimulation(list, name) {
+    return list.find(e => {
+        if (e.name == name) return e;
+        else return list[0];
+    });
+}
 let simulationList = [];
+//simulationList.push(initialSimulation(fields, ""));
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
+let particlesSetup = simulationList[0];
+console.log(particlesSetup);
 
 export let particleList = [];
 export let physics;
 
-let particlesSetup = simulationList[0];
 const enableMassRadius = true;
 let enableChargeColor = true;
 let cicles = 0;

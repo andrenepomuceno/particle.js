@@ -55,6 +55,7 @@ export class Graphics {
         this.camera.position.set(x, y, z);
         this.camera.lookAt(0, 0, 0);
 
+        this.controls.update();
         this.controls.target.set(0, 0, 0);
         this.controls.saveState();
     }

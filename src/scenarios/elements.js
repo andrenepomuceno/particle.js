@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { fieldCleanup, fieldProbe, fieldProbeConfig, fieldSetup } from '../field.js';
+import { fieldCleanup, fieldProbe, fieldProbeConfig, fieldRefresh, fieldSetup } from '../field.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
@@ -33,14 +33,15 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     if (mode2d) {
         let grid = 51;
-        let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
-        let ratio = window.innerWidth / window.innerHeight;
-        let gridArray = [
-            grid,
-            Math.round(grid / ratio),
-            1
-        ];
-        fieldSetup(graphics, spacing, gridArray);
+        // let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
+        // let ratio = window.innerWidth / window.innerHeight;
+        // let gridArray = [
+        //     grid,
+        //     Math.round(grid / ratio),
+        //     1
+        // ];
+        // fieldSetup(graphics, spacing, gridArray);
+        fieldRefresh(graphics, grid);
     }
 
     //fieldProbeConfig(1e3, 0, 0);

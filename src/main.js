@@ -1,5 +1,8 @@
-import * as dat from 'dat.gui';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
+import { TextureLoader, Vector2, Vector3, MeshPhongMaterial } from 'three';
+import { SphereGeometry, Mesh, DoubleSide, Color, ShaderMaterial, BackSide } from 'three';
+import * as dat from 'dat.gui';
+
 import { Graphics } from './graphics.js'
 import {
     simulationSetup,
@@ -9,10 +12,8 @@ import {
     setColorMode,
     particleList,
 } from './simulation.js';
-import { TextureLoader, Vector2, Vector3, MeshPhongMaterial } from 'three';
 import { Particle } from './physics.js';
-import { fieldRedraw, fieldProbe, fieldSetup } from './field.js';
-import { SphereGeometry, Mesh, DoubleSide, Color, ShaderMaterial, BackSide } from 'three';
+import { fieldRefresh, fieldProbe, fieldSetup } from './field.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -203,7 +204,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldRedraw(graphics)
+            fieldRefresh(graphics)
             break;
 
         default:

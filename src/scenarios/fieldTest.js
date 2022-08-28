@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { particleList, setParticleRadius } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
-import { fieldProbeConfig, fieldSetup } from '../field.js'
+import { fieldProbeConfig, fieldRefresh, fieldSetup } from '../field.js'
 
 export const fields = [
     nearField,
@@ -21,14 +21,18 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
     particleList.push(p);
 }
 
-function nearField(graphics, physics) {
+function defaultConfig(graphics, physics) {
     graphics.cameraDistance = 100;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    setParticleRadius(0.5, 0);
-    let grid = 15;
-    fieldSetup(graphics, 3, [grid, grid, 1], new Vector3(0, 0, 0));
-    fieldProbeConfig(0, 0, 1);
+    setParticleRadius(1, 0);
+    let grid = 50;
+    fieldRefresh(graphics, grid);
+}
+
+function nearField(graphics, physics) {
+    defaultConfig(graphics, physics)
+    fieldProbeConfig(0, 0, 1e2);
 
     physics.forceConstant = 1;
     physics.massConstant = 0;
@@ -48,13 +52,8 @@ function nearField(graphics, physics) {
 }
 
 function chargeField(graphics, physics) {
-    graphics.cameraDistance = 100;
-    graphics.cameraPhi = graphics.cameraTheta = 0;
-
-    setParticleRadius(2, 0);
-    let grid = 15;
-    fieldSetup(graphics, 3, [grid, grid, 1], new Vector3(0, 0, 0));
-    fieldProbeConfig(0, 1, 0);
+    defaultConfig(graphics, physics)
+    fieldProbeConfig(0, 10 , 0);
 
     physics.forceConstant = 1;
     physics.massConstant = 1;
@@ -74,13 +73,8 @@ function chargeField(graphics, physics) {
 }
 
 function massField(graphics, physics) {
-    graphics.cameraDistance = 100;
-    graphics.cameraPhi = graphics.cameraTheta = 0;
-
-    setParticleRadius(2, 0);
-    let grid = 15;
-    fieldSetup(graphics, 3, [grid, grid, 1], new Vector3(0, 0, 0));
-    fieldProbeConfig(1, 0, 0);
+    defaultConfig(graphics, physics)
+    fieldProbeConfig(10, 0, 0);
 
     physics.forceConstant = 1;
     physics.massConstant = 1;

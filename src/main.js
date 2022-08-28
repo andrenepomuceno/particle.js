@@ -13,7 +13,7 @@ import {
     particleList,
 } from './simulation.js';
 import { Particle } from './physics.js';
-import { fieldRefresh, fieldProbe, fieldSetup } from './field.js';
+import { fieldSetup, fieldProbe, drawField } from './field.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -204,7 +204,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldRefresh(graphics)
+            fieldSetup(graphics)
             break;
 
         default:

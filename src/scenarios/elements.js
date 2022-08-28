@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { fieldCleanup, fieldProbe, fieldProbeConfig, fieldRefresh, fieldSetup } from '../field.js';
+import { fieldCleanup, fieldProbe, fieldProbeConfig, fieldSetup, drawField } from '../field.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
@@ -20,6 +20,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
+    graphics.cameraSetup();
     //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 8;
@@ -41,7 +42,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
         //     1
         // ];
         // fieldSetup(graphics, spacing, gridArray);
-        fieldRefresh(graphics, grid);
+        fieldSetup(graphics, grid);
     }
 
     //fieldProbeConfig(1e3, 0, 0);

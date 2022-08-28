@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { particleList, setParticleRadius } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
-import { fieldProbeConfig, fieldRefresh, fieldSetup } from '../field.js'
+import { fieldProbeConfig, fieldSetup, drawField } from '../field.js'
 
 export const fields = [
     nearField,
@@ -24,10 +24,11 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
 function defaultConfig(graphics, physics) {
     graphics.cameraDistance = 100;
     graphics.cameraPhi = graphics.cameraTheta = 0;
+    graphics.cameraSetup();
 
     setParticleRadius(1, 0);
     let grid = 50;
-    fieldRefresh(graphics, grid);
+    fieldSetup(graphics, grid);
 }
 
 function nearField(graphics, physics) {

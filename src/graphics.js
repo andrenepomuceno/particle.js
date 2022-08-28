@@ -23,6 +23,8 @@ const axis = [
 
 export class Graphics {
     constructor() {
+        console.log("graphics init");
+
         this.renderer = new WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById("container").appendChild(this.renderer.domElement);
@@ -42,15 +44,23 @@ export class Graphics {
         this.showAxis();
 
         this.raycaster = new Raycaster();
+
+        console.log("graphics done");
     }
 
     cameraDefault() {
+        console.log("cameraDefault");
+
         this.cameraDistance = 3000;
         this.cameraPhi = 30; // up/down [0,Pi]
         this.cameraTheta = 45; // rotation [0,2Pi]
+
+        this.cameraSetup();
     }
 
     cameraSetup() {
+        console.log("cameraSetup");
+
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
         this.camera.lookAt(0, 0, 0);
@@ -58,6 +68,26 @@ export class Graphics {
         this.controls.update();
         this.controls.target.set(0, 0, 0);
         this.controls.saveState();
+    }
+
+    cameraRefresh() {
+        console.log("cameraRefresh");
+        //this.controls.update();
+
+        //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
+        //this.camera.position.set(x, y, z);
+        //this.controls.update();
+        // this.cameraDistance = this.controls.getDistance();
+        // this.cameraPhi = this.controls.() * 180/Math.PI;
+        // this.cameraTheta = this.controls.getPolarAngle() * 180/Math.PI;
+        // console.log(this.controls.getDistance());
+        // console.log(this.controls.getAzimuthalAngle() * 180/Math.PI);
+        // console.log(this.controls.getPolarAngle()* 180/Math.PI);
+        //this.cameraSetup();
+
+        // let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
+        // this.camera.position.set(x, y, z);
+        // this.controls.update();
     }
 
     showAxis(show = true) {

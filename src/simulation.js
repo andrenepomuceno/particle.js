@@ -19,7 +19,6 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
-console.log(particlesSetup);
 
 export let particleList = [];
 export let physics;
@@ -117,6 +116,8 @@ function drawParticles(graphics) {
 }
 
 export function simulationSetup(graphics, idx) {
+    console.log("simulationSetup ----------");
+
     simulationCleanup(graphics);
     fieldCleanup(graphics);
 
@@ -126,10 +127,16 @@ export function simulationSetup(graphics, idx) {
 
     physics = new Physics();
     graphics.cameraDefault();
+
+    console.log("particleSetup ----------");
     particlesSetup(graphics, physics);
-    drawParticles(graphics);
+    console.log("particleSetup done ----------");
+
     graphics.cameraSetup();
+    drawParticles(graphics);
     fieldUpdate();
+
+    console.log("simulationSetup done ----------");
 }
 
 function boundaryCheck(p1) {

@@ -32,8 +32,11 @@ const visibleWidthAtZDepth = (depth, camera) => {
     return height * camera.aspect;
 };
 
-export function fieldRefresh(graphics, grid = 51) {
-    graphics.cameraSetup();
+export function fieldSetup(graphics, grid = 51) {
+    console.log("fieldSetup");
+
+    graphics.cameraRefresh();
+    //graphics.cameraSetup();
 
     let center = graphics.controls.target.clone();
     let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;
@@ -42,10 +45,16 @@ export function fieldRefresh(graphics, grid = 51) {
         Math.round(grid / graphics.camera.aspect),
         1
     ];
-    fieldSetup(graphics, spacing, gridArray, center);
+    drawField(graphics, spacing, gridArray, center);
+
+    fieldUpdate();
+
+    console.log("fieldSetup done");
 }
 
-export function fieldSetup(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+export function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+    console.log("drawField");
+
     fieldCleanup(graphics);
 
     let len = spacing / 2;
@@ -75,6 +84,8 @@ export function fieldCleanup(graphics) {
 }
 
 export function fieldUpdate() {
+    console.log("fieldUpdate");
+
     const forceMin = 0;
     const forceMax = 1e3;
 

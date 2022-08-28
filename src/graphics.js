@@ -73,21 +73,12 @@ export class Graphics {
     cameraRefresh() {
         console.log("cameraRefresh");
         //this.controls.update();
-
-        //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
-        //this.camera.position.set(x, y, z);
-        //this.controls.update();
-        // this.cameraDistance = this.controls.getDistance();
-        // this.cameraPhi = this.controls.() * 180/Math.PI;
-        // this.cameraTheta = this.controls.getPolarAngle() * 180/Math.PI;
         // console.log(this.controls.getDistance());
         // console.log(this.controls.getAzimuthalAngle() * 180/Math.PI);
         // console.log(this.controls.getPolarAngle()* 180/Math.PI);
-        //this.cameraSetup();
-
-        // let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
-        // this.camera.position.set(x, y, z);
-        // this.controls.update();
+        //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
+        //this.camera.position.set(x, y, z);
+        //this.controls.update();
     }
 
     showAxis(show = true) {

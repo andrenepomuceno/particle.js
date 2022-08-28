@@ -22,7 +22,7 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
 }
 
 function defaultConfig(graphics, physics) {
-    graphics.cameraDistance = 100;
+    graphics.cameraDistance = 40;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 

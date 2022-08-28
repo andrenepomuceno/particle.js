@@ -32,11 +32,15 @@ const visibleWidthAtZDepth = (depth, camera) => {
     return height * camera.aspect;
 };
 
-export function fieldSetup(graphics, grid = 51) {
+let lastGrid = 1;
+export function fieldSetup(graphics, grid = lastGrid) {
     console.log("fieldSetup");
 
-    graphics.cameraRefresh();
-    //graphics.cameraSetup();
+    if (grid) {
+        lastGrid = grid;
+    }
+
+    //graphics.cameraRefresh();
 
     let center = graphics.controls.target.clone();
     let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;

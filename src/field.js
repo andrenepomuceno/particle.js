@@ -1,7 +1,7 @@
 import { ArrowHelper, Vector3, Color } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
-import { cubeGenerator } from './helpers'
+import { cubeGenerator, visibleWidthAtZDepth } from './helpers'
 
 let fieldVectorList = [];
 
@@ -16,47 +16,46 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
     updateProbe.nq = nq;
 }
 
-const visibleHeightAtZDepth = (depth, camera) => {
-    // compensate for cameras not positioned at z=0
-    const cameraOffset = camera.position.z;
-    if (depth < cameraOffset) depth -= cameraOffset;
-    else depth += cameraOffset;
-    // vertical fov in radians
-    const vFOV = camera.fov * Math.PI / 180;
-    // Math.abs to ensure the result is always positive
-    return 2 * Math.tan(vFOV / 2) * Math.abs(depth);
-};
-
-const visibleWidthAtZDepth = (depth, camera) => {
-    const height = visibleHeightAtZDepth(depth, camera);
-    return height * camera.aspect;
-};
-
-let lastGrid = 1;
-export function fieldSetup(graphics, grid = lastGrid) {
+let lastMode = "";
+let lastSpacing = 0;
+let lastGrid = [];
+export function fieldSetup(graphics, mode = "update", grid, spacing) {
     console.log("fieldSetup");
-
-    if (grid) {
-        lastGrid = grid;
-    }
 
     //graphics.cameraRefresh();
 
-    let center = graphics.controls.target.clone();
-    let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;
-    let gridArray = [
-        grid,
-        Math.round(grid / graphics.camera.aspect),
-        1
-    ];
-    drawField(graphics, spacing, gridArray, center);
+    let newGrid, newSpacing;
+    
+    if (mode == "2d") {
+        newSpacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;
+        newGrid = [
+            grid,
+            Math.round(grid / graphics.camera.aspect),
+            1
+        ];
+    } else if (mode == "3d") {
+        newSpacing = 250;
+        newGrid = [
+            grid,
+            grid,
+            grid
+        ];
+    } else if (mode == "update") {
+        return fieldSetup(graphics, lastMode, lastGrid, lastSpacing)
+    }
 
+    let center = graphics.controls.target.clone();
+    drawField(graphics, newSpacing, newGrid, center);
     fieldUpdate();
+
+    lastMode = mode;
+    lastGrid = grid;
+    lastSpacing = spacing;
 
     console.log("fieldSetup done");
 }
 
-export function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
     console.log("drawField");
 
     fieldCleanup(graphics);

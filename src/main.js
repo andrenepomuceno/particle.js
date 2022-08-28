@@ -14,7 +14,7 @@ import {
     particleList,
 } from './simulation.js';
 import { Particle } from './physics.js';
-import { fieldSetup, fieldProbe, drawField } from './field.js';
+import { fieldProbe, fieldRedraw, fieldSetup } from './field.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -207,7 +207,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldSetup(graphics)
+            fieldSetup(graphics, "update");
             break;
 
         default:
@@ -298,6 +298,7 @@ let lastUpdate = 0;
 let lastTime = 0;
 let totalTime = 0;
 const updateDelay = 100;
+let updateField = false;
 
 function animate(time) {
     requestAnimationFrame(animate);
@@ -324,6 +325,11 @@ function animate(time) {
 
         updateParticle();
         updateInfo(time);
+
+        if (updateField) {
+            updateField = false;
+            fieldSetup(graphics, "update");
+        }
     }
 
     if (!isNaN(time)) lastTime = time;
@@ -336,6 +342,9 @@ function skydome() {
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
     simulationSetup(graphics);
+    graphics.controls.addEventListener("end", e => {
+        updateField = true;
+    });
     skydome();
     animate();
 } else {

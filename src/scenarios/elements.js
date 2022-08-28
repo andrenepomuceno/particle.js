@@ -1,11 +1,12 @@
 
 import { Vector3 } from 'three';
 import { fieldProbeConfig, fieldSetup } from '../field.js';
+import { visibleWidthAtZDepth } from '../helpers.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
 export const elements = [
-    //water,
+    water,
     hydrogen,
     helium,
     lithium,
@@ -31,10 +32,8 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(30, 10);
     setBoundaryDistance(1e4);
-
-    if (mode2d) {
-        fieldSetup(graphics, 70);
-    }
+    
+    (mode2d)?(fieldSetup(graphics, "2d", 70)):(fieldSetup(graphics, "3d", 10));
 
     //fieldProbeConfig(1e3, 0, 0);
     fieldProbeConfig(0, 1e6, 0);

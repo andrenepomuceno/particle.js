@@ -1,8 +1,7 @@
 import { Vector3 } from 'three';
 import { particleList, setParticleRadius } from '../simulation.js'
-import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
-import { fieldProbeConfig, fieldSetup, drawField } from '../field.js'
+import { fieldProbeConfig, fieldSetup } from '../field.js'
 
 export const fields = [
     nearField,
@@ -28,7 +27,7 @@ function defaultConfig(graphics, physics) {
 
     setParticleRadius(1, 0);
     let grid = 50;
-    fieldSetup(graphics, grid);
+    fieldSetup(graphics, "2d", grid);
 }
 
 function nearField(graphics, physics) {

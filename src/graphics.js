@@ -66,14 +66,13 @@ export class Graphics {
         });
     }
 
-    addParticle(particle, radius = 5, color = 0xffffff) {
+    addParticle(particle, radius = 5) {
         if (geometryMap.has(radius) == false) {
             geometryMap.set(radius, new SphereGeometry(radius));
         }
         particle.sphere = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
-        particle.sphere.material.color.set(color);
         this.scene.add(particle.sphere);
-
+        
         particle.sphere.particle = particle;
     }
 

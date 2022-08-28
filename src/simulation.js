@@ -1,10 +1,16 @@
 import { Particle, Physics } from './physics.js';
-//import { scenarios0 as simulationList } from './scenarios0.js';
-//import { scenarios1 as simulationList } from './scenarios/scenarios1.js';
-//import { fields as simulationList } from './scenarios/fieldTest.js';
-import { elements as simulationList } from './scenarios/elements.js';
+import { scenarios0 } from './scenarios/scenarios0.js';
+import { scenarios1 } from './scenarios/scenarios1.js';
+import { fields } from './scenarios/fieldTest.js';
+import { elements } from './scenarios/elements.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
+
+let simulationList = [];
+simulationList = simulationList.concat(elements);
+simulationList = simulationList.concat(fields);
+simulationList = simulationList.concat(scenarios1);
+simulationList = simulationList.concat(scenarios0);
 
 export let particleList = [];
 export let physics;
@@ -22,6 +28,9 @@ let maxDistance = 1e6;
 const barrier = new Particle();
 barrier.mass = 1e100;
 
+let mMin = Infinity, mMax = -Infinity;
+let qMin = Infinity, qMax = -Infinity;
+
 export function setParticleRadius(radius, range) {
     particleRadius = radius;
     particleRadiusRange = range;
@@ -38,17 +47,44 @@ export function setColorMode(mode) {
             enableChargeColor = true
             break;
     }
+
+    paintParticles();
 }
 
 export function setBoundaryDistance(d = 1e6) {
     maxDistance = d;
 }
 
-function drawParticles(graphics) {
+function paintParticles() {
+    const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
+    particleList.forEach((p, i) => {
+        let color;
+        if (enableChargeColor) {
+            color = generateParticleColor(p, absCharge);
+        } else {
+            color = randomColor();
+        }
+        p.setColor(color);
+    });
+}
+
+function addParticles(graphics) {
     let minRadius = particleRadius - particleRadiusRange / 2;
     let maxRadius = particleRadius + particleRadiusRange / 2;
-    let mMin = Infinity, mMax = -Infinity;
-    let qMin = Infinity, qMax = -Infinity;
+    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
+    particleList.forEach((p, i) => {
+        let radius = minRadius;
+        if (enableMassRadius) {
+            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
+        }
+        graphics.addParticle(p, radius);
+        graphics.render(p);
+    });
+}
+
+function drawParticles(graphics) {
+    mMin = Infinity, mMax = -Infinity;
+    qMin = Infinity, qMax = -Infinity;
     particleList.forEach((p, idx) => {
         if (p.mass > mMax) {
             mMax = p.mass;
@@ -67,25 +103,9 @@ function drawParticles(graphics) {
         totalMass += p.mass;
         energy += (p.mass * p.velocity.lengthSq());
     });
-    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
-    const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
 
-    particleList.forEach((p, i) => {
-        let radius = minRadius;
-        if (enableMassRadius) {
-            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
-        }
-
-        let color;
-        if (enableChargeColor) {
-            color = generateParticleColor(p, absCharge);
-        } else {
-            color = randomColor();
-        }
-
-        graphics.addParticle(p, radius, color);
-        graphics.render(p);
-    });
+    addParticles(graphics);
+    paintParticles();
 }
 
 export function simulationSetup(graphics, idx) {

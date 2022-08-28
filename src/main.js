@@ -7,7 +7,7 @@ import {
     simulationState,
     simulationCsv,
     setColorMode,
-    particleList
+    particleList,
 } from './simulation.js';
 import { Vector2 } from 'three';
 import { Particle } from './physics.js';
@@ -66,7 +66,6 @@ var guiOptions = {
             (colorMode == "charge") ? (newMode = "random") : (newMode = "charge");
             colorMode = newMode;
             setColorMode(newMode);
-            simulationSetup(graphics);
         }
     },
     info: {
@@ -256,10 +255,10 @@ function updateParticle() {
         guiOptions.particle.field.amplitude = amp.toFixed(6);
         guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
 
-        let target = graphics.controls.target;
+        /*let target = graphics.controls.target;
         let d = particle.position.clone().sub(target);
         graphics.camera.position.add(d.x, d.y, d.z);
-        graphics.controls.update();
+        graphics.controls.update();*/
     }
 }
 

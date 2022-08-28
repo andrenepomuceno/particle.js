@@ -129,4 +129,8 @@ export class Particle {
     csv() {
         return this.id + "," + this.mass + "," + this.charge + "," + this.nearCharge + "," + this.position.toArray() + "," + this.velocity.toArray();
     }
+
+    setColor(color = 0xffffff) {
+        this.sphere.material.color.set(color);
+    }
 }

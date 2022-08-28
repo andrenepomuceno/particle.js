@@ -22,14 +22,14 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
-    physics.massConstant = 1e-3;
-    physics.chargeConstant = 1;
+    physics.forceConstant = 4;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 2;
     physics.nearChargeConstant = -137;
     physics.nearChargeRange = 256;
 
     setParticleRadius(30, 10);
-    setBoundaryDistance(50e3);
+    setBoundaryDistance(10e3);
 
     let grid = (mode2d) ? (51) : (16);
     let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
@@ -47,15 +47,15 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function atom(physics, n, center = new Vector3()) {
-    let m = 1;
-    let q = 2e2;
+    let m = 1/2;
+    let q = 32;
     let nq = 1;
+    let v = 5;
 
     let r0 = physics.nearChargeRange / 2;
     let r1 = 3 * r0;
     let r2 = r1 * Math.sqrt(2 * n);
     //let v = 10 * Math.sqrt(n);
-    let v = 10;
 
     let ne = 1 * n;
     atom0(

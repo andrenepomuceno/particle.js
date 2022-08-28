@@ -60,7 +60,7 @@ function paintParticles() {
     particleList.forEach((p, i) => {
         let color;
         if (enableChargeColor) {
-            color = generateParticleColor2(p, absCharge);
+            color = generateParticleColor(p, absCharge);
         } else {
             color = randomColor();
         }
@@ -190,29 +190,6 @@ export function simulationCsv() {
 }
 
 function generateParticleColor(p, absCharge) {
-    let r = 0, g = 0, b = 0;
-    const min = 30;
-    const max = 255;
-
-    let charge = p.charge;
-    if (charge > 0) {
-        b = Math.round(min + (max - min) * Math.abs(charge) / absCharge);
-    } else if (charge < 0) {
-        r = Math.round(min + (max - min) * Math.abs(charge) / absCharge);
-    } else {
-        r = g = b = 255;
-    }
-
-    if (p.nearCharge > 0) {
-        g = Math.round(0.0*255);
-    } else if (p.nearCharge < 0) {
-        g = Math.round(0.5*255);
-    }
-
-    return "rgb(" + r + "," + g + "," + b + ")";
-}
-
-function generateParticleColor2(p, absCharge) {
     let h = 0, s = 100, l = 50;
     let lmin = 15, lmax = 50;
 

@@ -9,9 +9,10 @@ import {
     setColorMode,
     particleList,
 } from './simulation.js';
-import { Vector2, Vector3 } from 'three';
+import { TextureLoader, Vector2, Vector3, MeshPhongMaterial } from 'three';
 import { Particle } from './physics.js';
 import { fieldMove, fieldProbe } from './field.js';
+import { SphereGeometry, Mesh, DoubleSide, Color, ShaderMaterial, BackSide } from 'three';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -23,9 +24,7 @@ let simulationIdx = 0;
 let colorMode = "charge";
 let makeSnapshot = false;
 
-let lastTarget = new Vector3();
-
-var guiOptions = {
+let guiOptions = {
     simulation: {
         pauseResume: function () {
             pause = !pause;
@@ -135,11 +134,11 @@ function guiSetup() {
 }
 
 function download(data, filename, type) {
-    var file = new Blob([data], { type: type });
+    let file = new Blob([data], { type: type });
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(file, filename);
     else { // Others
-        var a = document.createElement("a"),
+        let a = document.createElement("a"),
             url = URL.createObjectURL(file);
         a.href = url;
         a.download = filename;
@@ -237,6 +236,7 @@ function updateInfo(now) {
     guiOptions.info.radius = r.toExponential(2);
 }
 
+let lastTarget = new Vector3();
 let lastDistante = 5000;
 function updateParticle() {
     //if (!pause) return;
@@ -315,9 +315,14 @@ function animate(now) {
     }
 }
 
+function skydome() {
+
+}
+
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
     simulationSetup(graphics);
+    skydome();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

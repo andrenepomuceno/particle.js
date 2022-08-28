@@ -120,8 +120,8 @@ export function simulationSetup(graphics, idx) {
     graphics.cameraDefault();
     particlesSetup(graphics, physics);
     drawParticles(graphics);
-    fieldUpdate();
     graphics.cameraSetup();
+    fieldUpdate();
 }
 
 function boundaryCheck(p1) {

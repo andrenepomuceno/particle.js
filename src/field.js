@@ -4,7 +4,6 @@ import { particleList, physics } from './simulation.js'
 import { cubeGenerator } from './helpers'
 
 let fieldVectorList = [];
-let globalSpacing = 0;
 
 let updateProbe = {
     m: 0,
@@ -17,29 +16,57 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
     updateProbe.nq = nq;
 }
 
-export function fieldMove(direction, scale = 1.0) {
-    //TODO
-    fieldVectorList.forEach((pos) => {
-        pos.add(direction);
-        pos.arrow.position.add(direction);
-        pos.multiplyScalar(scale);
-    });
+const visibleHeightAtZDepth = (depth, camera) => {
+    // compensate for cameras not positioned at z=0
+    const cameraOffset = camera.position.z;
+    if (depth < cameraOffset) depth -= cameraOffset;
+    else depth += cameraOffset;
+    // vertical fov in radians
+    const vFOV = camera.fov * Math.PI / 180;
+    // Math.abs to ensure the result is always positive
+    return 2 * Math.tan(vFOV / 2) * Math.abs(depth);
+};
+
+const visibleWidthAtZDepth = (depth, camera) => {
+    const height = visibleHeightAtZDepth(depth, camera);
+    return height * camera.aspect;
+};
+
+export function fieldRedraw(graphics) {
+    let center = graphics.controls.target.clone();
+
+    let grid = 51;
+    let spacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera)/grid/2;
+    let ratio = window.innerWidth / window.innerHeight;
+    let gridArray = [
+        grid,
+        Math.round(grid / ratio),
+        1
+    ];
+
+    fieldSetup(graphics, spacing, gridArray, center);
 }
 
 export function fieldSetup(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
     fieldCleanup(graphics);
-    globalSpacing = spacing;
+
+    let len = spacing / 2;
+    let headh = len / 2;
+    let headw = headh / 2
+
     cubeGenerator((x, y, z) => {
         let pos = new Vector3(x, y, z).add(center);
         fieldVectorList.push(pos);
         pos.arrow = new ArrowHelper(
             new Vector3(1, 0, 0),
             pos,
-            0,
-            0xffffff
+            len,
+            0xffffff,
+            headh,
+            headw
         );
         graphics.scene.add(pos.arrow);
-    }, spacing, gridSize, center);
+    }, spacing, gridSize);
 }
 
 export function fieldCleanup(graphics) {
@@ -75,11 +102,6 @@ export function fieldUpdate() {
 
         force.normalize();
         pos.arrow.setDirection(force);
-
-        forceLenRel = globalSpacing / 2;
-        let headh = forceLenRel / 2;
-        let headw = headh / 2
-        pos.arrow.setLength(forceLenRel, headh, headw);
     });
 }
 

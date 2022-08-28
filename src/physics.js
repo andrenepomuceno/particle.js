@@ -61,6 +61,8 @@ export class Physics {
             force += f;
         }
 
+        force *= this.forceConstant;
+
         distance.normalize();
         distance.multiplyScalar(force);
 
@@ -88,8 +90,6 @@ export class Physics {
         if (p.fixed) {
             return;
         }
-
-        p.force.multiplyScalar(this.forceConstant);
 
         let accel;
         if (p.mass != 0.0) {

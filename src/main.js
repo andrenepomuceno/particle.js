@@ -11,7 +11,7 @@ import {
 } from './simulation.js';
 import { TextureLoader, Vector2, Vector3, MeshPhongMaterial } from 'three';
 import { Particle } from './physics.js';
-import { fieldMove, fieldProbe } from './field.js';
+import { fieldRedraw, fieldProbe, fieldSetup } from './field.js';
 import { SphereGeometry, Mesh, DoubleSide, Color, ShaderMaterial, BackSide } from 'three';
 
 const graphics = new Graphics();
@@ -75,16 +75,17 @@ let guiOptions = {
         energy: "",
         time: 0,
         collisions: 0,
-        mass: 0,
+        mass: "",
         radius: "",
     },
     particle: {
         id: 0,
-        mass: 0,
-        charge: 0,
-        nearCharge: 0,
+        mass: "",
+        charge: "",
+        nearCharge: "",
         position: "",
         velocity: "",
+        velocityAbs: "",
         color: "",
         field: {
             direction: "",
@@ -93,8 +94,11 @@ let guiOptions = {
     }
 }
 
+const guiInfo = gui.addFolder("Information");
+const guiParticle = gui.addFolder("Particle");
+const guiSimulation = gui.addFolder("Simulation");
+const guiView = gui.addFolder("View");
 function guiSetup() {
-    const guiInfo = gui.addFolder("Information");
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
@@ -104,19 +108,18 @@ function guiSetup() {
     guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
     guiInfo.open();
 
-    const guiParticle = gui.addFolder("Particle");
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
     guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen();
     guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
     guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
     guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
     guiParticle.add(guiOptions.particle, 'velocity').name('Velocity').listen();
+    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Amp.').listen();
-    guiParticle.open();
+    //guiParticle.open();
 
-    const guiSimulation = gui.addFolder("Simulation");
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
     guiSimulation.add(guiOptions.simulation, 'step').name("Step [N]");
     guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
@@ -124,7 +127,6 @@ function guiSetup() {
     guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
     guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
 
-    const guiView = gui.addFolder("View");
     guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
     guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
     guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
@@ -200,6 +202,10 @@ document.addEventListener("keydown", (event) => {
             guiOptions.simulation.previous();
             break;
 
+        case 'f':
+            fieldRedraw(graphics)
+            break;
+
         default:
             if (key >= '0' && key <= '9') {
                 pause = true;
@@ -232,7 +238,7 @@ function updateInfo(now) {
     guiOptions.info.time = t;
     guiOptions.info.energy = e;
     guiOptions.info.collisions = c;
-    guiOptions.info.mass = m;
+    guiOptions.info.mass = m.toFixed(4);
     guiOptions.info.radius = r.toExponential(2);
 }
 
@@ -248,6 +254,7 @@ function updateParticle() {
         guiOptions.particle.nearCharge = particle.nearCharge;
         guiOptions.particle.position = arrayToString(particle.position.toArray(), 2);
         guiOptions.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
+        guiOptions.particle.velocityAbs = particle.velocity.length().toFixed(2);
         let color = particle.sphere.material.color;
         guiOptions.particle.color = arrayToString(color.toArray(), 2);
 
@@ -269,6 +276,8 @@ function updateParticle() {
         let move = target.clone().sub(lastTarget);
         lastTarget = target.clone();
         fieldMove(move, scale);*/
+
+        guiParticle.open();
     }
 }
 

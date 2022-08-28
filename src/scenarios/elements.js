@@ -5,7 +5,7 @@ import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
 export const elements = [
-    water,
+    //water,
     hydrogen,
     helium,
     lithium,
@@ -22,42 +22,46 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 3;
+    physics.forceConstant = 8;
     physics.massConstant = 1e-6;
-    physics.nearChargeConstant = -100;
-    physics.nearChargeRange = 256;
-    physics.chargeConstant = Math.abs(physics.nearChargeConstant)/60;
+    physics.nearChargeConstant = -1;
+    physics.nearChargeRange = 200;
+    physics.chargeConstant = Math.abs(physics.nearChargeConstant) / 60;
 
     setParticleRadius(30, 10);
-    setBoundaryDistance(1e5);
+    setBoundaryDistance(1e4);
 
-    let grid = (mode2d) ? (51) : (16);
-    let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
-    let ratio = window.innerWidth / window.innerHeight;
-    let gridArray = [
-        grid,
-        (mode2d) ? (Math.round(grid / ratio)) : (grid),
-        (mode2d) ? (1) : (grid)
-    ];
-    fieldSetup(graphics, spacing, gridArray);
+    if (mode2d) {
+        let grid = 51;
+        let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);
+        let ratio = window.innerWidth / window.innerHeight;
+        let gridArray = [
+            grid,
+            Math.round(grid / ratio),
+            1
+        ];
+        fieldSetup(graphics, spacing, gridArray);
+    }
 
     //fieldProbeConfig(1e3, 0, 0);
-    fieldProbeConfig(0, 1e6, 0);
+    fieldProbeConfig(0, 1e7, 0);
     //fieldProbeConfig(0, 0, 1);
 }
 
 function atom(physics, n, center = new Vector3()) {
-    let m = 1/10;
-    let q = 16;
+    let m = 1 / 100;
+    let q = 50;
     let nq = 1;
-    let v = 20;
 
     let r0 = physics.nearChargeRange / 2;
-    let r1 = 3 * r0;
-    let r2 = r1 * Math.sqrt(2 * n);
-    //let v = 10 * Math.sqrt(n);
+    let r1 = 2 * r0;
+    let r2 = r1 * (n + 1) * 4;
 
-    let ne = 1 * n;
+    //let v = 20*Math.sqrt(q/r1);
+    let v = 15;
+    //console.log(v);
+
+    let ne = 16 * n;
     atom0(
         n, ne,
         m, q, nq,

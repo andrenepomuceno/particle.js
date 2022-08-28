@@ -4,7 +4,6 @@ import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
 
 export const scenarios1 = [
-    simulationDev,
     simulationNuclei4,
     simulationNuclei3,
     simulationStrongCube0,
@@ -66,26 +65,6 @@ function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc,
     for (let i = 0; i < n; ++i) {
         createParticle2(massFunc(i, n), chargeFunc(i, n), nearChargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
     }
-}
-
-function simulationDev(graphics, physics) {
-    graphics.cameraDistance = 100;
-    //graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(1, 0);
-
-    physics.forceConstant = 1;
-    physics.massConstant = 1;
-    physics.chargeConstant = 1;
-    physics.nearChargeConstant = -1;
-    physics.nearChargeRange = 10;
-
-    let x = 0;
-    let q = 1e2;
-    let m = 1e2;
-    let nq = 1;
-
-    createParticle2(m, q, nq, new Vector3(-x,0,0), new Vector3(), true);
-    //createParticle2(m, -q, nq, new Vector3(x,0,0), new Vector3(), true);
 }
 
 function simulationNuclei4(graphics, physics) {

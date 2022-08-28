@@ -105,7 +105,6 @@ export function createCloud1(n, m, q, nq, r0, r1, v, center = new Vector3()) {
             () => { return nq; },
             (i, n) => {
                 return randomSphericVector(r0 + gap * idx, r0 + gap * (idx + 1)).add(center);
-                //return randomSphericVector(r0, r1).add(center);
             },
             (i, n, x) => {
                 let dc = center.clone().sub(x);
@@ -118,7 +117,51 @@ export function createCloud1(n, m, q, nq, r0, r1, v, center = new Vector3()) {
     }
 }
 
+export function createCloud2(n, m, q, nq, r0, r1, v, center = new Vector3()) {
+    let gap = (r1 - r0) / n;
+    for (let idx = 0; idx < n; ++idx) {
+        let r2 = r0 + gap * idx;
+        createParticles(1,
+            () => { return m; },
+            () => { return q; },
+            () => { return nq; },
+            () => {
+                return randomSphericVector(r2, r2).add(center);
+            },
+            (i_, n_, x) => {
+                let dc = center.clone().sub(x);
+                dc.normalize();
+                dc.applyAxisAngle({ x: 0, y: 0, z: 1 }, Math.PI / 2);
+                let v2 = v * Math.sqrt(Math.abs(n * q) / r2);
+                dc.multiplyScalar(v2);
+                return dc;
+            }
+        )
+    }
+}
+
+export function createCloud3(n, m, q, nq, r0, r1, v, center = new Vector3()) {
+    createParticles(n,
+        () => { return m; },
+        () => { return q; },
+        () => { return nq; },
+        () => {
+            return randomSphericVector(r0, r1).add(center);
+        },
+        (i_, n_, x) => {
+            let dc = center.clone().sub(x);
+            let r = dc.length();
+            dc.normalize();
+            dc.applyAxisAngle({ x: 0, y: 0, z: 1 }, Math.PI / 2);
+            let v2 = v * Math.sqrt(Math.abs(n * q) / r);
+            v2 = random(0, 1, true) ? (v) : (-v);
+            dc.multiplyScalar(v2);
+            return dc;
+        }
+    )
+}
+
 export function atom0(n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, r2 = 4 * r1, v = 0, center = new Vector3()) {
     createNuclei0(n1, m, q, nq, r0, 0, center);
-    createCloud1(n2, m, -q, 0, r1, r2, v, center);
+    createCloud3(n2, m, -q, 0, r1, r2, v, center);
 }

@@ -21,7 +21,7 @@ export function fieldMove(direction, scale = 1.0) {
     //TODO
     fieldVectorList.forEach((pos) => {
         pos.add(direction);
-        //pos.arrow.translateX(direction.x);
+        pos.arrow.position.add(direction);
         pos.multiplyScalar(scale);
     });
 }

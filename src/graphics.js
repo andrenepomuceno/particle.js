@@ -72,7 +72,7 @@ export class Graphics {
         }
         particle.sphere = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
         this.scene.add(particle.sphere);
-        
+
         particle.sphere.particle = particle;
     }
 

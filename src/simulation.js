@@ -60,7 +60,7 @@ function paintParticles() {
     particleList.forEach((p, i) => {
         let color;
         if (enableChargeColor) {
-            color = generateParticleColor(p, absCharge);
+            color = generateParticleColor2(p, absCharge);
         } else {
             color = randomColor();
         }
@@ -174,6 +174,7 @@ export function simulationState() {
         (energy / particles).toFixed(2),
         physics.colisionCounter,
         totalMass,
+        maxDistance,
     ];
 }
 
@@ -203,10 +204,38 @@ function generateParticleColor(p, absCharge) {
     }
 
     if (p.nearCharge > 0) {
-        g = 50;
+        g = Math.round(0.0*255);
     } else if (p.nearCharge < 0) {
-        g = 200;
+        g = Math.round(0.5*255);
     }
 
     return "rgb(" + r + "," + g + "," + b + ")";
+}
+
+function generateParticleColor2(p, absCharge) {
+    let h = 0, s = 100, l = 50;
+    let lmin = 15, lmax = 50;
+
+    let charge = p.charge;
+    if (charge > 0) {
+        h = 240;
+        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
+    } else if (charge < 0) {
+        h = 0;
+        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
+    } else {
+        h = 128;
+        l = 60;
+    }
+
+    if (p.nearCharge > 0) {
+        h -= 22;
+    } else if (p.nearCharge < 0) {
+        h += 22;
+    }
+
+    while (h > 360) h -= 360;
+    while (h < 0) h += 360;
+
+    return "hsl(" + h + "," + s + "%," + l + "%)";
 }

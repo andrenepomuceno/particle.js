@@ -29,7 +29,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeRange = 256;
 
     setParticleRadius(30, 10);
-    setBoundaryDistance(10e3);
+    setBoundaryDistance(50e3);
 
     let grid = (mode2d) ? (51) : (16);
     let spacing = 4 * window.innerWidth / grid * (cameraDistance / 5000);

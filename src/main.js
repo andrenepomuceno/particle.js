@@ -9,7 +9,7 @@ import {
     setColorMode,
     particleList,
 } from './simulation.js';
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import { Particle } from './physics.js';
 import { fieldMove, fieldProbe } from './field.js';
 
@@ -22,6 +22,8 @@ let pause = false;
 let simulationIdx = 0;
 let colorMode = "charge";
 let makeSnapshot = false;
+
+let lastTarget = new Vector3();
 
 var guiOptions = {
     simulation: {
@@ -75,6 +77,7 @@ var guiOptions = {
         time: 0,
         collisions: 0,
         mass: 0,
+        radius: "",
     },
     particle: {
         id: 0,
@@ -99,6 +102,7 @@ function guiSetup() {
     guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
+    guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
     guiInfo.open();
 
     const guiParticle = gui.addFolder("Particle");
@@ -222,16 +226,18 @@ window.addEventListener('pointermove', function (event) {
     pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
 });
 
-function updateInfo() {
-    let [name, n, t, e, c, m] = simulationState();
+function updateInfo(now) {
+    let [name, n, t, e, c, m, r] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
     guiOptions.info.time = t;
     guiOptions.info.energy = e;
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m;
+    guiOptions.info.radius = r.toExponential(2);
 }
 
+let lastDistante = 5000;
 function updateParticle() {
     //if (!pause) return;
     let particle = graphics.raycast(pointer);
@@ -243,7 +249,7 @@ function updateParticle() {
         guiOptions.particle.position = arrayToString(particle.position.toArray(), 2);
         guiOptions.particle.velocity = arrayToString(particle.velocity.toArray(), 2);
         let color = particle.sphere.material.color;
-        guiOptions.particle.color = arrayToString(color.toArray());
+        guiOptions.particle.color = arrayToString(color.toArray(), 2);
 
         let probe = new Particle();
         probe.charge = 1;
@@ -255,10 +261,14 @@ function updateParticle() {
         guiOptions.particle.field.amplitude = amp.toFixed(6);
         guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
 
-        /*let target = graphics.controls.target;
-        let d = particle.position.clone().sub(target);
-        graphics.camera.position.add(d.x, d.y, d.z);
-        graphics.controls.update();*/
+        //let target = graphics.controls.target;
+        /*let scale = graphics.controls.getDistance()/lastDistante;
+        lastDistante = graphics.controls.getDistance();
+
+        let target = particle.position;
+        let move = target.clone().sub(lastTarget);
+        lastTarget = target.clone();
+        fieldMove(move, scale);*/
     }
 }
 

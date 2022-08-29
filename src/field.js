@@ -1,7 +1,7 @@
 import { ArrowHelper, Vector3, Color } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
-import { cubeGenerator, visibleWidthAtZDepth } from './helpers'
+import { cubeGenerator, sphereGenerator, visibleWidthAtZDepth } from './helpers'
 
 let fieldVectorList = [];
 
@@ -55,6 +55,59 @@ export function fieldSetup(graphics, mode = "update", grid, spacing) {
     console.log("fieldSetup done");
 }
 
+export function fieldUpdate() {
+    let probe = new Particle();
+    probe.mass = updateProbe.m;
+    probe.charge = updateProbe.q;
+    probe.nearCharge = updateProbe.nq;
+    fieldVectorList.forEach((pos) => {
+        probe.position = pos;
+        let force = fieldProbe(probe);
+        fieldGeometryUpdate(pos, force);
+    });
+}
+
+export function fieldCleanup(graphics) {
+    fieldVectorList.forEach((pos) => {
+        graphics.scene.remove(pos.geometry);
+    });
+    fieldVectorList = [];
+}
+
+export function fieldProbe(probe) {
+    probe.force.setScalar(0);
+
+    particleList.forEach((p, idx) => {
+        //if (p.position.clone().sub(probe.position).length() > 5e3) return;
+        physics.interact(probe, p, true);
+        p.force.setScalar(0);
+    });
+
+    return probe.force;
+}
+
+function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+    console.log("drawField");
+
+    fieldCleanup(graphics);
+
+    let len = spacing / 2;
+
+    cubeGenerator((x, y, z) => {
+        let pos = new Vector3(x, y, z).add(center);
+        fieldVectorList.push(pos);
+        pos.geometry = newFieldGeometry(pos, len);
+        graphics.scene.add(pos.geometry);
+    }, spacing, gridSize);
+
+    // sphereGenerator((x, y, z) => {
+    //     let pos = new Vector3(x, y, z).add(center);
+    //     fieldVectorList.push(pos);
+    //     pos.geometry = newFieldGeometry(pos, len);
+    //     graphics.scene.add(pos.geometry);
+    // }, spacing*gridSize[0]/2, [gridSize[0], gridSize[0], gridSize[2]]);
+}
+
 function newFieldGeometry(pos, len) {
     let headh = len / 2;
     let headw = headh / 2
@@ -87,50 +140,4 @@ function fieldGeometryUpdate(pos, force) {
 
     force.normalize();
     pos.geometry.setDirection(force);
-}
-
-function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
-    console.log("drawField");
-
-    fieldCleanup(graphics);
-
-    let len = spacing / 2;
-
-    cubeGenerator((x, y, z) => {
-        let pos = new Vector3(x, y, z).add(center);
-        fieldVectorList.push(pos);
-        pos.geometry = newFieldGeometry(pos, len);
-        graphics.scene.add(pos.geometry);
-    }, spacing, gridSize);
-}
-
-export function fieldUpdate() {
-    let probe = new Particle();
-    probe.mass = updateProbe.m;
-    probe.charge = updateProbe.q;
-    probe.nearCharge = updateProbe.nq;
-    fieldVectorList.forEach((pos) => {
-        probe.position = pos;
-        let force = fieldProbe(probe);
-        fieldGeometryUpdate(pos, force);
-    });
-}
-
-export function fieldCleanup(graphics) {
-    fieldVectorList.forEach((pos) => {
-        graphics.scene.remove(pos.geometry);
-    });
-    fieldVectorList = [];
-}
-
-export function fieldProbe(probe) {
-    probe.force.setScalar(0);
-
-    particleList.forEach((p, idx) => {
-        //if (p.position.clone().sub(probe.position).length() > 5e3) return;
-        physics.interact(probe, p, true);
-        p.force.setScalar(0);
-    });
-
-    return probe.force;
 }

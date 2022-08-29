@@ -77,6 +77,23 @@ export function cubeGenerator(callback, spacing = 10, gridSize = [10, 10, 10]) {
     }
 }
 
+export function sphereGenerator(callback, radius = 1e3, gridSize = [10, 10, 10]) {
+    let spacing = 2 * radius / gridSize[0];
+    for (let x = 0; x < gridSize[0]; x++) {
+        let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
+        for (let y = 0; y < gridSize[1]; y++) {
+            let yPos = (y - gridSize[1] / 2 + 0.5) * spacing;
+            for (let z = 0; z < gridSize[2]; z++) {
+                let zPos = (z - gridSize[2] / 2 + 0.5) * spacing;
+
+                let sum = xPos * xPos + yPos * yPos + zPos * zPos;
+                if (sum < radius * radius)
+                    callback(xPos, yPos, zPos);
+            }
+        }
+    }
+}
+
 export const visibleHeightAtZDepth = (depth, camera) => {
     // compensate for cameras not positioned at z=0
     const cameraOffset = camera.position.z;

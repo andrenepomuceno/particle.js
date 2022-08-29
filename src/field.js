@@ -1,7 +1,7 @@
 import { ArrowHelper, Vector3, Color, MathUtils } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
-import { cubeGenerator, sphereGenerator, visibleWidthAtZDepth } from './helpers'
+import { cubeGenerator, sphereGenerator } from './helpers'
 
 let fieldVectorList = [];
 

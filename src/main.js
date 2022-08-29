@@ -14,7 +14,7 @@ import {
     particleList,
 } from './simulation.js';
 import { Particle } from './physics.js';
-import { fieldProbe, fieldRedraw, fieldSetup } from './field.js';
+import { fieldProbe, fieldSetup } from './field.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -313,7 +313,7 @@ function animate(time) {
         nextFrame = false;
 
         let dt = 0;
-        if (!isNaN(time)) {
+        if (!isNaN(time) && lastTime > 0) {
             dt = time - lastTime;
         }
 

@@ -1,11 +1,11 @@
 
 import { Vector3 } from 'three';
 import { fieldProbeConfig, fieldSetup } from '../field.js';
-import { visibleWidthAtZDepth } from '../helpers.js';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
-import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
+import { createCloud0, createNuclei0, atom0, bidimensionalMode, createCloud3 } from './helpers.js';
 
 export const elements = [
+    h2,
     hydrogen,
     helium,
     lithium,
@@ -32,13 +32,13 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(30, 10);
     setBoundaryDistance(1e5);
-    
+
     if (mode2d) fieldSetup(graphics, "2d", 70);
     if (!mode2d) fieldSetup(graphics, "3d", 16);
 
     //fieldProbeConfig(1e3, 0, 0);
-    fieldProbeConfig(0, 1e6, 0);
-    //fieldProbeConfig(0, 0, 1);
+    //fieldProbeConfig(0, 1e6, 0);
+    fieldProbeConfig(0, 0, 20);
 }
 
 function atom(physics, n, center = new Vector3()) {
@@ -62,6 +62,23 @@ function atom(physics, n, center = new Vector3()) {
         v,
         center
     );
+}
+
+function h2(graphics, physics) {
+    defaultParameters(graphics, physics, 5000);
+
+    let m = 1 / 100;
+    let q = 100;
+    let nq = 1;
+    let r0 = physics.nearChargeRange / 2;
+    let r1 = 4 * r0;
+    let r2 = 2 * r1;
+    let x = 2 * r0 * 0.8;
+    let v = 16;
+
+    createNuclei0(1, m, q, nq, r0, 0, new Vector3(-x, 0, 0));
+    createNuclei0(1, m, q, nq, r0, 0, new Vector3(x, 0, 0));
+    createCloud3(8, m, -q, 0, r1, r2, v);
 }
 
 function water(graphics, physics) {

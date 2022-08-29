@@ -166,7 +166,7 @@ export function simulationStep(graphics, dt) {
 
     fieldUpdate();
 
-    totalTime += dt;
+    if (dt < 1e3) totalTime += dt;
 }
 
 function simulationCleanup(graphics) {

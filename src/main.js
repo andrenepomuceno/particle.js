@@ -343,7 +343,7 @@ if (WebGL.isWebGLAvailable()) {
     guiSetup();
     simulationSetup(graphics);
     graphics.controls.addEventListener("end", e => {
-        updateField = true;
+        //updateField = true;
     });
     skydome();
     animate();

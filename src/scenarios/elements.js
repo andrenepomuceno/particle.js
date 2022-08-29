@@ -6,13 +6,13 @@ import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode } from './helpers.js';
 
 export const elements = [
-    water,
     hydrogen,
     helium,
     lithium,
     carbon,
     nitrogen,
     oxigen,
+    water,
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {

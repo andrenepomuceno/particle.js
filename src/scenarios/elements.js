@@ -31,9 +31,10 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.chargeConstant = Math.abs(physics.nearChargeConstant) / 60;
 
     setParticleRadius(30, 10);
-    setBoundaryDistance(1e4);
+    setBoundaryDistance(1e5);
     
-    (mode2d)?(fieldSetup(graphics, "2d", 70)):(fieldSetup(graphics, "3d", 10));
+    if (mode2d) fieldSetup(graphics, "2d", 70);
+    if (!mode2d) fieldSetup(graphics, "3d", 16);
 
     //fieldProbeConfig(1e3, 0, 0);
     fieldProbeConfig(0, 1e6, 0);
@@ -50,7 +51,7 @@ function atom(physics, n, center = new Vector3()) {
     let r2 = 2 * r1 * n;
 
     //let v = 20*Math.sqrt(q/r1);
-    let v = 15;
+    let v = 16;
     //console.log(v);
 
     let ne = 1 * n;
@@ -64,7 +65,7 @@ function atom(physics, n, center = new Vector3()) {
 }
 
 function water(graphics, physics) {
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(graphics, physics, 7000);
     //fieldCleanup(graphics);
     // physics.nearChargeConstant = 60;
     // physics.nearChargeRange = 512;
@@ -88,7 +89,7 @@ function helium(graphics, physics) {
 }
 
 function lithium(graphics, physics) {
-    defaultParameters(graphics, physics, 3000);
+    defaultParameters(graphics, physics, 5000);
     atom(physics, 3);
 }
 
@@ -98,12 +99,12 @@ function carbon(graphics, physics) {
 }
 
 function nitrogen(graphics, physics) {
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(graphics, physics, 7000);
     atom(physics, 7);
 }
 
 function oxigen(graphics, physics) {
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(graphics, physics, 7000);
     atom(physics, 8);
 }
 

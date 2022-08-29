@@ -236,7 +236,7 @@ window.addEventListener('pointermove', function (event) {
 });
 
 function updateInfo(now) {
-    let [name, n, t, e, c, m, r] = simulationState();
+    let [name, n, t, e, c, m, r, totalTime] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
@@ -296,7 +296,6 @@ function snapshot() {
 
 let lastUpdate = 0;
 let lastTime = 0;
-let totalTime = 0;
 const updateDelay = 100;
 let updateField = false;
 
@@ -312,12 +311,13 @@ function animate(time) {
 
     if (!pause || nextFrame) {
         nextFrame = false;
-        simulationStep(graphics);
 
+        let dt = 0;
         if (!isNaN(time)) {
-            let dt = time - lastTime;
-            totalTime += dt;
+            dt = time - lastTime;
         }
+
+        simulationStep(graphics, dt);
     }
 
     if (time - lastUpdate >= updateDelay) {

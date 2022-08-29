@@ -30,6 +30,7 @@ let energy = 0.0;
 let particleRadius = 20;
 let particleRadiusRange = particleRadius / 2;
 let totalMass = 0.0;
+let totalTime = 0.0;
 
 let maxDistance = 1e6;
 const barrier = new Particle();
@@ -146,7 +147,7 @@ function boundaryCheck(p1) {
     }
 }
 
-export function simulationStep(graphics) {
+export function simulationStep(graphics, dt) {
     energy = 0.0;
     for (let i = 0; i < particleList.length; ++i) {
         let p1 = particleList[i];
@@ -164,6 +165,8 @@ export function simulationStep(graphics) {
     ++cicles;
 
     fieldUpdate();
+
+    totalTime += dt;
 }
 
 function simulationCleanup(graphics) {
@@ -178,6 +181,7 @@ function simulationCleanup(graphics) {
     maxDistance = 1e6;
     totalMass = 0.0;
     energy = 0.0;
+    totalTime = 0.0;
 }
 
 export function simulationState() {
@@ -190,6 +194,7 @@ export function simulationState() {
         physics.colisionCounter,
         totalMass,
         maxDistance,
+        totalTime,
     ];
 }
 

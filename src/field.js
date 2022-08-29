@@ -1,4 +1,4 @@
-import { ArrowHelper, Vector3, Color } from 'three';
+import { ArrowHelper, Vector3, Color, MathUtils } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
 import { cubeGenerator, sphereGenerator, visibleWidthAtZDepth } from './helpers'
@@ -19,6 +19,14 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
 let lastMode = "";
 let lastSpacing = 0;
 let lastGrid = [];
+
+function viewSize(graphics) {
+    var vFOV = MathUtils.degToRad(graphics.camera.fov);
+    var height = 2 * Math.tan(vFOV / 2) * graphics.controls.getDistance();
+    var width = height * graphics.camera.aspect;
+    return [width, height];
+}
+
 export function fieldSetup(graphics, mode = "update", grid, spacing) {
     console.log("fieldSetup");
 
@@ -27,14 +35,16 @@ export function fieldSetup(graphics, mode = "update", grid, spacing) {
     let newGrid, newSpacing;
 
     if (mode == "2d") {
-        newSpacing = visibleWidthAtZDepth(graphics.controls.getDistance(), graphics.camera) / grid / 2;
+        let [w, _] = viewSize(graphics);
+        newSpacing = w / grid;
         newGrid = [
             grid,
             Math.round(grid / graphics.camera.aspect),
             1
         ];
     } else if (mode == "3d") {
-        newSpacing = 250;
+        let [w, _] = viewSize(graphics);
+        newSpacing = w / grid / 3;
         newGrid = [
             grid,
             grid,
@@ -92,6 +102,9 @@ function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new
     fieldCleanup(graphics);
 
     let len = spacing / 2;
+    if (gridSize[2] > 1) {
+        len /= 2;
+    }
 
     cubeGenerator((x, y, z) => {
         let pos = new Vector3(x, y, z).add(center);

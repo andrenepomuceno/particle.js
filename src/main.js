@@ -28,11 +28,6 @@ let colorMode = "charge";
 let makeSnapshot = false;
 let followParticle = false;
 
-function resetParticleTracking() {
-    followParticle = false;
-    guiOptions.particle.obj = undefined;
-}
-
 let guiOptions = {
     simulation: {
         pauseResume: function () {
@@ -42,16 +37,16 @@ let guiOptions = {
             nextFrame = true;
         },
         reset: function () {
-            resetParticleTracking();
+            resetParticleView();
             simulationSetup(graphics);
         },
         next: function () {
-            resetParticleTracking();
+            resetParticleView();
             simulationSetup(graphics, ++simulationIdx);
         },
         previous: function () {
             if (simulationIdx == 0) return;
-            resetParticleTracking();
+            resetParticleView();
             simulationSetup(graphics, --simulationIdx);
         },
         snapshot: function () {
@@ -65,11 +60,11 @@ let guiOptions = {
             graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
-            resetParticleTracking();
+            resetParticleView(false);
             graphics.controls.reset();
         },
         xyCamera: function () {
-            resetParticleTracking();
+            resetParticleView(false);
             graphics.camera.position.set(0, 0, graphics.cameraDistance);
             graphics.controls.target.set(0, 0, 0);
             graphics.controls.update();
@@ -92,7 +87,7 @@ let guiOptions = {
     },
     particle: {
         obj: undefined,
-        id: 0,
+        id: "",
         mass: "",
         charge: "",
         nearCharge: "",
@@ -108,6 +103,25 @@ let guiOptions = {
         follow: function () {
             followParticle = !followParticle;
         },
+    }
+}
+
+function resetParticleView(clear = true) {
+    followParticle = false;
+    if (clear) {
+        let particleView = guiOptions.particle;
+        particleView.obj = "";
+        particleView.id = "";
+        particleView.mass = "";
+        particleView.charge = "";
+        particleView.nearCharge = "";
+        particleView.color = "";
+        particleView.position = "";
+        particleView.velocityDir = "";
+        particleView.velocityAbs = "";
+        particleView.field.amplitude = "";
+        particleView.field.direction = "";
+        particleView.energy = "";
     }
 }
 

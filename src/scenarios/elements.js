@@ -37,8 +37,8 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     if (!mode2d) fieldSetup(graphics, "3d", 16);
 
     //fieldProbeConfig(1e3, 0, 0);
-    //fieldProbeConfig(0, 1e6, 0);
-    fieldProbeConfig(0, 0, 20);
+    fieldProbeConfig(0, 1e6, 0);
+    //fieldProbeConfig(0, 0, 20);
 }
 
 function atom(physics, n, center = new Vector3()) {

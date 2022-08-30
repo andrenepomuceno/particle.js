@@ -93,3 +93,29 @@ export function sphereGenerator(callback, radius = 1e3, gridSize = [10, 10, 10])
         }
     }
 }
+
+export function arrayToString(array, precision) {
+    let str = "";
+    array.forEach((v, idx) => {
+        str += v.toFixed(precision) + ", ";
+    });
+    return str.slice(0, -2);
+}
+
+export function download(data, filename, type) {
+    let file = new Blob([data], { type: type });
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        let a = document.createElement("a"),
+            url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}

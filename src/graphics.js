@@ -63,10 +63,10 @@ export class Graphics {
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
-        this.camera.lookAt(0, 0, 0);
+        //this.camera.lookAt(0, 0, 0);
 
+        //this.controls.target.set(0, 0, 0);
         this.controls.update();
-        this.controls.target.set(0, 0, 0);
         this.controls.saveState();
     }
 
@@ -84,7 +84,6 @@ export class Graphics {
     showAxis(show = true) {
         axis.forEach(key => {
             show ? this.scene.add(key) : this.scene.remove(key);
-            ;
         });
     }
 

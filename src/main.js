@@ -15,6 +15,7 @@ import {
 } from './simulation.js';
 import { Particle } from './physics.js';
 import { fieldProbe, fieldSetup } from './field.js';
+import { download as downloadFile, arrayToString } from './helpers.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -25,6 +26,12 @@ let pause = false;
 let simulationIdx = 0;
 let colorMode = "charge";
 let makeSnapshot = false;
+let followParticle = false;
+
+function resetParticleTracking() {
+    followParticle = false;
+    guiOptions.particle.obj = undefined;
+}
 
 let guiOptions = {
     simulation: {
@@ -35,16 +42,17 @@ let guiOptions = {
             nextFrame = true;
         },
         reset: function () {
+            resetParticleTracking();
             simulationSetup(graphics);
         },
         next: function () {
-            ++simulationIdx;
-            simulationSetup(graphics, simulationIdx);
+            resetParticleTracking();
+            simulationSetup(graphics, ++simulationIdx);
         },
         previous: function () {
             if (simulationIdx == 0) return;
-            --simulationIdx;
-            simulationSetup(graphics, simulationIdx);
+            resetParticleTracking();
+            simulationSetup(graphics, --simulationIdx);
         },
         snapshot: function () {
             if (!makeSnapshot)
@@ -57,12 +65,14 @@ let guiOptions = {
             graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
+            resetParticleTracking();
             graphics.controls.reset();
         },
         xyCamera: function () {
+            resetParticleTracking();
             graphics.camera.position.set(0, 0, graphics.cameraDistance);
-            graphics.controls.update();
             graphics.controls.target.set(0, 0, 0);
+            graphics.controls.update();
         },
         colorMode: function () {
             let newMode;
@@ -81,6 +91,7 @@ let guiOptions = {
         radius: "",
     },
     particle: {
+        obj: undefined,
         id: 0,
         mass: "",
         charge: "",
@@ -94,6 +105,9 @@ let guiOptions = {
             amplitude: "",
         },
         energy: "",
+        follow: function () {
+            followParticle = !followParticle;
+        },
     }
 }
 
@@ -122,6 +136,7 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field (abs)').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field (dir)').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
+    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     //guiParticle.open();
 
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -137,24 +152,6 @@ function guiSetup() {
     guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
 
     //gui.close();
-}
-
-function download(data, filename, type) {
-    let file = new Blob([data], { type: type });
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-        window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-        let a = document.createElement("a"),
-            url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 0);
-    }
 }
 
 document.addEventListener("keydown", (event) => {
@@ -221,18 +218,30 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
+document.addEventListener("click", (e) => {
+    let particle = graphics.raycast(mousePosition);
+    if (particle) {
+        guiOptions.particle.obj = particle;
+        guiParticle.open();
+    }
+});
+
+graphics.controls.addEventListener("end", e => {
+    //updateField = true;
+});
+
 window.onresize = function () {
     graphics.camera.aspect = window.innerWidth / window.innerHeight;
     graphics.camera.updateProjectionMatrix();
     graphics.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
-let pointer = new Vector2(1e5, 1e5);
+let mousePosition = new Vector2(1e5, 1e5);
 window.addEventListener('pointermove', function (event) {
     // calculate pointer position in normalized device coordinates
     // (-1 to +1) for both components
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
 });
 
 function updateInfo(now) {
@@ -248,49 +257,43 @@ function updateInfo(now) {
 }
 
 function updateParticle() {
-    //if (!pause) return;
-    let particle = graphics.raycast(pointer);
+    let particleView = guiOptions.particle;
+    let particle = particleView.obj;
     if (particle) {
-        guiOptions.particle.id = particle.id;
-        guiOptions.particle.mass = particle.mass;
-        guiOptions.particle.charge = particle.charge;
-        guiOptions.particle.nearCharge = particle.nearCharge;
-        guiOptions.particle.position = arrayToString(particle.position.toArray(), 2);
-        guiOptions.particle.velocityDir = arrayToString(
-            particle.velocity.clone().normalize().toArray(), 2);
-        guiOptions.particle.velocityAbs = particle.velocity.length().toFixed(6);
+        //static info
+        particleView.id = particle.id;
+        particleView.mass = particle.mass;
+        particleView.charge = particle.charge;
+        particleView.nearCharge = particle.nearCharge;
         let color = particle.sphere.material.color;
-        guiOptions.particle.color = arrayToString(color.toArray(), 2);
+        particleView.color = arrayToString(color.toArray(), 2);
 
+        //dynamic info
+        particleView.position = arrayToString(particle.position.toArray(), 2);
+        particleView.velocityDir = arrayToString(
+            particle.velocity.clone().normalize().toArray(), 2);
+        particleView.velocityAbs = particle.velocity.length().toFixed(6);
+
+        // field info
         let probe = new Particle();
         probe.charge = 1;
         probe.mass = 1;
         probe.nearCharge = 1;
         probe.position = particle.position;
         let field = fieldProbe(probe);
-        let amp = field.length();
-        guiOptions.particle.field.amplitude = amp.toFixed(6);
-        guiOptions.particle.field.direction = arrayToString(field.normalize().toArray(), 2);
-        guiOptions.particle.energy = particle.energy().toFixed(6);
-
-        guiParticle.open();
+        let fieldAmp = field.length();
+        particleView.field.amplitude = fieldAmp.toFixed(6);
+        particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
+        particleView.energy = particle.energy().toFixed(6);
     }
-}
-
-function arrayToString(array, precision) {
-    let str = "";
-    array.forEach((v, idx) => {
-        str += v.toFixed(precision) + ", ";
-    });
-    return str.slice(0, -2);
 }
 
 function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulationState()[0];
-    download(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+    downloadFile(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
     graphics.renderer.domElement.toBlob((blob) => {
-        download(blob, name + "-" + timestamp + ".png", "image/png");
+        downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
     });
 }
 
@@ -307,6 +310,12 @@ function animate(time) {
     if (makeSnapshot) {
         makeSnapshot = false;
         snapshot();
+    }
+
+    if (followParticle && guiOptions.particle.obj) {
+        let x = guiOptions.particle.obj.position;
+        graphics.controls.target.set(x.x, x.y, x.z);
+        graphics.controls.update();
     }
 
     if (!pause || nextFrame) {
@@ -335,17 +344,9 @@ function animate(time) {
     if (!isNaN(time)) lastTime = time;
 }
 
-function skydome() {
-
-}
-
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
     simulationSetup(graphics);
-    graphics.controls.addEventListener("end", e => {
-        //updateField = true;
-    });
-    skydome();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

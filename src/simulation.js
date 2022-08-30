@@ -121,13 +121,13 @@ export function simulationSetup(graphics, idx) {
 
     simulationCleanup(graphics);
     fieldCleanup(graphics);
+    graphics.cameraDefault();
 
     if (idx >= 0 && idx < simulationList.length) {
         particlesSetup = simulationList[idx];
     }
 
     physics = new Physics();
-    graphics.cameraDefault();
 
     console.log("particleSetup ----------");
     particlesSetup(graphics, physics);

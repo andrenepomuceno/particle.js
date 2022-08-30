@@ -64,7 +64,8 @@ export function randomDisc(r1, r2) {
     return [x, y, 0];
 }
 
-export function cubeGenerator(callback, spacing = 10, gridSize = [10, 10, 10]) {
+export function cubeGenerator(callback, width = 1e3, gridSize = [10, 10, 10]) {
+    let spacing = width/gridSize[0];
     for (let x = 0; x < gridSize[0]; x++) {
         let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
         for (let y = 0; y < gridSize[1]; y++) {

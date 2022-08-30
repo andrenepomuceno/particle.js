@@ -17,7 +17,7 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
 }
 
 let lastMode = "";
-let lastSpacing = 0;
+let lastSize = 0;
 let lastGrid = [];
 
 function viewSize(graphics) {
@@ -27,40 +27,40 @@ function viewSize(graphics) {
     return [width, height];
 }
 
-export function fieldSetup(graphics, mode = "update", grid, spacing) {
+export function fieldSetup(graphics, mode = "update", grid = [10, 10, 10], size = 1e3) {
     console.log("fieldSetup");
 
     //graphics.cameraRefresh();
 
-    let newGrid, newSpacing;
+    let newGrid, newSize;
 
     if (mode == "2d") {
         let [w, _] = viewSize(graphics);
-        newSpacing = w / grid;
+        newSize = w;
         newGrid = [
             grid,
             Math.round(grid / graphics.camera.aspect),
             1
         ];
     } else if (mode == "3d") {
-        let [w, _] = viewSize(graphics);
-        newSpacing = w / grid / 3;
+        let [w, h] = viewSize(graphics);
+        newSize = Math.min(w, h);
         newGrid = [
             grid,
             grid,
             grid
         ];
     } else if (mode == "update") {
-        return fieldSetup(graphics, lastMode, lastGrid, lastSpacing)
+        return fieldSetup(graphics, lastMode, lastGrid, lastSize)
     }
 
     let center = graphics.controls.target.clone();
-    drawField(graphics, newSpacing, newGrid, center);
+    drawField(graphics, newSize, newGrid, center);
     fieldUpdate();
 
     lastMode = mode;
     lastGrid = grid;
-    lastSpacing = spacing;
+    lastSize = size;
 
     console.log("fieldSetup done");
 }
@@ -96,29 +96,37 @@ export function fieldProbe(probe) {
     return probe.force;
 }
 
-function drawField(graphics, spacing = 10, gridSize = [10, 10, 10], center = new Vector3()) {
+function drawField(graphics, size = 1e3, gridSize = [10, 10, 10], center = new Vector3(), mode = "cube") {
     console.log("drawField");
 
     fieldCleanup(graphics);
 
+    let spacing = size / gridSize[0];
     let len = spacing / 2;
     if (gridSize[2] > 1) {
         len /= 2;
     }
 
-    cubeGenerator((x, y, z) => {
-        let pos = new Vector3(x, y, z).add(center);
-        fieldVectorList.push(pos);
-        pos.geometry = newFieldGeometry(pos, len);
-        graphics.scene.add(pos.geometry);
-    }, spacing, gridSize);
+    switch (mode) {
+        case "sphere":
+            sphereGenerator((x, y, z) => {
+                let pos = new Vector3(x, y, z).add(center);
+                fieldVectorList.push(pos);
+                pos.geometry = newFieldGeometry(pos, len);
+                graphics.scene.add(pos.geometry);
+            }, size, gridSize);
+            break;
 
-    // sphereGenerator((x, y, z) => {
-    //     let pos = new Vector3(x, y, z).add(center);
-    //     fieldVectorList.push(pos);
-    //     pos.geometry = newFieldGeometry(pos, len);
-    //     graphics.scene.add(pos.geometry);
-    // }, spacing*gridSize[0]/2, [gridSize[0], gridSize[0], gridSize[2]]);
+        case "cube":
+        default:
+            cubeGenerator((x, y, z) => {
+                let pos = new Vector3(x, y, z).add(center);
+                fieldVectorList.push(pos);
+                pos.geometry = newFieldGeometry(pos, len);
+                graphics.scene.add(pos.geometry);
+            }, size, gridSize);
+            break;
+    }
 }
 
 function newFieldGeometry(pos, len) {

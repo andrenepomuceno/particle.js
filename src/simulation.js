@@ -8,12 +8,11 @@ import { fieldUpdate, fieldCleanup } from './field.js'
 
 function initialSimulation(list, name) {
     return list.find(e => {
-        if (e.name == name) return e;
-        else return list[0];
+        return e.name == name;
     });
 }
 let simulationList = [];
-//simulationList.push(initialSimulation(fields, ""));
+//simulationList.push(initialSimulation(scenarios1, "simulationStrongBlob0"));
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(scenarios1);
@@ -82,7 +81,7 @@ function addParticles(graphics) {
     const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
     particleList.forEach((p, i) => {
         let radius = minRadius;
-        if (enableMassRadius) {
+        if (enableMassRadius && absMass != 0) {
             radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
         }
         graphics.addParticle(p, radius);

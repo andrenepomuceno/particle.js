@@ -16,21 +16,7 @@ export class Physics {
         this.colisionCounter = 0;
     }
 
-    header() {
-        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange";
-    }
-    csv() {
-        return this.enableColision + ","
-            + this.minDistance + ","
-            + this.forceConstant + ","
-            + this.massConstant + ","
-            + this.chargeConstant + ","
-            + this.nearChargeConstant + ","
-            + this.nearChargeRange;
-    }
-
     interact(p1, p2, probe = false) {
-        //if (p1.id == p2.id) return;
         if (p1.id == p2.id) return;
 
         let distance = p2.position.clone();
@@ -43,21 +29,15 @@ export class Physics {
         }
 
         let force = 0.0;
+
         force += this.massConstant * p1.mass * p2.mass;
-        force -= this.chargeConstant * p1.charge * p2.charge;
+        force += -this.chargeConstant * p1.charge * p2.charge;
         force /= absDistance2;
 
         let absDistance = Math.sqrt(absDistance2);
-        if (absDistance < this.nearChargeRange) {
-            let x = (2 * absDistance - this.nearChargeRange);
-            //let x = absDistance;
-            //x = (x < 0) ? (0) : (x);
-            x /= this.nearChargeRange;
-
-            let f = -p1.nearCharge * p2.nearCharge;
-            f *= x;
-            //f *= x;
-            f *= this.nearChargeConstant;
+        if (absDistance <= this.nearChargeRange) {
+            let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange;
+            let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
             force += f;
         }
 
@@ -103,6 +83,20 @@ export class Physics {
 
         p.force.setScalar(0);
     }
+
+    header() {
+        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange";
+    }
+
+    csv() {
+        return this.enableColision + ","
+            + this.minDistance + ","
+            + this.forceConstant + ","
+            + this.massConstant + ","
+            + this.chargeConstant + ","
+            + this.nearChargeConstant + ","
+            + this.nearChargeRange;
+    }
 }
 
 let particleId = 0;
@@ -125,6 +119,10 @@ export class Particle {
         return this.mass * this.velocity.lengthSq();
     }
 
+    setColor(color = 0xffffff) {
+        this.sphere.material.color.set(color);
+    }
+
     print() {
         console.log(
             "ID:" + this.id +
@@ -134,7 +132,7 @@ export class Particle {
             " P:" + this.position.toArray() +
             " V:" + this.velocity.toArray() +
             " E:" + this.energy()
-            );
+        );
     }
 
     header() {
@@ -149,9 +147,5 @@ export class Particle {
             this.position.toArray() + "," +
             this.velocity.toArray() + "," +
             this.energy();
-    }
-
-    setColor(color = 0xffffff) {
-        this.sphere.material.color.set(color);
     }
 }

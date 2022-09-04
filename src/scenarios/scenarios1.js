@@ -275,17 +275,17 @@ function simulationStrongBlob0(graphics, physics) {
     setParticleRadius(50, 10);
 
     physics.forceConstant = 1;
-    physics.massConstant = 0;
-    physics.chargeConstant = 0;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1/137;
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 2e3;
 
     let r = physics.nearChargeRange;
     let v = 0;
     let m = 1;
-    let q = 1;
+    let q = 50;
     let nq = 1;
-    let n = 1024;
+    let n = 1100;
 
     createParticles2(
         n,

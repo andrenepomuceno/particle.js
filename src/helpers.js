@@ -103,7 +103,7 @@ export function arrayToString(array, precision) {
     return str.slice(0, -2);
 }
 
-export function download(data, filename, type) {
+export function downloadFile(data, filename, type) {
     let file = new Blob([data], { type: type });
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(file, filename);

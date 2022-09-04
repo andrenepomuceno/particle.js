@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { particleList, physics } from '../simulation.js'
+import { particleList } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
 

@@ -15,7 +15,7 @@ import {
 } from './simulation.js';
 import { Particle } from './physics.js';
 import { fieldProbe, fieldSetup } from './field.js';
-import { download as downloadFile, arrayToString } from './helpers.js';
+import { downloadFile, arrayToString } from './helpers.js';
 
 const graphics = new Graphics();
 const gui = new dat.GUI();
@@ -103,6 +103,10 @@ let guiOptions = {
         follow: function () {
             followParticle = !followParticle;
         },
+        lookAt: function () {
+            let x = guiOptions.particle.obj.position;
+            graphics.controls.target.set(x.x, x.y, x.z);
+        }
     }
 }
 
@@ -151,6 +155,7 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field (dir)').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
+    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
     //guiParticle.open();
 
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -264,10 +269,10 @@ function updateInfo(now) {
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
-    guiOptions.info.energy = e;
+    guiOptions.info.energy = e.toExponential(3);
     guiOptions.info.collisions = c;
-    guiOptions.info.mass = m.toFixed(4);
-    guiOptions.info.radius = r.toExponential(2);
+    guiOptions.info.mass = m.toFixed(3);
+    guiOptions.info.radius = r.toExponential(3);
 }
 
 function updateParticle() {
@@ -329,7 +334,6 @@ function animate(time) {
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;
         graphics.controls.target.set(x.x, x.y, x.z);
-        graphics.controls.update();
     }
 
     if (!pause || nextFrame) {

@@ -3,6 +3,7 @@ import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
 import { fields } from './scenarios/fieldTest.js';
 import { elements } from './scenarios/elements.js';
+import { nearForce } from './scenarios/nearForce.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
 
@@ -13,6 +14,7 @@ function initialSimulation(list, name) {
 }
 let simulationList = [];
 //simulationList.push(initialSimulation(scenarios1, "simulationStrongBlob0"));
+simulationList = simulationList.concat(nearForce);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(scenarios1);
@@ -189,7 +191,7 @@ export function simulationState() {
         particlesSetup.name,
         particles,
         cicles,
-        (energy / particles).toFixed(2),
+        energy / particles,
         physics.colisionCounter,
         totalMass,
         maxDistance,

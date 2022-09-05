@@ -3,18 +3,32 @@ export function random(a, b, round = false) {
     r *= (b - a);
     r += a;
     if (round) {
-        return Math.round(r);
+        r = Math.round(r);
     }
     return r;
 }
 
-export function randomColor() {
-    const min = 10;
-    const max = 255;
-    const r = Math.round(random(min, max));
-    const g = Math.round(random(min, max));
-    const b = Math.round(random(min, max));
-    return "rgb(" + r + "," + g + "," + b + ")";
+export function randomColor(mode = "hue") {
+    let color;
+
+    switch (mode) {
+        case "rgb":
+            const min = 10;
+            const max = 255;
+            let r = random(min, max, true);
+            let g = random(min, max, true);
+            let b = random(min, max, true);
+            color = "rgb(" + r + "," + g + "," + b + ")";
+            break;
+
+        case "hue":
+        default:
+            let h = random(0, 360, true);
+            color = "hsl(" + h + ",100%,50%)";
+            break;
+    }
+
+    return color;
 }
 
 export function randomSpheric(r1, r2, mode = 0) {
@@ -65,7 +79,7 @@ export function randomDisc(r1, r2) {
 }
 
 export function cubeGenerator(callback, width = 1e3, gridSize = [10, 10, 10]) {
-    let spacing = width/gridSize[0];
+    let spacing = width / gridSize[0];
     for (let x = 0; x < gridSize[0]; x++) {
         let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
         for (let y = 0; y < gridSize[1]; y++) {

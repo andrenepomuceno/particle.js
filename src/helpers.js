@@ -80,13 +80,13 @@ export function randomDisc(r1, r2) {
 
 export function cubeGenerator(callback, width = 1e3, gridSize = [10, 10, 10]) {
     let spacing = width / gridSize[0];
-    for (let x = 0; x < gridSize[0]; x++) {
-        let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
+    for (let z = 0; z < gridSize[2]; z++) {
+        let zPos = (z - gridSize[2] / 2 + 0.5) * spacing;
         for (let y = 0; y < gridSize[1]; y++) {
             let yPos = (y - gridSize[1] / 2 + 0.5) * spacing;
-            for (let z = 0; z < gridSize[2]; z++) {
-                let zPos = (z - gridSize[2] / 2 + 0.5) * spacing;
-                callback(xPos, yPos, zPos);
+            for (let x = 0; x < gridSize[0]; x++) {
+                let xPos = (x - gridSize[0] / 2 + 0.5) * spacing;
+                callback(xPos, yPos, zPos, x, y, z);
             }
         }
     }

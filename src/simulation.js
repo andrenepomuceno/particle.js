@@ -15,8 +15,8 @@ function initialSimulation(list, name) {
 let simulationList = [];
 //simulationList.push(initialSimulation(scenarios1, "simulationStrongBlob0"));
 simulationList = simulationList.concat(nearForce);
-simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(fields);
+simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
@@ -222,14 +222,14 @@ function generateParticleColor(p, absCharge) {
         h = 0;
         l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
     } else {
-        h = 128;
+        h = 120;
         l = 60;
     }
 
     if (p.nearCharge > 0) {
-        h -= 22;
+        h -= 20;
     } else if (p.nearCharge < 0) {
-        h += 22;
+        h += 20;
     }
 
     while (h > 360) h -= 360;

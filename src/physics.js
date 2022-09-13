@@ -5,7 +5,7 @@ export class Physics {
         particleId = 0;
 
         this.enableColision = true;
-        this.minDistance = 1;
+        this.minDistance = 0.25;
 
         this.forceConstant = 1;
         this.massConstant = 1;
@@ -24,7 +24,7 @@ export class Physics {
 
         let absDistance2 = distance.lengthSq();
         if (absDistance2 <= this.minDistance) {
-            if (this.enableColision && !probe) this.colide(p1, p2);
+            if (!probe) this.colide(p1, p2);
             return;
         }
 
@@ -36,7 +36,8 @@ export class Physics {
 
         let absDistance = Math.sqrt(absDistance2);
         if (absDistance <= this.nearChargeRange) {
-            let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange;
+            let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange; // [-1, 1]
+            x = Math.sin(Math.PI * x);
             let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
             force += f;
         }
@@ -51,6 +52,8 @@ export class Physics {
     }
 
     colide(p1, p2) {
+        if (!this.enableColision) return;
+
         ++this.colisionCounter;
 
         let m = p1.mass + p2.mass;

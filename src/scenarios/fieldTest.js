@@ -32,13 +32,15 @@ function defaultConfig(graphics, physics) {
 
 function nearField(graphics, physics) {
     defaultConfig(graphics, physics)
+    graphics.cameraDistance = 50;
+    setParticleRadius(0.25, 0);
     fieldProbeConfig(0, 0, 1e2);
 
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nearChargeConstant = -4;
-    physics.nearChargeRange = 10;
+    physics.nearChargeConstant = 1;
+    physics.nearChargeRange = 16;
 
     let x = new Vector3(physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);

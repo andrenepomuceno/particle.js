@@ -27,10 +27,10 @@ jobs:
 
     - name: Pack
       run: |
-        tar cfJ particle.js.tar.xz dist/*
+        zip -r particle.js.zip dist
 
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "particle.js.tar.xz"
+        artifacts: "particle.js.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true

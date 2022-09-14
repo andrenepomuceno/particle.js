@@ -271,7 +271,7 @@ function updateInfo(now) {
     guiOptions.info.time = realTime + " (" + t + ")";
     guiOptions.info.energy = e.toExponential(3);
     guiOptions.info.collisions = c;
-    guiOptions.info.mass = m.toFixed(3);
+    guiOptions.info.mass = m.toExponential(3);
     guiOptions.info.radius = r.toExponential(3);
 }
 
@@ -281,8 +281,8 @@ function updateParticle() {
     if (particle) {
         //static info
         particleView.id = particle.id;
-        particleView.mass = particle.mass;
-        particleView.charge = particle.charge;
+        particleView.mass = particle.mass.toExponential(3);
+        particleView.charge = particle.charge.toExponential(3);
         particleView.nearCharge = particle.nearCharge;
         let color = particle.sphere.material.color;
         particleView.color = arrayToString(color.toArray(), 2);
@@ -291,7 +291,7 @@ function updateParticle() {
         particleView.position = arrayToString(particle.position.toArray(), 2);
         particleView.velocityDir = arrayToString(
             particle.velocity.clone().normalize().toArray(), 2);
-        particleView.velocityAbs = particle.velocity.length().toFixed(6);
+        particleView.velocityAbs = particle.velocity.length().toExponential(3);
 
         // field info
         let probe = new Particle();
@@ -301,9 +301,9 @@ function updateParticle() {
         probe.position = particle.position;
         let field = fieldProbe(probe);
         let fieldAmp = field.length();
-        particleView.field.amplitude = fieldAmp.toFixed(6);
+        particleView.field.amplitude = fieldAmp.toExponential(3);
         particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
-        particleView.energy = particle.energy().toFixed(6);
+        particleView.energy = particle.energy().toExponential(3);
     }
 }
 

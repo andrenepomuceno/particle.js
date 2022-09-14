@@ -47,15 +47,13 @@ function crystal(graphics, physics) {
     setParticleRadius(50, 10);
 
     let m = 1/10;
-    let q = 1;
+    let q = 10;
     let nq = 1;
-    let grid = [27, 15, 1];
-    let r0 = physics.nearChargeRange * 1/10;
-    let r1 = physics.nearChargeRange * 2/3;
+    let grid = [23, 23, 1];
+    let r0 = physics.nearChargeRange * 1/100;
+    let r1 = physics.nearChargeRange * 0.64;
     let v = 0;
     let n = 2;
-
-    let pos = new Vector3(r1, 0, 0);
 
     let aux = 0;
     cubeGenerator((x, y, z) => {

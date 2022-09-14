@@ -4,6 +4,7 @@ import { scenarios1 } from './scenarios/scenarios1.js';
 import { fields } from './scenarios/fieldTest.js';
 import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
+import { scenarios2 } from './scenarios/scenarios2.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js'
 
@@ -13,7 +14,7 @@ function initialSimulation(list, name) {
     });
 }
 let simulationList = [];
-//simulationList.push(initialSimulation(scenarios1, "simulationStrongBlob0"));
+simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);
 simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);

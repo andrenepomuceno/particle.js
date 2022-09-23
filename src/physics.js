@@ -38,9 +38,16 @@ export class Physics {
         if (absDistance <= this.nearChargeRange) {
             let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange; // [-1, 1]
             x = Math.sin(Math.PI * x);
+            //x = -2.598 * x * (x + 1) * (x - 1);
+            //x = angles[Math.round(angleStep * (x + Math.PI)/(2 * Math.Pi)) % angleStep];
             let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
             force += f;
         }
+
+        /*let x = absDistance2/(this.nearChargeRange * this.nearChargeRange);
+        x = Math.sin(Math.PI * x) / (x);
+        let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
+        force += f;*/
 
         force *= this.forceConstant;
 

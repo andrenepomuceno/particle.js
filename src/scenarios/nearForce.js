@@ -51,7 +51,7 @@ function crystal(graphics, physics) {
     let nq = 1;
     let grid = [23, 23, 1];
     let r0 = physics.nearChargeRange * 1/100;
-    let r1 = physics.nearChargeRange * 0.64;
+    let r1 = physics.nearChargeRange * 0.639;
     let v = 0;
     let n = 2;
 

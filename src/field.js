@@ -1,4 +1,5 @@
-import { ArrowHelper, Vector3, Color, MathUtils } from 'three';
+import { ArrowHelper, Color, MathUtils } from 'three';
+import { Vector3 } from 'three';
 import { Particle } from './physics.js'
 import { particleList, physics } from './simulation.js'
 import { cubeGenerator, sphereGenerator } from './helpers'

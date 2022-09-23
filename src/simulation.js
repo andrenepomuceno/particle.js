@@ -33,6 +33,7 @@ let particleRadius = 20;
 let particleRadiusRange = particleRadius / 2;
 let totalMass = 0.0;
 let totalTime = 0.0;
+let totalCharge = 0.0;
 
 let maxDistance = 1e6;
 const barrier = new Particle();
@@ -112,6 +113,7 @@ function drawParticles(graphics) {
 
         totalMass += p.mass;
         energy += (p.mass * p.velocity.lengthSq());
+        totalCharge += p.charge;
     });
 
     addParticles(graphics);
@@ -197,6 +199,7 @@ export function simulationState() {
         totalMass,
         maxDistance,
         totalTime,
+        totalCharge,
     ];
 }
 
@@ -228,9 +231,9 @@ function generateParticleColor(p, absCharge) {
     }
 
     if (p.nearCharge > 0) {
-        h -= 20;
+        //h -= 20;
     } else if (p.nearCharge < 0) {
-        h += 20;
+        h += 10;
     }
 
     while (h > 360) h -= 360;

@@ -2,13 +2,13 @@ import {
     WebGLRenderer,
     Scene,
     PerspectiveCamera,
-    Vector3,
     SphereGeometry,
     Mesh,
     MeshBasicMaterial,
     ArrowHelper,
     Raycaster,
 } from 'three';
+import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from './helpers';

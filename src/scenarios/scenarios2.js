@@ -5,6 +5,7 @@ import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../field';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
 
 export const scenarios2 = [
+    nucleiGrid,
     shootedBarrier,
     standardModelBlob2,
     standardModelBlobSymetric,
@@ -22,7 +23,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
-    physics.chargeConstant = 1 / 60;
+    physics.chargeConstant = 1 / 137;
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e3;
 
@@ -37,6 +38,127 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     fieldProbeConfig(0, 0, 100);
 }
 
+function nucleiGrid(graphics, physics) {
+    defaultParameters(graphics, physics, 10e3);
+    fieldCleanup(graphics);
+    setParticleRadius(50, 10);
+    setBoundaryDistance(20e3);
+    bidimensionalMode(true);
+
+    let m = 5e-1 / 0.511;
+    let q = 3;
+    let nq = 1;
+    let grid = [13, 13, 1];
+    let r0 = physics.nearChargeRange * 0.05;
+    let r1 = physics.nearChargeRange * 0.63;
+    let v = 0;
+    let n = 1;
+
+    function createNuclei(n, m, q, nq, r0, r1, v, center, neutron = false) {
+        createParticles(2 * n,
+            (i) => {
+                return 2.2 * m;
+            },
+            (i) => {
+                return 2 / 3 * q;
+            },
+            (i) => {
+                return nq;
+            },
+            (i) => {
+                return randomSphericVector(0, r0).add(center);
+            },
+            (i) => {
+                return randomVector(0);
+            }
+        );
+        createParticles(1 * n,
+            (i) => {
+                return 4.7 * m;
+            },
+            (i) => {
+                return -1 / 3 * q;
+            },
+            (i) => {
+                return nq;
+            },
+            (i) => {
+                return randomSphericVector(0, r0).add(center);
+            },
+            (i) => {
+                return randomVector(0);
+            }
+        );
+
+        createParticles(n,
+            (i) => {
+                return 0.511 * m;
+            },
+            (i) => {
+                return -q;
+            },
+            (i) => {
+                return -nq;
+            },
+            (i) => {
+                return randomSphericVector(r0, r1).add(center);
+            },
+            (i) => {
+                return randomVector(v);
+            }
+        );
+
+        if (!neutron) return;
+
+        createParticles(1 * n,
+            (i) => {
+                return 2.2 * m;
+            },
+            (i) => {
+                return 2 / 3 * q;
+            },
+            (i) => {
+                return nq;
+            },
+            (i) => {
+                return randomSphericVector(0, r0).add(center);
+            },
+            (i) => {
+                return randomVector(0);
+            }
+        );
+        createParticles(2 * n,
+            (i) => {
+                return 4.7 * m;
+            },
+            (i) => {
+                return -1 / 3 * q;
+            },
+            (i) => {
+                return nq;
+            },
+            (i) => {
+                return randomSphericVector(0, r0).add(center);
+            },
+            (i) => {
+                return randomVector(0);
+            }
+        );
+    }
+
+    let aux = 0;
+    cubeGenerator((x, y, z) => {
+        createNuclei(
+            n, m, q,
+            (aux % 2 == 0) ? (nq) : (-nq),
+            r0, r1,
+            v, new Vector3(x, y, z),
+            true
+        );
+        ++aux;
+    }, grid[0] * r1, grid);
+}
+
 function shootedBarrier(graphics, physics) {
     defaultParameters(graphics, physics, 30e3);
     fieldCleanup(graphics);
@@ -47,7 +169,7 @@ function shootedBarrier(graphics, physics) {
     let nq = 1;
     let grid = [59, 9, 1];
     let r0 = physics.nearChargeRange * 1 / 100;
-    let r1 = physics.nearChargeRange * 0.64;
+    let r1 = physics.nearChargeRange * 0.63;
     let v = 0;
     let n = 2;
 
@@ -100,7 +222,25 @@ function standardModelBlob2(graphics, physics) {
     let grid = [23, 22, 1];
     let r0 = physics.nearChargeRange * 4;
     let v = 0;
-    let n = 300;
+    let n = 1200 / 4;
+
+    /*createParticles(n,
+        (i) => {
+            return 0;
+        },
+        (i) => {
+            return 0;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-nq) : (nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );*/
 
     createParticles(n,
         (i) => {

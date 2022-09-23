@@ -84,6 +84,7 @@ let guiOptions = {
         collisions: 0,
         mass: "",
         radius: "",
+        charge: "",
     },
     particle: {
         obj: undefined,
@@ -138,6 +139,7 @@ function guiSetup() {
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
     guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
+    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen();
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
     guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
@@ -264,7 +266,7 @@ window.addEventListener('pointermove', function (event) {
 });
 
 function updateInfo(now) {
-    let [name, n, t, e, c, m, r, totalTime] = simulationState();
+    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
@@ -273,6 +275,7 @@ function updateInfo(now) {
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(3);
     guiOptions.info.radius = r.toExponential(3);
+    guiOptions.info.charge = totalCharge.toExponential(3);
 }
 
 function updateParticle() {

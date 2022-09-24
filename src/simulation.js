@@ -92,6 +92,7 @@ function addParticles(graphics) {
         graphics.addParticle(p);
         //graphics.updateParticle(p);
     });
+    graphics.fillGeometryBuffer();
 }
 
 function drawParticles(graphics) {
@@ -119,8 +120,6 @@ function drawParticles(graphics) {
 
     paintParticles();
     addParticles(graphics);
-
-    graphics.fillGeometryBuffer();
 }
 
 export function simulationSetup(graphics, idx) {
@@ -169,8 +168,6 @@ export function simulationStep(graphics, dt) {
         graphics.updateParticle(p1);
     }
     ++cicles;
-
-    graphics.geometry.attributes.position.needsUpdate = true;
 
     fieldUpdate();
 

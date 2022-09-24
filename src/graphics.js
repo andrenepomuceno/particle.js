@@ -21,7 +21,6 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from './helpers';
 
 const axisLineWidth = 100;
-const geometryMap = new Map();
 const axis = [
     new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000),
     new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00),
@@ -109,26 +108,14 @@ export class Graphics {
     }
 
     addParticle(particle) {
-        // if (geometryMap.has(radius) == false) {
-        //     geometryMap.set(radius, new SphereGeometry(radius));
-        // }
-        // particle.mesh = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
-
-        // this.scene.add(particle.mesh);
-
-        // particle.mesh.particle = particle;
-
-        particle.index = this.particleData.positions.length;
+        particle.positionIndex = this.particleData.positions.length;
         this.particleData.positions.push(particle.position.x, particle.position.y, particle.position.z);
         this.particleData.colors.push(particle.color.r, particle.color.g, particle.color.b);
         this.particleData.radius.push(particle.radius);
     }
 
     updateParticle(particle) {
-        // particle.mesh.position.set(particle.position.x, particle.position.y, particle.position.z);
-        //particle.mesh.position.multiplyScalar(0.5);
-
-        let index = particle.index;
+        let index = particle.positionIndex;
         let positions = this.geometry.attributes.position.array
         positions[index] = particle.position.x;
         positions[index + 1] = particle.position.y;
@@ -139,7 +126,6 @@ export class Graphics {
         console.log("graphics fillGeometryBuffer");
 
         this.uniforms = {
-            //pointTexture: { value: new TextureLoader().load('textures/sprites/spark1.png') }
             cameraConstant: { value: getCameraConstant(this.camera) },
         };
 
@@ -147,10 +133,6 @@ export class Graphics {
             uniforms: this.uniforms,
             vertexShader: document.getElementById('vertexshader').textContent,
             fragmentShader: document.getElementById('fragmentshader').textContent,
-            // blending: AdditiveBlending,
-            // depthTest: false,
-            // transparent: true,
-            //vertexColors: true
         });
         material.extensions.drawBuffers = true;
 
@@ -161,6 +143,8 @@ export class Graphics {
         this.geometry.setAttribute('radius', new Float32BufferAttribute(this.particleData.radius, 1));
 
         this.points = new Points(this.geometry, material);
+        this.points.matrixAutoUpdate = false;
+		this.points.updateMatrix();
 
         this.scene.add(this.points);
     }
@@ -168,6 +152,9 @@ export class Graphics {
     update() {
         this.controls.update();
         this.stats.update();
+
+        this.geometry.attributes.position.needsUpdate = true;
+
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -177,8 +164,6 @@ export class Graphics {
         for (let i = 0; i < intersects.length; i++) {
             let obj = intersects[i].object;
             let particle = obj.particle;
-            //if (obj == this.raycaster.lastObject) continue;
-            //this.raycaster.lastObject = obj;
             return particle;
         }
     }

@@ -175,7 +175,7 @@ export function simulationStep(graphics, dt) {
 
 function simulationCleanup(graphics) {
     particleList.forEach((p, i) => {
-        graphics.scene.remove(p.sphere);
+        graphics.scene.remove(p.mesh);
     });
     particleList = [];
     cicles = 0;

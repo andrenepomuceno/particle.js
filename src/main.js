@@ -287,7 +287,7 @@ function updateParticle() {
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
         particleView.nearCharge = particle.nearCharge;
-        let color = particle.sphere.material.color;
+        let color = particle.mesh.material.color;
         particleView.color = arrayToString(color.toArray(), 2);
 
         //dynamic info

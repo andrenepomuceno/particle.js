@@ -33,7 +33,7 @@ export class Graphics {
         document.getElementById("container").appendChild(this.stats.dom);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000000);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.target.set(0, 0, 0);
@@ -91,15 +91,15 @@ export class Graphics {
         if (geometryMap.has(radius) == false) {
             geometryMap.set(radius, new SphereGeometry(radius));
         }
-        particle.sphere = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
-        this.scene.add(particle.sphere);
+        particle.mesh = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
+        this.scene.add(particle.mesh);
 
-        particle.sphere.particle = particle;
+        particle.mesh.particle = particle;
     }
 
     render(particle) {
-        particle.sphere.position.set(particle.position.x, particle.position.y, particle.position.z);
-        //particle.sphere.position.multiplyScalar(0.5);
+        particle.mesh.position.set(particle.position.x, particle.position.y, particle.position.z);
+        //particle.mesh.position.multiplyScalar(0.5);
     }
 
     update() {

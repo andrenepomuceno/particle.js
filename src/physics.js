@@ -1,5 +1,7 @@
 import { Vector3 } from 'three';
 
+let particleId = 0;
+
 export class Physics {
     constructor() {
         particleId = 0;
@@ -24,8 +26,11 @@ export class Physics {
 
         let absDistance2 = distance.lengthSq();
         if (absDistance2 <= this.minDistance) {
-            if (!probe) this.colide(p1, p2);
-            return;
+            if (!probe) {
+                this.colide(p1, p2);
+                return;
+            }
+            absDistance2 = this.minDistance; // for probe
         }
 
         let force = 0.0;
@@ -38,16 +43,9 @@ export class Physics {
         if (absDistance <= this.nearChargeRange) {
             let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange; // [-1, 1]
             x = Math.sin(Math.PI * x);
-            //x = -2.598 * x * (x + 1) * (x - 1);
-            //x = angles[Math.round(angleStep * (x + Math.PI)/(2 * Math.Pi)) % angleStep];
             let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
             force += f;
         }
-
-        /*let x = absDistance2/(this.nearChargeRange * this.nearChargeRange);
-        x = Math.sin(Math.PI * x) / (x);
-        let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
-        force += f;*/
 
         force *= this.forceConstant;
 
@@ -109,7 +107,6 @@ export class Physics {
     }
 }
 
-let particleId = 0;
 export class Particle {
     constructor() {
         this.id = particleId++;
@@ -123,6 +120,8 @@ export class Particle {
         this.force = new Vector3();
 
         this.fixed = false;
+
+        this.mesh = undefined;
     }
 
     energy() {
@@ -130,7 +129,7 @@ export class Particle {
     }
 
     setColor(color = 0xffffff) {
-        this.sphere.material.color.set(color);
+        this.mesh.material.color.set(color);
     }
 
     print() {

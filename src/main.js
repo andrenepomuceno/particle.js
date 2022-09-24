@@ -252,9 +252,7 @@ graphics.controls.addEventListener("end", e => {
 });
 
 window.onresize = function () {
-    graphics.camera.aspect = window.innerWidth / window.innerHeight;
-    graphics.camera.updateProjectionMatrix();
-    graphics.renderer.setSize(window.innerWidth, window.innerHeight);
+    graphics.onWindowResize(window);
 };
 
 let mousePosition = new Vector2(1e5, 1e5);

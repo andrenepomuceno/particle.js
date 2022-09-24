@@ -88,8 +88,9 @@ function addParticles(graphics) {
         if (enableMassRadius && absMass != 0) {
             radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
         }
-        graphics.addParticle(p, radius);
-        graphics.render(p);
+        p.radius = radius;
+        graphics.addParticle(p);
+        //graphics.updateParticle(p);
     });
 }
 
@@ -116,8 +117,10 @@ function drawParticles(graphics) {
         totalCharge += p.charge;
     });
 
-    addParticles(graphics);
     paintParticles();
+    addParticles(graphics);
+
+    graphics.fillGeometryBuffer();
 }
 
 export function simulationSetup(graphics, idx) {
@@ -160,13 +163,14 @@ export function simulationStep(graphics, dt) {
             physics.interact(p1, p2);
         }
         physics.update(p1);
-
         boundaryCheck(p1);
-
-        graphics.render(p1);
         energy += p1.energy();
+
+        graphics.updateParticle(p1);
     }
     ++cicles;
+
+    graphics.geometry.attributes.position.needsUpdate = true;
 
     fieldUpdate();
 
@@ -174,9 +178,11 @@ export function simulationStep(graphics, dt) {
 }
 
 function simulationCleanup(graphics) {
-    particleList.forEach((p, i) => {
-        graphics.scene.remove(p.mesh);
-    });
+    // particleList.forEach((p, i) => {
+    //     graphics.scene.remove(p.mesh);
+    // });
+    graphics.cleanup();
+
     particleList = [];
     cicles = 0;
     particleRadius = 20;

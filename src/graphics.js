@@ -7,6 +7,13 @@ import {
     MeshBasicMaterial,
     ArrowHelper,
     Raycaster,
+
+    ShaderMaterial,
+    BufferGeometry,
+    Color,
+    Float32BufferAttribute,
+    Points,
+    MathUtils,
 } from 'three';
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -21,11 +28,16 @@ const axis = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
+function getCameraConstant(camera) {
+    return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
+}
+
 export class Graphics {
     constructor() {
         console.log("graphics init");
 
         this.renderer = new WebGLRenderer();
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById("container").appendChild(this.renderer.domElement);
 
@@ -44,6 +56,15 @@ export class Graphics {
         this.showAxis();
 
         this.raycaster = new Raycaster();
+
+        this.particleData = {
+            positions: [],
+            colors: [],
+            radius: [],
+        }
+        this.points = undefined;
+        this.uniforms = undefined;
+        this.geometry = undefined;
 
         console.log("graphics done");
     }
@@ -87,19 +108,61 @@ export class Graphics {
         });
     }
 
-    addParticle(particle, radius = 5) {
-        if (geometryMap.has(radius) == false) {
-            geometryMap.set(radius, new SphereGeometry(radius));
-        }
-        particle.mesh = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
-        this.scene.add(particle.mesh);
+    addParticle(particle) {
+        // if (geometryMap.has(radius) == false) {
+        //     geometryMap.set(radius, new SphereGeometry(radius));
+        // }
+        // particle.mesh = new Mesh(geometryMap.get(radius), new MeshBasicMaterial());
 
-        particle.mesh.particle = particle;
+        // this.scene.add(particle.mesh);
+
+        // particle.mesh.particle = particle;
+
+        particle.index = this.particleData.positions.length;
+        this.particleData.positions.push(particle.position.x, particle.position.y, particle.position.z);
+        this.particleData.colors.push(particle.color.r, particle.color.g, particle.color.b);
+        this.particleData.radius.push(particle.radius);
     }
 
-    render(particle) {
-        particle.mesh.position.set(particle.position.x, particle.position.y, particle.position.z);
+    updateParticle(particle) {
+        // particle.mesh.position.set(particle.position.x, particle.position.y, particle.position.z);
         //particle.mesh.position.multiplyScalar(0.5);
+
+        let index = particle.index;
+        let positions = this.geometry.attributes.position.array
+        positions[index] = particle.position.x;
+        positions[index + 1] = particle.position.y;
+        positions[index + 2] = particle.position.z;
+    }
+
+    fillGeometryBuffer() {
+        console.log("graphics fillGeometryBuffer");
+
+        this.uniforms = {
+            //pointTexture: { value: new TextureLoader().load('textures/sprites/spark1.png') }
+            cameraConstant: { value: getCameraConstant(this.camera) },
+        };
+
+        const material = new ShaderMaterial({
+            uniforms: this.uniforms,
+            vertexShader: document.getElementById('vertexshader').textContent,
+            fragmentShader: document.getElementById('fragmentshader').textContent,
+            // blending: AdditiveBlending,
+            // depthTest: false,
+            // transparent: true,
+            //vertexColors: true
+        });
+        material.extensions.drawBuffers = true;
+
+        this.geometry = new BufferGeometry();
+
+        this.geometry.setAttribute('position', new Float32BufferAttribute(this.particleData.positions, 3));
+        this.geometry.setAttribute('color', new Float32BufferAttribute(this.particleData.colors, 3));
+        this.geometry.setAttribute('radius', new Float32BufferAttribute(this.particleData.radius, 1));
+
+        this.points = new Points(this.geometry, material);
+
+        this.scene.add(this.points);
     }
 
     update() {
@@ -118,5 +181,31 @@ export class Graphics {
             //this.raycaster.lastObject = obj;
             return particle;
         }
+    }
+
+    onWindowResize(window) {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        this.uniforms.value = getCameraConstant(this.camera);
+    }
+
+    cleanup() {
+        console.log("graphics cleanup");
+
+        for (var i = this.scene.children.length - 1; i >= 0; i--) {
+            let obj = this.scene.children[i];
+            this.scene.remove(obj);
+        }
+
+        this.particleData = {
+            positions: [],
+            colors: [],
+            radius: [],
+        }
+        this.points = undefined;
+        this.uniforms = undefined;
+        this.geometry = undefined;
     }
 }

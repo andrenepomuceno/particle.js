@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Vector3, Color } from 'three';
 
 let particleId = 0;
 
@@ -121,7 +121,9 @@ export class Particle {
 
         this.fixed = false;
 
+        this.color = undefined;
         this.mesh = undefined;
+        this.radius = undefined;
     }
 
     energy() {
@@ -129,7 +131,8 @@ export class Particle {
     }
 
     setColor(color = 0xffffff) {
-        this.mesh.material.color.set(color);
+        //this.mesh.material.color.set(color);
+        this.color = new Color(color);
     }
 
     print() {

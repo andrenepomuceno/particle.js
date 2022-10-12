@@ -21,10 +21,10 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     graphics.cameraSetup();
     //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.forceConstant = 1.0;
     physics.massConstant = 1e-9;
-    physics.chargeConstant = 1 / 137;
-    physics.nearChargeConstant = 1;
+    physics.chargeConstant = 1.0 / 137;
+    physics.nearChargeConstant = 1.0;
     physics.nearChargeRange = 1e3;
 
     setParticleRadius(20, 10);
@@ -46,8 +46,8 @@ function nucleiGrid(graphics, physics) {
     bidimensionalMode(true);
 
     let m = 5e-1 / 0.511;
-    let q = 3;
-    let nq = 1;
+    let q = 3.0;
+    let nq = 1.0;
     let grid = [13, 13, 1];
     let r0 = physics.nearChargeRange * 0.05;
     let r1 = physics.nearChargeRange * 0.63;

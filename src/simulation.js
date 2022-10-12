@@ -90,9 +90,9 @@ function addParticles(graphics) {
         }
         p.radius = radius;
         graphics.addParticle(p);
-        //graphics.updateParticle(p);
+        //graphics.refreshPosition(p);
     });
-    graphics.fillGeometryBuffer();
+    graphics.drawParticles();
 }
 
 function drawParticles(graphics) {
@@ -155,7 +155,7 @@ function boundaryCheck(p1) {
 
 export function simulationStep(graphics, dt) {
     energy = 0.0;
-    for (let i = 0; i < particleList.length; ++i) {
+    /*for (let i = 0; i < particleList.length; ++i) {
         let p1 = particleList[i];
         for (let j = i + 1; j < particleList.length; ++j) {
             let p2 = particleList[j];
@@ -165,8 +165,9 @@ export function simulationStep(graphics, dt) {
         boundaryCheck(p1);
         energy += p1.energy();
 
-        graphics.updateParticle(p1);
-    }
+        graphics.refreshPosition(p1);
+    }*/
+    graphics.compute();
     ++cicles;
 
     fieldUpdate();

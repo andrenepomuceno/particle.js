@@ -13,34 +13,6 @@
 
 <body>
     <div id="container"></div>
-    <script type="x-shader/x-vertex" id="vertexshader">
-        attribute vec3 color;
-        attribute float radius;
-
-        uniform float cameraConstant;
-
-        varying vec3 vColor;
-
-        void main() {
-            vColor = color;
-            vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-
-            gl_PointSize = radius * cameraConstant / (- mvPosition.z);
-            gl_Position = projectionMatrix * mvPosition;
-        }
-    </script>
-
-    <script type="x-shader/x-fragment" id="fragmentshader">
-        varying vec3 vColor;
-
-        void main() {
-            float f = length( gl_PointCoord - vec2( 0.5, 0.5 ) );
-			if ( f > 0.5 ) {
-				discard;
-			}
-            gl_FragColor = vec4( vColor, 1.0 );
-        }
-    </script>
     <script src="./main.js"></script>
 </body>
 

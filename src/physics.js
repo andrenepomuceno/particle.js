@@ -9,10 +9,10 @@ export class Physics {
         this.enableColision = true;
         this.minDistance = 0.25;
 
-        this.forceConstant = 1;
-        this.massConstant = 1;
-        this.chargeConstant = 1;
-        this.nearChargeConstant = 1;
+        this.forceConstant = 1.0;
+        this.massConstant = 1.0;
+        this.chargeConstant = 1.0;
+        this.nearChargeConstant = 1.0;
         this.nearChargeRange = 1e3;
 
         this.colisionCounter = 0;
@@ -109,11 +109,11 @@ export class Physics {
 
 export class Particle {
     constructor() {
-        this.id = particleId++;
+        this.id = ++particleId;
 
-        this.mass = 0;
-        this.charge = 0;
-        this.nearCharge = 0;
+        this.mass = undefined;
+        this.charge = undefined;
+        this.nearCharge = undefined;
 
         this.position = new Vector3();
         this.velocity = new Vector3();
@@ -122,7 +122,6 @@ export class Particle {
         this.fixed = false;
 
         this.color = undefined;
-        this.mesh = undefined;
         this.radius = undefined;
     }
 

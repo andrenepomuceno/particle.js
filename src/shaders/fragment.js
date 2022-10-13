@@ -41,8 +41,7 @@ void main() {
             vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
             vec3 dPos = pos2 - pos1;
-            float distance1 = length(dPos);
-            float distance2 = distance1 * distance1;
+            float distance2 = dot(dPos, dPos);
 
             if (distance2 <= minDistance) {
                 /*float m = m1 + m2;
@@ -67,10 +66,12 @@ void main() {
             force += massConstant * m1 * m2;
             force += -chargeConstant * q1 * q2;
             force /= distance2;
+
+            float distance1 = sqrt(distance2);
             if (distance1 <= nearChargeRange) {
-                float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
-                x = sin(PI * x);
-                force += -nearChargeConstant * nq1 * nq2 * x;
+                float d = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
+                d = sin(PI * d);
+                force += -nearChargeConstant * nq1 * nq2 * d;
             }
 
             rForce += forceConstant * force * normalize(dPos);
@@ -82,6 +83,9 @@ void main() {
     } else {
         vel1 += rForce;
     }
+
+    float dCenter = length(pos1 + vel1);
+    if (dCenter > 1e5) vel1 = -vel1;
 
     gl_FragColor = vec4(vel1, 0.0);
 }

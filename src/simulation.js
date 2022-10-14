@@ -37,10 +37,6 @@ let totalMass = 0.0;
 let totalTime = 0.0;
 let totalCharge = 0.0;
 
-let maxDistance = 1e6;
-const barrier = new Particle();
-barrier.mass = 1e100;
-
 let mMin = Infinity, mMax = -Infinity;
 let qMin = Infinity, qMax = -Infinity;
 
@@ -65,7 +61,7 @@ export function setColorMode(mode) {
 }
 
 export function setBoundaryDistance(d = 1e6) {
-    maxDistance = d;
+    physics.boundaryDistance = d;
 }
 
 function paintParticles() {
@@ -148,27 +144,9 @@ export function simulationSetup(graphics, idx) {
     console.log("simulationSetup done ----------");
 }
 
-function boundaryCheck(p1) {
-    if (p1.position.length() > maxDistance) {
-        physics.colide(p1, barrier);
-        physics.update(p1);
-    }
-}
-
 export function simulationStep(graphics, dt) {
     energy = 0.0;
-    /*for (let i = 0; i < particleList.length; ++i) {
-        let p1 = particleList[i];
-        for (let j = i + 1; j < particleList.length; ++j) {
-            let p2 = particleList[j];
-            physics.interact(p1, p2);
-        }
-        physics.update(p1);
-        boundaryCheck(p1);
-        energy += p1.energy();
 
-        graphics.refreshPosition(p1);
-    }*/
     graphics.compute();
     ++cicles;
 
@@ -188,7 +166,6 @@ function simulationCleanup(graphics) {
     particleRadius = 20;
     particleRadiusRange = particleRadius / 2;
 
-    maxDistance = 1e6;
     totalMass = 0.0;
     energy = 0.0;
     totalTime = 0.0;
@@ -203,7 +180,7 @@ export function simulationState() {
         energy / particles,
         physics.colisionCounter,
         totalMass,
-        maxDistance,
+        physics.boundaryDistance,
         totalTime,
         totalCharge,
     ];

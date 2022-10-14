@@ -8,7 +8,9 @@ uniform float massConstant;
 uniform float chargeConstant;
 uniform float nearChargeConstant;
 uniform float nearChargeRange;
+uniform float nearChargeRange2;
 uniform float forceConstant;
+uniform float boundaryDistance;
 uniform sampler2D textureProperties;
 
 const float width = resolution.x;
@@ -26,7 +28,6 @@ void main() {
     vec3 vel1 = texture2D(textureVelocity, uv1).xyz;
 
     vec3 rForce = vec3(0.0);
-
     for (float y = 0.0; y < height; y++) {
         for (float x = 0.0; x < width; x++) {
             vec2 uv2 = vec2(x + 0.5, y + 0.5) / resolution.xy;
@@ -71,8 +72,8 @@ void main() {
             force += -chargeConstant * q1 * q2;
             force /= distance2;
 
-            float distance1 = sqrt(distance2);
-            if (distance1 <= nearChargeRange) {
+            if (distance2 <= nearChargeRange2) {
+                float distance1 = sqrt(distance2);
                 float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                 x = sin(PI * x);
                 force += -nearChargeConstant * nq1 * nq2 * x;
@@ -82,14 +83,16 @@ void main() {
         }
     }
 
-    /*if (length(pos1) > 1e5) {
-        rForce += -vel1;
-    }*/
-
     if (m1 != 0.0) {
         vel1 += rForce / abs(m1);
     } else {
         vel1 += rForce;
+    }
+
+    // check boundary colision
+    vec3 nextPos = pos1 + vel1;
+    if (length(nextPos) >= boundaryDistance) {
+        vel1 = reflect(vel1, normalize(-nextPos));
     }
 
     gl_FragColor = vec4(vel1, 1.0);

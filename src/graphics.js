@@ -62,9 +62,9 @@ export class Graphics {
 
         this.raycaster = new Raycaster();
 
-        this.points = undefined;
-        this.uniforms = undefined;
-        this.geometry = undefined;
+        this.pointsObject = undefined;
+        this.pointsUniforms = undefined;
+        this.pointsGeometry = undefined;
 
         console.log("graphics done");
     }
@@ -102,14 +102,14 @@ export class Graphics {
 
         initComputeRenderer(this);
 
-        this.uniforms = {
+        this.pointsUniforms = {
             'texturePosition': { value: gpuCompute.getCurrentRenderTarget(positionVariable).texture },
             //'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(velocityVariable).texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
         const material = new ShaderMaterial({
-            uniforms: this.uniforms,
+            uniforms: this.pointsUniforms,
             vertexShader: particleVertexShader,
             fragmentShader: particleFragmentShader,
         });
@@ -133,18 +133,18 @@ export class Graphics {
             radius.push(p.radius);
         });
 
-        this.geometry = new BufferGeometry();
-        this.geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-        this.geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
-        this.geometry.setAttribute('radius', new Float32BufferAttribute(radius, 1));
-        this.geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+        this.pointsGeometry = new BufferGeometry();
+        this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+        this.pointsGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+        this.pointsGeometry.setAttribute('radius', new Float32BufferAttribute(radius, 1));
+        this.pointsGeometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 
-        this.points = new Points(this.geometry, material);
-        this.points.frustumCulled = false;
-        this.points.matrixAutoUpdate = false;
-        this.points.updateMatrix();
+        this.pointsObject = new Points(this.pointsGeometry, material);
+        this.pointsObject.frustumCulled = false;
+        this.pointsObject.matrixAutoUpdate = false;
+        this.pointsObject.updateMatrix();
 
-        this.scene.add(this.points);
+        this.scene.add(this.pointsObject);
     }
 
     update() {
@@ -170,7 +170,7 @@ export class Graphics {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.uniforms.value = getCameraConstant(this.camera);
+        this.pointsUniforms.value = getCameraConstant(this.camera);
     }
 
     cleanup() {
@@ -181,9 +181,9 @@ export class Graphics {
             this.scene.remove(obj);
         }
 
-        this.points = undefined;
-        this.uniforms = undefined;
-        this.geometry = undefined;
+        this.pointsObject = undefined;
+        this.pointsUniforms = undefined;
+        this.pointsGeometry = undefined;
     }
 
     compute() {
@@ -200,7 +200,7 @@ export class Graphics {
         gpuCompute.doRenderTarget(positionVariable.material, positionVariable.renderTargets[target]);
 
         //this.uniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
-        this.uniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
+        this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
 
         //gpuCompute.compute();
         /*this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
@@ -242,7 +242,9 @@ function initComputeRenderer(graphics) {
     physicsUniforms['chargeConstant'] = { value: physics.chargeConstant };
     physicsUniforms['nearChargeConstant'] = { value: physics.nearChargeConstant };
     physicsUniforms['nearChargeRange'] = { value: physics.nearChargeRange };
+    physicsUniforms['nearChargeRange2'] = { value: Math.pow(physics.nearChargeRange, 2) };
     physicsUniforms['forceConstant'] = { value: physics.forceConstant };
+    physicsUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
     physicsUniforms['textureProperties'] = { value: dtProperties };
 
     const error = gpuCompute.init();

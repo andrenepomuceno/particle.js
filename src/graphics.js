@@ -202,8 +202,8 @@ export class Graphics {
         //this.uniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
 
-        //gpuCompute.compute();
-        /*this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
+        /*gpuCompute.compute();
+        this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
         this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;*/        
     }
 }
@@ -211,7 +211,7 @@ export class Graphics {
 let gpuCompute;
 let positionVariable;
 let velocityVariable;
-let idx = 1;
+let idx = 0;
 const WIDTH = 128;
 function initComputeRenderer(graphics) {
     console.log("initComputeRender");

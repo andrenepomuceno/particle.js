@@ -15,7 +15,7 @@ function initialSimulation(list, name) {
     });
 }
 let simulationList = [];
-//simulationList = simulationList.concat(gpgpu);
+simulationList = simulationList.concat(gpgpu);
 simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);
 simulationList = simulationList.concat(fields);
@@ -169,6 +169,7 @@ function simulationCleanup(graphics) {
     totalMass = 0.0;
     energy = 0.0;
     totalTime = 0.0;
+    totalCharge = 0.0;
 }
 
 export function simulationState() {

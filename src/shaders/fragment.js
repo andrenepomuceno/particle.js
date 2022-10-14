@@ -1,6 +1,8 @@
 export const computeVelocity = /* glsl */ `
 #include <common>
 
+precision highp float;
+
 uniform float minDistance;
 uniform float massConstant;
 uniform float chargeConstant;
@@ -32,6 +34,7 @@ void main() {
             float id2 = props2.x;
             if (id2 == 0.0) {
                 continue;
+                //break;
             }
             if (id1 == id2) {
                 continue;
@@ -44,19 +47,20 @@ void main() {
             float distance2 = dot(dPos, dPos);
 
             if (distance2 <= minDistance) {
-                /*float m = m1 + m2;
+                float m = m1 + m2;
                 if (m == 0.0) {
                     continue;
                 }
 
                 float s = 2.0 * m1 * m2 / m;
-                vec3 dVel = vel2 - vel1;
-                rForce += dVel * s;*/
+                vec3 dv = vel2 - vel1;
+
+                rForce += dv;
                 
-                continue;
+                //continue;
             }
 
-            float q1 = props1.z;
+            /*float q1 = props1.z;
             float nq1 = props1.w;
 
             float q2 = props2.z;
@@ -69,12 +73,12 @@ void main() {
 
             float distance1 = sqrt(distance2);
             if (distance1 <= nearChargeRange) {
-                float d = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
-                d = sin(PI * d);
-                force += -nearChargeConstant * nq1 * nq2 * d;
+                float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
+                x = sin(PI * x);
+                force += -nearChargeConstant * nq1 * nq2 * x;
             }
 
-            rForce += forceConstant * force * normalize(dPos);
+            rForce += forceConstant * force * normalize(dPos);*/
         }
     }
 
@@ -84,14 +88,17 @@ void main() {
         vel1 += rForce;
     }
 
-    float dCenter = length(pos1 + vel1);
-    if (dCenter > 1e5) vel1 = -vel1;
+    /*float dCenter = length(pos1 + vel1);
+    if (dCenter > 1e5) vel1 = -vel1;*/
 
-    gl_FragColor = vec4(vel1, 0.0);
+    gl_FragColor = vec4(vel1, 1.0);
 }
 `;
 
 export const computePosition = /* glsl */ `
+
+precision highp float;
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
@@ -100,7 +107,7 @@ void main() {
 
     pos += vel;
 
-    gl_FragColor = vec4( pos, 1.0 );
+    gl_FragColor = vec4(pos, 1.0);
 }
 `;
 
@@ -108,7 +115,7 @@ export const particleFragmentShader = /* glsl */ `
 varying vec4 vColor;
 
 void main() {
-    float f = length(gl_PointCoord - vec2(0.5, 0.5));
+    float f = length(gl_PointCoord - vec2(0.5));
     if (f > 0.5) {
         discard;
     }

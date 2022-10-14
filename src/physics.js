@@ -7,7 +7,7 @@ export class Physics {
         particleId = 0;
 
         this.enableColision = true;
-        this.minDistance = 0.25;
+        this.minDistance = Math.pow(0.5, 2);
 
         this.forceConstant = 1.0;
         this.massConstant = 1.0;

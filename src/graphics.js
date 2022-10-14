@@ -24,6 +24,7 @@ import { computeVelocity, computePosition, particleFragmentShader } from './shad
 import { particleVertexShader } from './shaders/vertex';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 import { physics } from './simulation';
+import { particleList } from './simulation';
 
 const axisLineWidth = 100;
 const axis = [
@@ -61,13 +62,6 @@ export class Graphics {
 
         this.raycaster = new Raycaster();
 
-        this.particleData = {
-            properties: [],
-            positions: [],
-            velocities: [],
-            colors: [],
-            radius: [],
-        }
         this.points = undefined;
         this.uniforms = undefined;
         this.geometry = undefined;
@@ -97,43 +91,10 @@ export class Graphics {
         this.controls.saveState();
     }
 
-    cameraRefresh() {
-        console.log("cameraRefresh");
-        //this.controls.update();
-        // console.log(this.controls.getDistance());
-        // console.log(this.controls.getAzimuthalAngle() * 180/Math.PI);
-        // console.log(this.controls.getPolarAngle()* 180/Math.PI);
-        //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
-        //this.camera.position.set(x, y, z);
-        //this.controls.update();
-    }
-
     showAxis(show = true) {
         axis.forEach(key => {
             show ? this.scene.add(key) : this.scene.remove(key);
         });
-    }
-
-    addParticle(particle) {
-        if (particle.fixed) {
-            // TODO
-            return;
-        }
-
-        //particle.positionIndex = this.particleData.positions.length;
-        this.particleData.properties.push(particle.id, particle.mass, particle.charge, particle.nearCharge);
-        this.particleData.positions.push(particle.position.x, particle.position.y, particle.position.z);
-        this.particleData.velocities.push(particle.velocity.x, particle.velocity.y, particle.velocity.z);
-        this.particleData.colors.push(particle.color.r, particle.color.g, particle.color.b);
-        this.particleData.radius.push(particle.radius);
-    }
-
-    refreshPosition(particle) {
-        /*let index = particle.positionIndex;
-        let positions = this.geometry.attributes.position.array
-        positions[index] = particle.position.x;
-        positions[index + 1] = particle.position.y;
-        positions[index + 2] = particle.position.z;*/
     }
 
     drawParticles() {
@@ -143,6 +104,7 @@ export class Graphics {
 
         this.uniforms = {
             'texturePosition': { value: gpuCompute.getCurrentRenderTarget(positionVariable).texture },
+            'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(velocityVariable).texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
@@ -153,7 +115,7 @@ export class Graphics {
         });
         material.extensions.drawBuffers = true;
 
-        const PARTICLES = this.particleData.radius.length;
+        const PARTICLES = particleList.length;
         const uvs = new Float32Array(PARTICLES * 2);
         let p = 0;
         for (let j = 0; j < WIDTH; j++) {
@@ -162,11 +124,19 @@ export class Graphics {
                 uvs[p++] = j / (WIDTH - 1);
             }
         }
+        let positions = [];
+        let colors = [];
+        let radius = [];
+        particleList.forEach((p, i) => {
+            positions.push(p.position.x, p.position.y, p.position.z);
+            colors.push(p.color.r, p.color.g, p.color.b);
+            radius.push(p.radius);
+        });
 
         this.geometry = new BufferGeometry();
-        this.geometry.setAttribute('position', new Float32BufferAttribute(this.particleData.positions, 3));
-        this.geometry.setAttribute('color', new Float32BufferAttribute(this.particleData.colors, 3));
-        this.geometry.setAttribute('radius', new Float32BufferAttribute(this.particleData.radius, 1));
+        this.geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+        this.geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+        this.geometry.setAttribute('radius', new Float32BufferAttribute(radius, 1));
         this.geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 
         this.points = new Points(this.geometry, material);
@@ -187,6 +157,7 @@ export class Graphics {
     raycast(pointer) {
         this.raycaster.setFromCamera(pointer, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, false);
+        console.log(intersects);
         for (let i = 0; i < intersects.length; i++) {
             let obj = intersects[i].object;
             let particle = obj.particle;
@@ -210,13 +181,6 @@ export class Graphics {
             this.scene.remove(obj);
         }
 
-        this.particleData = {
-            properties: [],
-            positions: [],
-            velocities: [],
-            colors: [],
-            radius: [],
-        }
         this.points = undefined;
         this.uniforms = undefined;
         this.geometry = undefined;
@@ -224,8 +188,8 @@ export class Graphics {
 
     compute() {
         gpuCompute.compute();
-		this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
-        //this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
+        this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+        this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
     }
 }
 
@@ -248,13 +212,13 @@ function initComputeRenderer(graphics) {
     const dtPosition = gpuCompute.createTexture();
     const dtVelocity = gpuCompute.createTexture();
 
-    fillTextures(graphics, dtProperties, dtPosition, dtVelocity);
+    fillTextures(dtProperties, dtPosition, dtVelocity);
 
     velocityVariable = gpuCompute.addVariable('textureVelocity', computeVelocity, dtVelocity);
     positionVariable = gpuCompute.addVariable('texturePosition', computePosition, dtPosition);
 
-    gpuCompute.setVariableDependencies(velocityVariable, [ positionVariable, velocityVariable ]);
-    gpuCompute.setVariableDependencies(positionVariable, [ positionVariable, velocityVariable ]);
+    gpuCompute.setVariableDependencies(velocityVariable, [velocityVariable, positionVariable]);
+    gpuCompute.setVariableDependencies(positionVariable, [velocityVariable, positionVariable]);
 
     let physicsUniforms = velocityVariable.material.uniforms;
     physicsUniforms['minDistance'] = { value: physics.minDistance };
@@ -271,15 +235,14 @@ function initComputeRenderer(graphics) {
     }
 }
 
-function fillTextures(graphics, textureProperties, texturePosition, textureVelocity) {
+function fillTextures(textureProperties, texturePosition, textureVelocity) {
     console.log("fillTextures");
 
-    const data = graphics.particleData;
     const propsArray = textureProperties.image.data;
     const posArray = texturePosition.image.data;
     const velocityArray = textureVelocity.image.data;
 
-    let particles = data.radius.length;
+    let particles = particleList.length;
     let maxParticles = propsArray.length / 4;
 
     console.log(particles);
@@ -290,25 +253,23 @@ function fillTextures(graphics, textureProperties, texturePosition, textureVeloc
         return;
     }
 
-    for (let k = 0; k < particles; k++) {
-        let offset4 = 4 * k;
-        let offset3 = 3 * k;
+    particleList.forEach((p, i) => {
+        let offset4 = 4 * i;
+        propsArray[offset4 + 0] = p.id;
+        propsArray[offset4 + 1] = p.mass;
+        propsArray[offset4 + 2] = p.charge;
+        propsArray[offset4 + 3] = p.nearCharge;
 
-        propsArray[offset4 + 0] = data.properties[offset4 + 0];
-        propsArray[offset4 + 1] = data.properties[offset4 + 1];
-        propsArray[offset4 + 2] = data.properties[offset4 + 2];
-        propsArray[offset4 + 3] = data.properties[offset4 + 3];
+        posArray[offset4 + 0] = p.position.x;
+        posArray[offset4 + 1] = p.position.y;
+        posArray[offset4 + 2] = p.position.z;
+        posArray[offset4 + 3] = 1.0;
 
-        posArray[offset4 + 0] = data.positions[offset3 + 0];
-        posArray[offset4 + 1] = data.positions[offset3 + 1];
-        posArray[offset4 + 2] = data.positions[offset3 + 2];
-        posArray[offset4 + 3] = 0;
-
-        velocityArray[offset4 + 0] = data.velocities[offset3 + 0];
-        velocityArray[offset4 + 1] = data.velocities[offset3 + 1];
-        velocityArray[offset4 + 2] = data.velocities[offset3 + 2];
-        velocityArray[offset4 + 3] = 0;
-    }
+        velocityArray[offset4 + 0] = p.velocity.x;
+        velocityArray[offset4 + 1] = p.velocity.y;
+        velocityArray[offset4 + 2] = p.velocity.z;
+        velocityArray[offset4 + 3] = 1.0;
+    })
 
     for (let k = particles; k < maxParticles; k++) {
         let offset4 = 4 * k;
@@ -321,11 +282,11 @@ function fillTextures(graphics, textureProperties, texturePosition, textureVeloc
         posArray[offset4 + 0] = 0;
         posArray[offset4 + 1] = 0;
         posArray[offset4 + 2] = 0;
-        posArray[offset4 + 3] = 0;
+        posArray[offset4 + 3] = 1.0;
 
         velocityArray[offset4 + 0] = 0;
         velocityArray[offset4 + 1] = 0;
         velocityArray[offset4 + 2] = 0;
-        velocityArray[offset4 + 3] = 0;
+        velocityArray[offset4 + 3] = 1.0;
     }
 }

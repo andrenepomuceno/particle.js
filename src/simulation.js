@@ -1,12 +1,13 @@
 import { Particle, Physics } from './physics.js';
+import { randomColor } from './helpers.js';
+import { fieldUpdate, fieldCleanup } from './field.js';
 import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
 import { fields } from './scenarios/fieldTest.js';
 import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
-import { randomColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './field.js'
+import { gpgpu } from './scenarios/gpgpu';
 
 function initialSimulation(list, name) {
     return list.find(e => {
@@ -14,6 +15,7 @@ function initialSimulation(list, name) {
     });
 }
 let simulationList = [];
+simulationList = simulationList.concat(gpgpu);
 simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);
 simulationList = simulationList.concat(fields);
@@ -89,7 +91,7 @@ function addParticles(graphics) {
             radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
         }
         p.radius = radius;
-        graphics.addParticle(p);
+        //graphics.addParticle(p);
         //graphics.refreshPosition(p);
     });
     graphics.drawParticles();

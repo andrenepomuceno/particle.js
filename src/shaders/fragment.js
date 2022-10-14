@@ -55,12 +55,12 @@ void main() {
                 float s = 2.0 * m1 * m2 / m;
                 vec3 dv = vel2 - vel1;
 
-                rForce += dv;
+                rForce += s * dv;
                 
-                //continue;
+                continue;
             }
 
-            /*float q1 = props1.z;
+            float q1 = props1.z;
             float nq1 = props1.w;
 
             float q2 = props2.z;
@@ -78,18 +78,19 @@ void main() {
                 force += -nearChargeConstant * nq1 * nq2 * x;
             }
 
-            rForce += forceConstant * force * normalize(dPos);*/
+            rForce += forceConstant * force * normalize(dPos);
         }
     }
+
+    /*if (length(pos1) > 1e5) {
+        rForce += -vel1;
+    }*/
 
     if (m1 != 0.0) {
         vel1 += rForce / abs(m1);
     } else {
         vel1 += rForce;
     }
-
-    /*float dCenter = length(pos1 + vel1);
-    if (dCenter > 1e5) vel1 = -vel1;*/
 
     gl_FragColor = vec4(vel1, 1.0);
 }

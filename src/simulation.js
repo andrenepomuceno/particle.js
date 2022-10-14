@@ -15,7 +15,7 @@ function initialSimulation(list, name) {
     });
 }
 let simulationList = [];
-simulationList = simulationList.concat(gpgpu);
+//simulationList = simulationList.concat(gpgpu);
 simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);
 simulationList = simulationList.concat(fields);

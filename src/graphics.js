@@ -104,7 +104,7 @@ export class Graphics {
 
         this.uniforms = {
             'texturePosition': { value: gpuCompute.getCurrentRenderTarget(positionVariable).texture },
-            'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(velocityVariable).texture },
+            //'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(velocityVariable).texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
@@ -187,15 +187,31 @@ export class Graphics {
     }
 
     compute() {
-        gpuCompute.compute();
-        this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;
-        this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
+        let current = (idx % 2);
+        let target = (idx + 1) % 2;
+        ++idx;
+
+        velocityVariable.material.uniforms['textureVelocity'].value = velocityVariable.renderTargets[current].texture;
+        velocityVariable.material.uniforms['texturePosition'].value = positionVariable.renderTargets[current].texture;
+        gpuCompute.doRenderTarget(velocityVariable.material, velocityVariable.renderTargets[target]);
+
+        positionVariable.material.uniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+        positionVariable.material.uniforms['texturePosition'].value = positionVariable.renderTargets[current].texture;
+        gpuCompute.doRenderTarget(positionVariable.material, positionVariable.renderTargets[target]);
+
+        //this.uniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+        this.uniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
+
+        //gpuCompute.compute();
+        /*this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
+        this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;*/        
     }
 }
 
 let gpuCompute;
 let positionVariable;
 let velocityVariable;
+let idx = 1;
 const WIDTH = 128;
 function initComputeRenderer(graphics) {
     console.log("initComputeRender");

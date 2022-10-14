@@ -48,7 +48,7 @@ function nucleiGrid(graphics, physics) {
     let m = 5e-1 / 0.511;
     let q = 3.0;
     let nq = 1.0;
-    let grid = [13, 13, 1];
+    let grid = [47, 47*9/16, 1];
     let r0 = physics.nearChargeRange * 0.05;
     let r1 = physics.nearChargeRange * 0.63;
     let v = 0;

@@ -36,8 +36,6 @@ let totalTime = 0.0;
 let totalCharge = 0.0;
 
 let maxDistance = 1e6;
-const barrier = new Particle();
-barrier.mass = 1e100;
 
 let mMin = Infinity, mMax = -Infinity;
 let qMin = Infinity, qMax = -Infinity;
@@ -146,8 +144,10 @@ export function simulationSetup(graphics, idx) {
 
 function boundaryCheck(p1) {
     if (p1.position.length() > maxDistance) {
-        physics.colide(p1, barrier);
-        physics.update(p1);
+        let normal = p1.position.clone().multiplyScalar(-1).normalize();
+        p1.velocity.reflect(normal);
+        //p1.velocity.multiplyScalar(0.9);
+        p1.position.add(p1.velocity);
     }
 }
 

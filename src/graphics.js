@@ -50,7 +50,7 @@ export class Graphics {
         document.getElementById("container").appendChild(this.stats.dom);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e0, 1e9);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.target.set(0, 0, 0);

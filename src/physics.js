@@ -112,9 +112,9 @@ export class Particle {
     constructor() {
         this.id = ++particleId;
 
-        this.mass = undefined;
-        this.charge = undefined;
-        this.nearCharge = undefined;
+        this.mass = 0.0;
+        this.charge = 0.0;
+        this.nearCharge = 0.0;
 
         this.position = new Vector3();
         this.velocity = new Vector3();

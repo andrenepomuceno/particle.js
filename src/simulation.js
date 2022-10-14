@@ -214,6 +214,10 @@ function generateParticleColor(p, absCharge) {
         l = 60;
     }
 
+    if (p.mass == 0) {
+        l = 90;
+    }
+
     if (p.nearCharge > 0) {
         //h -= 20;
     } else if (p.nearCharge < 0) {

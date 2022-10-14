@@ -61,19 +61,20 @@ void main() {
                 continue;
             }
 
-            float q1 = props1.z;
-            float nq1 = props1.w;
-
-            float q2 = props2.z;
-            float nq2 = props2.w;
-
             float force = 0.0;
+
+            float q1 = props1.z;
+            float q2 = props2.z;
+
             force += massConstant * m1 * m2;
             force += -chargeConstant * q1 * q2;
             force /= distance2;
 
             if (distance2 <= nearChargeRange2) {
+                float nq1 = props1.w;
+                float nq2 = props2.w;
                 float distance1 = sqrt(distance2);
+
                 float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                 x = sin(PI * x);
                 force += -nearChargeConstant * nq1 * nq2 * x;

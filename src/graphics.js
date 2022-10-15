@@ -108,6 +108,11 @@ export class Graphics {
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
+        /*const read = new Float32Array( 4 );
+        let rtTexture = gpuCompute.getCurrentRenderTarget(positionVariable);
+		this.renderer.readRenderTargetPixels( rtTexture, 0, 0, 1, 1, read );
+        console.log(read);*/
+
         const material = new ShaderMaterial({
             uniforms: this.pointsUniforms,
             vertexShader: particleVertexShader,
@@ -204,7 +209,7 @@ export class Graphics {
 
         /*gpuCompute.compute();
         this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
-        this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;*/        
+        this.uniforms['texturePosition'].value = gpuCompute.getCurrentRenderTarget(positionVariable).texture;*/
     }
 }
 
@@ -267,7 +272,7 @@ function fillTextures(textureProperties, texturePosition, textureVelocity) {
     console.log(maxParticles);
 
     if (particles > maxParticles) {
-        console.log("too many particles!");
+        alert("Error: Too many particles! " + particles + " > " + maxParticles);
         return;
     }
 
@@ -281,12 +286,12 @@ function fillTextures(textureProperties, texturePosition, textureVelocity) {
         posArray[offset4 + 0] = p.position.x;
         posArray[offset4 + 1] = p.position.y;
         posArray[offset4 + 2] = p.position.z;
-        posArray[offset4 + 3] = 1.0;
+        posArray[offset4 + 3] = 0;
 
         velocityArray[offset4 + 0] = p.velocity.x;
         velocityArray[offset4 + 1] = p.velocity.y;
         velocityArray[offset4 + 2] = p.velocity.z;
-        velocityArray[offset4 + 3] = 1.0;
+        velocityArray[offset4 + 3] = 0;
     })
 
     for (let k = particles; k < maxParticles; k++) {
@@ -300,11 +305,11 @@ function fillTextures(textureProperties, texturePosition, textureVelocity) {
         posArray[offset4 + 0] = 0;
         posArray[offset4 + 1] = 0;
         posArray[offset4 + 2] = 0;
-        posArray[offset4 + 3] = 1.0;
+        posArray[offset4 + 3] = 0;
 
         velocityArray[offset4 + 0] = 0;
         velocityArray[offset4 + 1] = 0;
         velocityArray[offset4 + 2] = 0;
-        velocityArray[offset4 + 3] = 1.0;
+        velocityArray[offset4 + 3] = 0;
     }
 }

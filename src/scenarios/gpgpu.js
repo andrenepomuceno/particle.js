@@ -5,19 +5,18 @@ import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../field';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
 
 export const gpgpu = [
-    nucleiGridGPU,
-    shootedBarrierGPU,
-    standardModelBlob0GPU,
+    GPU_blob0,
+    GPU_blob1,
+    GPU_nucleiGrid,
+    GPU_shootedBarrier,
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
-    let mode2d = true;
-    bidimensionalMode(mode2d);
+    bidimensionalMode(true);
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
-    //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
@@ -27,44 +26,80 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
-
-    if (mode2d) fieldSetup(graphics, "2d", 70);
-    if (!mode2d) fieldSetup(graphics, "3d", 16);
-
-    //fieldProbeConfig(1e3, 0, 0);
-    //fieldProbeConfig(0, 1e6, 0);
-    fieldProbeConfig(0, 0, 100);
 }
 
-function nucleiGridGPU(graphics, physics) {
+function GPU_blob1(graphics, physics) {
+    defaultParameters(graphics, physics, 1e4);
+    fieldCleanup(graphics);
+    setParticleRadius(50, 25);
+    setBoundaryDistance(1e6);
+    bidimensionalMode(false);
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = physics.nearChargeRange * 4;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(1, 3, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(1, 3, true);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_nucleiGrid(graphics, physics) {
     defaultParameters(graphics, physics, 10e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
     setBoundaryDistance(1e5);
-    bidimensionalMode(false);
+    bidimensionalMode(true);
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1.0 / 137;
+    physics.nearChargeConstant = 1.0;
+    physics.nearChargeRange = 1e3;
 
     let m = 5e-1 / 0.511;
     let q = 3.0;
     let nq = 1.0;
-    let width = 51;
-    let grid = [width, Math.round(width*9/16), 1];
+    let width = 61;
+    let grid = [width, Math.round(width * 9 / 16), 1];
     let r0 = physics.nearChargeRange * 0.05;
     let r1 = physics.nearChargeRange * 0.63;
     let v = 0;
     let n = 1;
 
     function createNuclei(n, m, q, nq, r0, r1, v, center, neutron = false) {
-        //if (random(0, 1) > 0.95) return;
+        //if (random(0, 1) > 0.9) return;
 
         createParticles(2 * n,
             (i) => {
-                return 2.2 * m;
+                return 3 * m;
             },
             (i) => {
                 return 2 / 3 * q;
             },
             (i) => {
-                return nq;
+                return 3 * nq;
             },
             (i) => {
                 return randomSphericVector(0, r0).add(center);
@@ -75,13 +110,13 @@ function nucleiGridGPU(graphics, physics) {
         );
         createParticles(1 * n,
             (i) => {
-                return 4.7 * m;
+                return 6 * m;
             },
             (i) => {
                 return -1 / 3 * q;
             },
             (i) => {
-                return nq;
+                return 3 * nq;
             },
             (i) => {
                 return randomSphericVector(0, r0).add(center);
@@ -93,7 +128,7 @@ function nucleiGridGPU(graphics, physics) {
 
         createParticles(n,
             (i) => {
-                return 0.511 * m;
+                return 0.5 * m;
             },
             (i) => {
                 return -q;
@@ -113,13 +148,13 @@ function nucleiGridGPU(graphics, physics) {
 
         createParticles(1 * n,
             (i) => {
-                return 2.2 * m;
+                return 3 * m;
             },
             (i) => {
                 return 2 / 3 * q;
             },
             (i) => {
-                return nq;
+                return 3 * nq;
             },
             (i) => {
                 return randomSphericVector(0, r0).add(center);
@@ -130,13 +165,13 @@ function nucleiGridGPU(graphics, physics) {
         );
         createParticles(2 * n,
             (i) => {
-                return 4.7 * m;
+                return 6 * m;
             },
             (i) => {
                 return -1 / 3 * q;
             },
             (i) => {
-                return nq;
+                return 3 * nq;
             },
             (i) => {
                 return randomSphericVector(0, r0).add(center);
@@ -160,7 +195,7 @@ function nucleiGridGPU(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function shootedBarrierGPU(graphics, physics) {
+function GPU_shootedBarrier(graphics, physics) {
     defaultParameters(graphics, physics, 30e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
@@ -207,64 +242,24 @@ function shootedBarrierGPU(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function standardModelBlob0GPU(graphics, physics) {
-    defaultParameters(graphics, physics, 15e3);
-    fieldCleanup(graphics);
+function GPU_blob0(graphics, physics) {
+    defaultParameters(graphics, physics, 1e7);
+    setBoundaryDistance(1e9);
     setParticleRadius(50, 40);
-    setBoundaryDistance(1e6);
-    bidimensionalMode(false);
+    bidimensionalMode(true);
 
-    // ve m < 0.120 eV q = 0
-    // e m = 0.511 MeV q = -1
-    // qup m = 2.2 MeV q = 2/3
-    // qdown m = 4.7 MeV q = -1/3
+    physics.nearChargeRange = 1e7;
 
-    let m = 1e-6;
-    let q = 20;
+    let m = 1;
+    let q = 1;
     let nq = 1;
-    let r0 = physics.nearChargeRange * 4;
+    let r0 = 1;
     let v = 0;
-    let n = Math.round(128*128 / 5) - 1;
+    let n = Math.round(1200 / 3);
 
     createParticles(n,
         (i) => {
-            return 0;
-        },
-        (i) => {
-            return 0;
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-nq) : (nq);
-        },
-        (i) => {
-            return randomSphericVector(0, r0);
-        },
-        (i) => {
-            return randomVector(v);
-        }
-    );
-
-    createParticles(n,
-        (i) => {
-            return 0.12e-1;
-        },
-        (i) => {
-            return 0;
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-nq) : (nq);
-        },
-        (i) => {
-            return randomSphericVector(0, r0);
-        },
-        (i) => {
-            return randomVector(v);
-        }
-    );
-
-    createParticles(n,
-        (i) => {
-            return 0.511e6 * m;
+            return 0.5 * m;
         },
         (i) => {
             return (random(0, 1, true)) ? (-q) : (q);
@@ -283,13 +278,13 @@ function standardModelBlob0GPU(graphics, physics) {
 
     createParticles(n,
         (i) => {
-            return 2.2e6 * m;
+            return 3 * m;
         },
         (i) => {
             return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
         },
         (i) => {
-            return (random(0, 1, true)) ? (-nq) : (nq);
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
             return randomSphericVector(0, r0);
@@ -301,13 +296,13 @@ function standardModelBlob0GPU(graphics, physics) {
 
     createParticles(n,
         (i) => {
-            return 4.7e6 * m;
+            return 6 * m;
         },
         (i) => {
             return (random(0, 1, true)) ? (-q / 3) : (q / 3);
         },
         (i) => {
-            return (random(0, 1, true)) ? (-nq) : (nq);
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
             return randomSphericVector(0, r0);

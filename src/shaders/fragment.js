@@ -94,9 +94,11 @@ void main() {
     vec3 nextPos = pos1 + vel1;
     if (length(nextPos) >= boundaryDistance) {
         vel1 = reflect(vel1, normalize(-nextPos));
+        //vel1 *= 0.9;
+        //vel1 = -vel1;
     }
 
-    gl_FragColor = vec4(vel1, 1.0);
+    gl_FragColor = vec4(vel1, 0.0);
 }
 `;
 
@@ -112,7 +114,7 @@ void main() {
 
     pos += vel;
 
-    gl_FragColor = vec4(pos, 1.0);
+    gl_FragColor = vec4(pos, 0.0);
 }
 `;
 

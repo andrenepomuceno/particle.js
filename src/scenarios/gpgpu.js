@@ -5,7 +5,9 @@ import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../field';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
 
 export const gpgpu = [
-    GPU_blob0,
+    GPU_string,
+    GPU_string_m20,
+    GPU_string_m50,
     GPU_blob1,
     GPU_nucleiGrid,
     GPU_shootedBarrier,
@@ -26,6 +28,219 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
+}
+
+function GPU_string_m50(graphics, physics) {
+    defaultParameters(graphics, physics, 1e7);
+    setBoundaryDistance(1e9);
+    setParticleRadius(50, 40);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e7;
+
+    let m = 50;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = Math.round(128*128 / 3);
+
+    createParticles(n,
+        (i) => {
+            return 0.5 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q) : (q);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-nq) : (nq);
+            //return 0;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 3 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 6 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q / 3) : (q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_string_m20(graphics, physics) {
+    defaultParameters(graphics, physics, 1e7);
+    setBoundaryDistance(1e9);
+    setParticleRadius(50, 40);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e7;
+
+    let m = 20;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = Math.round(128*128 / 3);
+
+    createParticles(n,
+        (i) => {
+            return 0.5 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q) : (q);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-nq) : (nq);
+            //return 0;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 3 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 6 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q / 3) : (q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_string(graphics, physics) {
+    defaultParameters(graphics, physics, 1e7);
+    setBoundaryDistance(1e9);
+    setParticleRadius(50, 40);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e7;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = Math.round(128*128 / 3);
+
+    createParticles(n,
+        (i) => {
+            return 0.5 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q) : (q);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-nq) : (nq);
+            //return 0;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 3 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 6 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q / 3) : (q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
 }
 
 function GPU_blob1(graphics, physics) {
@@ -242,73 +457,3 @@ function GPU_shootedBarrier(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function GPU_blob0(graphics, physics) {
-    defaultParameters(graphics, physics, 1e7);
-    setBoundaryDistance(1e9);
-    setParticleRadius(50, 40);
-    bidimensionalMode(true);
-
-    physics.nearChargeRange = 1e7;
-
-    let m = 1;
-    let q = 1;
-    let nq = 1;
-    let r0 = 1;
-    let v = 0;
-    let n = Math.round(1200 / 3);
-
-    createParticles(n,
-        (i) => {
-            return 0.5 * m;
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-q) : (q);
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-nq) : (nq);
-            //return 0;
-        },
-        (i) => {
-            return randomSphericVector(0, r0);
-        },
-        (i) => {
-            return randomVector(v);
-        }
-    );
-
-    createParticles(n,
-        (i) => {
-            return 3 * m;
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
-        },
-        (i) => {
-            return randomSphericVector(0, r0);
-        },
-        (i) => {
-            return randomVector(v);
-        }
-    );
-
-    createParticles(n,
-        (i) => {
-            return 6 * m;
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-q / 3) : (q / 3);
-        },
-        (i) => {
-            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
-        },
-        (i) => {
-            return randomSphericVector(0, r0);
-        },
-        (i) => {
-            return randomVector(v);
-        }
-    );
-}

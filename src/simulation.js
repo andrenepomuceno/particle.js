@@ -1,6 +1,7 @@
-import { Particle, Physics } from './physics.js';
+import { Physics } from './physics.js';
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js';
+
 import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
 import { fields } from './scenarios/fieldTest.js';
@@ -25,7 +26,7 @@ simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
 
 export let particleList = [];
-export let physics;
+export let physics = undefined;
 
 const enableMassRadius = true;
 let enableChargeColor = true;
@@ -90,7 +91,7 @@ function addParticles(graphics) {
         //graphics.addParticle(p);
         //graphics.refreshPosition(p);
     });
-    graphics.drawParticles();
+    graphics.drawParticles(particleList, physics);
 }
 
 function drawParticles(graphics) {
@@ -138,7 +139,7 @@ export function simulationSetup(graphics, idx) {
     console.log("particleSetup done ----------");
 
     graphics.cameraSetup();
-    drawParticles(graphics);
+    drawParticles(graphics, physics);
     fieldUpdate();
 
     console.log("simulationSetup done ----------");

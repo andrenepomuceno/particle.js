@@ -1,12 +1,16 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle } from "../physics"
-import { particleList } from "../simulation";
 import { Vector3 } from 'three';
 
 let bidimensionalModeEnable = false;
+let particleList = undefined;
 
 export function bidimensionalMode(enable = true) {
     bidimensionalModeEnable = enable;
+}
+
+export function setParticleList(list) {
+    particleList = list;
 }
 
 export function randomVector(range, round = false) {

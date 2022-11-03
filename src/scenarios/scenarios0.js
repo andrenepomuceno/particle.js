@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
-import { particleList } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
+
+let particleList = undefined;
 
 export const scenarios0 = [
     colisionTest,
@@ -51,6 +52,8 @@ function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center
 }
 
 function simulationDev(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 1000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
@@ -77,6 +80,8 @@ function simulationDev(graphics, physics) {
 }
 
 function simulationAtom(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 500;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
@@ -122,6 +127,8 @@ function simulationAtom(graphics, physics) {
 }
 
 function simulation0(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 5000;
 
     physics.massConstant = 1;
@@ -136,6 +143,8 @@ function simulation0(graphics, physics) {
 }
 
 function simulation1(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 4000;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -153,6 +162,8 @@ function simulation1(graphics, physics) {
 }
 
 function simulationGrid2D(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 5000
     graphics.cameraPhi = 0; graphics.cameraTheta = 0;
     physics.massConstant = 1 / 100;
@@ -177,6 +188,8 @@ function simulationGrid2D(graphics, physics) {
 }
 
 function simulationGrid3D(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = 30; graphics.cameraTheta = 45;
     physics.massConstant = 1 / 10;
@@ -205,6 +218,8 @@ function simulationGrid3D(graphics, physics) {
 }
 
 function simulationCross(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     physics.forceConstant = 5;
@@ -227,6 +242,8 @@ function simulationCross(graphics, physics) {
 }
 
 function simulationSpheres(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     physics.massConstant = 1 / 13;
@@ -248,6 +265,8 @@ function simulationSpheres(graphics, physics) {
 }
 
 function colisionTest(graphics, physics) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = 500;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 

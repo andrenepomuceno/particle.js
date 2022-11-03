@@ -1,21 +1,21 @@
-import { Vector3 } from 'three';
-
-let particleId = 0;
+import { Vector3, Color } from 'three';
 
 export class Physics {
     constructor() {
-        particleId = 0;
-
         this.enableColision = true;
-        this.minDistance = 0.25;
+        this.minDistance = Math.pow(0.5, 2);
+        this.boundaryDistance = 1e5;
 
-        this.forceConstant = 1;
-        this.massConstant = 1;
-        this.chargeConstant = 1;
-        this.nearChargeConstant = 1;
+        this.forceConstant = 1.0;
+        this.massConstant = 1.0;
+        this.chargeConstant = 1.0;
+        this.nearChargeConstant = 1.0;
         this.nearChargeRange = 1e3;
 
         this.colisionCounter = 0;
+        
+        this.particleId = 0;
+        this.particleList = [];
     }
 
     interact(p1, p2, probe = false) {
@@ -109,11 +109,11 @@ export class Physics {
 
 export class Particle {
     constructor() {
-        this.id = particleId++;
+        this.id = ++this.particleId;
 
-        this.mass = 0;
-        this.charge = 0;
-        this.nearCharge = 0;
+        this.mass = 0.0;
+        this.charge = 0.0;
+        this.nearCharge = 0.0;
 
         this.position = new Vector3();
         this.velocity = new Vector3();
@@ -122,6 +122,8 @@ export class Particle {
         this.fixed = false;
 
         this.mesh = undefined;
+        this.color = undefined;
+        this.radius = undefined;
     }
 
     energy() {
@@ -129,7 +131,8 @@ export class Particle {
     }
 
     setColor(color = 0xffffff) {
-        this.mesh.material.color.set(color);
+        if (this.mesh) this.mesh.material.color.set(color);
+        this.color = new Color(color);
     }
 
     print() {

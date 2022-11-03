@@ -1,8 +1,8 @@
 
 import { Vector3 } from 'three';
-import { fieldProbeConfig, fieldSetup } from '../field.js';
+import { fieldProbeConfig, fieldSetup } from '../simulation';
 import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
-import { createCloud0, createNuclei0, atom0, bidimensionalMode, createCloud3 } from './helpers.js';
+import { createCloud0, createNuclei0, atom0, bidimensionalMode, createCloud3, setParticleList } from './helpers.js';
 
 export const elements = [
     h2,
@@ -16,6 +16,7 @@ export const elements = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
+    setParticleList(physics.particleList);
     let mode2d = true;
     bidimensionalMode(mode2d);
 
@@ -33,8 +34,8 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleRadius(30, 10);
     setBoundaryDistance(1e5);
 
-    if (mode2d) fieldSetup(graphics, "2d", 70);
-    if (!mode2d) fieldSetup(graphics, "3d", 16);
+    if (mode2d) fieldSetup("2d", 70);
+    if (!mode2d) fieldSetup("3d", 16);
 
     //fieldProbeConfig(1e3, 0, 0);
     fieldProbeConfig(0, 1e6, 0);

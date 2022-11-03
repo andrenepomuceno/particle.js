@@ -3,21 +3,19 @@ import {
     Vector2,
 } from 'three';
 import * as dat from 'dat.gui';
-
-import { Graphics } from './graphics.js'
+import { Particle } from './physics.js';
+import { downloadFile, arrayToString } from './helpers.js';
 import {
     simulationSetup,
     simulationStep,
     simulationState,
     simulationCsv,
+    simulationFieldSetup,
+    simulationFieldProbe,
     setColorMode,
-    particleList,
+    graphics
 } from './simulation.js';
-import { Particle } from './physics.js';
-import { fieldProbe, fieldSetup } from './field.js';
-import { downloadFile, arrayToString } from './helpers.js';
 
-const graphics = new Graphics();
 const gui = new dat.GUI();
 
 let hideAxis = false;
@@ -195,9 +193,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'P':
-            particleList.forEach(v => {
-                console.log(v.csv());
-            });
+            console.log(simulationCsv());
             break;
 
         case 'a':
@@ -225,7 +221,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldSetup(graphics, "update");
+            simulationFieldSetup("update");
             break;
 
         default:
@@ -252,9 +248,7 @@ graphics.controls.addEventListener("end", e => {
 });
 
 window.onresize = function () {
-    graphics.camera.aspect = window.innerWidth / window.innerHeight;
-    graphics.camera.updateProjectionMatrix();
-    graphics.renderer.setSize(window.innerWidth, window.innerHeight);
+    graphics.onWindowResize(window);
 };
 
 let mousePosition = new Vector2(1e5, 1e5);
@@ -302,7 +296,7 @@ function updateParticle() {
         probe.mass = 1;
         probe.nearCharge = 1;
         probe.position = particle.position;
-        let field = fieldProbe(probe);
+        let field = simulationFieldProbe(probe);
         let fieldAmp = field.length();
         particleView.field.amplitude = fieldAmp.toExponential(3);
         particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
@@ -347,7 +341,7 @@ function animate(time) {
             dt = time - lastTime;
         }
 
-        simulationStep(graphics, dt);
+        simulationStep(dt);
     }
 
     if (time - lastUpdate >= updateDelay) {
@@ -358,7 +352,7 @@ function animate(time) {
 
         if (updateField) {
             updateField = false;
-            fieldSetup(graphics, "update");
+            fieldSetup("update");
         }
     }
 

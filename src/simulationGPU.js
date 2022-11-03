@@ -2,7 +2,7 @@ import { randomColor, generateParticleColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js';
 
 function log(msg) {
-    console.log("SimulationV2: " + msg);
+    console.log("SimulationGPU: " + msg);
 }
 
 export class SimulationGPU {

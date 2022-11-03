@@ -1,26 +1,6 @@
-import { Particle, Physics } from './physics.js';
-import { scenarios0 } from './scenarios/scenarios0.js';
-import { scenarios1 } from './scenarios/scenarios1.js';
-import { fields } from './scenarios/fieldTest.js';
-import { elements } from './scenarios/elements.js';
-import { nearForce } from './scenarios/nearForce.js';
-import { scenarios2 } from './scenarios/scenarios2.js';
-import { randomColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './field.js'
-
-function initialSimulation(list, name) {
-    return list.find(e => {
-        return e.name == name;
-    });
-}
-let simulationList = [];
-simulationList = simulationList.concat(scenarios2);
-simulationList = simulationList.concat(nearForce);
-simulationList = simulationList.concat(fields);
-simulationList = simulationList.concat(elements);
-simulationList = simulationList.concat(scenarios1);
-simulationList = simulationList.concat(scenarios0);
-let particlesSetup = simulationList[0];
+import { Physics } from './physics.js';
+import { randomColor, generateParticleColor } from './helpers.js';
+import { fieldUpdate, fieldCleanup } from './field.js';
 
 export let particleList = [];
 export let physics;
@@ -39,30 +19,6 @@ let maxDistance = 1e6;
 
 let mMin = Infinity, mMax = -Infinity;
 let qMin = Infinity, qMax = -Infinity;
-
-export function setParticleRadius(radius, range) {
-    particleRadius = radius;
-    particleRadiusRange = range;
-}
-
-export function setColorMode(mode) {
-    switch (mode) {
-        case "random":
-            enableChargeColor = false;
-            break;
-
-        case "charge":
-        default:
-            enableChargeColor = true
-            break;
-    }
-
-    paintParticles();
-}
-
-export function setBoundaryDistance(d = 1e6) {
-    maxDistance = d;
-}
 
 function paintParticles() {
     const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
@@ -118,30 +74,6 @@ function drawParticles(graphics) {
     paintParticles();
 }
 
-export function simulationSetup(graphics, idx) {
-    console.log("simulationSetup ----------");
-
-    simulationCleanup(graphics);
-    fieldCleanup(graphics);
-    graphics.cameraDefault();
-
-    if (idx >= 0 && idx < simulationList.length) {
-        particlesSetup = simulationList[idx];
-    }
-
-    physics = new Physics();
-
-    console.log("particleSetup ----------");
-    particlesSetup(graphics, physics);
-    console.log("particleSetup done ----------");
-
-    graphics.cameraSetup();
-    drawParticles(graphics);
-    fieldUpdate();
-
-    console.log("simulationSetup done ----------");
-}
-
 function boundaryCheck(p1) {
     if (p1.position.length() > maxDistance) {
         let normal = p1.position.clone().multiplyScalar(-1).normalize();
@@ -151,33 +83,15 @@ function boundaryCheck(p1) {
     }
 }
 
-export function simulationStep(graphics, dt) {
-    energy = 0.0;
-    for (let i = 0; i < particleList.length; ++i) {
-        let p1 = particleList[i];
-        for (let j = i + 1; j < particleList.length; ++j) {
-            let p2 = particleList[j];
-            physics.interact(p1, p2);
-        }
-        physics.update(p1);
-
-        boundaryCheck(p1);
-
-        graphics.render(p1);
-        energy += p1.energy();
-    }
-    ++cicles;
-
-    fieldUpdate();
-
-    if (dt < 1e3) totalTime += dt;
-}
-
 function simulationCleanup(graphics) {
     particleList.forEach((p, i) => {
         graphics.scene.remove(p.mesh);
     });
-    particleList = [];
+
+    while (particleList.length > 0) {
+        particleList.pop();
+    }
+
     cicles = 0;
     particleRadius = 20;
     particleRadiusRange = particleRadius / 2;
@@ -188,56 +102,119 @@ function simulationCleanup(graphics) {
     totalTime = 0.0;
 }
 
-export function simulationState() {
-    let particles = particleList.length;
-    return [
-        particlesSetup.name,
-        particles,
-        cicles,
-        energy / particles,
-        physics.colisionCounter,
-        totalMass,
-        maxDistance,
-        totalTime,
-        totalCharge,
-    ];
+function log(msg) {
+    console.log("Simulation: " + msg);
 }
 
-export function simulationCsv() {
-    let output = particleList[0].header() + "\n";
-    particleList.forEach((p, i) => {
-        output += p.csv() + "\n";
-    });
-    output += physics.header() + "\n" + physics.csv() + "\n";
-    output += "cicles\n";
-    output += cicles + "\n";
-    return output;
-}
+export class Simulation {
+    constructor(graphics, physics, _particleList) {
+        log("constructor");
 
-function generateParticleColor(p, absCharge) {
-    let h = 0, s = 100, l = 50;
-    let lmin = 15, lmax = 50;
+        this.graphics = graphics;
+        this.physics = physics;
 
-    let charge = p.charge;
-    if (charge > 0) {
-        h = 240;
-        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
-    } else if (charge < 0) {
-        h = 0;
-        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
-    } else {
-        h = 120;
-        l = 60;
+        this.enableMassRadius = true;
+        this.enableChargeColor = true;
+        this.populateSimulationCallback = undefined;
+
+        if (_particleList) {
+            particleList = _particleList;
+        } else {
+            particleList = [];
+        }
+
+        //this.cleanup();
     }
 
-    if (p.nearCharge > 0) {
-        //h -= 20;
-    } else if (p.nearCharge < 0) {
-        h += 10;
+    setup(populateSimulationCallback) {
+        log("setup");
+
+        this.populateSimulationCallback = populateSimulationCallback;
+
+        console.log("simulationSetup ----------");
+
+        simulationCleanup(this.graphics);
+        fieldCleanup(this.graphics);
+        this.graphics.cameraDefault();
+
+        physics = new Physics();
+
+        console.log("particleSetup ----------");
+        populateSimulationCallback(this.graphics, physics);
+        console.log("particleSetup done ----------");
+
+        this.graphics.cameraSetup();
+        drawParticles(this.graphics);
+        fieldUpdate();
+
+        console.log("simulationSetup done ----------");
     }
 
-    while (h > 360) h -= 360;
-    while (h < 0) h += 360;
+    cleanup() {
+        log("cleanup");
+        simulationCleanup(this.graphics);
+    }
 
-    return "hsl(" + h + "," + s + "%," + l + "%)";
+    step(dt) {
+        energy = 0.0;
+        for (let i = 0; i < particleList.length; ++i) {
+            let p1 = particleList[i];
+            for (let j = i + 1; j < particleList.length; ++j) {
+                let p2 = particleList[j];
+                physics.interact(p1, p2);
+            }
+            physics.update(p1);
+
+            boundaryCheck(p1);
+
+            this.graphics.render(p1);
+            energy += p1.energy();
+        }
+        ++cicles;
+
+        fieldUpdate();
+
+        if (dt < 1e3) totalTime += dt;
+    }
+
+    state() {
+        let particles = particleList.length;
+        return [
+            this.populateSimulationCallback.name,
+            particles,
+            cicles,
+            energy / particles,
+            physics.colisionCounter,
+            totalMass,
+            maxDistance,
+            totalTime,
+            totalCharge,
+        ];
+    }
+
+    exportCsv() {
+        let output = particleList[0].header() + "\n";
+        particleList.forEach((p, i) => {
+            output += p.csv() + "\n";
+        });
+        output += physics.header() + "\n" + physics.csv() + "\n";
+        output += "cicles\n";
+        output += cicles + "\n";
+        return output;
+    }
+
+    setColorMode(mode) {
+        switch (mode) {
+            case "random":
+                enableChargeColor = false;
+                break;
+
+            case "charge":
+            default:
+                enableChargeColor = true
+                break;
+        }
+
+        paintParticles();
+    }
 }

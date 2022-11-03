@@ -12,6 +12,7 @@ import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from './helpers';
+import { MathUtils } from 'three';
 
 const axisLineWidth = 100;
 const geometryMap = new Map();
@@ -20,6 +21,10 @@ const axis = [
     new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00),
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
+
+function getCameraConstant(camera) {
+    return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
+}
 
 export class Graphics {
     constructor() {
@@ -118,5 +123,13 @@ export class Graphics {
             //this.raycaster.lastObject = obj;
             return particle;
         }
+    }
+
+    onWindowResize(window) {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+        this.pointsUniforms.value = getCameraConstant(this.camera);
     }
 }

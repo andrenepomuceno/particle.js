@@ -1,4 +1,7 @@
-import { SimulationGPU } from './simulationGPU';
+import { SimulationGPU as Simulation } from './simulationGPU';
+import { GraphicsGPU as Graphics } from './graphicsGPU.js'
+// import { Simulation } from './simulation';
+// import { Graphics } from './graphics.js'
 import { Physics } from './physics.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
@@ -23,6 +26,7 @@ let simulation = undefined;
 
 export let particleList = [];
 export let physics = undefined;
+export let graphics = new Graphics();
 
 function log(msg) {
     console.log("SimulationLegacy: " + msg)
@@ -50,14 +54,14 @@ export function simulationSetup(graphics, idx) {
 
     physics = new Physics();
     if (!simulation) {
-        simulation = new SimulationGPU(graphics, physics, particleList);
+        simulation = new Simulation(graphics, physics, particleList);
     }
     simulation.setup(particlesSetup, true);
 
     log("simulationSetup done");
 }
 
-export function simulationStep(graphics, dt) {
+export function simulationStep(dt) {
     simulation.step(dt);
 }
 

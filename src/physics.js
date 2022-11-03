@@ -122,6 +122,7 @@ export class Particle {
 
         this.fixed = false;
 
+        this.mesh = undefined;
         this.color = undefined;
         this.radius = undefined;
     }
@@ -131,7 +132,7 @@ export class Particle {
     }
 
     setColor(color = 0xffffff) {
-        //this.mesh.material.color.set(color);
+        if (this.mesh) this.mesh.material.color.set(color);
         this.color = new Color(color);
     }
 

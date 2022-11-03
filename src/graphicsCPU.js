@@ -26,7 +26,7 @@ function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
 }
 
-export class Graphics {
+export class GraphicsCPU {
     constructor() {
         console.log("graphics init");
 

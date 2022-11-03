@@ -106,7 +106,7 @@ function log(msg) {
     console.log("Simulation: " + msg);
 }
 
-export class Simulation {
+export class SimulationCPU {
     constructor(graphics, physics, _particleList) {
         log("constructor");
 

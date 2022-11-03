@@ -1,7 +1,7 @@
 import { SimulationGPU as Simulation } from './simulationGPU';
 import { GraphicsGPU as Graphics } from './graphicsGPU.js'
-// import { Simulation } from './simulation';
-// import { Graphics } from './graphics.js'
+// import { SimulationCPU as Simulation } from './simulationCPU';
+// import { GraphicsCPU as Graphics } from './graphicsCPU.js'
 import { Physics } from './physics.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { particleList, setParticleRadius } from '../simulation.js'
+import { particleList, setParticleRadius } from '../legacySimulation.js'
 import { Particle } from '../physics.js'
 import { fieldProbeConfig, fieldSetup } from '../field.js'
 

@@ -4,7 +4,7 @@ import {
 } from 'three';
 import * as dat from 'dat.gui';
 
-import { Graphics } from './graphics.js'
+import { GraphicsGPU } from './graphicsGPU.js'
 import {
     simulationSetup,
     simulationStep,
@@ -12,12 +12,12 @@ import {
     simulationCsv,
     setColorMode,
     particleList,
-} from './simulation.js';
+} from './legacySimulation.js';
 import { Particle } from './physics.js';
 import { fieldProbe, fieldSetup } from './field.js';
 import { downloadFile, arrayToString } from './helpers.js';
 
-const graphics = new Graphics();
+const graphics = new GraphicsGPU();
 const gui = new dat.GUI();
 
 let hideAxis = false;

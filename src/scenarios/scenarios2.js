@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance } from '../simulation';
+import { setParticleRadius, setBoundaryDistance } from '../legacySimulation';
 import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../field';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
 

@@ -1,7 +1,5 @@
 import { randomColor } from './helpers.js';
 import { fieldUpdate, fieldCleanup } from './field.js';
-import { Graphics } from './graphics.js';
-import { Physics } from './physics'
 
 function log(msg) {
     console.log("SimulationV2: " + msg);
@@ -59,13 +57,18 @@ export class SimulationV2 {
         this.cleanup();
     }
 
-    setup(populateSimulationCallback) {
+    setup(populateSimulationCallback, legacyMode=false) {
         log("setup");
         this.cleanup();
 
         this.populateSimulationCallback = populateSimulationCallback;
-        log("Populating...");
-        populateSimulationCallback(this.graphics, this.physics);
+        if (legacyMode) {
+            log("Populating... (legacy)");
+            populateSimulationCallback(this.graphics, this.physics);
+        } else {
+            log("Populating...");
+            populateSimulationCallback(this);
+        }
         log("Populating done");
 
         this.graphics.cameraSetup();

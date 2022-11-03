@@ -64,7 +64,7 @@ export function simulationSetup(graphics, idx) {
 
     physics = new Physics();
     simulationV2 = new SimulationV2(graphics, physics, particleList);
-    simulationV2.setup(particlesSetup);
+    simulationV2.setup(particlesSetup, true);
 
     console.log("simulationSetup done ----------");
 }

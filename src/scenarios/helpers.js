@@ -1,6 +1,6 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle } from "../physics"
-import { particleList } from "../simulation";
+import { particleList } from "../legacySimulation";
 import { Vector3 } from 'three';
 
 let bidimensionalModeEnable = false;

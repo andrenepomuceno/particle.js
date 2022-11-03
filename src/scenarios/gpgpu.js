@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldCleanup } from '../simulation';
-import { cubeGenerator, random, sphereGenerator } from '../helpers';
+import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
     string,

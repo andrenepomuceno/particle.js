@@ -3,7 +3,8 @@ import {
     Vector2,
 } from 'three';
 import * as dat from 'dat.gui';
-
+import { Particle } from './physics.js';
+import { downloadFile, arrayToString } from './helpers.js';
 import {
     simulationSetup,
     simulationStep,
@@ -14,8 +15,6 @@ import {
     setColorMode,
     graphics
 } from './simulation.js';
-import { Particle } from './physics.js';
-import { downloadFile, arrayToString } from './helpers.js';
 
 const gui = new dat.GUI();
 

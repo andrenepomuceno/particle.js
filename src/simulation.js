@@ -14,7 +14,7 @@ import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpu';
 
-const useGPU = true;
+const useGPU = false;
 
 let simulationList = [];
 if (useGPU) {

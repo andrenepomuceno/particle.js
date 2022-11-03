@@ -31,9 +31,13 @@ function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
 }
 
+function log(msg) {
+    console.log("Graphics (GPU): " + msg)
+}
+
 export class Graphics {
     constructor() {
-        console.log("graphics init");
+        log("constructor");
 
         this.cleanup();
 
@@ -58,11 +62,11 @@ export class Graphics {
 
         this.drawAxis();
 
-        console.log("graphics done");
+        log("constructor done");
     }
 
     cameraDefault() {
-        console.log("cameraDefault");
+        log("cameraDefault");
 
         this.cameraDistance = 3000;
         this.cameraPhi = 30; // up/down [0,Pi]
@@ -72,7 +76,7 @@ export class Graphics {
     }
 
     cameraSetup() {
-        console.log("cameraSetup");
+        log("cameraSetup");
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
@@ -90,7 +94,7 @@ export class Graphics {
     }
 
     drawParticles(particleList, physics) {
-        console.log("graphics drawParticles");
+        log("drawParticles");
 
         this.particleList = particleList;
         this.physics = physics;
@@ -126,7 +130,7 @@ export class Graphics {
     }
 
     cleanup() {
-        console.log("graphics cleanup");
+        log("cleanup");
 
         if (this.scene) {
             for (var i = this.scene.children.length - 1; i >= 0; i--) {
@@ -174,7 +178,7 @@ export class Graphics {
     }
 
     #initComputeRenderer() {
-        console.log("initComputeRender");
+        log("initComputeRenderer");
 
         this.gpuCompute = new GPUComputationRenderer(TEXTURE_WIDTH, TEXTURE_WIDTH, this.renderer);
         let gpuCompute = this.gpuCompute;
@@ -214,7 +218,7 @@ export class Graphics {
     }
 
     #fillTextures(textureProperties, texturePosition, textureVelocity) {
-        console.log("fillTextures");
+        log("fillTextures");
 
         const propsArray = textureProperties.image.data;
         const posArray = texturePosition.image.data;

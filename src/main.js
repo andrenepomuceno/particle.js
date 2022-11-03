@@ -12,7 +12,7 @@ import {
     setColorMode,
     particleList,
     graphics
-} from './simulationAPI.js';
+} from './simulation.js';
 import { Particle } from './physics.js';
 import { fieldProbe, fieldSetup } from './field.js';
 import { downloadFile, arrayToString } from './helpers.js';

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { particleList, setParticleRadius } from '../simulationAPI.js'
+import { particleList, setParticleRadius } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
 

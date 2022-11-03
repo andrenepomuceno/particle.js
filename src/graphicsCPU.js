@@ -12,7 +12,6 @@ import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from './helpers';
-import { MathUtils } from 'three';
 
 const axisLineWidth = 100;
 const geometryMap = new Map();
@@ -22,13 +21,13 @@ const axis = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-function getCameraConstant(camera) {
-    return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
+function log(msg) {
+    console.log("GraphicsCPU: " + msg);
 }
 
 export class GraphicsCPU {
     constructor() {
-        console.log("graphics init");
+        log("graphics init");
 
         this.renderer = new WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -50,11 +49,11 @@ export class GraphicsCPU {
 
         this.raycaster = new Raycaster();
 
-        console.log("graphics done");
+        log("graphics done");
     }
 
     cameraDefault() {
-        console.log("cameraDefault");
+        log("cameraDefault");
 
         this.cameraDistance = 3000;
         this.cameraPhi = 30; // up/down [0,Pi]
@@ -64,7 +63,7 @@ export class GraphicsCPU {
     }
 
     cameraSetup() {
-        console.log("cameraSetup");
+        log("cameraSetup");
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
@@ -76,11 +75,11 @@ export class GraphicsCPU {
     }
 
     cameraRefresh() {
-        console.log("cameraRefresh");
+        log("cameraRefresh");
         //this.controls.update();
-        // console.log(this.controls.getDistance());
-        // console.log(this.controls.getAzimuthalAngle() * 180/Math.PI);
-        // console.log(this.controls.getPolarAngle()* 180/Math.PI);
+        // log(this.controls.getDistance());
+        // log(this.controls.getAzimuthalAngle() * 180/Math.PI);
+        // log(this.controls.getPolarAngle()* 180/Math.PI);
         //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         //this.camera.position.set(x, y, z);
         //this.controls.update();
@@ -129,7 +128,5 @@ export class GraphicsCPU {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-        this.pointsUniforms.value = getCameraConstant(this.camera);
     }
 }

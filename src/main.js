@@ -9,12 +9,12 @@ import {
     simulationStep,
     simulationState,
     simulationCsv,
+    simulationFieldSetup,
     setColorMode,
     particleList,
-    graphics
+    graphics,
 } from './simulation.js';
 import { Particle } from './physics.js';
-import { fieldProbe, fieldSetup } from './field.js';
 import { downloadFile, arrayToString } from './helpers.js';
 
 const gui = new dat.GUI();
@@ -224,7 +224,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldSetup(graphics, "update");
+            simulationFieldSetup("update");
             break;
 
         default:
@@ -355,7 +355,7 @@ function animate(time) {
 
         if (updateField) {
             updateField = false;
-            fieldSetup(graphics, "update");
+            fieldSetup("update");
         }
     }
 

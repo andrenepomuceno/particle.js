@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
-import { particleList, setParticleRadius } from '../simulation.js'
-import { Particle } from '../physics.js'
-import { fieldProbeConfig, fieldSetup } from '../field.js'
+import { particleList, setParticleRadius } from '../simulation'
+import { Particle } from '../physics'
+import { fieldProbeConfig, fieldSetup } from '../simulation'
 
 export const fields = [
     nearField,
@@ -31,20 +31,21 @@ function defaultConfig(graphics, physics, distance = 50) {
     physics.nearChargeConstant = -1;
     physics.nearChargeRange = 16;
 
-    setParticleRadius(5, 1);
+    setParticleRadius(1, 0);
     let grid = 50;
-    fieldSetup(graphics, "2d", grid);
+    fieldSetup("2d", grid);
 }
 
 function nearField(graphics, physics) {
     defaultConfig(graphics, physics, 50)
     fieldProbeConfig(0, 0, 1e2);
+    setParticleRadius(1, 0);
 
     let x = new Vector3(physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
     let fixed = true;
     let q = 0;
-    let m = 10;
+    let m = 1;
     let nq = 1;
 
     createParticle2(m, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);

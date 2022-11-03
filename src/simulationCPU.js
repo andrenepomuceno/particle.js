@@ -1,14 +1,11 @@
-import { Physics } from './physics.js';
 import { randomColor, generateParticleColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './field.js';
+import { fieldUpdate, fieldCleanup } from './simulation';
 
 let particlesSetup = undefined;
 const enableMassRadius = true;
 let enableChargeColor = true;
 let cicles = 0;
 let energy = 0.0;
-let particleRadius = 20;
-let particleRadiusRange = particleRadius / 2;
 let totalMass = 0.0;
 let totalTime = 0.0;
 let totalCharge = 0.0;
@@ -27,47 +24,6 @@ function paintParticles(particleList) {
         }
         p.setColor(color);
     });
-}
-
-function addParticles(graphics, particleList) {
-    let minRadius = particleRadius - particleRadiusRange / 2;
-    let maxRadius = particleRadius + particleRadiusRange / 2;
-    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
-    particleList.forEach((p, i) => {
-        let radius = minRadius;
-        if (enableMassRadius && absMass != 0) {
-            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
-        }
-        graphics.addParticle(p, radius);
-        graphics.render(p);
-    });
-}
-
-function drawParticles(graphics, particleList) {
-    mMin = Infinity, mMax = -Infinity;
-    qMin = Infinity, qMax = -Infinity;
-    particleList.forEach((p, idx) => {
-        if (p.mass > mMax) {
-            mMax = p.mass;
-        }
-        if (p.mass < mMin) {
-            mMin = p.mass;
-        }
-
-        if (p.charge > qMax) {
-            qMax = p.charge;
-        }
-        if (p.charge < qMin) {
-            qMin = p.charge;
-        }
-
-        totalMass += p.mass;
-        energy += (p.mass * p.velocity.lengthSq());
-        totalCharge += p.charge;
-    });
-
-    addParticles(graphics, particleList);
-    paintParticles(particleList);
 }
 
 function boundaryCheck(p1) {
@@ -93,6 +49,9 @@ export class SimulationCPU {
 
         this.populateSimulationCallback = undefined;
 
+        this.particleRadius = 20;
+        this.particleRadiusRange = this.particleRadius / 2;
+
         this.cleanup();
     }
 
@@ -109,14 +68,14 @@ export class SimulationCPU {
 
         particlesSetup = populateSimulationCallback;
 
-        this.physics = new Physics();
+        //this.physics = new Physics();
 
         console.log("particleSetup ----------");
         particlesSetup(this.graphics, this.physics);
         console.log("particleSetup done ----------");
 
         this.graphics.cameraSetup();
-        drawParticles(this.graphics, this.particleList);
+        this.#drawParticles();
         fieldUpdate();
 
         console.log("simulationSetup done ----------");
@@ -133,10 +92,10 @@ export class SimulationCPU {
             this.particleList.pop();
         }
     
+        this.particleRadius = 20;
+        this.particleRadiusRange = this.particleRadius / 2;
+
         cicles = 0;
-        particleRadius = 20;
-        particleRadiusRange = particleRadius / 2;
-    
         maxDistance = 1e6;
         totalMass = 0.0;
         energy = 0.0;
@@ -205,5 +164,46 @@ export class SimulationCPU {
         }
 
         paintParticles();
+    }
+
+    #drawParticles() {
+        mMin = Infinity, mMax = -Infinity;
+        qMin = Infinity, qMax = -Infinity;
+        this.particleList.forEach((p, idx) => {
+            if (p.mass > mMax) {
+                mMax = p.mass;
+            }
+            if (p.mass < mMin) {
+                mMin = p.mass;
+            }
+    
+            if (p.charge > qMax) {
+                qMax = p.charge;
+            }
+            if (p.charge < qMin) {
+                qMin = p.charge;
+            }
+    
+            totalMass += p.mass;
+            energy += (p.mass * p.velocity.lengthSq());
+            totalCharge += p.charge;
+        });
+    
+        this.#addParticles();
+        paintParticles(this.particleList);
+    }
+
+    #addParticles() {
+        let minRadius = this.particleRadius - this.particleRadiusRange / 2;
+        let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
+        const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
+        this.particleList.forEach((p, i) => {
+            let radius = minRadius;
+            if (enableMassRadius && absMass != 0) {
+                radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
+            }
+            this.graphics.addParticle(p, radius);
+            this.graphics.render(p);
+        });
     }
 }

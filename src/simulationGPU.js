@@ -1,5 +1,5 @@
-import { randomColor, generateParticleColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './field.js';
+import { randomColor, generateParticleColor } from './helpers';
+import { fieldUpdate, fieldCleanup } from './simulation';
 
 function log(msg) {
     console.log("SimulationGPU: " + msg);

@@ -1,8 +1,217 @@
+import { Particle, Physics } from './physics.js';
+import { scenarios0 } from './scenarios/scenarios0.js';
+import { scenarios1 } from './scenarios/scenarios1.js';
+import { fields } from './scenarios/fieldTest.js';
+import { elements } from './scenarios/elements.js';
+import { nearForce } from './scenarios/nearForce.js';
+import { scenarios2 } from './scenarios/scenarios2.js';
 import { randomColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './field.js';
+import { fieldUpdate, fieldCleanup } from './field.js'
 
-function log(msg) {
-    console.log("SimulationV2: " + msg);
+function initialSimulation(list, name) {
+    return list.find(e => {
+        return e.name == name;
+    });
+}
+let simulationList = [];
+simulationList = simulationList.concat(scenarios2);
+simulationList = simulationList.concat(nearForce);
+simulationList = simulationList.concat(fields);
+simulationList = simulationList.concat(elements);
+simulationList = simulationList.concat(scenarios1);
+simulationList = simulationList.concat(scenarios0);
+let particlesSetup = simulationList[0];
+
+export let particleList = [];
+export let physics;
+
+const enableMassRadius = true;
+let enableChargeColor = true;
+let cicles = 0;
+let energy = 0.0;
+let particleRadius = 20;
+let particleRadiusRange = particleRadius / 2;
+let totalMass = 0.0;
+let totalTime = 0.0;
+let totalCharge = 0.0;
+
+let maxDistance = 1e6;
+
+let mMin = Infinity, mMax = -Infinity;
+let qMin = Infinity, qMax = -Infinity;
+
+export function setParticleRadius(radius, range) {
+    particleRadius = radius;
+    particleRadiusRange = range;
+}
+
+export function setColorMode(mode) {
+    switch (mode) {
+        case "random":
+            enableChargeColor = false;
+            break;
+
+        case "charge":
+        default:
+            enableChargeColor = true
+            break;
+    }
+
+    paintParticles();
+}
+
+export function setBoundaryDistance(d = 1e6) {
+    maxDistance = d;
+}
+
+function paintParticles() {
+    const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
+    particleList.forEach((p, i) => {
+        let color;
+        if (enableChargeColor) {
+            color = generateParticleColor(p, absCharge);
+        } else {
+            color = randomColor();
+        }
+        p.setColor(color);
+    });
+}
+
+function addParticles(graphics) {
+    let minRadius = particleRadius - particleRadiusRange / 2;
+    let maxRadius = particleRadius + particleRadiusRange / 2;
+    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
+    particleList.forEach((p, i) => {
+        let radius = minRadius;
+        if (enableMassRadius && absMass != 0) {
+            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
+        }
+        graphics.addParticle(p, radius);
+        graphics.render(p);
+    });
+}
+
+function drawParticles(graphics) {
+    mMin = Infinity, mMax = -Infinity;
+    qMin = Infinity, qMax = -Infinity;
+    particleList.forEach((p, idx) => {
+        if (p.mass > mMax) {
+            mMax = p.mass;
+        }
+        if (p.mass < mMin) {
+            mMin = p.mass;
+        }
+
+        if (p.charge > qMax) {
+            qMax = p.charge;
+        }
+        if (p.charge < qMin) {
+            qMin = p.charge;
+        }
+
+        totalMass += p.mass;
+        energy += (p.mass * p.velocity.lengthSq());
+        totalCharge += p.charge;
+    });
+
+    addParticles(graphics);
+    paintParticles();
+}
+
+export function simulationSetup(graphics, idx) {
+    console.log("simulationSetup ----------");
+
+    simulationCleanup(graphics);
+    fieldCleanup(graphics);
+    graphics.cameraDefault();
+
+    if (idx >= 0 && idx < simulationList.length) {
+        particlesSetup = simulationList[idx];
+    }
+
+    physics = new Physics();
+
+    console.log("particleSetup ----------");
+    particlesSetup(graphics, physics);
+    console.log("particleSetup done ----------");
+
+    graphics.cameraSetup();
+    drawParticles(graphics);
+    fieldUpdate();
+
+    console.log("simulationSetup done ----------");
+}
+
+function boundaryCheck(p1) {
+    if (p1.position.length() > maxDistance) {
+        let normal = p1.position.clone().multiplyScalar(-1).normalize();
+        p1.velocity.reflect(normal);
+        //p1.velocity.multiplyScalar(0.9);
+        p1.position.add(p1.velocity);
+    }
+}
+
+export function simulationStep(graphics, dt) {
+    energy = 0.0;
+    for (let i = 0; i < particleList.length; ++i) {
+        let p1 = particleList[i];
+        for (let j = i + 1; j < particleList.length; ++j) {
+            let p2 = particleList[j];
+            physics.interact(p1, p2);
+        }
+        physics.update(p1);
+
+        boundaryCheck(p1);
+
+        graphics.render(p1);
+        energy += p1.energy();
+    }
+    ++cicles;
+
+    fieldUpdate();
+
+    if (dt < 1e3) totalTime += dt;
+}
+
+function simulationCleanup(graphics) {
+    particleList.forEach((p, i) => {
+        graphics.scene.remove(p.mesh);
+    });
+    particleList = [];
+    cicles = 0;
+    particleRadius = 20;
+    particleRadiusRange = particleRadius / 2;
+
+    maxDistance = 1e6;
+    totalMass = 0.0;
+    energy = 0.0;
+    totalTime = 0.0;
+}
+
+export function simulationState() {
+    let particles = particleList.length;
+    return [
+        particlesSetup.name,
+        particles,
+        cicles,
+        energy / particles,
+        physics.colisionCounter,
+        totalMass,
+        maxDistance,
+        totalTime,
+        totalCharge,
+    ];
+}
+
+export function simulationCsv() {
+    let output = particleList[0].header() + "\n";
+    particleList.forEach((p, i) => {
+        output += p.csv() + "\n";
+    });
+    output += physics.header() + "\n" + physics.csv() + "\n";
+    output += "cicles\n";
+    output += cicles + "\n";
+    return output;
 }
 
 function generateParticleColor(p, absCharge) {
@@ -21,10 +230,6 @@ function generateParticleColor(p, absCharge) {
         l = 60;
     }
 
-    if (p.mass == 0) {
-        l = 90;
-    }
-
     if (p.nearCharge > 0) {
         //h -= 20;
     } else if (p.nearCharge < 0) {
@@ -35,185 +240,4 @@ function generateParticleColor(p, absCharge) {
     while (h < 0) h += 360;
 
     return "hsl(" + h + "," + s + "%," + l + "%)";
-}
-
-export class Simulation {
-    constructor(graphics, physics, particleList) {
-        log("constructor");
-
-        this.graphics = graphics;
-        this.physics = physics;
-
-        this.enableMassRadius = true;
-        this.enableChargeColor = true;
-        this.populateSimulationCallback = undefined;
-
-        if (particleList) {
-            this.particleList = particleList;
-        } else {
-            this.particleList = [];
-        }
-
-        //this.cleanup();
-    }
-
-    setup(populateSimulationCallback, legacyMode = false) {
-        log("setup");
-        this.cleanup();
-
-        this.populateSimulationCallback = populateSimulationCallback;
-        if (legacyMode) {
-            log("Populating... (legacy)");
-            populateSimulationCallback(this.graphics, this.physics);
-        } else {
-            log("Populating...");
-            populateSimulationCallback(this);
-        }
-        log("Populating done");
-
-        this.graphics.cameraSetup();
-        this.#drawParticles();
-        fieldUpdate();
-    }
-
-    cleanup() {
-        log("cleanup");
-        this.graphics.cleanup();
-
-        while (this.particleList.length > 0) {
-            this.particleList.pop();
-        }
-
-        this.cicles = 0;
-        this.energy = 0.0;
-        this.particleRadius = 20;
-        this.particleRadiusRange = this.particleRadius / 2;
-        this.totalMass = 0.0;
-        this.totalTime = 0.0;
-        this.totalCharge = 0.0;
-
-        this.mMin = Infinity;
-        this.mMax = -Infinity;
-        this.qMin = Infinity;
-        this.qMax = -Infinity;
-
-        fieldCleanup(this.graphics);
-        this.graphics.cameraDefault();
-    }
-
-    step(dt) {
-        // log("step");
-        this.energy = 0.0;
-
-        this.graphics.compute();
-        ++this.cicles;
-
-        fieldUpdate();
-
-        if (dt < 1e3) this.totalTime += dt;
-    }
-
-    state() {
-        // log("state");
-        let particles = this.particleList.length;
-        return [
-            this.populateSimulationCallback.name,
-            particles,
-            this.cicles,
-            this.energy / particles,
-            this.physics.colisionCounter,
-            this.totalMass,
-            this.physics.boundaryDistance,
-            this.totalTime,
-            this.totalCharge,
-        ];
-    }
-
-    exportCsv() {
-        log("exportCsv");
-        let output = this.particleList[0].header() + "\n";
-        this.particleList.forEach((p, i) => {
-            output += p.csv() + "\n";
-        });
-        output += this.physics.header() + "\n" + this.physics.csv() + "\n";
-        output += "cicles\n";
-        output += this.cicles + "\n";
-        return output;
-    }
-
-    setColorMode(mode) {
-        log("setColorMode mode = " + mode);
-
-        switch (mode) {
-            case "random":
-                this.enableChargeColor = false;
-                break;
-
-            case "charge":
-            default:
-                this.enableChargeColor = true;
-                break;
-        }
-        
-        this.#calcParticleColor();
-        this.graphics.refreshPointColors();
-    }
-
-    #drawParticles() {
-        log("#drawParticles")
-        this.mMin = Infinity, this.mMax = -Infinity;
-        this.qMin = Infinity, this.qMax = -Infinity;
-        this.particleList.forEach((p, idx) => {
-            if (p.mass > this.mMax) {
-                this.mMax = p.mass;
-            }
-            if (p.mass < this.mMin) {
-                this.mMin = p.mass;
-            }
-
-            if (p.charge > this.qMax) {
-                this.qMax = p.charge;
-            }
-            if (p.charge < this.qMin) {
-                this.qMin = p.charge;
-            }
-
-            this.totalMass += p.mass;
-            this.energy += (p.mass * p.velocity.lengthSq());
-            this.totalCharge += p.charge;
-        });
-
-        this.#calcParticleRadius();
-        this.#calcParticleColor();
-        this.graphics.drawParticles(this.particleList, this.physics);
-    }
-
-    #calcParticleRadius() {
-        log("#calcParticleRadius")
-        let minRadius = this.particleRadius - this.particleRadiusRange / 2;
-        let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
-        const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
-        this.particleList.forEach((p, i) => {
-            let radius = minRadius;
-            if (this.enableMassRadius && absMass != 0) {
-                radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
-            }
-            p.radius = radius;
-        });
-    }
-
-    #calcParticleColor() {
-        log("#calcParticleColor")
-
-        const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));
-        this.particleList.forEach((p, i) => {
-            let color;
-            if (this.enableChargeColor) {
-                color = generateParticleColor(p, absCharge);
-            } else {
-                color = randomColor();
-            }
-            p.setColor(color);
-        });
-    }
 }

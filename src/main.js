@@ -345,7 +345,7 @@ function animate(time) {
             dt = time - lastTime;
         }
 
-        simulationStep(graphics, dt);
+        simulationStep(dt);
     }
 
     if (time - lastUpdate >= updateDelay) {

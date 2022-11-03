@@ -134,3 +134,35 @@ export function downloadFile(data, filename, type) {
         }, 0);
     }
 }
+
+export function generateParticleColor(p, absCharge) {
+    let h = 0, s = 100, l = 50;
+    let lmin = 15, lmax = 50;
+
+    let charge = p.charge;
+    if (charge > 0) {
+        h = 240;
+        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
+    } else if (charge < 0) {
+        h = 0;
+        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
+    } else {
+        h = 120;
+        l = 60;
+    }
+
+    if (p.mass == 0) {
+        l = 90;
+    }
+
+    if (p.nearCharge > 0) {
+        //h -= 20;
+    } else if (p.nearCharge < 0) {
+        h += 10;
+    }
+
+    while (h > 360) h -= 360;
+    while (h < 0) h += 360;
+
+    return "hsl(" + h + "," + s + "%," + l + "%)";
+}

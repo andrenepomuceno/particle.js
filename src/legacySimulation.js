@@ -1,4 +1,4 @@
-import { Simulation } from './simulation';
+import { SimulationGPU } from './simulationGPU';
 import { Physics } from './physics.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
@@ -50,7 +50,7 @@ export function simulationSetup(graphics, idx) {
 
     physics = new Physics();
     if (!simulation) {
-        simulation = new Simulation(graphics, physics, particleList);
+        simulation = new SimulationGPU(graphics, physics, particleList);
     }
     simulation.setup(particlesSetup, true);
 

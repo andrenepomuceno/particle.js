@@ -1,11 +1,7 @@
 import { Vector3, Color } from 'three';
 
-let particleId = 0;
-
 export class Physics {
     constructor() {
-        particleId = 0;
-
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
         this.boundaryDistance = 1e5;
@@ -17,7 +13,8 @@ export class Physics {
         this.nearChargeRange = 1e3;
 
         this.colisionCounter = 0;
-
+        
+        this.particleId = 0;
         this.particleList = [];
     }
 
@@ -112,7 +109,7 @@ export class Physics {
 
 export class Particle {
     constructor() {
-        this.id = ++particleId;
+        this.id = ++this.particleId;
 
         this.mass = 0.0;
         this.charge = 0.0;

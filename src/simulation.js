@@ -13,9 +13,8 @@ import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpu';
-import { WebGLMultipleRenderTargets } from 'three';
 
-export const useGPU = false;
+const useGPU = true;
 
 let simulationList = [];
 if (useGPU) {
@@ -69,8 +68,8 @@ export function simulationSetup(graphics, idx) {
         if (useGPU) {
             simulation = new SimulationGPU(graphics, physics);
         } else {
-            field = new FieldCPU(graphics, physics);
             simulation = new SimulationCPU(graphics, physics);
+            field = new FieldCPU(graphics, physics);
         }
 
     }
@@ -109,7 +108,10 @@ export function simulationFieldProbe(probe) {
 
 export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
     log("fieldProbeConfig");
-    field.probeConfig(m, q, nq);
+
+    if (field) {
+        field.probeConfig(m, q, nq);
+    }
 }
 
 export function fieldSetup(mode = "update", grid = [10, 10, 10], size = 1e3) {

@@ -1,7 +1,7 @@
 
 import { Vector3 } from 'three';
 import { fieldProbeConfig, fieldSetup } from '../field.js';
-import { setParticleRadius, setBoundaryDistance } from '../legacySimulation.js'
+import { setParticleRadius, setBoundaryDistance } from '../simulationAPI.js'
 import { createCloud0, createNuclei0, atom0, bidimensionalMode, createCloud3 } from './helpers.js';
 
 export const elements = [

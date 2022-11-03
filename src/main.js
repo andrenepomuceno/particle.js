@@ -10,9 +10,9 @@ import {
     simulationState,
     simulationCsv,
     simulationFieldSetup,
+    simulationFieldProbe,
     setColorMode,
-    particleList,
-    graphics,
+    graphics
 } from './simulation.js';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString } from './helpers.js';
@@ -194,9 +194,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'P':
-            particleList.forEach(v => {
-                console.log(v.csv());
-            });
+            console.log(simulationCsv());
             break;
 
         case 'a':
@@ -299,7 +297,7 @@ function updateParticle() {
         probe.mass = 1;
         probe.nearCharge = 1;
         probe.position = particle.position;
-        let field = fieldProbe(probe);
+        let field = simulationFieldProbe(probe);
         let fieldAmp = field.length();
         particleView.field.amplitude = fieldAmp.toExponential(3);
         particleView.field.direction = arrayToString(field.normalize().toArray(), 2);

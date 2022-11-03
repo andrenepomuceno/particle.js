@@ -6,21 +6,16 @@ function log(msg) {
 }
 
 export class SimulationGPU {
-    constructor(graphics, physics, particleList) {
+    constructor(graphics, physics) {
         log("constructor");
 
         this.graphics = graphics;
         this.physics = physics;
+        this.particleList = physics.particleList;
 
         this.enableMassRadius = true;
         this.enableChargeColor = true;
         this.populateSimulationCallback = undefined;
-
-        if (particleList) {
-            this.particleList = particleList;
-        } else {
-            this.particleList = [];
-        }
 
         //this.cleanup();
     }

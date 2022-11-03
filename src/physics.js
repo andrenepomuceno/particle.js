@@ -17,6 +17,8 @@ export class Physics {
         this.nearChargeRange = 1e3;
 
         this.colisionCounter = 0;
+
+        this.particleList = [];
     }
 
     interact(p1, p2, probe = false) {

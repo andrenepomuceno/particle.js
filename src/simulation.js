@@ -13,6 +13,7 @@ import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpu';
+import { WebGLMultipleRenderTargets } from 'three';
 
 export const useGPU = false;
 
@@ -29,12 +30,10 @@ simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
 
 let simulation = undefined;
+let field = undefined;
 let physics = undefined;
 
-export let particleList = [];
 export let graphics = undefined;
-export let field = undefined;
-
 if (useGPU) {
     graphics = new GraphicsGPU();
 } else {
@@ -68,10 +67,10 @@ export function simulationSetup(graphics, idx) {
     physics = new Physics();
     if (!simulation) {
         if (useGPU) {
-            simulation = new SimulationGPU(graphics, physics, particleList);
+            simulation = new SimulationGPU(graphics, physics);
         } else {
-            field = new FieldCPU(graphics, physics, particleList);
-            simulation = new SimulationCPU(graphics, physics, particleList);
+            field = new FieldCPU(graphics, physics);
+            simulation = new SimulationCPU(graphics, physics);
         }
 
     }
@@ -94,10 +93,17 @@ export function simulationCsv() {
 }
 
 export function simulationFieldSetup(mode) {
+    log("simulationFieldSetup");
+    log("mode = " + mode);
+
     if (field) {
-        log("simulationFieldSetup");
-        log("mode = " + mode);
         field.setup(mode);
+    }
+}
+
+export function simulationFieldProbe(probe) {
+    if (field) {
+        return field.probe(probe);
     }
 }
 

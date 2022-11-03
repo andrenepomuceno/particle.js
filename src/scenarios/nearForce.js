@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
+import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
@@ -16,6 +16,7 @@ export const nearForce = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
+    setParticleList(physics.particleList);
     let mode2d = true;
     bidimensionalMode(mode2d);
 

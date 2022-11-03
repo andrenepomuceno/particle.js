@@ -66,10 +66,10 @@ function log(msg) {
 }
 
 export class FieldCPU {
-    constructor(graphics, physics, particleList) {
+    constructor(graphics, physics) {
         this.graphics = graphics;
         this.physics = physics;
-        this.particleList = particleList;
+        this.particleList = physics.particleList;
     }
 
     setup(mode, grid, size) {

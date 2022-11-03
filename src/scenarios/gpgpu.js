@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
-import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../field';
+import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random, sphereGenerator } from '../helpers';
 
 export const gpgpu = [
@@ -15,6 +15,7 @@ export const gpgpu = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
+    setParticleList(physics.particleList);
     bidimensionalMode(true);
 
     graphics.cameraDistance = cameraDistance;

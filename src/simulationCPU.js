@@ -40,12 +40,12 @@ function log(msg) {
 }
 
 export class SimulationCPU {
-    constructor(graphics, physics, particleList) {
+    constructor(graphics, physics) {
         log("constructor");
 
         this.graphics = graphics;
         this.physics = physics;
-        this.particleList = particleList
+        this.particleList = physics.particleList;
 
         this.populateSimulationCallback = undefined;
 

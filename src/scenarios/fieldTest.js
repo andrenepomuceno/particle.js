@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { particleList, setParticleRadius } from '../simulation'
+import { setParticleRadius } from '../simulation'
 import { Particle } from '../physics'
 import { fieldProbeConfig, fieldSetup } from '../simulation'
 
@@ -8,6 +8,8 @@ export const fields = [
     chargeField,
     massField,
 ];
+
+let particleList = undefined;
 
 function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
@@ -21,6 +23,8 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
 }
 
 function defaultConfig(graphics, physics, distance = 50) {
+    particleList = physics.particleList;
+
     graphics.cameraDistance = distance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();

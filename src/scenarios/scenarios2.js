@@ -1,8 +1,8 @@
 import { Vector3 } from 'three';
-import { createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
+import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
-import { cubeGenerator, random, sphereGenerator } from '../helpers';
+import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
     nucleiGrid,
@@ -13,6 +13,7 @@ export const scenarios2 = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
+    setParticleList(physics.particleList);
     let mode2d = true;
     bidimensionalMode(mode2d);
 

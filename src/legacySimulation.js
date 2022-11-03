@@ -1,3 +1,4 @@
+import { SimulationV2 } from './simulationV2';
 import { Physics } from './physics.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
@@ -7,7 +8,6 @@ import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpu';
-import { SimulationV2 } from './simulationV2';
 
 function initialSimulation(list, name) {
     return list.find(e => {
@@ -29,13 +29,17 @@ let simulationV2 = undefined;
 export let particleList = [];
 export let physics = undefined;
 
+function log(msg) {
+    console.log("SimulationLegacy: " + msg)
+}
+
 export function setParticleRadius(radius, range) {
     simulationV2.particleRadius = radius;
     simulationV2.particleRadiusRange = range;
 }
 
 export function setColorMode(mode) {
-    console.log("setColorMode");
+    log("setColorMode");
 
     switch (mode) {
         case "random":
@@ -48,7 +52,7 @@ export function setColorMode(mode) {
             break;
     }
 
-    simulationV2.paintParticles();
+    simulationV2.paintParticleList();
 }
 
 export function setBoundaryDistance(d = 1e6) {
@@ -56,17 +60,19 @@ export function setBoundaryDistance(d = 1e6) {
 }
 
 export function simulationSetup(graphics, idx) {
-    console.log("simulationSetup ----------");
+    log("simulationSetup");
 
     if (idx >= 0 && idx < simulationList.length) {
         particlesSetup = simulationList[idx];
     }
 
     physics = new Physics();
-    simulationV2 = new SimulationV2(graphics, physics, particleList);
+    if (!simulationV2) {
+        simulationV2 = new SimulationV2(graphics, physics, particleList);
+    }
     simulationV2.setup(particlesSetup, true);
 
-    console.log("simulationSetup done ----------");
+    log("simulationSetup done");
 }
 
 export function simulationStep(graphics, dt) {

@@ -273,12 +273,54 @@ export class GraphicsGPU {
         }
     }
 
+    refreshPointColors() {
+        log("refreshPointColors");
+
+        if (!this.particleList)
+            return;
+
+        let colors = [];
+        this.particleList.forEach((p, i) => {
+            colors.push(p.color.r, p.color.g, p.color.b);
+        });
+
+        this.pointsGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    }
+
+    refreshPointPositions() {
+        log("refreshPointPositions");
+
+        if (!this.particleList)
+            return;
+
+        let positions = [];
+        this.particleList.forEach((p, i) => {
+            positions.push(p.position.x, p.position.y, p.position.z);
+        });
+        
+        this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    }
+
+    refreshPointRadius() {
+        log("refreshPointRadius");
+
+        if (!this.particleList)
+            return;
+
+        let radius = [];
+        this.particleList.forEach((p, i) => {
+            radius.push(p.radius);
+        });
+
+        this.pointsGeometry.setAttribute('radius', new Float32BufferAttribute(radius, 1));
+    }
+
     #initPointObjects() {
         let gpuCompute = this.gpuCompute;
 
         this.pointsUniforms = {
             'texturePosition': { value: gpuCompute.getCurrentRenderTarget(this.positionVariable).texture },
-            //'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(velocityVariable).texture },
+            'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
@@ -294,6 +336,11 @@ export class GraphicsGPU {
         });
         pointsMaterial.extensions.drawBuffers = true;
 
+        this.pointsGeometry = new BufferGeometry();
+        this.refreshPointColors();
+        this.refreshPointPositions();
+        this.refreshPointRadius();
+        
         const particles = this.particleList.length;
         const uvs = new Float32Array(particles * 2);
         let p = 0;
@@ -303,19 +350,6 @@ export class GraphicsGPU {
                 uvs[p++] = j / (TEXTURE_WIDTH - 1);
             }
         }
-        let positions = [];
-        let colors = [];
-        let radius = [];
-        this.particleList.forEach((p, i) => {
-            positions.push(p.position.x, p.position.y, p.position.z);
-            colors.push(p.color.r, p.color.g, p.color.b);
-            radius.push(p.radius);
-        });
-
-        this.pointsGeometry = new BufferGeometry();
-        this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-        this.pointsGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
-        this.pointsGeometry.setAttribute('radius', new Float32BufferAttribute(radius, 1));
         this.pointsGeometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 
         this.pointsObject = new Points(this.pointsGeometry, pointsMaterial);

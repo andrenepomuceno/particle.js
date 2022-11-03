@@ -141,7 +141,9 @@ export class SimulationV2 {
         return output;
     }
 
-    paintParticles() {
+    paintParticleList() {
+        log("paintParticleList")
+
         const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));
         this.particleList.forEach((p, i) => {
             let color;
@@ -152,6 +154,8 @@ export class SimulationV2 {
             }
             p.setColor(color);
         });
+
+        this.graphics.refreshPointColors();
     }
 
     #drawParticles() {
@@ -177,7 +181,7 @@ export class SimulationV2 {
             this.totalCharge += p.charge;
         });
 
-        this.paintParticles();
+        this.paintParticleList();
         this.#addParticles();
     }
 

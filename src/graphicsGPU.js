@@ -39,7 +39,7 @@ export class GraphicsGPU {
     constructor() {
         log("constructor");
 
-        this.cleanup();
+        //this.cleanup();
 
         this.renderer = new WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -58,9 +58,9 @@ export class GraphicsGPU {
 
         this.raycaster = new Raycaster();
 
-        this.cameraDefault();
+        // this.cameraDefault();
 
-        this.drawAxis();
+        this.#drawAxis();
 
         log("constructor done");
     }
@@ -87,7 +87,7 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    drawAxis(show = true) {
+    #drawAxis(show = true) {
         axisObject.forEach(key => {
             show ? this.scene.add(key) : this.scene.remove(key);
         });
@@ -169,8 +169,8 @@ export class GraphicsGPU {
         positionVariable.material.uniforms['texturePosition'].value = positionVariable.renderTargets[current].texture;
         gpuCompute.doRenderTarget(positionVariable.material, positionVariable.renderTargets[target]);
 
-        //this.uniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
-        this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
+        //this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+        //this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
 
         /*gpuCompute.compute();
         this.uniforms['textureVelocity'].value = gpuCompute.getCurrentRenderTarget(velocityVariable).texture;
@@ -178,7 +178,7 @@ export class GraphicsGPU {
     }
 
     #initComputeRenderer() {
-        log("initComputeRenderer");
+        log("#initComputeRenderer");
 
         this.gpuCompute = new GPUComputationRenderer(TEXTURE_WIDTH, TEXTURE_WIDTH, this.renderer);
         let gpuCompute = this.gpuCompute;
@@ -218,7 +218,7 @@ export class GraphicsGPU {
     }
 
     #fillTextures(textureProperties, texturePosition, textureVelocity) {
-        log("fillTextures");
+        log("#fillTextures");
 
         const propsArray = textureProperties.image.data;
         const posArray = texturePosition.image.data;
@@ -276,8 +276,10 @@ export class GraphicsGPU {
     refreshPointColors() {
         log("refreshPointColors");
 
-        if (!this.particleList)
+        if (!this.particleList) {
+            log("particle list not loaded!");  
             return;
+        }
 
         let colors = [];
         this.particleList.forEach((p, i) => {
@@ -287,8 +289,8 @@ export class GraphicsGPU {
         this.pointsGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
     }
 
-    refreshPointPositions() {
-        log("refreshPointPositions");
+    #refreshPointPositions() {
+        log("#refreshPointPositions");
 
         if (!this.particleList)
             return;
@@ -301,11 +303,13 @@ export class GraphicsGPU {
         this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
     }
 
-    refreshPointRadius() {
-        log("refreshPointRadius");
+    #refreshPointRadius() {
+        log("#refreshPointRadius");
 
-        if (!this.particleList)
+        if (!this.particleList) {
+            log("particle list not loaded!");  
             return;
+        }
 
         let radius = [];
         this.particleList.forEach((p, i) => {
@@ -316,11 +320,13 @@ export class GraphicsGPU {
     }
 
     #initPointObjects() {
+        log("#initPointObjects");
+
         let gpuCompute = this.gpuCompute;
 
         this.pointsUniforms = {
             'texturePosition': { value: gpuCompute.getCurrentRenderTarget(this.positionVariable).texture },
-            'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture },
+            //'textureVelocity': { value: gpuCompute.getCurrentRenderTarget(this.velocityVariable).texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
         };
 
@@ -338,8 +344,8 @@ export class GraphicsGPU {
 
         this.pointsGeometry = new BufferGeometry();
         this.refreshPointColors();
-        this.refreshPointPositions();
-        this.refreshPointRadius();
+        this.#refreshPointPositions();
+        this.#refreshPointRadius();
         
         const particles = this.particleList.length;
         const uvs = new Float32Array(particles * 2);

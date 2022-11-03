@@ -37,7 +37,7 @@ function generateParticleColor(p, absCharge) {
     return "hsl(" + h + "," + s + "%," + l + "%)";
 }
 
-export class SimulationV2 {
+export class Simulation {
     constructor(graphics, physics, particleList) {
         log("constructor");
 
@@ -54,10 +54,10 @@ export class SimulationV2 {
             this.particleList = [];
         }
 
-        this.cleanup();
+        //this.cleanup();
     }
 
-    setup(populateSimulationCallback, legacyMode=false) {
+    setup(populateSimulationCallback, legacyMode = false) {
         log("setup");
         this.cleanup();
 
@@ -141,24 +141,26 @@ export class SimulationV2 {
         return output;
     }
 
-    paintParticleList() {
-        log("paintParticleList")
+    setColorMode(mode) {
+        log("setColorMode mode = " + mode);
 
-        const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));
-        this.particleList.forEach((p, i) => {
-            let color;
-            if (this.enableChargeColor) {
-                color = generateParticleColor(p, absCharge);
-            } else {
-                color = randomColor();
-            }
-            p.setColor(color);
-        });
+        switch (mode) {
+            case "random":
+                this.enableChargeColor = false;
+                break;
 
+            case "charge":
+            default:
+                this.enableChargeColor = true;
+                break;
+        }
+        
+        this.#calcParticleColor();
         this.graphics.refreshPointColors();
     }
 
     #drawParticles() {
+        log("#drawParticles")
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;
         this.particleList.forEach((p, idx) => {
@@ -181,11 +183,13 @@ export class SimulationV2 {
             this.totalCharge += p.charge;
         });
 
-        this.paintParticleList();
-        this.#addParticles();
+        this.#calcParticleRadius();
+        this.#calcParticleColor();
+        this.graphics.drawParticles(this.particleList, this.physics);
     }
 
-    #addParticles() {
+    #calcParticleRadius() {
+        log("#calcParticleRadius")
         let minRadius = this.particleRadius - this.particleRadiusRange / 2;
         let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
         const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
@@ -196,6 +200,20 @@ export class SimulationV2 {
             }
             p.radius = radius;
         });
-        this.graphics.drawParticles(this.particleList, this.physics);
+    }
+
+    #calcParticleColor() {
+        log("#calcParticleColor")
+
+        const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));
+        this.particleList.forEach((p, i) => {
+            let color;
+            if (this.enableChargeColor) {
+                color = generateParticleColor(p, absCharge);
+            } else {
+                color = randomColor();
+            }
+            p.setColor(color);
+        });
     }
 }

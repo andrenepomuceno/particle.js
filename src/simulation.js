@@ -14,11 +14,11 @@ import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpu';
 
-const useGPU = false;
+const useGPU = true;
 
 let simulationList = [];
 if (useGPU) {
-    simulationList = simulationList.concat(gpgpu);
+    simulationList = simulationList.concat(gpgpu);   
 }
 simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);
@@ -67,6 +67,7 @@ export function simulationSetup(graphics, idx) {
     if (!simulation) {
         if (useGPU) {
             simulation = new SimulationGPU(graphics, physics);
+            field = new FieldCPU(graphics, physics);
         } else {
             simulation = new SimulationCPU(graphics, physics);
             field = new FieldCPU(graphics, physics);

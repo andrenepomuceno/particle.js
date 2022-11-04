@@ -83,6 +83,7 @@ let guiOptions = {
         mass: "",
         radius: "",
         charge: "",
+        cameraDistance: "",
     },
     particle: {
         obj: undefined,
@@ -104,7 +105,16 @@ let guiOptions = {
         },
         lookAt: function () {
             let x = guiOptions.particle.obj.position;
+
+            graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
             graphics.controls.target.set(x.x, x.y, x.z);
+            graphics.controls.update();
+
+            //graphics.controls.target.set(x.x, x.y, x.z);
+        },
+        clear: function() {
+            guiOptions.particle.obj = undefined;
+            guiParticle.close();
         }
     }
 }
@@ -141,6 +151,7 @@ function guiSetup() {
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
     guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
+    guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
     guiInfo.open();
 
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
@@ -156,6 +167,7 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
+    guiParticle.add(guiOptions.particle, 'clear').name('Clear');
     //guiParticle.open();
 
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -270,18 +282,25 @@ function updateInfo(now) {
     guiOptions.info.mass = m.toExponential(3);
     guiOptions.info.radius = r.toExponential(3);
     guiOptions.info.charge = totalCharge.toExponential(3);
+    guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(3);
 }
 
 function updateParticle() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
     if (particle) {
+        graphics.readbackParticleData();
+
         //static info
         particleView.id = particle.id;
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
         particleView.nearCharge = particle.nearCharge;
-        let color = particle.mesh.material.color;
+
+        let color = particle.color;
+        if (particle.mesh) {
+            color = particle.mesh.material.color;
+        }
         particleView.color = arrayToString(color.toArray(), 2);
 
         //dynamic info
@@ -330,7 +349,10 @@ function animate(time) {
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;
+
+        graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
         graphics.controls.target.set(x.x, x.y, x.z);
+        graphics.controls.update();
     }
 
     if (!pause || nextFrame) {

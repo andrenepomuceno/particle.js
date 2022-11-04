@@ -1,5 +1,7 @@
 import { Vector3, Color } from 'three';
 
+let particleId = 0;
+
 export class Physics {
     constructor() {
         this.enableColision = true;
@@ -14,7 +16,7 @@ export class Physics {
 
         this.colisionCounter = 0;
         
-        this.particleId = 0;
+        particleId = 0;
         this.particleList = [];
     }
 
@@ -109,7 +111,7 @@ export class Physics {
 
 export class Particle {
     constructor() {
-        this.id = ++this.particleId;
+        this.id = ++particleId;
 
         this.mass = 0.0;
         this.charge = 0.0;
@@ -124,6 +126,8 @@ export class Particle {
         this.mesh = undefined;
         this.color = undefined;
         this.radius = undefined;
+
+        this.isProbe = 0.0;
     }
 
     energy() {

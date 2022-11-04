@@ -24,8 +24,15 @@ void main() {
         return;
     }
     float m1 = props1.y;
-    vec3 pos1 = texture2D(texturePosition, uv1).xyz;
-    vec3 vel1 = texture2D(textureVelocity, uv1).xyz;
+    vec4 tPos1 = texture2D(texturePosition, uv1);
+    vec3 pos1 = tPos1.xyz;
+    float type1 = tPos1.w;
+    vec3 vel1;
+    if (type1 == 0.0) {
+        vel1 = texture2D(textureVelocity, uv1).xyz;
+    } else {
+        vel1 = vec3(0.0);
+    }
 
     vec3 rForce = vec3(0.0);
     for (float y = 0.0; y < height; y++) {
@@ -41,13 +48,18 @@ void main() {
                 continue;
             }
             float m2 = props2.y;
-            vec3 pos2 = texture2D(texturePosition, uv2).xyz;
+            vec4 tPos2 = texture2D(texturePosition, uv2);
+            vec3 pos2 = tPos2.xyz;
+            float type2 = tPos2.w;
+            if (type2 != 0.0)
+                continue;
             vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
-
-            if (distance2 <= minDistance) {
+            
+            // check collision
+            if ((distance2 <= minDistance) && (type1 != 1.0)) {
                 float m = m1 + m2;
                 if (m == 0.0) {
                     continue;
@@ -91,11 +103,13 @@ void main() {
     }
 
     // check boundary colision
-    vec3 nextPos = pos1 + vel1;
-    if (length(nextPos) >= boundaryDistance) {
-        vel1 = reflect(vel1, normalize(-nextPos));
-        //vel1 *= 0.9;
-        //vel1 = -vel1;
+    if (type1 == 0.0) {
+        vec3 nextPos = pos1 + vel1;
+        if (length(nextPos) >= boundaryDistance) {
+            vel1 = reflect(vel1, normalize(-nextPos));
+            //vel1 *= 0.9;
+            //vel1 = -vel1;
+        }
     }
 
     gl_FragColor = vec4(vel1, 0.0);
@@ -109,12 +123,16 @@ precision highp float;
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-    vec3 pos = texture2D( texturePosition, uv ).xyz;
+    vec4 tPos = texture2D( texturePosition, uv );
+    vec3 pos = tPos.xyz;
+    float type = tPos.w;
     vec3 vel = texture2D( textureVelocity, uv ).xyz;
 
-    pos += vel;
+    if (type == 0.0) {
+        pos += vel;
+    }
 
-    gl_FragColor = vec4(pos, 0.0);
+    gl_FragColor = vec4(pos, type);
 }
 `;
 

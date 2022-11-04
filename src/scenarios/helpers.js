@@ -1,12 +1,19 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle } from "../physics"
 import { Vector3 } from 'three';
+import { graphics } from '../simulation'
 
 let bidimensionalModeEnable = false;
 let particleList = undefined;
 
+
 export function bidimensionalMode(enable = true) {
     bidimensionalModeEnable = enable;
+    if (enable) {
+        graphics.controls.enableRotate = false;
+    } else {
+        graphics.controls.enableRotate = true;
+    }
 }
 
 export function setParticleList(list) {

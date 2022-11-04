@@ -5,6 +5,7 @@ import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
+    string,
     nucleiGrid,
     shootedBarrier,
     standardModelBlob2,
@@ -37,6 +38,78 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     //fieldProbeConfig(1e3, 0, 0);
     //fieldProbeConfig(0, 1e6, 0);
     fieldProbeConfig(0, 0, 100);
+}
+
+function string(graphics, physics) {
+    defaultParameters(graphics, physics, 1e5);
+    setBoundaryDistance(1e9);
+    setParticleRadius(50, 40);
+    bidimensionalMode(true);
+    fieldCleanup();
+
+    physics.nearChargeRange = 1e5;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = Math.round(1024 / 3);
+
+    createParticles(n,
+        (i) => {
+            return 0.5 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q) : (q);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-nq) : (nq);
+            //return 0;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 3 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-2 * q / 3) : (2 * q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return 6 * m;
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-q / 3) : (q / 3);
+        },
+        (i) => {
+            return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
 }
 
 function nucleiGrid(graphics, physics) {

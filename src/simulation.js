@@ -46,6 +46,7 @@ function log(msg) {
 export function setParticleRadius(radius, range) {
     simulation.particleRadius = radius;
     simulation.particleRadiusRange = range;
+    //simulation.setParticleRadius(radius, range);
 }
 
 export function setColorMode(mode) {

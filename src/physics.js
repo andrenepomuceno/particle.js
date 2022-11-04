@@ -111,7 +111,8 @@ export class Physics {
 
 export class Particle {
     constructor() {
-        this.id = ++particleId;
+        //this.id = ++particleId;
+        this.id = particleId++;
 
         this.mass = 0.0;
         this.charge = 0.0;
@@ -127,7 +128,7 @@ export class Particle {
         this.color = undefined;
         this.radius = undefined;
 
-        this.isProbe = 0.0;
+        this.type = 0.0;
     }
 
     energy() {

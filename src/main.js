@@ -113,6 +113,7 @@ let guiOptions = {
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
         clear: function() {
+            followParticle = false;
             guiOptions.particle.obj = undefined;
             guiParticle.close();
         }
@@ -123,7 +124,7 @@ function resetParticleView(clear = true) {
     followParticle = false;
     if (clear) {
         let particleView = guiOptions.particle;
-        particleView.obj = "";
+        particleView.obj = undefined;
         particleView.id = "";
         particleView.mass = "";
         particleView.charge = "";
@@ -304,7 +305,11 @@ function updateParticle() {
         particleView.color = arrayToString(color.toArray(), 2);
 
         //dynamic info
-        particleView.position = arrayToString(particle.position.toArray(), 2);
+        let position = [];
+        particle.position.toArray().forEach(element => {
+            position.push(element.toExponential(3));
+        });
+        particleView.position = position;
         particleView.velocityDir = arrayToString(
             particle.velocity.clone().normalize().toArray(), 2);
         particleView.velocityAbs = particle.velocity.length().toExponential(3);

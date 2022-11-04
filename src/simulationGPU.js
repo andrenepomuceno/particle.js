@@ -1,5 +1,5 @@
 import { randomColor, generateParticleColor } from './helpers';
-import { fieldUpdate, fieldCleanup } from './simulation';
+import { fieldUpdate, fieldCleanup, setParticleRadius } from './simulation';
 
 function log(msg) {
     console.log("SimulationGPU: " + msg);
@@ -119,7 +119,15 @@ export class SimulationGPU {
         }
         
         this.#calcParticleColor();
-        this.graphics.refreshPointColors();
+        this.graphics.fillPointColors();
+    }
+
+    setParticleRadius(radius, range) {
+        this.particleRadius = radius;
+        this.particleRadiusRange = range;
+
+        this.#calcParticleRadius();
+        this.graphics.fillPointRadius();
     }
 
     #drawParticles() {

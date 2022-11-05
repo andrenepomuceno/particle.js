@@ -82,6 +82,7 @@ void main() {
 
                 float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                 x = sin(PI * x);
+                //x = cos(PI * x);
                 force += -nearChargeConstant * nq1 * nq2 * x;
             }
 

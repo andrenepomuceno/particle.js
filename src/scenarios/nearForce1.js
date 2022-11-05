@@ -29,8 +29,7 @@ export const nearForce1 = [
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleList(physics.particleList);
-    bidimensionalMode(true);
-
+    
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
@@ -43,15 +42,15 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
+    bidimensionalMode(true);
 }
 
 function cloud2(graphics, physics) {
     defaultParameters(graphics, physics, 2e6);
     fieldCleanup(graphics);
-    setParticleRadius(1e3, 1e2);
+    setParticleRadius(5e3, 1e3);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -102,8 +101,7 @@ function cloud1(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(50, 25);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e3;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -154,8 +152,7 @@ function cloud0(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e5;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -206,8 +203,7 @@ function triforce2(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -259,8 +255,7 @@ function triforce1(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -311,8 +306,7 @@ function triforce0(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
@@ -363,8 +357,7 @@ function charge_nearCharge_point0(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 1e-6;
@@ -415,8 +408,7 @@ function GPU_point14(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -456,8 +448,7 @@ function GPU_point13(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -497,8 +488,7 @@ function GPU_point12(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -538,8 +528,7 @@ function GPU_point11(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -579,8 +568,7 @@ function GPU_point10(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -620,8 +608,7 @@ function GPU_blob9(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -661,8 +648,7 @@ function GPU_blob8(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -702,8 +688,7 @@ function GPU_point7(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -743,8 +728,7 @@ function GPU_point6(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -784,8 +768,7 @@ function GPU_point5(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -825,8 +808,7 @@ function GPU_point4(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -866,8 +848,7 @@ function GPU_point3(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
@@ -907,8 +888,7 @@ function GPU_point2(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
     setBoundaryDistance(1e9);
-    bidimensionalMode(true);
-
+    
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;

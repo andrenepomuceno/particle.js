@@ -16,6 +16,12 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 
 const useGPU = true;
+export let graphics = undefined;
+if (useGPU) {
+    graphics = new GraphicsGPU();
+} else {
+    graphics = new GraphicsCPU();
+}
 
 let simulationList = [];
 if (useGPU) {
@@ -34,12 +40,6 @@ let simulation = undefined;
 let field = undefined;
 let physics = undefined;
 
-export let graphics = undefined;
-if (useGPU) {
-    graphics = new GraphicsGPU();
-} else {
-    graphics = new GraphicsCPU();
-}
 
 function log(msg) {
     console.log("Simulation: " + msg)
@@ -93,6 +93,11 @@ export function simulationState() {
 export function simulationCsv() {
     log("simulationCsv");
     return simulation.exportCsv();
+}
+
+export function simulationParametersCsv() {
+    log("simulationParametersCsv");
+    return simulation.exportParametersCsv();
 }
 
 export function simulationFieldSetup(mode) {

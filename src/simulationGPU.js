@@ -66,7 +66,6 @@ export class SimulationGPU {
 
     step(dt) {
         // log("step");
-        this.energy = 0.0;
 
         this.graphics.compute();
         ++this.cicles;
@@ -79,6 +78,13 @@ export class SimulationGPU {
     state() {
         // log("state");
         let particles = this.particleList.length;
+
+        let energy = 0.0;
+        this.particleList.forEach(p => {
+            energy += p.energy();
+        })
+        this.energy = energy;
+
         return [
             this.populateSimulationCallback.name,
             particles,
@@ -94,13 +100,21 @@ export class SimulationGPU {
 
     exportCsv() {
         log("exportCsv");
+
+        this.graphics.readbackParticleData();
+
         let output = this.particleList[0].header() + "\n";
         this.particleList.forEach((p, i) => {
             output += p.csv() + "\n";
         });
-        output += this.physics.header() + "\n" + this.physics.csv() + "\n";
-        output += "cicles\n";
-        output += this.cicles + "\n";
+        return output;
+    }
+
+    exportParametersCsv() {
+        log("exportCsv");
+
+        let output = "";
+        output += this.physics.header() + ",cicles\n" + this.physics.csv() + "," + this.cicles + "\n";;
         return output;
     }
 

@@ -10,6 +10,7 @@ import {
     simulationStep,
     simulationState,
     simulationCsv,
+    simulationParametersCsv,
     simulationFieldSetup,
     simulationFieldProbe,
     setColorMode,
@@ -332,6 +333,7 @@ function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulationState()[0];
     downloadFile(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+    downloadFile(simulationParametersCsv(), name + "-" + timestamp + "_parameters.csv", "text/plain;charset=utf-8");
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
     });

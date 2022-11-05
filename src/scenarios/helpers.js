@@ -6,7 +6,6 @@ import { graphics } from '../simulation'
 let bidimensionalModeEnable = false;
 let particleList = undefined;
 
-
 export function bidimensionalMode(enable = true) {
     bidimensionalModeEnable = enable;
     if (enable) {

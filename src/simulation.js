@@ -12,13 +12,15 @@ import { fields } from './scenarios/fieldTest.js';
 import { elements } from './scenarios/elements.js';
 import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
-import { gpgpu } from './scenarios/gpgpu';
+import { gpgpu } from './scenarios/gpgpuTest';
+import { nearForce1 } from './scenarios/nearForce1.js';
 
 const useGPU = true;
 
 let simulationList = [];
 if (useGPU) {
-    simulationList = simulationList.concat(gpgpu);   
+    simulationList = simulationList.concat(nearForce1);
+    simulationList = simulationList.concat(gpgpu);
 }
 simulationList = simulationList.concat(scenarios2);
 simulationList = simulationList.concat(nearForce);

@@ -79,7 +79,7 @@ export class GraphicsGPU {
             if (object.object.type != "Points") continue;
             for (let j = 0; j < this.particleList.length; ++j) {
                 let p = this.particleList[j];
-                if (p.id == object.index + 1) {
+                if (p.id == object.index) {
                 //if (p.id == object.index) {
                     return p;
                 }
@@ -367,7 +367,7 @@ export class GraphicsGPU {
     readbackParticleData() {
         //log("readbackParticleData");
 
-        let current = (this.renderTarget) % 2;
+        let current = (this.renderTarget + 0) % 2;
 
         let particlePosition = new Float32Array(4 * textureWidth * textureWidth);
         let texture = this.positionVariable.renderTargets[current];

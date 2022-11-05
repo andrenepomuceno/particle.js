@@ -121,9 +121,9 @@ void main() {
     vec4 tPos = texture2D( texturePosition, uv );
     vec3 pos = tPos.xyz;
     float type = tPos.w;
-    vec3 vel = texture2D( textureVelocity, uv ).xyz;
 
     if (type == 0.0) {
+        vec3 vel = texture2D( textureVelocity, uv ).xyz;
         pos += vel;
     }
 

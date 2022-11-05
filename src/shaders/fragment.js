@@ -18,48 +18,41 @@ const float height = resolution.y;
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
-    vec4 props1 = texture2D(textureProperties, uv1);
-    float id1 = props1.x;
-    if (id1 == 0.0) {
-        return;
-    }
-    float m1 = props1.y;
+
     vec4 tPos1 = texture2D(texturePosition, uv1);
     vec3 pos1 = tPos1.xyz;
     float type1 = tPos1.w;
-    vec3 vel1;
-    if (type1 == 0.0) {
-        vel1 = texture2D(textureVelocity, uv1).xyz;
-    } else {
-        vel1 = vec3(0.0);
-    }
+    if (type1 == -1.0) return;
+
+    vec4 props1 = texture2D(textureProperties, uv1);
+    float id1 = props1.x;
+    float m1 = props1.y;
+    vec3 vel1 = texture2D(textureVelocity, uv1).xyz;
 
     vec3 rForce = vec3(0.0);
     for (float y = 0.0; y < height; y++) {
         for (float x = 0.0; x < width; x++) {
             vec2 uv2 = vec2(x + 0.5, y + 0.5) / resolution.xy;
-            vec4 props2 = texture2D(textureProperties, uv2);
-            float id2 = props2.x;
-            if (id2 == 0.0) {
-                continue;
-                //break;
-            }
-            if (id1 == id2) {
-                continue;
-            }
-            float m2 = props2.y;
             vec4 tPos2 = texture2D(texturePosition, uv2);
             vec3 pos2 = tPos2.xyz;
             float type2 = tPos2.w;
-            if (type2 != 0.0)
-                continue;
-            vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+            if (type2 == -1.0) continue;
 
+            vec4 props2 = texture2D(textureProperties, uv2);
+            float id2 = props2.x;
+            if (id1 == id2) {
+                continue;
+            }
+
+            float m2 = props2.y;
+            
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
             
             // check collision
             if ((distance2 <= minDistance) && (type1 != 1.0)) {
+                vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+
                 float m = m1 + m2;
                 if (m == 0.0) {
                     continue;
@@ -96,20 +89,22 @@ void main() {
         }
     }
 
-    if (m1 != 0.0) {
-        vel1 += rForce / abs(m1);
-    } else {
-        vel1 += rForce;
-    }
-
-    // check boundary colision
-    if (type1 == 0.0) {
+    if (type1 != 1.0) {
+        if (m1 != 0.0) {
+            vel1 += rForce / abs(m1);
+        } else {
+            vel1 += rForce;
+        }
+    
+        // check boundary colision
         vec3 nextPos = pos1 + vel1;
         if (length(nextPos) >= boundaryDistance) {
             vel1 = reflect(vel1, normalize(-nextPos));
             //vel1 *= 0.9;
             //vel1 = -vel1;
         }
+    } else {
+        vel1 = rForce;
     }
 
     gl_FragColor = vec4(vel1, 0.0);

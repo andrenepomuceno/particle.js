@@ -5,6 +5,20 @@ import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
+    GPU_blob15,
+    GPU_blob14,
+    GPU_blob13,
+    GPU_blob12,
+    GPU_blob11,
+    GPU_blob10,
+    GPU_blob9,
+    GPU_blob8,
+    GPU_blob7,
+    GPU_blob6,
+    GPU_blob5,
+    GPU_blob4,
+    GPU_blob3,
+    GPU_blob2,
     GPU_string,
     GPU_string_m20,
     GPU_string_m50,
@@ -31,13 +45,591 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setBoundaryDistance(1e6);
 }
 
+function GPU_blob15(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            let v = random(0, 3, true);
+            /*if (v == 0) {
+                return 0.5;
+            }*/
+            return m * v;
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob14(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 100;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(0, 3, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob13(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(0, 3, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob12(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(0, 3, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob11(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(1, 1024);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob10(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m * random(0, 1024, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob9(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e7);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1e6;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = nq;
+            //nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob8(graphics, physics) {
+    defaultParameters(graphics, physics, 1.2e7);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1e6;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = nq;
+            nearCharge *= random(0, 1);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob7(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(1, 1024, true)/1024;
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob6(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(1, 100, true)/50;
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob5(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(1, 100, true)/100;
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob4(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(1, 100, true)/100;
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob3(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nearCharge *= random(0, 1, true);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function GPU_blob2(graphics, physics) {
+    defaultParameters(graphics, physics, 1.7e6);
+    fieldCleanup(graphics);
+    setParticleRadius(1e3, 1e2);
+    setBoundaryDistance(1e9);
+    bidimensionalMode(true);
+
+    physics.nearChargeRange = 1e6;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let r0 = 1;
+    let v = 0;
+    let n = 128 * 128;
+
+    createParticles(n,
+        (i) => {
+            return m;// * random(1, 1, true);
+        },
+        (i) => {
+            let charge = (random(0, 1, true)) ? (-q) : (q);
+            //charge *= random(1, 3, true);
+            return charge;
+        },
+        (i) => {
+            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nearCharge *= random(1, 3, true);
+            return nearCharge;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
 function GPU_string(graphics, physics) {
     defaultParameters(graphics, physics, 1e7);
     setBoundaryDistance(1e9);
-    setParticleRadius(1e4, 1e3);
+    setParticleRadius(1e4, 1e2);
     bidimensionalMode(true);
 
-    physics.nearChargeRange = 1e7;
+    physics.nearChargeRange = 1e6;
 
     let m = 1;
     let q = 1;

@@ -309,7 +309,7 @@ export class GraphicsGPU {
             posArray[offset4 + 0] = 0;
             posArray[offset4 + 1] = 0;
             posArray[offset4 + 2] = 0;
-            posArray[offset4 + 3] = 0;
+            posArray[offset4 + 3] = -1.0;
 
             velocityArray[offset4 + 0] = 0;
             velocityArray[offset4 + 1] = 0;
@@ -395,17 +395,22 @@ export class GraphicsGPU {
     #fillPointUVs() {
         const uvs = new Float32Array(2 * maxParticles);
         let particles = this.particleList.lenght;
-        for (let j = 0, p = 0; j < textureWidth; j++) {
-            for (let i = 0; i < textureWidth; i++, p++) {
+        let p = 0;
+        for (let j = 0; j < textureWidth; j++) {
+            for (let i = 0; i < textureWidth; i++) {
                 let offset = 2 * p;
                 let u = i / (textureWidth - 1);
                 let v = j / (textureWidth - 1);
                 uvs[offset + 0] = u;
                 uvs[offset + 1] = v;
+                /*uvs[p++] = u;
+                uvs[p++] = v;*/
 
                 if (p < particles) {
                     this.particleList[p].uv = [u, v];
                 }
+
+                p++;
             }
         }
         this.pointsGeometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));

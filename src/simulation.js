@@ -1,10 +1,10 @@
 import { Physics } from './physics.js';
 
-import { SimulationGPU } from './simulationGPU';
-import { GraphicsGPU } from './graphicsGPU.js'
-import { SimulationCPU } from './simulationCPU';
-import { GraphicsCPU } from './graphicsCPU.js'
-import { FieldCPU } from './fieldCPU';
+import { SimulationGPU } from './gpu/simulationGPU';
+import { GraphicsGPU } from './gpu/graphicsGPU'
+import { SimulationCPU } from './cpu/simulationCPU';
+import { GraphicsCPU } from './cpu/graphicsCPU'
+import { FieldCPU } from './cpu/fieldCPU';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';

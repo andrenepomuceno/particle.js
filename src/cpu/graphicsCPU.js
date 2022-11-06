@@ -11,7 +11,7 @@ import {
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { sphericalToCartesian } from './helpers';
+import { sphericalToCartesian } from '../helpers';
 
 const axisLineWidth = 100;
 const geometryMap = new Map();

@@ -52,8 +52,8 @@ function cloud2(graphics, physics) {
     setBoundaryDistance(1e9);
     
     physics.nearChargeRange = 1e6;
-    physics.massConstant = 1;
-    physics.chargeConstant = 1;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
 
     let m = 1;
     let q = 1;
@@ -65,24 +65,24 @@ function cloud2(graphics, physics) {
     const massThreshold = 0.2;
     createParticles(n,
         (i) => {
-            /*let v = random(0, 1);
-            if (v > massThreshold) {
-                return m * random(1, 3, true);
-                //return m * random(0, 1);
-            } else {
+            /*if (random(0, 1) <= massThreshold) {
                 return 0.0;
             }*/
-            return m * random(1, 3, true);
+            //return m * random(1, 3, true);
             //return m * random(0, 1);
             return m;
         },
         (i) => {
+            //let charge = (i % 2) ? (-q) : (q);
             let charge = (random(0, 1, true)) ? (-q) : (q);
             charge *= random(1, 3, true);
             //charge *= random(0, 1);
             return charge;
         },
         (i) => {
+            /*let seq = [-nq, nq, nq, -nq];
+            let nearCharge = seq[i % 4];*/
+            
             let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
             //nearCharge *= random(1, 2, true);
             return nearCharge;

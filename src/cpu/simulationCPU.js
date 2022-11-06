@@ -1,5 +1,5 @@
-import { randomColor, generateParticleColor } from './helpers.js';
-import { fieldUpdate, fieldCleanup } from './simulation';
+import { randomColor, generateParticleColor } from './../helpers.js';
+import { fieldUpdate, fieldCleanup } from './../simulation';
 
 let particlesSetup = undefined;
 const enableMassRadius = true;

@@ -1,7 +1,7 @@
 import { ArrowHelper, Color, MathUtils } from 'three';
 import { Vector3 } from 'three';
-import { Particle } from './physics.js'
-import { cubeGenerator, sphereGenerator } from './helpers'
+import { Particle } from '../../physics.js'
+import { cubeGenerator, sphereGenerator } from '../../helpers'
 
 let updateProbe = {
     m: 0,

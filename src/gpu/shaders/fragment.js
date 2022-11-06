@@ -16,18 +16,25 @@ uniform sampler2D textureProperties;
 const float width = resolution.x;
 const float height = resolution.y;
 
+#define UNDEFINED -1.0
+#define PROBE 1.0
+
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
 
     vec4 tPos1 = texture2D(texturePosition, uv1);
     vec3 pos1 = tPos1.xyz;
     float type1 = tPos1.w;
-    if (type1 == -1.0) return;
+    if (type1 == UNDEFINED) return;
 
     vec4 props1 = texture2D(textureProperties, uv1);
     float id1 = props1.x;
     float m1 = props1.y;
-    vec3 vel1 = texture2D(textureVelocity, uv1).xyz;
+    float q1 = props1.z;
+    float nq1 = props1.w;
+    vec4 tVel1 = texture2D(textureVelocity, uv1);
+    vec3 vel1 = tVel1.xyz;
+    float collisions = tVel1.w;
 
     vec3 rForce = vec3(0.0);
     for (float y = 0.0; y < height; y++) {
@@ -36,7 +43,7 @@ void main() {
             vec4 tPos2 = texture2D(texturePosition, uv2);
             vec3 pos2 = tPos2.xyz;
             float type2 = tPos2.w;
-            if (type2 == -1.0) continue;
+            if (type2 == UNDEFINED) continue;
 
             vec4 props2 = texture2D(textureProperties, uv2);
             float id2 = props2.x;
@@ -50,7 +57,9 @@ void main() {
             float distance2 = dot(dPos, dPos);
             
             // check collision
-            if ((distance2 <= minDistance) && (type1 != 1.0)) {
+            if ((distance2 <= minDistance) && (type1 != PROBE)) {
+                ++collisions;
+
                 vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
                 float m = m1 + m2;
@@ -68,7 +77,6 @@ void main() {
 
             float force = 0.0;
 
-            float q1 = props1.z;
             float q2 = props2.z;
 
             force += massConstant * m1 * m2;
@@ -76,7 +84,7 @@ void main() {
             force /= distance2;
 
             if (distance2 <= nearChargeRange2) {
-                float nq1 = props1.w;
+                
                 float nq2 = props2.w;
                 float distance1 = sqrt(distance2);
 
@@ -90,7 +98,7 @@ void main() {
         }
     }
 
-    if (type1 != 1.0) {
+    if (type1 != PROBE) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);
         } else {
@@ -108,13 +116,15 @@ void main() {
         vel1 = rForce;
     }
 
-    gl_FragColor = vec4(vel1, 0.0);
+    gl_FragColor = vec4(vel1, collisions);
 }
 `;
 
 export const computePosition = /* glsl */ `
 
 precision highp float;
+
+#define DEFAULT 0.0
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -123,7 +133,7 @@ void main() {
     vec3 pos = tPos.xyz;
     float type = tPos.w;
 
-    if (type == 0.0) {
+    if (type == DEFAULT) {
         vec3 vel = texture2D( textureVelocity, uv ).xyz;
         pos += vel;
     }

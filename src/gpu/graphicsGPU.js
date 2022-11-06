@@ -16,7 +16,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 import { computeVelocity, computePosition, particleFragmentShader } from './shaders/fragment';
 import { particleVertexShader } from './shaders/vertex';
-import { sphericalToCartesian } from './helpers';
+import { sphericalToCartesian } from '../helpers';
 
 const axisLineWidth = 100;
 const axisObject = [

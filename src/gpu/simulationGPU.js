@@ -80,17 +80,20 @@ export class SimulationGPU {
         let particles = this.particleList.length;
 
         let energy = 0.0;
+        let collisions = 0.0;
         this.particleList.forEach(p => {
             energy += p.energy();
+            collisions += p.collisions;
         })
         this.energy = energy;
+        this.physics.collisionCounter = collisions;
 
         return [
             this.populateSimulationCallback.name,
             particles,
             this.cicles,
             this.energy / particles,
-            this.physics.colisionCounter,
+            this.physics.collisionCounter,
             this.totalMass,
             this.physics.boundaryDistance,
             this.totalTime,

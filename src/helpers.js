@@ -148,11 +148,11 @@ export function generateParticleColor(p, absCharge) {
         l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
     } else {
         h = 120;
-        l = lmax;
+        l = lmin;
     }
 
     if (p.mass == 0) {
-        l = 70;
+        l = 90;
     }
 
     if (p.nearCharge > 0) {

@@ -132,7 +132,7 @@ export class SimulationCPU {
             particles,
             cicles,
             energy / particles,
-            this.physics.colisionCounter,
+            this.physics.collisionCounter,
             totalMass,
             maxDistance,
             totalTime,

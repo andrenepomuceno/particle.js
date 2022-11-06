@@ -11,6 +11,7 @@ uniform float nearChargeRange;
 uniform float nearChargeRange2;
 uniform float forceConstant;
 uniform float boundaryDistance;
+uniform float boundaryDamping;
 uniform sampler2D textureProperties;
 
 const float width = resolution.x;
@@ -108,10 +109,13 @@ void main() {
         // check boundary colision
         vec3 nextPos = pos1 + vel1;
         if (length(nextPos) >= boundaryDistance) {
+        //if ((abs(nextPos.x) >= boundaryDistance) || (abs(nextPos.y) >= boundaryDistance || (abs(nextPos.z) >= boundaryDistance)) {
             vel1 = reflect(vel1, normalize(-nextPos));
-            //vel1 *= 0.9;
-            //vel1 = -vel1;
+            vel1 *= boundaryDamping;
         }
+
+        //if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
+        //if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
     } else {
         vel1 = rForce;
     }

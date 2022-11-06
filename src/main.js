@@ -16,6 +16,10 @@ import {
     setColorMode,
     graphics
 } from './simulation.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+
+let stats = new Stats();
+document.getElementById("container").appendChild(stats.dom);
 
 const gui = new dat.GUI();
 
@@ -238,6 +242,14 @@ document.addEventListener("keydown", (event) => {
             simulationFieldSetup("update");
             break;
 
+        case 'h':
+            let visibility = stats.dom.style.visibility;
+            if (visibility != "hidden")
+                stats.dom.style.visibility = "hidden";
+            else
+                stats.dom.style.visibility = "visible";
+            break;
+
         default:
             if (key >= '0' && key <= '9') {
                 pause = true;
@@ -348,6 +360,7 @@ function animate(time) {
     requestAnimationFrame(animate);
 
     graphics.update();
+    stats.update();
 
     if (makeSnapshot) {
         makeSnapshot = false;

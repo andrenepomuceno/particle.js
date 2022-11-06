@@ -7,6 +7,7 @@ export class Physics {
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
         this.boundaryDistance = 1e5;
+        this.boundaryDamping = 1.0;
 
         this.forceConstant = 1.0;
         this.massConstant = 1.0;
@@ -14,7 +15,7 @@ export class Physics {
         this.nearChargeConstant = 1.0;
         this.nearChargeRange = 1e3;
 
-        this.colisionCounter = 0;
+        this.collisionCounter = 0;
         
         particleId = 0;
         this.particleList = [];
@@ -61,7 +62,7 @@ export class Physics {
     colide(p1, p2) {
         if (!this.enableColision) return;
 
-        ++this.colisionCounter;
+        ++this.collisionCounter;
 
         let m = p1.mass + p2.mass;
         if (m == 0) {
@@ -128,6 +129,7 @@ export class Particle {
         this.radius = undefined;
 
         this.type = 0.0;
+        this.collisions = 0.0;
     }
 
     energy() {

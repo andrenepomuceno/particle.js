@@ -33,9 +33,6 @@ export class GraphicsCPU {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById("container").appendChild(this.renderer.domElement);
 
-        this.stats = new Stats();
-        document.getElementById("container").appendChild(this.stats.dom);
-
         this.scene = new Scene();
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
 
@@ -108,7 +105,6 @@ export class GraphicsCPU {
 
     update() {
         this.controls.update();
-        this.stats.update();
         this.renderer.render(this.scene, this.camera);
     }
 

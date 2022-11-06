@@ -12,7 +12,6 @@ import {
     MathUtils,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 import { computeVelocity, computePosition, particleFragmentShader } from './shaders/fragment';
 import { particleVertexShader } from './shaders/vertex';
@@ -25,7 +24,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 90;
+const textureWidth = 80;
 export const maxParticles = textureWidth * textureWidth;
 
 function getCameraConstant(camera) {
@@ -46,9 +45,6 @@ export class GraphicsGPU {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById("container").appendChild(this.renderer.domElement);
-
-        this.stats = new Stats();
-        document.getElementById("container").appendChild(this.stats.dom);
 
         this.scene = new Scene();
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
@@ -136,8 +132,6 @@ export class GraphicsGPU {
 
     update() {
         this.controls.update();
-        this.stats.update();
-
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -225,6 +219,7 @@ export class GraphicsGPU {
         physicsUniforms['nearChargeRange2'] = { value: Math.pow(physics.nearChargeRange, 2) };
         physicsUniforms['forceConstant'] = { value: physics.forceConstant };
         physicsUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        physicsUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         physicsUniforms['textureProperties'] = { value: dtProperties };
 
         const error = gpuCompute.init();
@@ -392,6 +387,7 @@ export class GraphicsGPU {
             positions.push(p.position.x, p.position.y, p.position.z);
 
             p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2])
+            p.collisions = particleVelocity[offset + 3];
         });
 
         this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));

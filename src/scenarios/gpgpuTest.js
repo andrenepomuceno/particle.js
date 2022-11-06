@@ -3,6 +3,7 @@ import { setParticleList, createParticle, bidimensionalMode, createParticles, ra
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
+import { maxParticles } from '../gpu/graphicsGPU';
 
 export const gpgpu = [
     GPU_string,
@@ -44,7 +45,7 @@ function GPU_string(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(128*128 / 3);
+    let n = Math.round(maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -115,7 +116,7 @@ function GPU_string_m50(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(128*128 / 3);
+    let n = Math.round(maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -186,7 +187,7 @@ function GPU_string_m20(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(128*128 / 3);
+    let n = Math.round(maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -256,7 +257,7 @@ function GPU_blob1(graphics, physics) {
     let nq = 1;
     let r0 = physics.nearChargeRange * 4;
     let v = 0;
-    let n = 128 * 128;
+    let n = maxParticles;
 
     createParticles(n,
         (i) => {

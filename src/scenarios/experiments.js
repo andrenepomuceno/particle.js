@@ -6,6 +6,10 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
+    experiment8,
+    experiment7,
+    experiment6,
+    experiment5,
     experiment4,
     experiment3,
     experiment2,
@@ -15,6 +19,7 @@ export const experiments = [
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleList(physics.particleList);
+    fieldCleanup(graphics);
     
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -27,15 +32,248 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeRange = 1e3;
 
     setParticleRadius(20, 10);
-    setBoundaryDistance(1e6);
+    physics.boundaryDistance = 1e6;
     bidimensionalMode(true);
+}
+
+function experiment8(graphics, physics) {
+    defaultParameters(graphics, physics, 1e4);
+    setParticleRadius(5e1, 3e1);
+    physics.boundaryDistance = 1e7;
+    physics.boundaryDamping = 0.95;
+
+    physics.nearChargeRange = 1e3;
+    physics.nearChargeConstant = 1e2;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    let m = 1e3;
+    let q = 1/3;
+    let nq = 1;
+    let r0 = 3 * physics.nearChargeRange;
+    let v = 0;
+    let n = maxParticles;
+
+    let typeList = [
+        [0, 0, 1],
+        [0.001, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            //s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+
+function experiment7(graphics, physics) {
+    defaultParameters(graphics, physics, 3e6);
+    setParticleRadius(5e3, 1e3);
+    physics.boundaryDistance = 1e6;
+    physics.boundaryDamping = 0.95;
+
+    physics.nearChargeRange = 1e6;
+    physics.nearChargeConstant = 1;
+    physics.massConstant = 0;
+    physics.chargeConstant = 1;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    let m = 1e3;
+    let q = 1/3;
+    let nq = 1;
+    let r0 = 1;//0.5 * physics.nearChargeRange;
+    let v = 0;
+    let n = maxParticles;
+
+    let typeList = [
+        [0, 0, 1],
+        [0.001, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            //s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function experiment6(graphics, physics) {
+    defaultParameters(graphics, physics, 3e3);
+    setParticleRadius(5, 1);
+    physics.boundaryDistance = 1e4;
+    physics.boundaryDamping = 0.95;
+
+    physics.nearChargeRange = 1e3;
+    physics.nearChargeConstant = 10;
+    physics.massConstant = 0;
+    physics.chargeConstant = 1;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    let m = 1e3;
+    let q = 1/3;
+    let nq = 1;
+    let r0 = 1;//0.5 * physics.nearChargeRange;
+    let v = 0;
+    let n = maxParticles;
+
+    let typeList = [
+        [0, 0, 1],
+        [0.001, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            //s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
+function experiment5(graphics, physics) {
+    defaultParameters(graphics, physics, 2e4);
+    setParticleRadius(5e1, 3e1);
+    physics.boundaryDistance = 5e4;
+    physics.boundaryDamping = 0.95;
+
+    physics.nearChargeConstant = 1;
+    physics.nearChargeRange = 1e4;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    let m = 1e3;
+    let q = 1/3;
+    let nq = 1;
+    let r0 = 0.1 * physics.nearChargeRange;
+    let v = 0;
+    let n = maxParticles;
+
+    let typeList = [
+        [0, 0, 1],
+        [0.01, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            //s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
 }
 
 function experiment4(graphics, physics) {
     defaultParameters(graphics, physics, 2e5);
-    fieldCleanup(graphics);
-    setParticleRadius(3e3, 2e3);
-    setBoundaryDistance(1e8);
+    setParticleRadius(3e2, 2e2);
+    physics.boundaryDistance = 5e5;
+    physics.boundaryDamping = 0.99;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e4;
@@ -67,7 +305,7 @@ function experiment4(graphics, physics) {
         },
         (i, n) => {
             let s = 1;
-            s = (random(0, 1, true) ? (-1) : (1));
+            //s = (random(0, 1, true) ? (-1) : (1));
             let v = s * q;
             //v *= random(1, 3, true);
             v *= typeList[idx][1];

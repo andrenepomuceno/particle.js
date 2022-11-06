@@ -52,7 +52,7 @@ export function createParticles(n, massFunc, chargeFunc, nearChargeFunc, positio
     for (let i = 0; i < n; ++i) {
         let m = massFunc(i, n);
         let x = positionFunc(i, n);
-        let p = createParticle(m, chargeFunc(i, n, m), nearChargeFunc(i, n, m), x, velocityFunc(i, n, x));
+        let p = createParticle(m, chargeFunc(i, n), nearChargeFunc(i, n), x, velocityFunc(i, n, x));
     }
 }
 

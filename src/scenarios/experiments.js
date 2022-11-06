@@ -34,52 +34,50 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 function experiment4(graphics, physics) {
     defaultParameters(graphics, physics, 2e7);
     fieldCleanup(graphics);
-    setParticleRadius(3e1, 1e1);
-    setBoundaryDistance(2e9);
+    setParticleRadius(3e1, 2e1);
+    setBoundaryDistance(1e8);
 
     physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nearChargeRange = 1e5;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1;
-    let q = 1;
+    let q = 1/3;
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
     let n = 128*128;
 
-    let list = [
-        [0, 0],
-        [1e-2, 0],
-        [0.5, -3],
-        //[0.5, 3],
-        [4, 2],
-        //[4, -2],
-        [9, -1],
-        //[9, 1]
+    let typeList = [
+        [0, 0, 1],
+        [0.01, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
     ]
 
-    const massThreshold = 0.2;
+    let idx = undefined;
     createParticles(n,
         (i) => {
-            let idx = i % (list.length);
-            idx = random(0, list.length - 1, true);
-            return m * list[idx][0];
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
         },
-        (i, n, mass) => {
-            if (mass/m < 0.5) return 0.0;
+        (i, n) => {
             let s = 1;
             s = (random(0, 1, true) ? (-1) : (1));
             let v = s * q;
-            v *= random(1, 3, true);
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
             return v;
         },
         (i) => {
             let s = 1;
             s = (random(0, 1, true) ? (-1) : (1));
             let v = s * nq;
+            v *= typeList[idx][2];
             return v;
         },
         (i) => {

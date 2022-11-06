@@ -25,7 +25,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 128;
+const textureWidth = 90;
 export const maxParticles = textureWidth * textureWidth;
 
 function getCameraConstant(camera) {
@@ -119,7 +119,11 @@ export class GraphicsGPU {
         log("drawParticles");
 
         if (particleList.length > maxParticles) {
-            log("particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", maxParticles));
+            let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", maxParticles);
+            log(msg);
+            //alert("Error: " + msg);
+            this.particleList = undefined;
+            this.physics = undefined;
             return;
         }
 
@@ -290,6 +294,7 @@ export class GraphicsGPU {
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;
             posArray[offset4 + 2] = p.position.z;
+            if (p.fixed) p.type = 1.0; // probe
             posArray[offset4 + 3] = p.type;
 
             velocityArray[offset4 + 0] = p.velocity.x;

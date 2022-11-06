@@ -32,13 +32,13 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function experiment4(graphics, physics) {
-    defaultParameters(graphics, physics, 2e7);
+    defaultParameters(graphics, physics, 2e5);
     fieldCleanup(graphics);
-    setParticleRadius(3e1, 2e1);
+    setParticleRadius(3e3, 2e3);
     setBoundaryDistance(1e8);
 
     physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e5;
+    physics.nearChargeRange = 1e4;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance = Math.pow(0.5, 2);
@@ -48,7 +48,7 @@ function experiment4(graphics, physics) {
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
-    let n = 128*128;
+    let n = maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -106,7 +106,7 @@ function experiment3(graphics, physics) {
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
-    let n = 128*128;
+    let n = maxParticles;
 
     let list = [
         [0, 0],
@@ -166,7 +166,7 @@ function experiment2(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = 128*128;
+    let n = maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -224,7 +224,7 @@ function experiment1(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = 128*128;
+    let n = maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -280,7 +280,7 @@ function experiment0(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = 128*128;
+    let n = maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,

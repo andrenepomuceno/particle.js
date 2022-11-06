@@ -145,9 +145,12 @@ export class SimulationCPU {
         this.particleList.forEach((p, i) => {
             output += p.csv() + "\n";
         });
-        output += this.physics.header() + "\n" + this.physics.csv() + "\n";
-        output += "cicles\n";
-        output += cicles + "\n";
+        return output;
+    }
+
+    exportParametersCsv() {
+        let output = this.physics.header() + ",cicles\n";
+        output += this.physics.csv() + "," + cicles + "\n";
         return output;
     }
 

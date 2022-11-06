@@ -1,5 +1,4 @@
 import { Physics } from './physics.js';
-
 import { SimulationGPU } from './gpu/simulationGPU';
 import { GraphicsGPU } from './gpu/graphicsGPU'
 import { SimulationCPU } from './cpu/simulationCPU';
@@ -14,6 +13,7 @@ import { nearForce } from './scenarios/nearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
+import { experiments } from './scenarios/experiments.js';
 
 const useGPU = true;
 export let graphics = undefined;
@@ -23,8 +23,13 @@ if (useGPU) {
     graphics = new GraphicsCPU();
 }
 
+let simulation = undefined;
+let field = undefined;
+let physics = undefined;
+
 let simulationList = [];
 if (useGPU) {
+    simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);
     simulationList = simulationList.concat(gpgpu);
 }
@@ -35,11 +40,6 @@ simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
-
-let simulation = undefined;
-let field = undefined;
-let physics = undefined;
-
 
 function log(msg) {
     console.log("Simulation: " + msg)

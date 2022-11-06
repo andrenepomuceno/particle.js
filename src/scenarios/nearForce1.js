@@ -3,6 +3,7 @@ import { setParticleList, createParticle, bidimensionalMode, createParticles, ra
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
+import { maxParticles } from '../gpu/graphicsGPU';
 
 export const nearForce1 = [
     cloud2,
@@ -52,15 +53,15 @@ function cloud2(graphics, physics) {
     setBoundaryDistance(1e9);
     
     physics.nearChargeRange = 1e6;
-    physics.massConstant = 0;
-    physics.chargeConstant = 0;
+    physics.massConstant = 1;
+    physics.chargeConstant = 1;
 
     let m = 1;
     let q = 1;
     let nq = 1;
     let r0 = physics.nearChargeRange;
     let v = 0;
-    let n = 128 * 128;
+    let n = maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -68,7 +69,7 @@ function cloud2(graphics, physics) {
             /*if (random(0, 1) <= massThreshold) {
                 return 0.0;
             }*/
-            //return m * random(1, 3, true);
+            return m * random(1, 3, true);
             //return m * random(0, 1);
             return m;
         },

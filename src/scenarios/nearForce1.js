@@ -18,8 +18,8 @@ export const nearForce1 = [
     GPU_point12,
     GPU_point11,
     GPU_point10,
-    GPU_blob9,
-    GPU_blob8,
+    GPU_blob9_posNQ,
+    GPU_blob8_posNQ_rng,
     GPU_point7,
     GPU_point6,
     GPU_point5,
@@ -604,7 +604,7 @@ function GPU_point10(graphics, physics) {
     );
 }
 
-function GPU_blob9(graphics, physics) {
+function GPU_blob9_posNQ(graphics, physics) {
     defaultParameters(graphics, physics, 1.2e7);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -644,7 +644,7 @@ function GPU_blob9(graphics, physics) {
     );
 }
 
-function GPU_blob8(graphics, physics) {
+function GPU_blob8_posNQ_rng(graphics, physics) {
     defaultParameters(graphics, physics, 1.2e7);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);

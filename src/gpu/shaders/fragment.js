@@ -59,22 +59,26 @@ void main() {
             float distance2 = dot(dPos, dPos);
             
             // check collision
-            if ((distance2 <= minDistance) && (type1 != PROBE)) {
-                ++collisions;
+            if (distance2 <= minDistance) {
+                if (type1 != PROBE) {
+                    ++collisions;
 
-                vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+                    vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
-                float m = m1 + m2;
-                if (m == 0.0) {
+                    float m = m1 + m2;
+                    if (m == 0.0) {
+                        continue;
+                    }
+
+                    float s = 2.0 * m1 * m2 / m;
+                    vec3 dv = vel2 - vel1;
+
+                    rForce += s * dv;
+                    
                     continue;
+                } else {
+                    distance2 = minDistance;
                 }
-
-                float s = 2.0 * m1 * m2 / m;
-                vec3 dv = vel2 - vel1;
-
-                rForce += s * dv;
-                
-                continue;
             }
 
             float force = 0.0;
@@ -111,8 +115,13 @@ void main() {
         vec3 nextPos = pos1 + vel1;
         if (length(nextPos) >= boundaryDistance) {
         //if ((abs(nextPos.x) >= boundaryDistance) || (abs(nextPos.y) >= boundaryDistance || (abs(nextPos.z) >= boundaryDistance)) {
-            vel1 = reflect(vel1, normalize(-nextPos));
-            vel1 *= boundaryDamping;
+            if (length(vel1) < boundaryDistance) {
+                vel1 = reflect(vel1, normalize(-nextPos));
+                vel1 *= boundaryDamping;
+            } else {
+                // particle will go out of boundaries
+                vel1 = vec3(0.0);
+            }
         }
 
         //if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;

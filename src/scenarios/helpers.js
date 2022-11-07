@@ -29,10 +29,10 @@ export function randomVector(range, round = false) {
     return v;
 }
 
-export function randomSphericVector(r1, r2) {
-    let x, y, z;
-    if (bidimensionalModeEnable) [x, y, z] = randomDisc(r1, r2);
-    else[x, y, z] = randomSpheric(r1, r2);
+export function randomSphericVector(r1, r2, mode = 0) {
+    let x, y, z = 0;
+    if (bidimensionalModeEnable) [x, y, z] = randomDisc(r1, r2, mode);
+    else [x, y, _] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }
 

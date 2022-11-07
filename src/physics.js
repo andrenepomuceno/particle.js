@@ -7,7 +7,7 @@ export class Physics {
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
         this.boundaryDistance = 1e5;
-        this.boundaryDamping = 1.0;
+        this.boundaryDamping = 0.99;//1.0;
 
         this.forceConstant = 1.0;
         this.massConstant = 1.0;

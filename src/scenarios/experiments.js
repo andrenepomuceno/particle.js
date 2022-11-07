@@ -52,14 +52,19 @@ function experiment9(graphics, physics) {
     let m = 1e3;
     let q = 1/3;
     let nq = 1;
-    let r0 = 5 * physics.nearChargeRange;
     let v = 0;
     let n = maxParticles;
 
+    let density = 2.5e-4;
+    let area = n / density;
+    let r0 = Math.sqrt(area/(2 * Math.PI));
+    console.log(r0);
+    console.log(r0/physics.nearChargeRange);
+
     let typeList = [
         [0, 0, 1],
-        [0.001, 0, 1],
-        [0.511, -3, 1],
+        [1e-3, 0, 1],
+        [0.5, -3, 1],
         [3, 2, 1],
         [6, -1, 1],
     ]
@@ -87,7 +92,7 @@ function experiment9(graphics, physics) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0.5*r0, r0);
+            return randomSphericVector(0, r0);
         },
         (i) => {
             return randomVector(v);

@@ -6,11 +6,12 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
+    experiment9,
     experiment8,
     experiment7,
-    experiment6,
+    twinsCollision,
     experiment5,
-    experiment4,
+    wildParticles,
     experiment3,
     experiment2,
     experiment1,
@@ -36,6 +37,64 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     bidimensionalMode(true);
 }
 
+function experiment9(graphics, physics) {
+    defaultParameters(graphics, physics, 1e4);
+    setParticleRadius(5e1, 3e1);
+    physics.boundaryDistance = 1e5;
+    physics.boundaryDamping = 0.9;
+
+    physics.nearChargeRange = 1e3;
+    physics.nearChargeConstant = 60;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1e3;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    let m = 1e3;
+    let q = 1/3;
+    let nq = 1;
+    let r0 = 5 * physics.nearChargeRange;
+    let v = 0;
+    let n = maxParticles;
+
+    let typeList = [
+        [0, 0, 1],
+        [0.001, 0, 1],
+        [0.511, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            //idx = i % (typeList.length);
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            //v *= random(1, 3, true);
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0.5*r0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
+}
+
 function experiment8(graphics, physics) {
     defaultParameters(graphics, physics, 1e4);
     setParticleRadius(5e1, 3e1);
@@ -43,15 +102,15 @@ function experiment8(graphics, physics) {
     physics.boundaryDamping = 0.9;
 
     physics.nearChargeRange = 1e3;
-    physics.nearChargeConstant = 1e2;
+    physics.nearChargeConstant = 60;
     physics.massConstant = 1e-6;
-    physics.chargeConstant = 1;
+    physics.chargeConstant = 1e3;
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1/3;
     let nq = 1;
-    let r0 = 3 * physics.nearChargeRange;
+    let r0 = 4 * physics.nearChargeRange;
     let v = 0;
     let n = maxParticles;
 
@@ -86,7 +145,7 @@ function experiment8(graphics, physics) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0.5*r0, r0);
         },
         (i) => {
             return randomVector(v);
@@ -153,7 +212,7 @@ function experiment7(graphics, physics) {
     );
 }
 
-function experiment6(graphics, physics) {
+function twinsCollision(graphics, physics) {
     defaultParameters(graphics, physics, 3e3);
     setParticleRadius(5, 1);
     physics.boundaryDistance = 1e4;
@@ -269,7 +328,7 @@ function experiment5(graphics, physics) {
     );
 }
 
-function experiment4(graphics, physics) {
+function wildParticles(graphics, physics) {
     defaultParameters(graphics, physics, 2e5);
     setParticleRadius(3e2, 2e2);
     physics.boundaryDistance = 5e5;

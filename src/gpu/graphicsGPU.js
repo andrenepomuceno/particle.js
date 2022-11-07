@@ -24,7 +24,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 80;
+const textureWidth = 128;
 export const maxParticles = textureWidth * textureWidth;
 
 function getCameraConstant(camera) {

@@ -229,7 +229,7 @@ function twinsCollision(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.5 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = 80*80; //maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -355,26 +355,26 @@ function wildParticles(graphics, physics) {
         [6, -1, 1],
     ]
 
-    let idx = undefined;
+    let typeIdx = undefined;
     createParticles(n,
         (i) => {
             //idx = i % (typeList.length);
-            idx = random(0, typeList.length - 1, true);
-            return m * typeList[idx][0];
+            typeIdx = random(0, typeList.length - 1, true);
+            return m * typeList[typeIdx][0];
         },
         (i, n) => {
             let s = 1;
             //s = (random(0, 1, true) ? (-1) : (1));
             let v = s * q;
             //v *= random(1, 3, true);
-            v *= typeList[idx][1];
+            v *= typeList[typeIdx][1];
             return v;
         },
         (i) => {
             let s = 1;
             s = (random(0, 1, true) ? (-1) : (1));
             let v = s * nq;
-            v *= typeList[idx][2];
+            v *= typeList[typeIdx][2];
             return v;
         },
         (i) => {

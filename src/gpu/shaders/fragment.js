@@ -19,6 +19,7 @@ const float height = resolution.y;
 
 #define UNDEFINED -1.0
 #define PROBE 1.0
+#define DEFAULT 0.0
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -44,7 +45,7 @@ void main() {
             vec4 tPos2 = texture2D(texturePosition, uv2);
             vec3 pos2 = tPos2.xyz;
             float type2 = tPos2.w;
-            if (type2 == UNDEFINED) continue;
+            if (type2 != DEFAULT) continue;
 
             vec4 props2 = texture2D(textureProperties, uv2);
             float id2 = props2.x;

@@ -39,8 +39,8 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 function experiment8(graphics, physics) {
     defaultParameters(graphics, physics, 1e4);
     setParticleRadius(5e1, 3e1);
-    physics.boundaryDistance = 1e7;
-    physics.boundaryDamping = 0.95;
+    physics.boundaryDistance = 1e5;
+    physics.boundaryDamping = 0.9;
 
     physics.nearChargeRange = 1e3;
     physics.nearChargeConstant = 1e2;

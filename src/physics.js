@@ -110,6 +110,13 @@ export class Physics {
     }
 }
 
+export const ParticleType = {
+    undefined: -1.0,
+    default: 0.0,
+    probe: 1.0,
+    fixed: 2.0,
+}
+
 export class Particle {
     constructor() {
         this.id = particleId++;
@@ -128,7 +135,7 @@ export class Particle {
         this.color = undefined;
         this.radius = undefined;
 
-        this.type = 0.0;
+        this.type = ParticleType.default;
         this.collisions = 0.0;
     }
 

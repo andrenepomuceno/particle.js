@@ -1,7 +1,6 @@
 import { Vector3 } from 'three';
 import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
-import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
@@ -31,13 +30,6 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 
     setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
-
-    if (mode2d) fieldSetup("2d", 70);
-    if (!mode2d) fieldSetup("3d", 16);
-
-    //fieldProbeConfig(1e3, 0, 0);
-    //fieldProbeConfig(0, 1e6, 0);
-    fieldProbeConfig(0, 0, 100);
 }
 
 function string(graphics, physics) {
@@ -45,8 +37,7 @@ function string(graphics, physics) {
     setBoundaryDistance(1e9);
     setParticleRadius(50, 40);
     bidimensionalMode(true);
-    fieldCleanup();
-
+    
     physics.nearChargeRange = 1e5;
 
     let m = 1;
@@ -114,8 +105,7 @@ function string(graphics, physics) {
 
 function nucleiGrid(graphics, physics) {
     defaultParameters(graphics, physics, 10e3);
-    fieldCleanup(graphics);
-    setParticleRadius(50, 10);
+        setParticleRadius(50, 10);
     setBoundaryDistance(20e3);
     bidimensionalMode(true);
 
@@ -235,8 +225,7 @@ function nucleiGrid(graphics, physics) {
 
 function shootedBarrier(graphics, physics) {
     defaultParameters(graphics, physics, 30e3);
-    fieldCleanup(graphics);
-    setParticleRadius(50, 10);
+        setParticleRadius(50, 10);
 
     let m = 1 / 10;
     let q = 10;
@@ -281,8 +270,7 @@ function shootedBarrier(graphics, physics) {
 
 function standardModelBlob2(graphics, physics) {
     defaultParameters(graphics, physics, 15e3);
-    fieldCleanup(graphics);
-    setParticleRadius(50, 40);
+        setParticleRadius(50, 40);
     setBoundaryDistance(1e7);
 
     // ve m < 0.120 eV q = 0
@@ -392,8 +380,7 @@ function standardModelBlob2(graphics, physics) {
 
 function standardModelBlobSymetric(graphics, physics) {
     defaultParameters(graphics, physics, 15e3);
-    fieldCleanup(graphics);
-    setParticleRadius(50, 40);
+        setParticleRadius(50, 40);
     setBoundaryDistance(1e10);
 
     // ve m < 0.120 eV q = 0
@@ -483,8 +470,7 @@ function standardModelBlobSymetric(graphics, physics) {
 
 function standardModelBlob0(graphics, physics) {
     defaultParameters(graphics, physics, 15e3);
-    fieldCleanup(graphics);
-    setParticleRadius(50, 40);
+        setParticleRadius(50, 40);
 
     // ve m = 0.1 eV q = 0
     // e m = 0.511 MeV q = -1

@@ -1,6 +1,7 @@
 import { Physics } from './physics.js';
 import { SimulationGPU } from './gpu/simulationGPU';
 import { GraphicsGPU } from './gpu/graphicsGPU'
+import { FieldGPU } from './gpu/fieldGPU';
 import { SimulationCPU } from './cpu/simulationCPU';
 import { GraphicsCPU } from './cpu/graphicsCPU'
 import { FieldCPU } from './cpu/fieldCPU';
@@ -16,6 +17,7 @@ import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 
 const useGPU = true;
+
 export let graphics = undefined;
 if (useGPU) {
     graphics = new GraphicsGPU();
@@ -28,6 +30,7 @@ let field = undefined;
 let physics = undefined;
 
 let simulationList = [];
+simulationList = simulationList.concat(fields);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);
@@ -67,10 +70,11 @@ export function simulationSetup(graphics, idx) {
     }
 
     physics = new Physics();
-    if (!simulation) {
+    if (!simulation) // TODO check if this condition is necessary
+    { 
         if (useGPU) {
             simulation = new SimulationGPU(graphics, physics);
-            field = new FieldCPU(graphics, physics);
+            field = new FieldGPU(graphics, physics);
         } else {
             simulation = new SimulationCPU(graphics, physics);
             field = new FieldCPU(graphics, physics);
@@ -123,7 +127,7 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
     }
 }
 
-export function fieldSetup(mode = "update", grid = [10, 10, 10], size = 1e3) {
+export function fieldSetup(mode = "update", grid = 10, size = 1e3) {
     log("fieldSetup");
     
     if (field)
@@ -131,17 +135,22 @@ export function fieldSetup(mode = "update", grid = [10, 10, 10], size = 1e3) {
 }
 
 export function fieldUpdate() {
+    //log("fieldUpdate");
+
     if (field)
         field.update();
 }
 
 export function fieldCleanup() {
     log("fieldCleanup");
+
     if (field)
         field.cleanup();
 }
 
 export function fieldProbe(probe) {
+    log("fieldProbe");
+
     if (field)
         return field.probe(probe);
 }

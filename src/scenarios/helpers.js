@@ -32,7 +32,7 @@ export function randomVector(range, round = false) {
 export function randomSphericVector(r1, r2, mode = 0) {
     let x, y, z = 0;
     if (bidimensionalModeEnable) [x, y, z] = randomDisc(r1, r2, mode);
-    else [x, y, _] = randomSpheric(r1, r2, mode);
+    else [x, y, z] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }
 

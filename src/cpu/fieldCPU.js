@@ -67,6 +67,7 @@ function log(msg) {
 
 export class FieldCPU {
     constructor(graphics, physics) {
+        log("constructor")
         this.graphics = graphics;
         this.physics = physics;
         this.particleList = physics.particleList;
@@ -137,16 +138,16 @@ export class FieldCPU {
         fieldVectorList = [];
     }
 
-    probe(probleParticle) {
-        probleParticle.force.setScalar(0);
+    probe(probeParticle) {
+        probeParticle.force.setScalar(0);
 
         this.particleList.forEach((p, idx) => {
             //if (p.position.clone().sub(probleParticle.position).length() > 5e3) return;
-            this.physics.interact(probleParticle, p, true);
+            this.physics.interact(probeParticle, p, true);
             p.force.setScalar(0);
         });
 
-        return probleParticle.force;
+        return probeParticle.force;
     }
 
     #drawField(size = 1e3, gridSize = [10, 10, 10], center = new Vector3(), mode = "cube") {

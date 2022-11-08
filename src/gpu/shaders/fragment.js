@@ -18,8 +18,9 @@ const float width = resolution.x;
 const float height = resolution.y;
 
 #define UNDEFINED -1.0
-#define PROBE 1.0
 #define DEFAULT 0.0
+#define PROBE 1.0
+#define FIXED 2.0
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -45,7 +46,7 @@ void main() {
             vec4 tPos2 = texture2D(texturePosition, uv2);
             vec3 pos2 = tPos2.xyz;
             float type2 = tPos2.w;
-            if (type2 != DEFAULT) continue;
+            if (type2 != DEFAULT && type2 != FIXED) continue;
 
             vec4 props2 = texture2D(textureProperties, uv2);
             float id2 = props2.x;
@@ -104,7 +105,7 @@ void main() {
         }
     }
 
-    if (type1 != PROBE) {
+    if (type1 == DEFAULT) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);
         } else {
@@ -126,7 +127,7 @@ void main() {
 
         //if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
         //if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
-    } else {
+    } else if (type1 == PROBE) {
         vel1 = rForce;
     }
 
@@ -138,7 +139,10 @@ export const computePosition = /* glsl */ `
 
 precision highp float;
 
+#define UNDEFINED -1.0
 #define DEFAULT 0.0
+#define PROBE 1.0
+#define FIXED 2.0
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -157,13 +161,121 @@ void main() {
 `;
 
 export const particleFragmentShader = /* glsl */ `
-varying vec4 vColor;
+// https://gist.github.com/983/e170a24ae8eba2cd174f
+vec3 hsv2rgb(vec3 c)
+{
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+
+// https://www.shadertoy.com/view/ldlSWj
+// Computes the signed distance from a line
+float line_distance(vec2 p, vec2 p1, vec2 p2) {
+    vec2 center = (p1 + p2) * 0.5;
+    float len = length(p2 - p1);
+    vec2 dir = (p2 - p1) / len;
+    vec2 rel_p = p - center;
+    return dot(rel_p, vec2(dir.y, -dir.x));
+}
+
+// Computes the signed distance from a line segment
+float segment_distance(vec2 p, vec2 p1, vec2 p2) {
+    vec2 center = (p1 + p2) * 0.5;
+    float len = length(p2 - p1);
+    vec2 dir = (p2 - p1) / len;
+    vec2 rel_p = p - center;
+    float dist1 = abs(dot(rel_p, vec2(dir.y, -dir.x)));
+    float dist2 = abs(dot(rel_p, dir)) - 0.5*len;
+    return max(dist1, dist2);
+}
+
+float arrow_triangle(vec2 texcoord,
+                     float body, float head, float height,
+                     float linewidth, float antialias)
+{
+    float w = linewidth/2.0 + antialias;
+    vec2 start = -vec2(body/2.0, 0.0);
+    vec2 end   = +vec2(body/2.0, 0.0);
+
+    // Head : 3 lines
+    float d1 = line_distance(texcoord, end, end - head*vec2(+1.0,-height));
+    float d2 = line_distance(texcoord, end - head*vec2(+1.0,+height), end);
+    float d3 = texcoord.x - end.x + head;
+
+    // Body : 1 segment
+    float d4 = segment_distance(texcoord, start, end - vec2(linewidth,0.0));
+
+    float d = min(max(max(d1, d2), -d3), d4);
+    return d;
+}
+
+vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
+{
+    vec4 frag_color;
+    float t = linewidth/2.0 - antialias;
+    float signed_distance = distance;
+    float border_distance = abs(signed_distance) - t;
+    float alpha = border_distance/antialias;
+    alpha = exp(-alpha*alpha);
+
+    // Within linestroke
+    if( border_distance < 0.0 )
+        frag_color = fill;
+    // Within shape
+    else if( signed_distance < 0.0 )
+        frag_color = fill;
+    else
+        // Outside shape
+        if( border_distance > (linewidth/2.0 + antialias) )
+            discard;
+        else // Line stroke exterior border
+            frag_color = vec4(fill.rgb*alpha, 1.0);
+
+    return frag_color;
+}
+
+#define UNDEFINED -1.0
+#define DEFAULT 0.0
+#define PROBE 1.0
+#define FIXED 2.0
+
+flat varying vec4 vColor;
+flat varying float vType;
 
 void main() {
-    float f = length(gl_PointCoord - vec2(0.5));
-    if (f > 0.5) {
-        discard;
+    if (vType == PROBE) {
+        float f = length(gl_PointCoord - vec2(0.5));
+
+        vec3 vel = vColor.xyz;
+        float len = length(vel);
+        if (len > 1e3) len = 1e3;
+        len /= 1e3;
+        vec3 dir = normalize(vel);
+        vec3 color = hsv2rgb(vec3(len, 1.0, 1.0));
+
+        vec2 texcoord = gl_PointCoord.xy - vec2(0.5);
+        float cos_theta = dir.x;
+        float sin_theta = dir.y;
+        texcoord = vec2(cos_theta*texcoord.x - sin_theta*texcoord.y,
+                        sin_theta*texcoord.x + cos_theta*texcoord.y);
+
+        float body = 0.75;
+        float linewidth = 0.05;
+        float antialias = 0.0;
+        float head = 0.25 * body;
+        float d = arrow_triangle(texcoord, body, head, 0.5, linewidth, antialias);
+        gl_FragColor = filled(d, linewidth, antialias, vec4(color, 1.0));
+
+        //gl_FragColor = vec4(hsv2rgb(vec3(len, 1.0, 1.0)), 1.0);
+    } else {
+        float f = length(gl_PointCoord - vec2(0.5));
+        if (f > 0.5) {
+            discard;
+        }
+
+        gl_FragColor = vec4(vColor);
     }
-    gl_FragColor = vec4(vColor);
 }
 `;

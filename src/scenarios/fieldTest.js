@@ -22,6 +22,8 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
     particleList.push(p);
 }
 
+let grid = 50;
+
 function defaultConfig(graphics, physics, distance = 50) {
     particleList = physics.particleList;
 
@@ -36,19 +38,25 @@ function defaultConfig(graphics, physics, distance = 50) {
     physics.nearChargeRange = 16;
 
     setParticleRadius(1, 0);
-    let grid = 50;
-    fieldSetup("2d", grid);
 }
 
 function nearField(graphics, physics) {
-    defaultConfig(graphics, physics, 50)
-    fieldProbeConfig(0, 0, 1e2);
+    defaultConfig(graphics, physics, 2.3e1)
     setParticleRadius(1, 0);
+
+    fieldProbeConfig(0, 0, 1);
+    fieldSetup("2d", grid);
+
+    physics.forceConstant = 1;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
+    physics.nearChargeConstant = 2e2;
+    physics.nearChargeRange = 16;
 
     let x = new Vector3(physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
     let fixed = true;
-    let q = 0;
+    let q = 1;
     let m = 1;
     let nq = 1;
 
@@ -57,8 +65,10 @@ function nearField(graphics, physics) {
 }
 
 function chargeField(graphics, physics) {
-    defaultConfig(graphics, physics)
-    fieldProbeConfig(0, 10 , 0);
+    defaultConfig(graphics, physics);
+
+    fieldProbeConfig(0, 10, 0);
+    fieldSetup("2d", grid);
 
     let x = new Vector3(10, 0, 0);
     let v = new Vector3(0, 1, 0);
@@ -73,7 +83,9 @@ function chargeField(graphics, physics) {
 
 function massField(graphics, physics) {
     defaultConfig(graphics, physics)
+
     fieldProbeConfig(10, 0, 0);
+    fieldSetup("2d", grid);
 
     let x = new Vector3(10, 0, 0);
     let v = new Vector3(0, 1, 0);

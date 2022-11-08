@@ -1,4 +1,5 @@
 import { randomColor, generateParticleColor } from '../helpers';
+import { ParticleType } from '../physics';
 import { fieldUpdate, fieldCleanup, setParticleRadius } from '../simulation';
 
 function log(msg) {
@@ -134,7 +135,7 @@ export class SimulationGPU {
                 this.enableChargeColor = true;
                 break;
         }
-        
+
         this.#calcParticleColor();
         this.graphics.fillPointColors();
     }
@@ -182,6 +183,10 @@ export class SimulationGPU {
         let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
         const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
         this.particleList.forEach((p, i) => {
+            if (p.type == ParticleType.probe) {
+                return;
+            }
+
             let radius = minRadius;
             if (this.enableMassRadius && absMass != 0) {
                 radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);

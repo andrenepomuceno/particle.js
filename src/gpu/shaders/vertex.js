@@ -1,18 +1,36 @@
 export const particleVertexShader = /* glsl */ `
+// attribute vec3 position
+// attribute vec2 uv
 attribute vec3 color;
 attribute float radius;
 
 uniform sampler2D texturePosition;
+uniform sampler2D textureVelocity;
 uniform float cameraConstant;
 
-varying vec4 vColor;
+flat varying vec4 vColor;
+flat varying float vType;
+
+#define UNDEFINED -1.0
+#define DEFAULT 0.0
+#define PROBE 1.0
+#define FIXED 2.0
 
 void main() {
-    vColor = vec4(color, 1.0);
+    vec4 tPos = texture2D( texturePosition, uv );
+    vec3 pos = tPos.xyz;
 
-    vec3 pos = texture2D( texturePosition, uv ).xyz;
+    float r = radius;
+    vType = tPos.w;
+    if (vType == PROBE) {
+        vec3 vel = texture2D( textureVelocity, uv ).xyz;
+        vColor = vec4(vel, 1.0);
+    } else {
+        vColor = vec4(color, 1.0);
+    }
+
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = radius * cameraConstant / (- mvPosition.z);
+    gl_PointSize = r * cameraConstant / (- mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;
 }
 `;

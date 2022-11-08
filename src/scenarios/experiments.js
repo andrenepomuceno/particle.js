@@ -8,7 +8,7 @@ import { maxParticles } from '../gpu/graphicsGPU';
 export const experiments = [
     experiment9,
     experiment8,
-    experiment7,
+    terrarium,
     twinsCollision,
     experiment5,
     wildParticles,
@@ -159,8 +159,8 @@ function experiment8(graphics, physics) {
 }
 
 
-function experiment7(graphics, physics) {
-    defaultParameters(graphics, physics, 3e6);
+function terrarium(graphics, physics) {
+    defaultParameters(graphics, physics, 1.4e6);
     setParticleRadius(5e3, 1e3);
     physics.boundaryDistance = 1e6;
     physics.boundaryDamping = 0.95;

@@ -2,6 +2,7 @@ import { Vector3 } from 'three';
 import { setParticleRadius } from '../simulation'
 import { Particle } from '../physics'
 import { fieldProbeConfig, fieldSetup } from '../simulation'
+import { bidimensionalMode } from './helpers';
 
 export const fields = [
     nearField,
@@ -37,11 +38,12 @@ function defaultConfig(graphics, physics, distance = 50) {
     physics.nearChargeConstant = -1;
     physics.nearChargeRange = 16;
 
+    bidimensionalMode(true);
     setParticleRadius(1, 0);
 }
 
 function nearField(graphics, physics) {
-    defaultConfig(graphics, physics, 2.3e1)
+    defaultConfig(graphics, physics, 2.6e1)
     setParticleRadius(1, 0);
 
     fieldProbeConfig(0, 0, 1);
@@ -50,10 +52,10 @@ function nearField(graphics, physics) {
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nearChargeConstant = 2e2;
+    physics.nearChargeConstant = 5e2;
     physics.nearChargeRange = 16;
 
-    let x = new Vector3(physics.nearChargeRange, 0, 0);
+    let x = new Vector3(1.1 * physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
     let fixed = true;
     let q = 1;
@@ -67,15 +69,21 @@ function nearField(graphics, physics) {
 function chargeField(graphics, physics) {
     defaultConfig(graphics, physics);
 
-    fieldProbeConfig(0, 10, 0);
+    fieldProbeConfig(0, 1, 0);
     fieldSetup("2d", grid);
+
+    physics.forceConstant = 1;
+    physics.massConstant = 0;
+    physics.chargeConstant = 2e4;
+    physics.nearChargeConstant = 0;
+    physics.nearChargeRange = 16;
 
     let x = new Vector3(10, 0, 0);
     let v = new Vector3(0, 1, 0);
     let fixed = true;
-    let q = 1e2;
+    let q = 1;
     let m = 1;
-    let nq = 0;
+    let nq = 1;
 
     createParticle2(m, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);
     createParticle2(m, -q, nq, new Vector3().add(x), new Vector3().sub(v), fixed);
@@ -84,15 +92,21 @@ function chargeField(graphics, physics) {
 function massField(graphics, physics) {
     defaultConfig(graphics, physics)
 
-    fieldProbeConfig(10, 0, 0);
+    fieldProbeConfig(1, 0, 0);
     fieldSetup("2d", grid);
+
+    physics.forceConstant = 1;
+    physics.massConstant = 2e4;
+    physics.chargeConstant = 0;
+    physics.nearChargeConstant = 0;
+    physics.nearChargeRange = 16;
 
     let x = new Vector3(10, 0, 0);
     let v = new Vector3(0, 1, 0);
     let fixed = true;
     let q = 1;
-    let m = 1e2;
-    let nq = 0;
+    let m = 1;
+    let nq = 1;
 
     createParticle2(m, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);
     createParticle2(m, -q, nq, new Vector3().add(x), new Vector3().sub(v), fixed);

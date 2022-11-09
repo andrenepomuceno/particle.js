@@ -241,19 +241,31 @@ vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
 #define PROBE 1.0
 #define FIXED 2.0
 
-flat varying vec4 vColor;
+varying vec4 vColor;
 flat varying float vType;
+flat varying vec3 vVelocity;
+
+const float velMax = 1e3;
+const float velFade = 1e-2;
+
+const float body = 0.75;
+const float linewidth = 0.05;
+const float antialias = 0.0;
+float head = 0.25 * body;
 
 void main() {
     if (vType == PROBE) {
-        float f = length(gl_PointCoord - vec2(0.5));
-
-        vec3 vel = vColor.xyz;
-        float len = length(vel);
-        if (len > 1e3) len = 1e3;
-        len /= 1e3;
-        vec3 dir = normalize(vel);
-        vec3 color = hsv2rgb(vec3(len, 1.0, 1.0));
+        float saturation = 1.0;
+        float value = 1.0;
+        float velAbs = length(vVelocity)/velMax;
+        if (velAbs > 1.0) {
+            velAbs = 1.0;
+            saturation = 0.0;
+        } else if (velAbs < velFade) {
+            value = velAbs/velFade;
+        }
+        vec3 dir = normalize(vVelocity);
+        vec3 color = hsv2rgb(vec3(velAbs, saturation, value));
 
         vec2 texcoord = gl_PointCoord.xy - vec2(0.5);
         float cos_theta = dir.x;
@@ -261,14 +273,8 @@ void main() {
         texcoord = vec2(cos_theta*texcoord.x - sin_theta*texcoord.y,
                         sin_theta*texcoord.x + cos_theta*texcoord.y);
 
-        float body = 0.75;
-        float linewidth = 0.05;
-        float antialias = 0.0;
-        float head = 0.25 * body;
         float d = arrow_triangle(texcoord, body, head, 0.5, linewidth, antialias);
         gl_FragColor = filled(d, linewidth, antialias, vec4(color, 1.0));
-
-        //gl_FragColor = vec4(hsv2rgb(vec3(len, 1.0, 1.0)), 1.0);
     } else {
         float f = length(gl_PointCoord - vec2(0.5));
         if (f > 0.5) {

@@ -31,6 +31,7 @@ let physics = undefined;
 
 let simulationList = [];
 simulationList = simulationList.concat(fields);
+simulationList = simulationList.concat(elements);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);

@@ -8,8 +8,9 @@ uniform sampler2D texturePosition;
 uniform sampler2D textureVelocity;
 uniform float cameraConstant;
 
-flat varying vec4 vColor;
+varying vec4 vColor;
 flat varying float vType;
+flat varying vec3 vVelocity;
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -24,11 +25,10 @@ void main() {
     vType = tPos.w;
     if (vType == PROBE) {
         vec3 vel = texture2D( textureVelocity, uv ).xyz;
-        vColor = vec4(vel, 1.0);
-    } else {
-        vColor = vec4(color, 1.0);
+        vVelocity = vel;
     }
 
+    vColor = vec4(color, 1.0);
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_PointSize = r * cameraConstant / (- mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;

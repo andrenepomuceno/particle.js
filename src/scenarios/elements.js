@@ -34,9 +34,10 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleRadius(30, 10);
     setBoundaryDistance(1e5);
 
-    //fieldProbeConfig(1e3, 0, 0);
+    //fieldProbeConfig(1e12, 0, 0);
     fieldProbeConfig(0, 1e6, 0);
-    //fieldProbeConfig(0, 0, 20);
+    //fieldProbeConfig(0, 0, 1e2);
+    //fieldProbeConfig(1e10, 1e6, 1e2);
 
     if (mode2d) fieldSetup("2d", 70);
     if (!mode2d) fieldSetup("3d", 16);

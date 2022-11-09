@@ -30,6 +30,9 @@ const textureWidth = 128 + 16;
 console.log("textureWidth = " + textureWidth);
 export const maxParticles = textureWidth * textureWidth;
 
+const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
+const particleVelocity = new Float32Array(4 * textureWidth * textureWidth);
+
 function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
 }
@@ -267,19 +270,22 @@ export class GraphicsGPU {
         }
     }
 
-    readbackParticleData() {
-        //log("readbackParticleData");
-
+    readbackParticleData(particle) {
         let current = (this.renderTarget + 0) % 2;
-
-        let particlePosition = new Float32Array(4 * textureWidth * textureWidth);
+        
         let texture = this.positionVariable.renderTargets[current];
         this.renderer.readRenderTargetPixels(texture, 0, 0, textureWidth, textureWidth, particlePosition);
-        //console.log(this.pointsGeometry.getAttribute('position'));
 
-        let particleVelocity = new Float32Array(4 * textureWidth * textureWidth);
         texture = this.velocityVariable.renderTargets[current];
         this.renderer.readRenderTargetPixels(texture, 0, 0, textureWidth, textureWidth, particleVelocity);
+
+        /*if (particle) {
+            let offset = 4 * particle.id;
+            particle.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2]);
+            particle.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2]);
+            particle.collisions = particleVelocity[offset + 3];
+            return;
+        }*/
 
         let positions = [];
         let i = 0;
@@ -379,7 +385,7 @@ export class GraphicsGPU {
 
     #fillPointUVs() {
         const uvs = new Float32Array(2 * maxParticles);
-        let particles = this.particleList.lenght;
+        let particles = this.particleList.length;
         let p = 0;
         for (let j = 0; j < textureWidth; j++) {
             for (let i = 0; i < textureWidth; i++) {
@@ -414,7 +420,7 @@ export class GraphicsGPU {
             type.push(p.type);
         });
 
-        
+
         this.pointsGeometry.setAttribute('type', new Float32BufferAttribute(type, 1));
     }
 

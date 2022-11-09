@@ -250,7 +250,7 @@ const float velFade = 1e-2;
 
 const float body = 0.75;
 const float linewidth = 0.05;
-const float antialias = 0.0;
+const float antialias = 0.01;
 float head = 0.25 * body;
 
 void main() {

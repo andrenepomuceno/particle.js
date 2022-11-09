@@ -38,6 +38,8 @@ export class SimulationGPU {
         this.graphics.cameraSetup();
         this.#drawParticles();
         fieldUpdate();
+
+        //this.graphics.compute();
     }
 
     cleanup() {

@@ -303,7 +303,7 @@ function updateParticle() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
     if (particle) {
-        graphics.readbackParticleData();
+        graphics.readbackParticleData(particle);
 
         //static info
         particleView.id = particle.id;

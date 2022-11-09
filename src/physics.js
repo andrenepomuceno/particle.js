@@ -134,6 +134,7 @@ export class Particle {
         this.mesh = undefined;
         this.color = undefined;
         this.radius = undefined;
+        this.uv = [];
 
         this.type = ParticleType.default;
         this.collisions = 0.0;

@@ -27,7 +27,7 @@ jobs:
 
     - name: Pack
       run: |
-        zip -r particle.js.zip dist
+        zip -r particle.js_${GITHUB_REF#refs/*/}.zip dist
 
     - uses: ncipollo/release-action@v1
       with:

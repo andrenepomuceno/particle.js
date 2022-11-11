@@ -60,7 +60,7 @@ export class GraphicsGPU {
         this.controls.update();
 
         this.raycaster = new Raycaster();
-        this.raycaster.params.Points.threshold = 10;
+        //this.raycaster.params.Points.threshold = 10;
 
         // this.cameraDefault();
 

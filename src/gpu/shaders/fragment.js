@@ -136,7 +136,6 @@ void main() {
 `;
 
 export const computePosition = /* glsl */ `
-
 precision highp float;
 
 #define UNDEFINED -1.0
@@ -161,54 +160,12 @@ void main() {
 `;
 
 export const particleFragmentShader = /* glsl */ `
-// https://gist.github.com/983/e170a24ae8eba2cd174f
+
 vec3 hsv2rgb(vec3 c)
 {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
-
-// https://www.shadertoy.com/view/ldlSWj
-// Computes the signed distance from a line
-float line_distance(vec2 p, vec2 p1, vec2 p2) {
-    vec2 center = (p1 + p2) * 0.5;
-    float len = length(p2 - p1);
-    vec2 dir = (p2 - p1) / len;
-    vec2 rel_p = p - center;
-    return dot(rel_p, vec2(dir.y, -dir.x));
-}
-
-// Computes the signed distance from a line segment
-float segment_distance(vec2 p, vec2 p1, vec2 p2) {
-    vec2 center = (p1 + p2) * 0.5;
-    float len = length(p2 - p1);
-    vec2 dir = (p2 - p1) / len;
-    vec2 rel_p = p - center;
-    float dist1 = abs(dot(rel_p, vec2(dir.y, -dir.x)));
-    float dist2 = abs(dot(rel_p, dir)) - 0.5*len;
-    return max(dist1, dist2);
-}
-
-float arrow_triangle(vec2 texcoord,
-                     float body, float head, float height,
-                     float linewidth, float antialias)
-{
-    float w = linewidth/2.0 + antialias;
-    vec2 start = -vec2(body/2.0, 0.0);
-    vec2 end   = +vec2(body/2.0, 0.0);
-
-    // Head : 3 lines
-    float d1 = line_distance(texcoord, end, end - head*vec2(+1.0,-height));
-    float d2 = line_distance(texcoord, end - head*vec2(+1.0,+height), end);
-    float d3 = texcoord.x - end.x + head;
-
-    // Body : 1 segment
-    float d4 = segment_distance(texcoord, start, end - vec2(linewidth,0.0));
-
-    float d = min(max(max(d1, d2), -d3), d4);
-    return d;
 }
 
 vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
@@ -236,25 +193,71 @@ vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
     return frag_color;
 }
 
+float sdCone(vec3 p, vec3 a, vec3 b, float ra, float rb)
+{
+    float rba  = rb-ra;
+    float baba = dot(b-a,b-a);
+    float papa = dot(p-a,p-a);
+    float paba = dot(p-a,b-a)/baba;
+
+    float x = sqrt( papa - paba*paba*baba );
+
+    float cax = max(0.0,x-((paba<0.5)?ra:rb));
+    float cay = abs(paba-0.5)-0.5;
+
+    float k = rba*rba + baba;
+    float f = clamp( (rba*(x-ra)+paba*baba)/k, 0.0, 1.0 );
+
+    float cbx = x-ra - f*rba;
+    float cby = paba - f;
+    
+    float s = (cbx < 0.0 && cay < 0.0) ? -1.0 : 1.0;
+    
+    return s*sqrt( min(cax*cax + cay*cay*baba,
+                       cbx*cbx + cby*cby*baba) );
+}
+
+float sdCylinder(vec3 p, vec3 a, vec3 b, float r)
+{
+    vec3  ba = b - a;
+    vec3  pa = p - a;
+    float baba = dot(ba,ba);
+    float paba = dot(pa,ba);
+    float x = length(pa*baba-ba*paba) - r*baba;
+    float y = abs(paba-baba*0.5)-baba*0.5;
+    float x2 = x*x;
+    float y2 = y*y*baba;
+    
+    float d = (max(x,y)<0.0)?-min(x2,y2):(((x>0.0)?x2:0.0)+((y>0.0)?y2:0.0));
+    
+    return sign(d)*sqrt(abs(d))/baba;
+}
+
+float sdArrow(vec3 p) {
+    float d1 = sdCylinder(p, vec3(-0.45,0.0,0.0), vec3(0.1,0.0,0.0), 0.05);
+    float d2 = sdCone(p, vec3(0.1,0.0,0.0), vec3(0.45,0.0,0.0), 0.2, 0.0);
+    return min(d1, d2);
+}
+
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
 #define FIXED 2.0
 
+const float velMax = 1e3;
+const float velFade = 1e-2;
+const float linewidth = 0.05;
+const float antialias = 0.01;
+
 varying vec4 vColor;
 flat varying float vType;
 flat varying vec3 vVelocity;
 
-const float velMax = 1e3;
-const float velFade = 1e-2;
-
-const float body = 0.75;
-const float linewidth = 0.05;
-const float antialias = 0.01;
-float head = 0.25 * body;
-
 void main() {
-    if (vType == PROBE) {
+    if (vType != PROBE) {        
+        float d = length(gl_PointCoord - vec2(0.5)) - 0.45;
+        gl_FragColor = filled(d, linewidth, antialias, vColor);
+    } else {
         float saturation = 1.0;
         float value = 1.0;
         float velAbs = length(vVelocity)/velMax;
@@ -264,24 +267,16 @@ void main() {
         } else if (velAbs < velFade) {
             value = velAbs/velFade;
         }
-        vec3 dir = normalize(vVelocity);
         vec3 color = hsv2rgb(vec3(velAbs, saturation, value));
 
-        vec2 texcoord = gl_PointCoord.xy - vec2(0.5);
-        float cos_theta = dir.x;
-        float sin_theta = dir.y;
-        texcoord = vec2(cos_theta*texcoord.x - sin_theta*texcoord.y,
-                        sin_theta*texcoord.x + cos_theta*texcoord.y);
+        vec3 dir = normalize(vVelocity);
+    
+        vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
+        coordinates.xy = mat2(dir.x, dir.y, -dir.y, dir.x) * coordinates.xy;
 
-        float d = arrow_triangle(texcoord, body, head, 0.5, linewidth, antialias);
+        float d = sdArrow(coordinates);
+
         gl_FragColor = filled(d, linewidth, antialias, vec4(color, 1.0));
-    } else {
-        float f = length(gl_PointCoord - vec2(0.5));
-        if (f > 0.5) {
-            discard;
-        }
-
-        gl_FragColor = vec4(vColor);
     }
 }
 `;

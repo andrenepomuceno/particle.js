@@ -1,11 +1,11 @@
 import { Vector3 } from 'three';
 import { random, randomSpheric } from '../helpers.js'
 import { Particle } from '../physics.js'
+import { setParticleRadius } from '../simulation'
 
 let particleList = undefined;
 
 export const scenarios0 = [
-    colisionTest,
     simulation0,
     simulation1,
     simulationAtom,
@@ -13,6 +13,7 @@ export const scenarios0 = [
     simulationGrid2D,
     simulationGrid3D,
     simulationSpheres,
+    colisionTest,
 ];
 
 function randomVector(range) {
@@ -246,9 +247,12 @@ function simulationSpheres(graphics, physics) {
 
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    physics.massConstant = 1 / 13;
-    physics.chargeConstant = 1;
-    let massRange = [1, 8];
+    physics.massConstant = 5e-3;
+    physics.chargeConstant = 1e3;
+    let massRange = [1, 3];
+    massRange.forEach((v,i) => {
+        massRange[i] *= 1e2;
+    })
     let chargeRange = [-3, 3];
 
     const spheres = 10;
@@ -275,6 +279,10 @@ function colisionTest(graphics, physics) {
     let massRange = [1, 50];
     let chargeRange = [-1, 1];
 
+    let r = 10;
+    physics.minDistance = Math.pow(r, 2);
+    setParticleRadius(r, 0);
+
     /*let i = -250;
     createParticles(10, [1, 1], chargeRange, (x, y, z) => {
         i += 50;
@@ -290,30 +298,35 @@ function colisionTest(graphics, physics) {
     particleList.at(-1).charge = 1;
     particleList.at(-1).position.set(400, 0, 0);*/
 
+    let v = 5;
+    let m1 = 1;
+    let p1 = 50;
+    let m2 = 500;
+    let p2 = 100;
     particleList.push(new Particle());
-    particleList.at(-1).mass = 1;
+    particleList.at(-1).mass = m1;
     particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(-50, 50, 0);
-    particleList.at(-1).velocity.set(1, -1, 0);
+    particleList.at(-1).position.set(-p1, p1, 0);
+    particleList.at(-1).velocity.set(v, -v, 0);
     particleList.push(new Particle());
-    particleList.at(-1).mass = 1;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(50, 50, 0);
-    particleList.at(-1).velocity.set(-1, -1, 0);
+    particleList.at(-1).mass = m1;
+    particleList.at(-1).charge = -1;
+    particleList.at(-1).position.set(p1, p1, 0);
+    particleList.at(-1).velocity.set(-v, -v, 0);
     particleList.push(new Particle());
-    particleList.at(-1).mass = 100;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(-50, -50, 0);
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(-p2, -p2+r, 0);
     particleList.push(new Particle());
-    particleList.at(-1).mass = 100;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(50, -50, 0);
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(p2, -p2+r, 0);
     particleList.push(new Particle());
-    particleList.at(-1).mass = 100;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(-60, 60, 0);
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(-p2, p2, 0);
     particleList.push(new Particle());
-    particleList.at(-1).mass = 100;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(60, 60, 0);
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(p2, p2, 0);
 }

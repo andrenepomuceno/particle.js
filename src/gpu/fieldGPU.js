@@ -189,6 +189,10 @@ export class FieldGPU {
         p.radius = len * 0.75;
         this.particleList.push(p);
 
+        /*let obj = {};
+        obj.particle = p;
+        this.objectList.push(obj);*/
+
         /*let obj = newArrowObject(position, len);
         obj.particle = p;
         this.objectList.push(obj);

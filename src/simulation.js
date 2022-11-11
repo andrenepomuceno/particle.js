@@ -30,9 +30,9 @@ let field = undefined;
 let physics = undefined;
 
 let simulationList = [];
-simulationList = simulationList.concat(fields);
-simulationList = simulationList.concat(nearForce);
-simulationList = simulationList.concat(elements);
+// simulationList = simulationList.concat(nearForce);
+// simulationList = simulationList.concat(fields);
+// simulationList = simulationList.concat(elements);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);
@@ -44,6 +44,7 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
+//simulationList.reverse();
 let particlesSetup = simulationList[0];
 
 function log(msg) {
@@ -72,7 +73,7 @@ export function simulationSetup(graphics, idx) {
     }
 
     physics = new Physics();
-    if (!simulation) // TODO check if this condition is necessary
+    //if (!simulation) // TODO check if this condition is necessary
     { 
         if (useGPU) {
             simulation = new SimulationGPU(graphics, physics);

@@ -1,11 +1,12 @@
 import { Vector3 } from 'three';
 import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance } from '../simulation';
+import { setParticleRadius, setBoundaryDistance, fieldSetup, fieldProbeConfig } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
+    magnecticForce,
     experiment9,
     experiment8,
     terrarium,
@@ -35,6 +36,77 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
     bidimensionalMode(true);
+}
+
+function magnecticForce(graphics, physics) {
+    defaultParameters(graphics, physics, 1e3);
+    setParticleRadius(10, 0);
+    physics.boundaryDistance = 1e12;
+    physics.boundaryDamping = 0.9;
+
+    physics.nearChargeRange = 1e3;
+    physics.nearChargeConstant = 0;
+    physics.massConstant = 0;
+    physics.chargeConstant = 1;
+    physics.minDistance = Math.pow(1e-6, 2);
+
+    fieldProbeConfig(0, 1e4, 0);
+    fieldSetup("2d", 70);
+
+    let m = 1e30;
+    let q = 1000;
+    let nq = 1;
+    let n = 7000;
+
+    let v = -7;
+    let s = 100;
+    let x0 = n/3 * s;
+    x0 = 0;
+    let y0 = -0.01;
+
+    let v2 = 3;
+    let x2 = 0;
+    let y2 = -600;
+    let m2 = 5e-2;
+    let q2 = 1000;
+
+    createParticles(n,
+        (i) => {
+            return m;
+        },
+        (i, n) => {
+            return q;
+        },
+        (i) => {
+            return 0;
+        },
+        (i, n) => {
+            return new Vector3(-x0 + (i - n/2) * s, y0, 0);
+        },
+        (i) => {
+            return new Vector3(-v, 0, 0);
+        }
+    );
+
+    createParticles(n,
+        (i) => {
+            return m;
+        },
+        (i, n) => {
+            return -q;
+        },
+        (i) => {
+            return 0;
+        },
+        (i, n) => {
+            return new Vector3(x0 + (i - n/2) * s, -y0, 0);
+        },
+        (i) => {
+            return new Vector3(v, 0, 0);
+        }
+    );
+
+    createParticle(m2, q2, 0, new Vector3(x2, y2, 0), new Vector3(v2, v2, 0));
 }
 
 function experiment9(graphics, physics) {

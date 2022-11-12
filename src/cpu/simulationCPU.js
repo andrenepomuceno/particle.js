@@ -1,3 +1,4 @@
+import { Scene } from 'three';
 import { randomColor, generateParticleColor } from './../helpers.js';
 import { fieldUpdate, fieldCleanup } from './../simulation';
 
@@ -84,14 +85,20 @@ export class SimulationCPU {
     cleanup() {
         log("cleanup");
 
-        this.particleList.forEach((p, i) => {
+        /*this.particleList.forEach((p, i) => {
             this.graphics.scene.remove(p.mesh);
-        });
-    
+        });*/
+
+        for (var i = this.graphics.scene.children.length - 1; i >= 0; i--) {
+            let obj = this.graphics.scene.children[i];
+            this.graphics.scene.remove(obj);
+        }
+
+
         while (this.particleList.length > 0) {
             this.particleList.pop();
         }
-    
+
         this.particleRadius = 20;
         this.particleRadiusRange = this.particleRadius / 2;
 
@@ -141,16 +148,18 @@ export class SimulationCPU {
     }
 
     exportCsv() {
-        let output = this.particleList[0].header() + "\n";
-        this.particleList.forEach((p, i) => {
-            output += p.csv() + "\n";
-        });
-        return output;
-    }
+        log("exportCsv");
 
-    exportParametersCsv() {
-        let output = this.physics.header() + ",cicles\n";
-        output += this.physics.csv() + "," + cicles + "\n";
+        let output = this.particleList[0].header();
+        output += "," + this.physics.header() + ",cicles\n";
+        this.particleList.forEach((p, i) => {
+            if (i > 0) {
+                output += p.csv() + "\n";
+            }
+            else {
+                output += p.csv() + "," + this.physics.csv() + "," + this.cicles + "\n";
+            }       
+        });
         return output;
     }
 
@@ -179,19 +188,19 @@ export class SimulationCPU {
             if (p.mass < mMin) {
                 mMin = p.mass;
             }
-    
+
             if (p.charge > qMax) {
                 qMax = p.charge;
             }
             if (p.charge < qMin) {
                 qMin = p.charge;
             }
-    
+
             totalMass += p.mass;
             energy += (p.mass * p.velocity.lengthSq());
             totalCharge += p.charge;
         });
-    
+
         this.#addParticles();
         paintParticles(this.particleList);
     }

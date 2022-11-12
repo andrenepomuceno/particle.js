@@ -6,7 +6,7 @@ export class Physics {
     constructor() {
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
-        this.boundaryDistance = 1e5;
+        this.boundaryDistance = 1e12;
         this.boundaryDamping = 0.99;//1.0;
 
         this.forceConstant = 1.0;
@@ -162,11 +162,12 @@ export class Particle {
     }
 
     header() {
-        return "id,m,q,nq,x,y,z,vx,vy,vz,e";
+        return "id,type,m,q,nq,x,y,z,vx,vy,vz,e";
     }
 
     csv() {
         return this.id + "," +
+            this.type + "," +
             this.mass + "," +
             this.charge + "," +
             this.nearCharge + "," +

@@ -25,7 +25,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 128 + 16;
+const textureWidth = 80;
 //const textureWidth = Math.round(Math.sqrt(20e3));
 console.log("textureWidth = " + textureWidth);
 export const maxParticles = textureWidth * textureWidth;
@@ -45,7 +45,7 @@ export class GraphicsGPU {
     constructor() {
         log("constructor");
 
-        //this.cleanup();
+        this.cleanup();
 
         this.renderer = new WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -153,10 +153,7 @@ export class GraphicsGPU {
         log("cleanup");
 
         if (this.scene) {
-            for (var i = this.scene.children.length - 1; i >= 0; i--) {
-                let obj = this.scene.children[i];
-                this.scene.remove(obj);
-            }
+            this.scene.remove(this.pointsObject);
         }
 
         this.physics = undefined;
@@ -193,24 +190,28 @@ export class GraphicsGPU {
 
         gpuCompute.setVariableDependencies(this.velocityVariable, [this.velocityVariable, this.positionVariable]);
         gpuCompute.setVariableDependencies(this.positionVariable, [this.velocityVariable, this.positionVariable]);
-
-        let physics = this.physics;
-        let physicsUniforms = this.velocityVariable.material.uniforms;
-        physicsUniforms['minDistance'] = { value: physics.minDistance };
-        physicsUniforms['massConstant'] = { value: physics.massConstant };
-        physicsUniforms['chargeConstant'] = { value: physics.chargeConstant };
-        physicsUniforms['nearChargeConstant'] = { value: physics.nearChargeConstant };
-        physicsUniforms['nearChargeRange'] = { value: physics.nearChargeRange };
-        physicsUniforms['nearChargeRange2'] = { value: Math.pow(physics.nearChargeRange, 2) };
-        physicsUniforms['forceConstant'] = { value: physics.forceConstant };
-        physicsUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
-        physicsUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
-        physicsUniforms['textureProperties'] = { value: dtProperties };
+        
+        this.#fillPhysicsUniforms();
+        this.velocityVariable.material.uniforms['textureProperties'] = { value: dtProperties };
 
         const error = gpuCompute.init();
         if (error !== null) {
             console.error(error);
         }
+    }
+
+    #fillPhysicsUniforms() {
+        let physics = this.physics;
+        let uniforms = this.velocityVariable.material.uniforms;
+        uniforms['minDistance'] = { value: physics.minDistance };
+        uniforms['massConstant'] = { value: physics.massConstant };
+        uniforms['chargeConstant'] = { value: physics.chargeConstant };
+        uniforms['nearChargeConstant'] = { value: physics.nearChargeConstant };
+        uniforms['nearChargeRange'] = { value: physics.nearChargeRange };
+        uniforms['nearChargeRange2'] = { value: Math.pow(physics.nearChargeRange, 2) };
+        uniforms['forceConstant'] = { value: physics.forceConstant };
+        uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
     }
 
     #fillTextures(textureProperties, texturePosition, textureVelocity) {
@@ -271,6 +272,7 @@ export class GraphicsGPU {
     }
 
     readbackParticleData(particle) {
+        log("readbackParticleData");
         let current = (this.renderTarget + 0) % 2;
         
         let texture = this.positionVariable.renderTargets[current];

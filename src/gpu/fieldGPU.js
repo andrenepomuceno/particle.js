@@ -54,6 +54,8 @@ function log(msg) {
 
 export class FieldGPU {
     constructor(graphics, physics) {
+        log("constructor");
+
         this.graphics = graphics;
         this.physics = physics;
         this.particleList = physics.particleList;

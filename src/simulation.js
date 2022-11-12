@@ -16,7 +16,7 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 
-const useGPU = true;
+export const useGPU = true;
 
 export let graphics = undefined;
 if (useGPU) {
@@ -65,16 +65,16 @@ export function setBoundaryDistance(d = 1e6) {
     simulation.physics.boundaryDistance = d;
 }
 
-export function simulationSetup(graphics, idx) {
-    log("simulationSetup");
+export function simulationSetup(idx) {
+    log("simulationSetup idx = " + idx);
 
-    if (idx >= 0 && idx < simulationList.length) {
+    if (idx && idx >= 0 && idx < simulationList.length) {
         particlesSetup = simulationList[idx];
     }
 
     physics = new Physics();
     //if (!simulation) // TODO check if this condition is necessary
-    { 
+    {
         if (useGPU) {
             simulation = new SimulationGPU(graphics, physics);
             field = new FieldGPU(graphics, physics);
@@ -102,11 +102,6 @@ export function simulationCsv() {
     return simulation.exportCsv();
 }
 
-export function simulationParametersCsv() {
-    log("simulationParametersCsv");
-    return simulation.exportParametersCsv();
-}
-
 export function simulationFieldSetup(mode) {
     log("simulationFieldSetup");
     log("mode = " + mode);
@@ -132,7 +127,7 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
 
 export function fieldSetup(mode = "update", grid = 10, size = 1e3) {
     log("fieldSetup");
-    
+
     if (field)
         field.setup(mode, grid, size);
 }
@@ -156,4 +151,23 @@ export function fieldProbe(probe) {
 
     if (field)
         return field.probe(probe);
+}
+
+export function simulationImport() {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".csv";
+    input.onchange = e => {
+        let file = e.target.files[0];
+
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            
+        }
+    }
+
+    input.click();
 }

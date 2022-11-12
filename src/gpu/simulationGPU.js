@@ -44,7 +44,7 @@ export class SimulationGPU {
 
     cleanup() {
         log("cleanup");
-        this.graphics.cleanup();
+        //this.graphics.cleanup();
 
         while (this.particleList.length > 0) {
             this.particleList.pop();
@@ -109,18 +109,16 @@ export class SimulationGPU {
 
         this.graphics.readbackParticleData();
 
-        let output = this.particleList[0].header() + "\n";
+        let output = this.particleList[0].header();
+        output += "," + this.physics.header() + ",cicles\n";
         this.particleList.forEach((p, i) => {
-            output += p.csv() + "\n";
+            if (i > 0) {
+                output += p.csv() + "\n";
+            }
+            else {
+                output += p.csv() + "," + this.physics.csv() + "," + this.cicles + "\n";
+            }       
         });
-        return output;
-    }
-
-    exportParametersCsv() {
-        log("exportCsv");
-
-        let output = "";
-        output += this.physics.header() + ",cicles\n" + this.physics.csv() + "," + this.cicles + "\n";;
         return output;
     }
 
@@ -176,6 +174,8 @@ export class SimulationGPU {
 
         this.#calcParticleRadius();
         this.#calcParticleColor();
+
+        this.graphics.cleanup();
         this.graphics.drawParticles(this.particleList, this.physics);
     }
 

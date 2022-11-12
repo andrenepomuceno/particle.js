@@ -22,7 +22,7 @@ export const experiments = [
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleList(physics.particleList);
     fieldCleanup(graphics);
-    
+
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
@@ -51,16 +51,16 @@ function magnecticForce(graphics, physics) {
     physics.minDistance = Math.pow(1e-6, 2);
 
     fieldProbeConfig(0, 1e4, 0);
-    fieldSetup("2d", 70);
+    fieldSetup("2d", 40);
 
     let m = 1e30;
     let q = 1000;
     let nq = 1;
-    let n = 7000;
+    let n = 1000;
 
     let v = -7;
     let s = 100;
-    let x0 = n/3 * s;
+    let x0 = n / 3 * s;
     x0 = 0;
     let y0 = -0.01;
 
@@ -81,7 +81,7 @@ function magnecticForce(graphics, physics) {
             return 0;
         },
         (i, n) => {
-            return new Vector3(-x0 + (i - n/2) * s, y0, 0);
+            return new Vector3(-x0 + (i - n / 2) * s, y0, 0);
         },
         (i) => {
             return new Vector3(-v, 0, 0);
@@ -99,7 +99,7 @@ function magnecticForce(graphics, physics) {
             return 0;
         },
         (i, n) => {
-            return new Vector3(x0 + (i - n/2) * s, -y0, 0);
+            return new Vector3(x0 + (i - n / 2) * s, -y0, 0);
         },
         (i) => {
             return new Vector3(v, 0, 0);
@@ -122,16 +122,16 @@ function experiment9(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let v = 0;
     let n = maxParticles;
 
     let density = 2.5e-4;
     let area = n / density;
-    let r0 = Math.sqrt(area/(2 * Math.PI));
+    let r0 = Math.sqrt(area / (2 * Math.PI));
     console.log(r0);
-    console.log(r0/physics.nearChargeRange);
+    console.log(r0 / physics.nearChargeRange);
 
     let typeList = [
         [0, 0, 1],
@@ -185,7 +185,7 @@ function experiment8(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 4 * physics.nearChargeRange;
     let v = 0;
@@ -222,7 +222,7 @@ function experiment8(graphics, physics) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0.5*r0, r0);
+            return randomSphericVector(0.5 * r0, r0);
         },
         (i) => {
             return randomVector(v);
@@ -244,7 +244,7 @@ function terrarium(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.5 * physics.nearChargeRange;
     let v = 0;
@@ -302,11 +302,11 @@ function twinsCollision(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.5 * physics.nearChargeRange;
     let v = 0;
-    let n = 80*80; //maxParticles;
+    let n = 80 * 80; //maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -360,7 +360,7 @@ function experiment5(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1e3;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 0.1 * physics.nearChargeRange;
     let v = 0;
@@ -418,7 +418,7 @@ function wildParticles(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
@@ -501,7 +501,7 @@ function experiment3(graphics, physics) {
             return m * list[idx][0];
         },
         (i, n, mass) => {
-            if (mass/m < 0.5) return 0.0;
+            if (mass / m < 0.5) return 0.0;
             let s = 1;
             s = (random(0, 1, true) ? (-1) : (1));
             let v = s * q;
@@ -536,7 +536,7 @@ function experiment2(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
@@ -567,7 +567,7 @@ function experiment2(graphics, physics) {
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
             let nearCharge = seq[i % 4];*/
-            
+
             let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
             //nearCharge *= random(1, 2, true);
             return nearCharge;
@@ -594,11 +594,11 @@ function experiment1(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = min(maxParticles, 80 * 80);
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -623,7 +623,7 @@ function experiment1(graphics, physics) {
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
             let nearCharge = seq[i % 4];*/
-            
+
             let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
             //nearCharge *= random(1, 2, true);
             return nearCharge;
@@ -650,7 +650,7 @@ function experiment0(graphics, physics) {
     physics.minDistance = Math.pow(0.5, 2);
 
     let m = 1;
-    let q = 1/3;
+    let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
@@ -679,7 +679,7 @@ function experiment0(graphics, physics) {
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
             let nearCharge = seq[i % 4];*/
-            
+
             let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
             //nearCharge *= random(1, 2, true);
             return nearCharge;

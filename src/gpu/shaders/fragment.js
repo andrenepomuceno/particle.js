@@ -62,8 +62,6 @@ void main() {
             // check collision
             if (distance2 <= minDistance) {
                 if (type1 != PROBE) {
-                    ++collisions;
-
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
                     float m = m1 + m2;
@@ -76,8 +74,10 @@ void main() {
 
                     rForce += s * dv;
                     
+                    ++collisions;
                     continue;
                 } else {
+                    // for probe
                     distance2 = minDistance;
                 }
             }

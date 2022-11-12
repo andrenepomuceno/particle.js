@@ -10,11 +10,12 @@ import {
     simulationStep,
     simulationState,
     simulationCsv,
-    simulationParametersCsv,
     simulationFieldSetup,
     simulationFieldProbe,
     setColorMode,
-    graphics
+    graphics,
+    useGPU,
+    simulationImport
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -41,20 +42,23 @@ let guiOptions = {
         },
         reset: function () {
             resetParticleView();
-            simulationSetup(graphics);
+            simulationSetup();
         },
         next: function () {
             resetParticleView();
-            simulationSetup(graphics, ++simulationIdx);
+            simulationSetup(++simulationIdx);
         },
         previous: function () {
             if (simulationIdx == 0) return;
             resetParticleView();
-            simulationSetup(graphics, --simulationIdx);
+            simulationSetup(--simulationIdx);
         },
         snapshot: function () {
             if (!makeSnapshot)
                 makeSnapshot = true;
+        },
+        import: function () {
+            simulationImport();
         }
     },
     view: {
@@ -118,8 +122,7 @@ let guiOptions = {
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
         clear: function() {
-            followParticle = false;
-            guiOptions.particle.obj = undefined;
+            resetParticleView();
             guiParticle.close();
         }
     }
@@ -182,6 +185,7 @@ function guiSetup() {
     guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
     guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
     guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
+    guiSimulation.add(guiOptions.simulation, 'import').name("Import");
 
     guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
     guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
@@ -254,7 +258,7 @@ document.addEventListener("keydown", (event) => {
             if (key >= '0' && key <= '9') {
                 pause = true;
                 simulationIdx = key - '0' - 1;
-                simulationSetup(graphics, simulationIdx);
+                simulationSetup(simulationIdx);
             }
             break;
 
@@ -303,7 +307,8 @@ function updateParticle() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
     if (particle) {
-        graphics.readbackParticleData(particle);
+        if (useGPU)
+            graphics.readbackParticleData(particle);
 
         //static info
         particleView.id = particle.id;
@@ -345,7 +350,6 @@ function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulationState()[0];
     downloadFile(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
-    downloadFile(simulationParametersCsv(), name + "-" + timestamp + "_parameters.csv", "text/plain;charset=utf-8");
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
     });
@@ -403,7 +407,7 @@ function animate(time) {
 
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
-    simulationSetup(graphics);
+    simulationSetup();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

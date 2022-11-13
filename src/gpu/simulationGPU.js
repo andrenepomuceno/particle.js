@@ -18,24 +18,32 @@ export class SimulationGPU {
         this.enableChargeColor = true;
         this.populateSimulationCallback = undefined;
 
-        //this.cleanup();
+        this.cleanup();
     }
 
     setup(populateSimulationCallback, legacyMode = false) {
         log("setup");
-        this.cleanup();
 
-        this.populateSimulationCallback = populateSimulationCallback;
-        if (legacyMode) {
-            log("Populating... (legacy)");
-            populateSimulationCallback(this.graphics, this.physics);
+        if (populateSimulationCallback != undefined) {
+            this.populateSimulationCallback = populateSimulationCallback;
+            this.physics.name = populateSimulationCallback.name;
+
+            this.graphics.cameraDefault();
+
+            if (legacyMode) {
+                log("Populating... (legacy)");
+                populateSimulationCallback(this.graphics, this.physics);
+            } else {
+                log("Populating...");
+                populateSimulationCallback(this);
+            }
+            log("Populating done");
+
+            this.graphics.cameraSetup();
         } else {
-            log("Populating...");
-            populateSimulationCallback(this);
+            log("populateSimulationCallback is undefined, skipping...");
         }
-        log("Populating done");
 
-        this.graphics.cameraSetup();
         this.#drawParticles();
         fieldUpdate();
 
@@ -44,13 +52,8 @@ export class SimulationGPU {
 
     cleanup() {
         log("cleanup");
-        //this.graphics.cleanup();
 
-        while (this.particleList.length > 0) {
-            this.particleList.pop();
-        }
-
-        this.cicles = 0;
+        this.cycles = 0;
         this.energy = 0.0;
         this.particleRadius = 20;
         this.particleRadiusRange = this.particleRadius / 2;
@@ -62,16 +65,13 @@ export class SimulationGPU {
         this.mMax = -Infinity;
         this.qMin = Infinity;
         this.qMax = -Infinity;
-
-        fieldCleanup(this.graphics);
-        this.graphics.cameraDefault();
     }
 
     step(dt) {
         // log("step");
 
         this.graphics.compute();
-        ++this.cicles;
+        ++this.cycles;
 
         fieldUpdate();
 
@@ -92,9 +92,9 @@ export class SimulationGPU {
         this.physics.collisionCounter = collisions;
 
         return [
-            this.populateSimulationCallback.name,
+            this.physics.name,
             particles,
-            this.cicles,
+            this.cycles,
             this.energy / particles,
             this.physics.collisionCounter,
             this.totalMass,
@@ -102,24 +102,6 @@ export class SimulationGPU {
             this.totalTime,
             this.totalCharge,
         ];
-    }
-
-    exportCsv() {
-        log("exportCsv");
-
-        this.graphics.readbackParticleData();
-
-        let output = this.particleList[0].header();
-        output += "," + this.physics.header() + ",cicles\n";
-        this.particleList.forEach((p, i) => {
-            if (i > 0) {
-                output += p.csv() + "\n";
-            }
-            else {
-                output += p.csv() + "," + this.physics.csv() + "," + this.cicles + "\n";
-            }       
-        });
-        return output;
     }
 
     setColorMode(mode) {
@@ -183,6 +165,7 @@ export class SimulationGPU {
         log("#calcParticleRadius")
         let minRadius = this.particleRadius - this.particleRadiusRange / 2;
         let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
+        console.log([minRadius, maxRadius]);
         const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
         this.particleList.forEach((p, i) => {
             if (p.type == ParticleType.probe) {

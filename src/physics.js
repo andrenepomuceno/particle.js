@@ -2,8 +2,14 @@ import { Vector3, Color } from 'three';
 
 let particleId = 0;
 
+function log(msg) {
+    console.log("Physics: " + msg);
+}
 export class Physics {
     constructor() {
+        log("constructor");
+
+        this.name = "untitled";
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
         this.boundaryDistance = 1e12;
@@ -96,7 +102,7 @@ export class Physics {
     }
 
     header() {
-        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange";
+        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange,boundaryDistance,boundaryDamping";
     }
 
     csv() {
@@ -106,7 +112,9 @@ export class Physics {
             + this.massConstant + ","
             + this.chargeConstant + ","
             + this.nearChargeConstant + ","
-            + this.nearChargeRange;
+            + this.nearChargeRange + ","
+            + this.boundaryDistance + ","
+            + this.boundaryDamping;
     }
 }
 
@@ -120,6 +128,8 @@ export const ParticleType = {
 export class Particle {
     constructor() {
         this.id = particleId++;
+        this.type = ParticleType.default;
+        this.fixed = false;
 
         this.mass = 0.0;
         this.charge = 0.0;
@@ -127,16 +137,12 @@ export class Particle {
 
         this.position = new Vector3();
         this.velocity = new Vector3();
+
         this.force = new Vector3();
-
-        this.fixed = false;
-
         this.mesh = undefined;
         this.color = undefined;
         this.radius = undefined;
         this.uv = [];
-
-        this.type = ParticleType.default;
         this.collisions = 0.0;
     }
 
@@ -162,7 +168,7 @@ export class Particle {
     }
 
     header() {
-        return "id,type,m,q,nq,x,y,z,vx,vy,vz,e";
+        return "id,type,mass,charge,nearCharge,x,y,z,vx,vy,vz,e,collisions";
     }
 
     csv() {
@@ -173,6 +179,7 @@ export class Particle {
             this.nearCharge + "," +
             this.position.toArray() + "," +
             this.velocity.toArray() + "," +
-            this.energy();
+            this.energy() + "," +
+            this.collisions;
     }
 }

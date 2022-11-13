@@ -244,8 +244,6 @@ float sdArrow(vec3 p) {
 #define PROBE 1.0
 #define FIXED 2.0
 
-const float velMax = 1e3;
-const float velFade = 1e-2;
 const float linewidth = 0.05;
 const float antialias = 0.01;
 
@@ -253,29 +251,32 @@ varying vec4 vColor;
 flat varying float vType;
 flat varying vec3 vVelocity;
 
+vec3 velocityColor(vec3 vel) {
+    const float velMax = 1e3;
+    const float velFade = 1e-2;
+    float saturation = 1.0;
+    float value = 1.0;
+    float velAbs = length(vel)/velMax;
+    if (velAbs > 1.0) {
+        velAbs = 1.0;
+        saturation = 0.0;
+    } else if (velAbs < velFade) {
+        value = velAbs/velFade;
+    }
+    return hsv2rgb(vec3(velAbs, saturation, value));
+}
+
 void main() {
     if (vType != PROBE) {        
         float d = length(gl_PointCoord - vec2(0.5)) - 0.45;
         gl_FragColor = filled(d, linewidth, antialias, vColor);
     } else {
-        float saturation = 1.0;
-        float value = 1.0;
-        float velAbs = length(vVelocity)/velMax;
-        if (velAbs > 1.0) {
-            velAbs = 1.0;
-            saturation = 0.0;
-        } else if (velAbs < velFade) {
-            value = velAbs/velFade;
-        }
-        vec3 color = hsv2rgb(vec3(velAbs, saturation, value));
-
-        vec3 dir = normalize(vVelocity);
-    
         vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
-        coordinates.xy = mat2(dir.x, dir.y, -dir.y, dir.x) * coordinates.xy;
+        vec3 dir = normalize(vVelocity);
+        coordinates.xy = mat2(dir.x, dir.y, -dir.y, dir.x) * coordinates.xy; // rotate
 
+        vec3 color = velocityColor(vVelocity);
         float d = sdArrow(coordinates);
-
         gl_FragColor = filled(d, linewidth, antialias, vec4(color, 1.0));
     }
 }

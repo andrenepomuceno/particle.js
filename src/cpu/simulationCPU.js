@@ -5,7 +5,7 @@ import { fieldUpdate, fieldCleanup } from './../simulation';
 let particlesSetup = undefined;
 const enableMassRadius = true;
 let enableChargeColor = true;
-let cicles = 0;
+let cycles = 0;
 let energy = 0.0;
 let totalMass = 0.0;
 let totalTime = 0.0;
@@ -60,6 +60,7 @@ export class SimulationCPU {
         log("setup");
 
         this.populateSimulationCallback = populateSimulationCallback;
+        this.physics.name = populateSimulationCallback.name;
 
         console.log("simulationSetup ----------");
 
@@ -68,8 +69,6 @@ export class SimulationCPU {
         this.graphics.cameraDefault();
 
         particlesSetup = populateSimulationCallback;
-
-        //this.physics = new Physics();
 
         console.log("particleSetup ----------");
         particlesSetup(this.graphics, this.physics);
@@ -102,7 +101,7 @@ export class SimulationCPU {
         this.particleRadius = 20;
         this.particleRadiusRange = this.particleRadius / 2;
 
-        cicles = 0;
+        cycles = 0;
         maxDistance = 1e6;
         totalMass = 0.0;
         energy = 0.0;
@@ -125,7 +124,7 @@ export class SimulationCPU {
             this.graphics.render(p1);
             energy += p1.energy();
         }
-        ++cicles;
+        ++cycles;
 
         fieldUpdate();
 
@@ -135,9 +134,9 @@ export class SimulationCPU {
     state() {
         let particles = this.particleList.length;
         return [
-            particlesSetup.name,
+            this.physics.name,
             particles,
-            cicles,
+            cycles,
             energy / particles,
             this.physics.collisionCounter,
             totalMass,
@@ -145,22 +144,6 @@ export class SimulationCPU {
             totalTime,
             totalCharge,
         ];
-    }
-
-    exportCsv() {
-        log("exportCsv");
-
-        let output = this.particleList[0].header();
-        output += "," + this.physics.header() + ",cicles\n";
-        this.particleList.forEach((p, i) => {
-            if (i > 0) {
-                output += p.csv() + "\n";
-            }
-            else {
-                output += p.csv() + "," + this.physics.csv() + "," + this.cicles + "\n";
-            }       
-        });
-        return output;
     }
 
     setColorMode(mode) {

@@ -1,4 +1,4 @@
-import { Physics } from './physics.js';
+import { Particle, ParticleType, Physics } from './physics.js';
 import { SimulationGPU } from './gpu/simulationGPU';
 import { GraphicsGPU } from './gpu/graphicsGPU'
 import { FieldGPU } from './gpu/fieldGPU';
@@ -65,25 +65,26 @@ export function setBoundaryDistance(d = 1e6) {
     simulation.physics.boundaryDistance = d;
 }
 
+function internalSetup(physics_) {
+    physics = (physics_ || new Physics());
+    if (useGPU) {
+        simulation = new SimulationGPU(graphics, physics);
+        field = new FieldGPU(graphics, physics);
+    } else {
+        simulation = new SimulationCPU(graphics, physics);
+        field = new FieldCPU(graphics, physics);
+    }
+}
+
 export function simulationSetup(idx) {
     log("simulationSetup idx = " + idx);
 
-    if (idx && idx >= 0 && idx < simulationList.length) {
+    if (idx != undefined && idx >= 0 && idx < simulationList.length) {
         particlesSetup = simulationList[idx];
     }
 
-    physics = new Physics();
-    //if (!simulation) // TODO check if this condition is necessary
-    {
-        if (useGPU) {
-            simulation = new SimulationGPU(graphics, physics);
-            field = new FieldGPU(graphics, physics);
-        } else {
-            simulation = new SimulationCPU(graphics, physics);
-            field = new FieldCPU(graphics, physics);
-        }
+    internalSetup();
 
-    }
     simulation.setup(particlesSetup, true);
 
     log("simulationSetup done");
@@ -95,11 +96,6 @@ export function simulationStep(dt) {
 
 export function simulationState() {
     return simulation.state();
-}
-
-export function simulationCsv() {
-    log("simulationCsv");
-    return simulation.exportCsv();
 }
 
 export function simulationFieldSetup(mode) {
@@ -153,21 +149,152 @@ export function fieldProbe(probe) {
         return field.probe(probe);
 }
 
-export function simulationImport() {
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = ".csv";
-    input.onchange = e => {
-        let file = e.target.files[0];
+export function simulationExportCsv() {
+    log("simulationCsv");
 
-        let reader = new FileReader();
-        reader.readAsText(file, 'UTF-8');
+    const csvVersion = "1.0";
 
-        reader.onload = readerEvent => {
-            let content = readerEvent.target.result;
-            
-        }
+    if (useGPU) {
+        graphics.readbackParticleData();
     }
 
-    input.click();
+    let output = "";
+    output += "version," + physics.header();
+    output += ",cycles,targetX,targetY,targetZ,cameraX,cameraY,cameraZ,particleRadius,particleRadiusRange";
+    output += "\n";
+    output += csvVersion + "," + physics.csv();
+    output += "," + simulation.cycles;
+
+    let target = graphics.controls.target;
+    output += "," + target.x;
+    output += "," + target.y;
+    output += "," + target.z;
+    let camera = graphics.camera.position;
+    output += "," + camera.x;
+    output += "," + camera.y;
+    output += "," + camera.z;
+
+    output += "," + simulation.particleRadius;
+    output += "," + simulation.particleRadiusRange;
+
+    output += "\n";
+
+    output += physics.particleList[0].header() + "\n";
+    physics.particleList.forEach((p, i) => {
+        output += p.csv() + "\n";
+    });
+    return output;
+}
+
+export function simulationImportCSV(filename, content) {
+    log("Importing " + filename);
+
+    let newPhysics = new Physics();
+    newPhysics.name = filename;
+    let newSimulation = {};
+
+    let lines = content.split("\n");
+    let result = lines.every((line, index) => {
+        let values = line.split(",");
+        switch (index) {
+            default:
+                // particle data
+                if (values[0] == "") {
+                    return true;
+                }
+                if (values.length != 13) {
+                    log("invalid particle data");
+                    log(line);
+                    return false;
+                }
+                let particle = new Particle();
+                particle.id = parseInt(values[0]);
+                particle.type = parseFloat(values[1]);
+                if (particle.type == ParticleType.probe) {
+                    // TODO fix this
+                    particle.radius = newSimulation.particleRadius;
+                }
+                particle.mass = parseFloat(values[2]);
+                particle.charge = parseFloat(values[3]);
+                particle.nearCharge = parseFloat(values[4]);
+                particle.position.x = parseFloat(values[5]);
+                particle.position.y = parseFloat(values[6]);
+                particle.position.z = parseFloat(values[7]);
+                particle.velocity.x = parseFloat(values[8]);
+                particle.velocity.y = parseFloat(values[9]);
+                particle.velocity.z = parseFloat(values[10]);
+                // parseFloat(values[11]); energy
+                particle.collisions = parseFloat(values[12]);
+
+                newPhysics.particleList.push(particle);
+
+                break;
+
+            case 0:
+                // physics header
+                if (values.length != 19) {
+                    log("invalid physics header");
+                    return false;
+                }
+                break;
+
+            case 1:
+                // physics data
+                if (values.length != 19) {
+                    log("invalid physics data");
+                    return false;
+                }
+                // values[0] version
+                newPhysics.enableColision = (values[1] == "true") ? (true) : (false);
+                newPhysics.minDistance = parseFloat(values[2]);
+                newPhysics.forceConstant = parseFloat(values[3]);
+                newPhysics.massConstant = parseFloat(values[4]);
+                newPhysics.chargeConstant = parseFloat(values[5]);
+                newPhysics.nearChargeConstant = parseFloat(values[6]);
+                newPhysics.nearChargeRange = parseFloat(values[7]);
+                newPhysics.boundaryDistance = parseFloat(values[8]);
+                newPhysics.boundaryDamping = parseFloat(values[9]);
+                newSimulation.cycles = parseFloat(values[10]);
+                let target = {
+                    x: parseFloat(values[11]),
+                    y: parseFloat(values[12]),
+                    z: parseFloat(values[13])
+                }
+                let camera = {
+                    x: parseFloat(values[14]),
+                    y: parseFloat(values[15]),
+                    z: parseFloat(values[16])
+                }
+                graphics.camera.position.set(camera.x, camera.y, camera.z);
+                graphics.controls.target.set(target.x, target.y, target.z);
+                graphics.controls.update();
+                newSimulation.particleRadius = parseFloat(values[17]);
+                newSimulation.particleRadiusRange = parseFloat(values[18]);
+                break;
+
+            case 2:
+                // particle header
+                if (values.length != 13) {
+                    log("invalid particle data");
+                    return false;
+                }
+                break;
+        }
+        return true;
+    });
+
+    if (!result) {
+        log("failed to import CSV");
+        return;
+    }
+
+    log(newPhysics.particleList.length + " particles loaded!");
+
+    internalSetup(newPhysics);
+
+    simulation.particleRadius = newSimulation.particleRadius;
+    simulation.particleRadiusRange = newSimulation.particleRadiusRange;
+    simulation.setup();
+
+    simulation.cycles = newSimulation.cycles;
 }

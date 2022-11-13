@@ -9,13 +9,13 @@ import {
     simulationSetup,
     simulationStep,
     simulationState,
-    simulationCsv,
+    simulationExportCsv,
     simulationFieldSetup,
     simulationFieldProbe,
     setColorMode,
     graphics,
     useGPU,
-    simulationImport
+    simulationImportCSV
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -58,7 +58,19 @@ let guiOptions = {
                 makeSnapshot = true;
         },
         import: function () {
-            simulationImport();
+            let input = document.createElement('input');
+            input.type = 'file';
+            input.accept = ".csv";
+            input.onchange = e => {
+                let file = e.target.files[0];
+                let reader = new FileReader();
+                reader.readAsText(file, 'UTF-8');
+                reader.onload = readerEvent => {
+                    let content = readerEvent.target.result;
+                    simulationImportCSV(file.name, content);
+                }
+            }
+            input.click();
         }
     },
     view: {
@@ -121,7 +133,7 @@ let guiOptions = {
 
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
-        clear: function() {
+        clear: function () {
             resetParticleView();
             guiParticle.close();
         }
@@ -215,7 +227,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'P':
-            console.log(simulationCsv());
+            console.log(simulationExportCsv());
             break;
 
         case 'a':
@@ -349,7 +361,7 @@ function updateParticle() {
 function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulationState()[0];
-    downloadFile(simulationCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+    downloadFile(simulationExportCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
     });

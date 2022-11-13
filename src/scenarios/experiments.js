@@ -6,7 +6,7 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
-    //magnecticForce,
+    magnecticForce,
     experiment9,
     experiment8,
     terrarium,
@@ -604,7 +604,7 @@ function experiment1(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = min(maxParticles, 80 * 80);
+    let n = Math.min(maxParticles, 80 * 80);
 
     const massThreshold = 0.2;
     createParticles(n,

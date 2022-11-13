@@ -6,7 +6,7 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
-    magnecticForce,
+    //magnecticForce,
     experiment9,
     experiment8,
     terrarium,
@@ -42,9 +42,8 @@ function magnecticForce(graphics, physics) {
     defaultParameters(graphics, physics, 1e3);
     setParticleRadius(10, 0);
     physics.boundaryDistance = 1e12;
-    physics.boundaryDamping = 0.9;
 
-    physics.nearChargeRange = 1e3;
+    physics.nearChargeRange = 0;
     physics.nearChargeConstant = 0;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
@@ -54,7 +53,7 @@ function magnecticForce(graphics, physics) {
     fieldSetup("2d", 40);
 
     let m = 1e30;
-    let q = 1000;
+    let q = 1e3;
     let nq = 1;
     let n = 1000;
 
@@ -62,13 +61,18 @@ function magnecticForce(graphics, physics) {
     let s = 100;
     let x0 = n / 3 * s;
     x0 = 0;
-    let y0 = -0.01;
+    let y0 = 0.01;
 
-    let v2 = 3;
+    let m2 = 1e-0;
+    let q2 = 1;
+
+    let v2 = 0;
     let x2 = 0;
-    let y2 = -600;
-    let m2 = 5e-2;
-    let q2 = 1000;
+    let y2 = -500;
+
+    let x3 = 0;
+    let y3 = -300;
+    let v3 = new Vector3(0, 1, 0);
 
     createParticles(n,
         (i) => {
@@ -84,7 +88,7 @@ function magnecticForce(graphics, physics) {
             return new Vector3(-x0 + (i - n / 2) * s, y0, 0);
         },
         (i) => {
-            return new Vector3(-v, 0, 0);
+            return new Vector3(0, 0, 0);
         }
     );
 
@@ -106,17 +110,18 @@ function magnecticForce(graphics, physics) {
         }
     );
 
-    createParticle(m2, q2, 0, new Vector3(x2, y2, 0), new Vector3(v2, v2, 0));
+    //createParticle(m2, q2, 0, new Vector3(x2, y2, 0), new Vector3(v2, v2, 0));
+    createParticle(m2, q2, 0, new Vector3(x3, y3, 0), v3);
 }
 
 function experiment9(graphics, physics) {
-    defaultParameters(graphics, physics, 1e4);
-    setParticleRadius(5e1, 3e1);
-    physics.boundaryDistance = 1e5;
+    defaultParameters(graphics, physics, 3e3);
+    setParticleRadius(10, 5);
+    physics.boundaryDistance = 1e7;
     physics.boundaryDamping = 0.9;
 
-    physics.nearChargeRange = 1e3;
-    physics.nearChargeConstant = 60;
+    physics.nearChargeRange = 5e2;
+    physics.nearChargeConstant = 10;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e3;
     physics.minDistance = Math.pow(0.5, 2);
@@ -127,7 +132,7 @@ function experiment9(graphics, physics) {
     let v = 0;
     let n = maxParticles;
 
-    let density = 2.5e-4;
+    let density = 1e-3;
     let area = n / density;
     let r0 = Math.sqrt(area / (2 * Math.PI));
     console.log(r0);
@@ -154,6 +159,7 @@ function experiment9(graphics, physics) {
             let v = s * q;
             //v *= random(1, 3, true);
             v *= typeList[idx][1];
+            //v = Math.abs(v);
             return v;
         },
         (i) => {

@@ -168,11 +168,11 @@ function guiSetup() {
     guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
     guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
     guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
-    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity (abs)').listen();
-    guiParticle.add(guiOptions.particle, 'velocityDir').name('Velocity (dir)').listen();
+    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
+    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen();
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
-    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field (abs)').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field (dir)').listen();
+    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
+    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');

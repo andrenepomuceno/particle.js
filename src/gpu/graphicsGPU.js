@@ -272,6 +272,7 @@ export class GraphicsGPU {
     }
 
     readbackParticleData(particle) {
+        log("readbackParticleData");
         let current = (this.renderTarget + 0) % 2;
         
         let texture = this.positionVariable.renderTargets[current];

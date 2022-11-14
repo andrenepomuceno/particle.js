@@ -13,8 +13,8 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
-import { computeVelocity, computePosition, particleFragmentShader } from './shaders/fragment';
-import { particleVertexShader } from './shaders/vertex';
+import { computeVelocity, computePosition } from './shaders/computeShader';
+import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
 
@@ -25,7 +25,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 80;
+const textureWidth = 128+16;
 //const textureWidth = Math.round(Math.sqrt(20e3));
 console.log("textureWidth = " + textureWidth);
 export const maxParticles = textureWidth * textureWidth;

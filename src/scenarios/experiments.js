@@ -6,6 +6,7 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
+    experiment10,
     magnecticForce,
     experiment9,
     experiment8,
@@ -36,6 +37,67 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
     bidimensionalMode(true);
+}
+
+function experiment10(graphics, physics) {
+    defaultParameters(graphics, physics, 3e3);
+    setParticleRadius(10, 5);
+    physics.boundaryDistance = 10e3;
+    physics.boundaryDamping = 0.9;
+    physics.minDistance = Math.pow(0.5, 2);
+
+    physics.nearChargeRange = 2e2;
+    physics.nearChargeConstant = 1;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1/3;
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let v = 0;
+    let n = maxParticles;
+
+    let density = 1e-4;
+    let area = n / density;
+    let r0 = Math.sqrt(area / (2 * Math.PI));
+    console.log(r0);
+    console.log(r0 / physics.nearChargeRange);
+
+    let typeList = [
+        [0, 0, 1],
+        //[1e-3, 0, 1],
+        [0.5, -3, 1],
+        [3, 2, 1],
+        [6, -1, 1],
+    ]
+
+    let idx = undefined;
+    createParticles(n,
+        (i) => {
+            idx = random(0, typeList.length - 1, true);
+            return m * typeList[idx][0];
+        },
+        (i, n) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * q;
+            v *= typeList[idx][1];
+            return v;
+        },
+        (i) => {
+            let s = 1;
+            s = (random(0, 1, true) ? (-1) : (1));
+            let v = s * nq;
+            v *= typeList[idx][2];
+            return v;
+        },
+        (i) => {
+            return randomSphericVector(0, r0);
+        },
+        (i) => {
+            return randomVector(v);
+        }
+    );
 }
 
 function magnecticForce(graphics, physics) {

@@ -145,7 +145,7 @@ export function downloadFile(data, filename, type) {
 
 export function generateParticleColor(p, absCharge) {
     let h = 0, s = 100, l = 50;
-    let lmin = 15, lmax = 50;
+    let lmin = 15, lmax = 55;
 
     let charge = p.charge;
     if (charge > 0) {
@@ -160,7 +160,7 @@ export function generateParticleColor(p, absCharge) {
     }
 
     if (p.mass == 0) {
-        l = 90;
+        l = 80;
     }
 
     if (p.nearCharge > 0) {

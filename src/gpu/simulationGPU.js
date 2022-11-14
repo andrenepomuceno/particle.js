@@ -165,7 +165,6 @@ export class SimulationGPU {
         log("#calcParticleRadius")
         let minRadius = this.particleRadius - this.particleRadiusRange / 2;
         let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
-        console.log([minRadius, maxRadius]);
         const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
         this.particleList.forEach((p, i) => {
             if (p.type == ParticleType.probe) {

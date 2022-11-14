@@ -23,6 +23,10 @@ let stats = new Stats();
 document.getElementById("container").appendChild(stats.dom);
 
 const gui = new dat.GUI();
+const guiInfo = gui.addFolder("Information");
+const guiParticle = gui.addFolder("Particle");
+const guiSimulation = gui.addFolder("Simulation");
+const guiView = gui.addFolder("View");
 
 let hideAxis = false;
 let nextFrame = false;
@@ -31,6 +35,8 @@ let simulationIdx = 0;
 let colorMode = "charge";
 let makeSnapshot = false;
 let followParticle = false;
+let mousePosition = new Vector2(1e5, 1e5);
+const viewUpdateDelay = 100;
 
 let guiOptions = {
     simulation: {
@@ -140,72 +146,16 @@ let guiOptions = {
     }
 }
 
-function resetParticleView(clear = true) {
-    followParticle = false;
-    if (clear) {
-        let particleView = guiOptions.particle;
-        particleView.obj = undefined;
-        particleView.id = "";
-        particleView.mass = "";
-        particleView.charge = "";
-        particleView.nearCharge = "";
-        particleView.color = "";
-        particleView.position = "";
-        particleView.velocityDir = "";
-        particleView.velocityAbs = "";
-        particleView.field.amplitude = "";
-        particleView.field.direction = "";
-        particleView.energy = "";
-    }
-}
+window.onresize = () => {
+    graphics.onWindowResize(window);
+};
 
-const guiInfo = gui.addFolder("Information");
-const guiParticle = gui.addFolder("Particle");
-const guiSimulation = gui.addFolder("Simulation");
-const guiView = gui.addFolder("View");
-function guiSetup() {
-    guiInfo.add(guiOptions.info, 'name').name('Name').listen();
-    guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
-    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
-    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen();
-    guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
-    guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
-    guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
-    guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
-    guiInfo.open();
-
-    guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
-    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen();
-    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
-    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
-    guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
-    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
-    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen();
-    guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
-    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
-    guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
-    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
-    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticle.add(guiOptions.particle, 'clear').name('Clear');
-    //guiParticle.open();
-
-    guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiSimulation.add(guiOptions.simulation, 'step').name("Step [N]");
-    guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
-    guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
-    guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
-    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
-    guiSimulation.add(guiOptions.simulation, 'import').name("Import");
-
-    guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
-    guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
-    guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
-    guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
-
-    //gui.close();
-}
+window.addEventListener('pointermove', function (event) {
+    // calculate pointer position in normalized device coordinates
+    // (-1 to +1) for both components
+    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
+});
 
 document.addEventListener("keydown", (event) => {
     let key = event.key;
@@ -277,7 +227,7 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", (event) => {
     let particle = graphics.raycast(mousePosition);
     if (particle) {
         guiOptions.particle.obj = particle;
@@ -285,23 +235,51 @@ document.addEventListener("click", (e) => {
     }
 });
 
-graphics.controls.addEventListener("end", e => {
-    //updateField = true;
-});
+function guiSetup() {
+    guiInfo.add(guiOptions.info, 'name').name('Name').listen();
+    guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
+    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
+    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
+    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen();
+    guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
+    guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
+    guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
+    guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
+    guiInfo.open();
 
-window.onresize = function () {
-    graphics.onWindowResize(window);
-};
+    guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
+    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen();
+    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
+    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
+    guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
+    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
+    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen();
+    guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
+    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
+    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
+    guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
+    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
+    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
+    guiParticle.add(guiOptions.particle, 'clear').name('Clear');
+    //guiParticle.open();
 
-let mousePosition = new Vector2(1e5, 1e5);
-window.addEventListener('pointermove', function (event) {
-    // calculate pointer position in normalized device coordinates
-    // (-1 to +1) for both components
-    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
-});
+    guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
+    guiSimulation.add(guiOptions.simulation, 'step').name("Step [N]");
+    guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
+    guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
+    guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
+    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
+    guiSimulation.add(guiOptions.simulation, 'import').name("Import");
 
-function updateInfo(now) {
+    guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
+    guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
+    guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
+    guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
+
+    //gui.close();
+}
+
+function updateInfoView(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulationState();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
@@ -315,7 +293,7 @@ function updateInfo(now) {
     guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(3);
 }
 
-function updateParticle() {
+function updateParticleView() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
     if (particle) {
@@ -358,6 +336,25 @@ function updateParticle() {
     }
 }
 
+function resetParticleView(clear = true) {
+    followParticle = false;
+    if (clear) {
+        let particleView = guiOptions.particle;
+        particleView.obj = undefined;
+        particleView.id = "";
+        particleView.mass = "";
+        particleView.charge = "";
+        particleView.nearCharge = "";
+        particleView.color = "";
+        particleView.position = "";
+        particleView.velocityDir = "";
+        particleView.velocityAbs = "";
+        particleView.field.amplitude = "";
+        particleView.field.direction = "";
+        particleView.energy = "";
+    }
+}
+
 function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulationState()[0];
@@ -367,9 +364,8 @@ function snapshot() {
     });
 }
 
-let lastUpdate = 0;
-let lastTime = 0;
-const updateDelay = 100;
+let lastViewUpdate = 0;
+let lastAnimateTime = 0;
 let updateField = false;
 
 function animate(time) {
@@ -395,18 +391,18 @@ function animate(time) {
         nextFrame = false;
 
         let dt = 0;
-        if (!isNaN(time) && lastTime > 0) {
-            dt = time - lastTime;
+        if (!isNaN(time) && lastAnimateTime > 0) {
+            dt = time - lastAnimateTime;
         }
 
         simulationStep(dt);
     }
 
-    if (time - lastUpdate >= updateDelay) {
-        lastUpdate = time;
+    if (time - lastViewUpdate >= viewUpdateDelay) {
+        lastViewUpdate = time;
 
-        updateParticle();
-        updateInfo(time);
+        updateParticleView();
+        updateInfoView(time);
 
         if (updateField) {
             updateField = false;
@@ -414,7 +410,7 @@ function animate(time) {
         }
     }
 
-    if (!isNaN(time)) lastTime = time;
+    if (!isNaN(time)) lastAnimateTime = time;
 }
 
 if (WebGL.isWebGLAvailable()) {

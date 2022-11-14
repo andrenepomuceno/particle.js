@@ -13,6 +13,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
+
 import { computeVelocity, computePosition } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { sphericalToCartesian } from '../helpers';
@@ -25,9 +26,9 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 128+16;
-//const textureWidth = Math.round(Math.sqrt(20e3));
-console.log("textureWidth = " + textureWidth);
+const textureWidth = 80;
+//const textureWidth = Math.round(Math.sqrt(5e3));
+//const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
 export const maxParticles = textureWidth * textureWidth;
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
@@ -60,9 +61,7 @@ export class GraphicsGPU {
         this.controls.update();
 
         this.raycaster = new Raycaster();
-        //this.raycaster.params.Points.threshold = 10;
-
-        // this.cameraDefault();
+        this.raycaster.params.Points.threshold = 1;
 
         this.showAxis();
 
@@ -91,16 +90,17 @@ export class GraphicsGPU {
 
     cameraDefault() {
         log("cameraDefault");
-
-        this.cameraDistance = 3000;
-        this.cameraPhi = 30; // up/down [0,Pi]
-        this.cameraTheta = 45; // rotation [0,2Pi]
-
-        this.cameraSetup();
+        this.controls.enableRotate = true;
+        this.cameraSetup(3000, 30, 45);
     }
 
-    cameraSetup() {
+    cameraSetup(distance, phi, theta) {
         log("cameraSetup");
+        log("distance = " + distance + " phi = " + phi + " theta = " + theta);
+
+        this.cameraDistance = (distance || this.cameraDistance);
+        this.cameraPhi = (phi || this.cameraPhi);
+        this.cameraTheta = (theta || this.cameraTheta);
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
@@ -119,11 +119,13 @@ export class GraphicsGPU {
 
     drawParticles(particleList, physics) {
         log("drawParticles");
+        log("textureWidth = " + textureWidth);
 
         if (particleList.length > maxParticles) {
             let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", maxParticles);
             log(msg);
-            //alert("Error: " + msg);
+            alert("ERROR: too many particles!");
+
             this.particleList = undefined;
             this.physics = undefined;
             return;
@@ -134,6 +136,8 @@ export class GraphicsGPU {
 
         this.#initComputeRenderer();
         this.#initPointsObject();
+
+        this.initialized = true;
     }
 
     update() {
@@ -146,11 +150,14 @@ export class GraphicsGPU {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.pointsUniforms.value = getCameraConstant(this.camera);
+        if (this.initialized)
+            this.pointsUniforms.value = getCameraConstant(this.camera);
     }
 
     cleanup() {
         log("cleanup");
+
+        this.initialized = false;
 
         if (this.scene) {
             this.scene.remove(this.pointsObject);
@@ -249,7 +256,7 @@ export class GraphicsGPU {
             velocityArray[offset4 + 1] = p.velocity.y;
             velocityArray[offset4 + 2] = p.velocity.z;
             velocityArray[offset4 + 3] = 0;
-        })
+        });
 
         for (let k = particles; k < maxParticles; k++) {
             let offset4 = 4 * k;
@@ -273,6 +280,12 @@ export class GraphicsGPU {
 
     readbackParticleData(particle) {
         log("readbackParticleData");
+
+        if (!this.initialized){
+            log("not initialized");
+            return;
+        }
+
         let current = (this.renderTarget + 0) % 2;
         
         let texture = this.positionVariable.renderTargets[current];
@@ -281,14 +294,6 @@ export class GraphicsGPU {
         texture = this.velocityVariable.renderTargets[current];
         this.renderer.readRenderTargetPixels(texture, 0, 0, textureWidth, textureWidth, particleVelocity);
 
-        /*if (particle) {
-            let offset = 4 * particle.id;
-            particle.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2]);
-            particle.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2]);
-            particle.collisions = particleVelocity[offset + 3];
-            return;
-        }*/
-
         let positions = [];
         let i = 0;
         this.particleList.forEach((p) => {
@@ -296,7 +301,6 @@ export class GraphicsGPU {
 
             p.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2])
             positions.push(p.position.x, p.position.y, p.position.z);
-            //if (p.type != particlePosition[offset + 3]) log("readbackParticleData bug");
 
             p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2])
             p.collisions = particleVelocity[offset + 3];
@@ -308,9 +312,7 @@ export class GraphicsGPU {
     #initPointsObject() {
         log("#initPointObjects");
 
-        //let gpuCompute = this.gpuCompute;
         let current = this.renderTarget % 2;
-
         this.pointsUniforms = {
             'texturePosition': { value: this.positionVariable.renderTargets[current].texture },
             'textureVelocity': { value: this.velocityVariable.renderTargets[current].texture },
@@ -386,6 +388,8 @@ export class GraphicsGPU {
     }
 
     #fillPointUVs() {
+        log("#fillPointUVs");
+
         const uvs = new Float32Array(2 * maxParticles);
         let particles = this.particleList.length;
         let p = 0;
@@ -427,6 +431,8 @@ export class GraphicsGPU {
     }
 
     compute() {
+        if (!this.initialized) return;
+
         let current = (this.renderTarget % 2);
         let target = (this.renderTarget + 1) % 2;
         ++this.renderTarget;

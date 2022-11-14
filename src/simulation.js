@@ -25,9 +25,9 @@ if (useGPU) {
     graphics = new GraphicsCPU();
 }
 
+let physics = undefined;
 let simulation = undefined;
 let field = undefined;
-let physics = undefined;
 
 let simulationList = [];
 // simulationList = simulationList.concat(nearForce);
@@ -164,7 +164,6 @@ export function simulationExportCsv() {
     output += "\n";
     output += csvVersion + "," + physics.csv();
     output += "," + simulation.cycles;
-
     let target = graphics.controls.target;
     output += "," + target.x;
     output += "," + target.y;
@@ -173,10 +172,8 @@ export function simulationExportCsv() {
     output += "," + camera.x;
     output += "," + camera.y;
     output += "," + camera.z;
-
     output += "," + simulation.particleRadius;
     output += "," + simulation.particleRadiusRange;
-
     output += "\n";
 
     output += physics.particleList[0].header() + "\n";
@@ -188,10 +185,12 @@ export function simulationExportCsv() {
 
 export function simulationImportCSV(filename, content) {
     log("Importing " + filename);
+    
+    let imported = { physics: new Physics() };
+    imported.physics.name = filename;
 
-    let newPhysics = new Physics();
-    newPhysics.name = filename;
-    let newSimulation = {};
+    const particleDataColumns = 13;
+    const simulationDataColumns = 19;
 
     let lines = content.split("\n");
     let result = lines.every((line, index) => {
@@ -202,7 +201,7 @@ export function simulationImportCSV(filename, content) {
                 if (values[0] == "") {
                     return true;
                 }
-                if (values.length != 13) {
+                if (values.length != particleDataColumns) {
                     log("invalid particle data");
                     log(line);
                     return false;
@@ -212,7 +211,7 @@ export function simulationImportCSV(filename, content) {
                 particle.type = parseFloat(values[1]);
                 if (particle.type == ParticleType.probe) {
                     // TODO fix this
-                    particle.radius = newSimulation.particleRadius;
+                    particle.radius = imported.particleRadius;
                 }
                 particle.mass = parseFloat(values[2]);
                 particle.charge = parseFloat(values[3]);
@@ -226,13 +225,13 @@ export function simulationImportCSV(filename, content) {
                 // parseFloat(values[11]); energy
                 particle.collisions = parseFloat(values[12]);
 
-                newPhysics.particleList.push(particle);
+                imported.physics.particleList.push(particle);
 
                 break;
 
             case 0:
                 // physics header
-                if (values.length != 19) {
+                if (values.length != simulationDataColumns) {
                     log("invalid physics header");
                     return false;
                 }
@@ -240,21 +239,21 @@ export function simulationImportCSV(filename, content) {
 
             case 1:
                 // physics data
-                if (values.length != 19) {
+                if (values.length != simulationDataColumns) {
                     log("invalid physics data");
                     return false;
                 }
                 // values[0] version
-                newPhysics.enableColision = (values[1] == "true") ? (true) : (false);
-                newPhysics.minDistance = parseFloat(values[2]);
-                newPhysics.forceConstant = parseFloat(values[3]);
-                newPhysics.massConstant = parseFloat(values[4]);
-                newPhysics.chargeConstant = parseFloat(values[5]);
-                newPhysics.nearChargeConstant = parseFloat(values[6]);
-                newPhysics.nearChargeRange = parseFloat(values[7]);
-                newPhysics.boundaryDistance = parseFloat(values[8]);
-                newPhysics.boundaryDamping = parseFloat(values[9]);
-                newSimulation.cycles = parseFloat(values[10]);
+                imported.physics.enableColision = (values[1] == "true") ? (true) : (false);
+                imported.physics.minDistance = parseFloat(values[2]);
+                imported.physics.forceConstant = parseFloat(values[3]);
+                imported.physics.massConstant = parseFloat(values[4]);
+                imported.physics.chargeConstant = parseFloat(values[5]);
+                imported.physics.nearChargeConstant = parseFloat(values[6]);
+                imported.physics.nearChargeRange = parseFloat(values[7]);
+                imported.physics.boundaryDistance = parseFloat(values[8]);
+                imported.physics.boundaryDamping = parseFloat(values[9]);
+                imported.cycles = parseFloat(values[10]);
                 let target = {
                     x: parseFloat(values[11]),
                     y: parseFloat(values[12]),
@@ -268,13 +267,13 @@ export function simulationImportCSV(filename, content) {
                 graphics.camera.position.set(camera.x, camera.y, camera.z);
                 graphics.controls.target.set(target.x, target.y, target.z);
                 graphics.controls.update();
-                newSimulation.particleRadius = parseFloat(values[17]);
-                newSimulation.particleRadiusRange = parseFloat(values[18]);
+                imported.particleRadius = parseFloat(values[17]);
+                imported.particleRadiusRange = parseFloat(values[18]);
                 break;
 
             case 2:
                 // particle header
-                if (values.length != 13) {
+                if (values.length != particleDataColumns) {
                     log("invalid particle data");
                     return false;
                 }
@@ -288,13 +287,14 @@ export function simulationImportCSV(filename, content) {
         return;
     }
 
-    log(newPhysics.particleList.length + " particles loaded!");
+    log(imported.physics.particleList.length + " particles loaded!");
 
-    internalSetup(newPhysics);
+    internalSetup(imported.physics);
 
-    simulation.particleRadius = newSimulation.particleRadius;
-    simulation.particleRadiusRange = newSimulation.particleRadiusRange;
+    simulation.particleRadius = imported.particleRadius;
+    simulation.particleRadiusRange = imported.particleRadiusRange;
+    
     simulation.setup();
 
-    simulation.cycles = newSimulation.cycles;
+    simulation.cycles = imported.cycles;
 }

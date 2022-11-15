@@ -198,7 +198,7 @@ export class GraphicsGPU {
         gpuCompute.setVariableDependencies(this.velocityVariable, [this.velocityVariable, this.positionVariable]);
         gpuCompute.setVariableDependencies(this.positionVariable, [this.velocityVariable, this.positionVariable]);
         
-        this.#fillPhysicsUniforms();
+        this.fillPhysicsUniforms();
         this.velocityVariable.material.uniforms['textureProperties'] = { value: dtProperties };
 
         const error = gpuCompute.init();
@@ -207,7 +207,7 @@ export class GraphicsGPU {
         }
     }
 
-    #fillPhysicsUniforms() {
+    fillPhysicsUniforms() {
         let physics = this.physics;
         let uniforms = this.velocityVariable.material.uniforms;
         uniforms['minDistance'] = { value: physics.minDistance };

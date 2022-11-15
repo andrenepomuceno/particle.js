@@ -28,7 +28,7 @@ function log(msg) {
 
 let simulationList = [];
 // simulationList = simulationList.concat(nearForce);
-simulationList = simulationList.concat(fields);
+// simulationList = simulationList.concat(fields);
 // simulationList = simulationList.concat(elements);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
@@ -182,7 +182,7 @@ export function simulationExportCsv() {
 
 export function simulationImportCSV(filename, content) {
     log("Importing " + filename);
-    
+
     let imported = { physics: new Physics() };
     imported.physics.name = filename;
 
@@ -290,8 +290,57 @@ export function simulationImportCSV(filename, content) {
 
     simulation.particleRadius = imported.particleRadius;
     simulation.particleRadiusRange = imported.particleRadiusRange;
-    
+
     simulation.setup();
 
     simulation.cycles = imported.cycles;
+}
+export function simulationUpdatePhysics(key, value) {
+    log("simulationUpdatePhysics key " + key + " val " + value);
+
+    if (value == undefined || value == "") return;
+
+    let update = true;
+
+    switch (key) {
+        case "massConstant":
+            physics.massConstant = parseFloat(value);
+            break;
+
+        case "chargeConstant":
+            physics.chargeConstant = parseFloat(value);
+            break;
+
+        case "nearChargeConstant":
+            physics.nearChargeConstant = parseFloat(value);
+            break;
+
+        case "nearChargeRange":
+            physics.nearChargeRange = parseFloat(value);
+            break;
+
+        case "boundaryDamping":
+            physics.boundaryDamping = parseFloat(value);
+            break;
+
+        case "boundaryDistance":
+            physics.boundaryDistance = parseFloat(value);
+            break;
+
+        case "minDistance":
+            physics.minDistance = parseFloat(value);
+            break;
+
+        case "forceConstant":
+            physics.forceConstant = parseFloat(value);
+            break;
+
+        default:
+            update = false;
+            break;
+    }
+
+    if (update && useGPU) {
+        simulation.graphics.fillPhysicsUniforms();
+    }
 }

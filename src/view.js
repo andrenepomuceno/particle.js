@@ -15,14 +15,15 @@ import {
     graphics,
     useGPU,
     simulationImportCSV,
-    simulation
+    simulation,
+    simulationUpdatePhysics
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 let stats = new Stats();
 document.getElementById("container").appendChild(stats.dom);
 
-const gui = new dat.GUI();
+export const gui = new dat.GUI();
 const guiInfo = gui.addFolder("Information");
 const guiParticle = gui.addFolder("Particle");
 const guiSimulation = gui.addFolder("Simulation");
@@ -39,7 +40,13 @@ let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
 const viewUpdateDelay = 100;
 
-let guiOptions = {
+function setup(idx) {
+    resetParticleView();
+    simulationSetup(idx);
+    resetEditView();
+}
+
+export let guiOptions = {
     simulation: {
         pauseResume: function () {
             pause = !pause;
@@ -48,17 +55,14 @@ let guiOptions = {
             nextFrame = true;
         },
         reset: function () {
-            resetParticleView();
-            simulationSetup();
+            setup();
         },
         next: function () {
-            resetParticleView();
-            simulationSetup(++simulationIdx);
+            setup(++simulationIdx);
         },
         previous: function () {
             if (simulationIdx == 0) return;
-            resetParticleView();
-            simulationSetup(--simulationIdx);
+            setup(--simulationIdx);
         },
         snapshot: function () {
             if (!makeSnapshot)
@@ -142,16 +146,23 @@ let guiOptions = {
         },
         clear: function () {
             resetParticleView();
-            guiParticle.close();
         }
     },
     edit: {
-        massConstant: 1,
-        chargeConstant: 1,
+        massConstant: "",
+        chargeConstant: "",
+        nearChargeConstant: "",
+        nearChargeRange: "",
+        boundaryDamping: "",
+        boundaryDistance: "",
+        minDistance: "",
+        forceConstant: "",
     }
 }
 
 export function guiSetup() {
+
+
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
@@ -192,8 +203,30 @@ export function guiSetup() {
     guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
     guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
 
-    guiEdit.add(guiOptions.edit, 'massConstant', 0, 1e3).name("massConstant").listen();
-    guiEdit.add(guiOptions.edit, 'chargeConstant', 0, 1e3).name("chargeConstant").listen();
+    guiEdit.add(guiOptions.edit, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("massConstant", val);
+    });
+    guiEdit.add(guiOptions.edit, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("chargeConstant", val);
+    });
+    guiEdit.add(guiOptions.edit, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nearChargeConstant", val);
+    });
+    guiEdit.add(guiOptions.edit, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nearChargeRange", val);
+    });
+    guiEdit.add(guiOptions.edit, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("boundaryDamping", val);
+    });
+    guiEdit.add(guiOptions.edit, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("boundaryDistance", val);
+    });
+    guiEdit.add(guiOptions.edit, 'minDistance').name("minDistance").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("minDistance", val);
+    });
+    guiEdit.add(guiOptions.edit, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("forceConstant", val);
+    });
 
     //gui.close();
 }
@@ -269,11 +302,6 @@ document.addEventListener("keydown", (event) => {
             break;
 
         default:
-            if (key >= '0' && key <= '9') {
-                pause = true;
-                simulationIdx = key - '0' - 1;
-                simulationSetup(simulationIdx);
-            }
             break;
 
     }
@@ -360,7 +388,20 @@ function resetParticleView(clear = true) {
         particleView.field.amplitude = "";
         particleView.field.direction = "";
         particleView.energy = "";
+        guiParticle.close();
     }
+}
+
+function resetEditView() {
+    let edit = guiOptions.edit;
+    edit.massConstant = simulation.physics.massConstant.toExponential(3);
+    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(3);
+    edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(3);
+    edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(3);
+    edit.boundaryDamping = simulation.physics.boundaryDamping.toExponential(3);
+    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(3);
+    edit.minDistance = simulation.physics.minDistance.toExponential(3);
+    edit.forceConstant = simulation.physics.forceConstant.toExponential(3);
 }
 
 function snapshot() {

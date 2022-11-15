@@ -1,10 +1,9 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { guiSetup, animate } from './view';
-import { simulationSetup } from './simulation';
+import { guiSetup, animate, guiOptions } from './view';
 
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
-    simulationSetup();
+    guiOptions.simulation.reset();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

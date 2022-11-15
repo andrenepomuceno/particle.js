@@ -9,7 +9,7 @@ export const experiments = [
     experiment10,
     magnecticForce,
     experiment9,
-    experiment8,
+    donut,
     terrarium,
     twinsCollision,
     experiment5,
@@ -240,7 +240,7 @@ function experiment9(graphics, physics) {
     );
 }
 
-function experiment8(graphics, physics) {
+function donut(graphics, physics) {
     defaultParameters(graphics, physics, 1e4);
     setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 1e5;
@@ -416,7 +416,7 @@ function twinsCollision(graphics, physics) {
 }
 
 function experiment5(graphics, physics) {
-    defaultParameters(graphics, physics, 2e4);
+    defaultParameters(graphics, physics, 3.3e4);
     setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 5e4;
     physics.boundaryDamping = 0.95;

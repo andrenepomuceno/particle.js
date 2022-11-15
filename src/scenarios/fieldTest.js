@@ -25,7 +25,7 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
 
 let grid = 50;
 
-function defaultConfig(graphics, physics, distance = 50) {
+function defaultConfig(graphics, physics, distance = 4.0e2) {
     particleList = physics.particleList;
 
     graphics.cameraDistance = distance;
@@ -35,25 +35,18 @@ function defaultConfig(graphics, physics, distance = 50) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = -1;
-    physics.nearChargeRange = 16;
+    physics.nearChargeConstant = 1;
+    physics.nearChargeRange = 2e2;
 
     bidimensionalMode(true);
-    setParticleRadius(1, 0);
+    setParticleRadius(10, 0);
 }
 
 function nearField(graphics, physics) {
-    defaultConfig(graphics, physics, 2.6e1)
-    setParticleRadius(1, 0);
+    defaultConfig(graphics, physics)
 
-    fieldProbeConfig(0, 0, 1);
+    fieldProbeConfig(0, 0, 5e2);
     fieldSetup("2d", grid);
-
-    physics.forceConstant = 1;
-    physics.massConstant = 0;
-    physics.chargeConstant = 0;
-    physics.nearChargeConstant = 5e2;
-    physics.nearChargeRange = 16;
 
     let x = new Vector3(1.1 * physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
@@ -69,19 +62,13 @@ function nearField(graphics, physics) {
 function chargeField(graphics, physics) {
     defaultConfig(graphics, physics);
 
-    fieldProbeConfig(0, 1, 0);
+    fieldProbeConfig(0, 1e5, 0);
     fieldSetup("2d", grid);
 
-    physics.forceConstant = 1;
-    physics.massConstant = 0;
-    physics.chargeConstant = 2e4;
-    physics.nearChargeConstant = 0;
-    physics.nearChargeRange = 16;
-
-    let x = new Vector3(10, 0, 0);
-    let v = new Vector3(0, 1, 0);
+    let x = new Vector3(2e2, 0, 0);
+    let v = new Vector3(0, 0, 0);
     let fixed = true;
-    let q = 1;
+    let q = 10;
     let m = 1;
     let nq = 1;
 
@@ -90,24 +77,20 @@ function chargeField(graphics, physics) {
 }
 
 function massField(graphics, physics) {
-    defaultConfig(graphics, physics)
+    defaultConfig(graphics, physics);
+    setParticleRadius(20, 10);
 
-    fieldProbeConfig(1, 0, 0);
+    fieldProbeConfig(1e5, 0, 0);
     fieldSetup("2d", grid);
 
-    physics.forceConstant = 1;
-    physics.massConstant = 2e4;
-    physics.chargeConstant = 0;
-    physics.nearChargeConstant = 0;
-    physics.nearChargeRange = 16;
-
-    let x = new Vector3(10, 0, 0);
+    let x = new Vector3(2e2, 0, 0);
     let v = new Vector3(0, 1, 0);
     let fixed = true;
-    let q = 1;
-    let m = 1;
+    let q = 0;
+    let m1 = 10;
+    let m2 = 50;
     let nq = 1;
 
-    createParticle2(m, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);
-    createParticle2(m, -q, nq, new Vector3().add(x), new Vector3().sub(v), fixed);
+    createParticle2(m1, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);
+    createParticle2(m2, -q, -nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }

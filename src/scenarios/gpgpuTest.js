@@ -299,6 +299,7 @@ function GPU_nucleiGrid(graphics, physics) {
     let q = 3.0;
     let nq = 1.0;
     let width = Math.round(Math.sqrt(maxParticles/6));
+    if (width%2 === 0) width += 1;
     let grid = [width, Math.round(width * 9 / 16), 1];
     let r0 = physics.nearChargeRange * 0.05;
     let r1 = physics.nearChargeRange * 0.63;

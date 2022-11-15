@@ -31,7 +31,7 @@ let field = undefined;
 
 let simulationList = [];
 // simulationList = simulationList.concat(nearForce);
-// simulationList = simulationList.concat(fields);
+simulationList = simulationList.concat(fields);
 // simulationList = simulationList.concat(elements);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
@@ -44,6 +44,7 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
+console.log("simulations loaded: " + simulationList.length);
 //simulationList.reverse();
 let particlesSetup = simulationList[0];
 

@@ -118,7 +118,7 @@ export class SimulationGPU {
                 break;
         }
 
-        this.#calcParticleColor();
+        this.#fillParticleColor();
         this.graphics.fillPointColors();
     }
 
@@ -126,7 +126,7 @@ export class SimulationGPU {
         this.particleRadius = radius;
         this.particleRadiusRange = range;
 
-        this.#calcParticleRadius();
+        this.#fillParticleRadius();
         this.graphics.fillPointRadius();
     }
 
@@ -135,6 +135,8 @@ export class SimulationGPU {
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;
         this.particleList.forEach((p, idx) => {
+            if (p.type == ParticleType.probe) return;
+
             if (p.mass > this.mMax) {
                 this.mMax = p.mass;
             }
@@ -154,18 +156,21 @@ export class SimulationGPU {
             this.totalCharge += p.charge;
         });
 
-        this.#calcParticleRadius();
-        this.#calcParticleColor();
+        this.#fillParticleRadius();
+        this.#fillParticleColor();
 
         this.graphics.cleanup();
         this.graphics.drawParticles(this.particleList, this.physics);
     }
 
-    #calcParticleRadius() {
+    #fillParticleRadius() {
         log("#calcParticleRadius")
-        let minRadius = this.particleRadius - this.particleRadiusRange / 2;
-        let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
+        let minRadius = this.particleRadius - this.particleRadiusRange;
+        let maxRadius = this.particleRadius + this.particleRadiusRange;
+        if (minRadius <= 0)
+            minRadius = 1;
         const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
+
         this.particleList.forEach((p, i) => {
             if (p.type == ParticleType.probe) {
                 return;
@@ -179,7 +184,7 @@ export class SimulationGPU {
         });
     }
 
-    #calcParticleColor() {
+    #fillParticleColor() {
         log("#calcParticleColor")
 
         const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));

@@ -26,8 +26,8 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth = 128;
-//const textureWidth = Math.round(Math.sqrt(22e3));
+//const textureWidth = 148;
+const textureWidth = Math.round(Math.sqrt(22e3));
 //const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
@@ -70,6 +70,9 @@ export class GraphicsGPU {
     }
 
     raycast(pointer) {
+        let threshold = 2.0 * Math.log10(this.controls.getDistance());
+        log("raycast threshold = " + threshold);
+        this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);
 
         this.readbackParticleData();
@@ -122,8 +125,11 @@ export class GraphicsGPU {
         log("drawParticles");
         log("textureWidth = " + textureWidth);
 
-        if (particleList.length > this.maxParticles) {
-            let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", this.maxParticles);
+        this.particleList = (particleList || this.particleList);
+        this.physics = (physics || this.physics);
+
+        if (this.particleList.length > this.maxParticles) {
+            let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", this.particleList.length).replace("{1}", this.maxParticles);
             log(msg);
             alert("ERROR: too many particles!");
 
@@ -131,9 +137,6 @@ export class GraphicsGPU {
             this.physics = undefined;
             return;
         }
-
-        this.particleList = particleList;
-        this.physics = physics;
 
         this.#initComputeRenderer();
         this.#initPointsObject();
@@ -187,20 +190,20 @@ export class GraphicsGPU {
             gpuCompute.setDataType(THREE.HalfFloatType);
         }
 
-        const dtProperties = gpuCompute.createTexture();
-        const dtPosition = gpuCompute.createTexture();
-        const dtVelocity = gpuCompute.createTexture();
+        this.dtProperties = gpuCompute.createTexture();
+        this.dtPosition = gpuCompute.createTexture();
+        this.dtVelocity = gpuCompute.createTexture();
 
-        this.#fillTextures(dtProperties, dtPosition, dtVelocity);
+        this.#fillTextures();
 
-        this.velocityVariable = gpuCompute.addVariable('textureVelocity', computeVelocity, dtVelocity);
-        this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, dtPosition);
+        this.velocityVariable = gpuCompute.addVariable('textureVelocity', computeVelocity, this.dtVelocity);
+        this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);
 
         gpuCompute.setVariableDependencies(this.velocityVariable, [this.velocityVariable, this.positionVariable]);
         gpuCompute.setVariableDependencies(this.positionVariable, [this.velocityVariable, this.positionVariable]);
         
         this.fillPhysicsUniforms();
-        this.velocityVariable.material.uniforms['textureProperties'] = { value: dtProperties };
+        this.velocityVariable.material.uniforms['textureProperties'] = { value: this.dtProperties };
 
         const error = gpuCompute.init();
         if (error !== null) {
@@ -222,12 +225,12 @@ export class GraphicsGPU {
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
     }
 
-    #fillTextures(textureProperties, texturePosition, textureVelocity) {
+    #fillTextures() {
         log("#fillTextures");
 
-        const propsArray = textureProperties.image.data;
-        const posArray = texturePosition.image.data;
-        const velocityArray = textureVelocity.image.data;
+        const propsArray = this.dtProperties.image.data;
+        const posArray = this.dtPosition.image.data;
+        const velocityArray = this.dtVelocity.image.data;
 
         let particles = this.particleList.length;
         let maxParticles = propsArray.length / 4;

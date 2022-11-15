@@ -15,6 +15,7 @@ import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
+import { fillParticleRadius } from './helpers.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -346,5 +347,39 @@ export function simulationUpdatePhysics(key, value) {
 
     if (update && useGPU) {
         simulation.graphics.fillPhysicsUniforms();
+    }
+}
+
+export function simulationUpdateParticle(particle, key, value) {
+    log("simulationUpdateParticle key " + key + " val " + value);
+
+    if (value == undefined || value == "") return;
+
+    let update = true;
+
+    switch (key) {
+        case "mass":
+            particle.mass = parseFloat(value);
+            break;
+
+        case "charge":
+            particle.charge = parseFloat(value);
+            break;
+
+        case "nearCharge":
+            particle.nearCharge = parseFloat(value);
+            break;
+
+        // case "position":
+        //     particle.position = parseFloat(value);
+        //     break;
+
+        default:
+            update = false;
+            break;
+    }
+
+    if (update && useGPU) {
+        simulation.drawParticles();
     }
 }

@@ -44,7 +44,7 @@ export class SimulationGPU {
             log("populateSimulationCallback is undefined, skipping...");
         }
 
-        this.#drawParticles();
+        this.drawParticles();
         fieldUpdate();
 
         //this.graphics.compute();
@@ -130,8 +130,8 @@ export class SimulationGPU {
         this.graphics.fillPointRadius();*/
     }
 
-    #drawParticles() {
-        log("#drawParticles")
+    drawParticles() {
+        log("drawParticles")
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;
         this.particleList.forEach((p, idx) => {

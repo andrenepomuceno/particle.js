@@ -16,7 +16,8 @@ import {
     useGPU,
     simulationImportCSV,
     simulation,
-    simulationUpdatePhysics
+    simulationUpdatePhysics,
+    simulationUpdateParticle,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -38,7 +39,7 @@ let colorMode = "charge";
 let makeSnapshot = false;
 let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
-const viewUpdateDelay = 100;
+const viewUpdateDelay = 1000;
 
 function setup(idx) {
     resetParticleView();
@@ -158,6 +159,9 @@ export let guiOptions = {
         minDistance: "",
         forceConstant: "",
         maxParticles: "",
+        close: () => {
+            guiEdit.close();
+        }
     }
 }
 
@@ -177,12 +181,24 @@ export function guiSetup() {
     guiInfo.open();
 
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
-    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen();
-    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen();
-    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen();
-    guiParticle.add(guiOptions.particle, 'position').name('Position').listen();
-    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen();
-    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen();
+    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
+    });
+    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
+    });
+    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
+    });
+    guiParticle.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "position", val);
+    });
+    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "velocityAbs", val);
+    });
+    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
+    });
     guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
@@ -230,9 +246,13 @@ export function guiSetup() {
         simulationUpdatePhysics("forceConstant", val);
     });
     guiEdit.add(guiOptions.edit, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("maxParticles", val);
-        setup();
+        val = parseFloat(val);
+        if (val != simulation.physics.particleList.length) {
+            simulationUpdatePhysics("maxParticles", val);
+            setup();
+        }
     });
+    guiEdit.add(guiOptions.edit, 'close').name("Close");
 
     //gui.close();
 }
@@ -408,7 +428,7 @@ function resetEditView() {
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(3);
     edit.minDistance = simulation.physics.minDistance.toExponential(3);
     edit.forceConstant = simulation.physics.forceConstant.toExponential(3);
-    edit.maxParticles = graphics.maxParticles.toExponential(3);
+    edit.maxParticles = graphics.maxParticles;
 }
 
 function snapshot() {

@@ -350,10 +350,26 @@ export function simulationUpdatePhysics(key, value) {
     }
 }
 
+function decodeVector(value) {
+    let split = value.split(",");
+    if (split.length != 3) {
+        log("error decoding position");
+        return;
+    }
+    let vec = {
+        x: parseFloat(split[0]),
+        y: parseFloat(split[1]),
+        z: parseFloat(split[2])
+    };
+    return vec;
+}
+
 export function simulationUpdateParticle(particle, key, value) {
-    log("simulationUpdateParticle key " + key + " val " + value);
+    log("simulationUpdateParticle key = " + key + " val = " + value);
+    log("particle = " + particle);
 
     if (value == undefined || value == "") return;
+    if (particle == undefined && key != "id") return;
 
     let update = true;
 
@@ -370,9 +386,46 @@ export function simulationUpdateParticle(particle, key, value) {
             particle.nearCharge = parseFloat(value);
             break;
 
-        // case "position":
-        //     particle.position = parseFloat(value);
-        //     break;
+        case "position":
+            {
+                let v = decodeVector(value);
+                if (v) {
+                    particle.position.set(v.x, v.y, v.z);
+                }
+            }
+            break;
+
+        case "velocityAbs":
+            if (particle.velocity.length() == 0) {
+                particle.velocity.set(1.0, 0.0, 0.0);
+            }
+            particle.velocity.normalize().multiplyScalar(parseFloat(value));
+            break;
+
+        case "velocityDir":
+            {
+                let dir = decodeVector(value);
+                if (dir) {
+                    let abs = (particle.velocity.length() || 1.0);
+                    particle.velocity.set(dir.x, dir.y, dir.z);
+                    particle.velocity.multiplyScalar(abs);
+                }
+            }
+            break;
+
+        case "id":
+            {
+                let particle = undefined;
+                physics.particleList.every((p) => {
+                    if (p.id == parseInt(value)) {
+                        particle = p;
+                        return false;
+                    }
+                    return true;
+                });
+                return particle;
+            }
+            break;
 
         default:
             update = false;

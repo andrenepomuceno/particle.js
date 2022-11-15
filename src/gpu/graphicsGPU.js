@@ -26,8 +26,8 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-//const textureWidth = 148;
-const textureWidth = Math.round(Math.sqrt(22e3));
+const textureWidth = 64;
+//const textureWidth = Math.round(Math.sqrt(6000));
 //const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
@@ -70,7 +70,7 @@ export class GraphicsGPU {
     }
 
     raycast(pointer) {
-        let threshold = 2.0 * Math.log10(this.controls.getDistance());
+        let threshold = Math.log(this.controls.getDistance());
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);

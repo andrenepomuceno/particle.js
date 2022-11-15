@@ -39,7 +39,7 @@ let colorMode = "charge";
 let makeSnapshot = false;
 let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
-const viewUpdateDelay = 1000;
+const viewUpdateDelay = 250;
 
 function setup(idx) {
     resetParticleView();
@@ -180,7 +180,12 @@ export function guiSetup() {
     guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
     guiInfo.open();
 
-    guiParticle.add(guiOptions.particle, 'id').name('ID').listen();
+    guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
+        let obj = simulationUpdateParticle(guiOptions.particle.obj, "id", val);
+        if (obj) {
+            guiOptions.particle.obj = obj;
+        }
+    });;
     guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
     });

@@ -6,7 +6,7 @@ import { cubeGenerator, random } from '../helpers';
 import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
-    experiment10,
+    density,
     magnecticForce,
     experiment9,
     donut,
@@ -39,7 +39,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     bidimensionalMode(true);
 }
 
-function experiment10(graphics, physics) {
+function density(graphics, physics) {
     defaultParameters(graphics, physics, 3e3);
     setParticleRadius(10, 5);
     physics.boundaryDistance = 10e3;

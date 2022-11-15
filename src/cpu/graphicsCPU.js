@@ -10,7 +10,6 @@ import {
 } from 'three';
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { sphericalToCartesian } from '../helpers';
 
 const axisLineWidth = 100;
@@ -64,8 +63,6 @@ export class GraphicsCPU {
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
-        //this.camera.lookAt(0, 0, 0);
-
         this.controls.target.set(0, 0, 0);
         this.controls.update();
         this.controls.saveState();
@@ -73,13 +70,6 @@ export class GraphicsCPU {
 
     cameraRefresh() {
         log("cameraRefresh");
-        //this.controls.update();
-        // log(this.controls.getDistance());
-        // log(this.controls.getAzimuthalAngle() * 180/Math.PI);
-        // log(this.controls.getPolarAngle()* 180/Math.PI);
-        //let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
-        //this.camera.position.set(x, y, z);
-        //this.controls.update();
     }
 
     showAxis(show = true) {

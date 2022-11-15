@@ -1,3 +1,5 @@
+import { ParticleType } from "./physics";
+
 export function random(a, b, round = false) {
     let r = Math.random();
     r *= (b - a);
@@ -173,4 +175,37 @@ export function generateParticleColor(p, absCharge) {
     while (h < 0) h += 360;
 
     return "hsl(" + h + "," + s + "%," + l + "%)";
+}
+
+export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {
+    let minRadius = particleRadius - particleRadiusRange;
+    let maxRadius = particleRadius + particleRadiusRange;
+    if (minRadius <= 0)
+        minRadius = 1;
+    const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
+
+    particleList.forEach((p, i) => {
+        if (p.type == ParticleType.probe) {
+            return;
+        }
+
+        let radius = minRadius;
+        if (enableMassRadius && absMass != 0) {
+            radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
+        }
+        p.radius = radius;
+    });
+}
+
+export function fillParticleColor(particleList, qMin, qMax, enableChargeColor) {
+    const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
+    particleList.forEach((p, i) => {
+        let color;
+        if (enableChargeColor) {
+            color = generateParticleColor(p, absCharge);
+        } else {
+            color = randomColor();
+        }
+        p.setColor(color);
+    });
 }

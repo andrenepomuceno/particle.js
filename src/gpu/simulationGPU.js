@@ -1,4 +1,4 @@
-import { randomColor, generateParticleColor } from '../helpers';
+import { fillParticleRadius, fillParticleColor } from '../helpers';
 import { ParticleType } from '../physics';
 import { fieldUpdate, fieldCleanup, setParticleRadius } from '../simulation';
 
@@ -126,8 +126,8 @@ export class SimulationGPU {
         this.particleRadius = radius;
         this.particleRadiusRange = range;
 
-        this.#fillParticleRadius();
-        this.graphics.fillPointRadius();
+        /*this.#fillParticleRadius();
+        this.graphics.fillPointRadius();*/
     }
 
     #drawParticles() {
@@ -164,38 +164,12 @@ export class SimulationGPU {
     }
 
     #fillParticleRadius() {
-        log("#calcParticleRadius")
-        let minRadius = this.particleRadius - this.particleRadiusRange;
-        let maxRadius = this.particleRadius + this.particleRadiusRange;
-        if (minRadius <= 0)
-            minRadius = 1;
-        const absMass = Math.max(Math.abs(this.mMin), Math.abs(this.mMax));
-
-        this.particleList.forEach((p, i) => {
-            if (p.type == ParticleType.probe) {
-                return;
-            }
-
-            let radius = minRadius;
-            if (this.enableMassRadius && absMass != 0) {
-                radius += Math.round((maxRadius - minRadius) * Math.abs(p.mass) / absMass);
-            }
-            p.radius = radius;
-        });
+        log("#calcParticleRadius");
+        fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.mMin, this.mMax, this.enableMassRadius);
     }
 
     #fillParticleColor() {
-        log("#calcParticleColor")
-
-        const absCharge = Math.max(Math.abs(this.qMin), Math.abs(this.qMax));
-        this.particleList.forEach((p, i) => {
-            let color;
-            if (this.enableChargeColor) {
-                color = generateParticleColor(p, absCharge);
-            } else {
-                color = randomColor();
-            }
-            p.setColor(color);
-        });
+        log("#calcParticleColor");
+        fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
     }
 }

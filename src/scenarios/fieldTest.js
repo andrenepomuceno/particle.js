@@ -6,8 +6,8 @@ import { bidimensionalMode } from './helpers';
 
 export const fields = [
     nearField,
-    chargeField,
-    massField,
+    electromagneticField,
+    gravityField,
 ];
 
 let particleList = undefined;
@@ -59,7 +59,7 @@ function nearField(graphics, physics) {
     createParticle2(m, -q, -nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }
 
-function chargeField(graphics, physics) {
+function electromagneticField(graphics, physics) {
     defaultConfig(graphics, physics);
 
     fieldProbeConfig(0, 1e5, 0);
@@ -76,7 +76,7 @@ function chargeField(graphics, physics) {
     createParticle2(m, -q, nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }
 
-function massField(graphics, physics) {
+function gravityField(graphics, physics) {
     defaultConfig(graphics, physics);
     setParticleRadius(20, 10);
 

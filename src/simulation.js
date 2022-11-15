@@ -17,17 +17,14 @@ import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 
 export const useGPU = true;
-
 export let graphics = undefined;
-if (useGPU) {
-    graphics = new GraphicsGPU();
-} else {
-    graphics = new GraphicsCPU();
-}
-
+export let simulation = undefined;
 let physics = undefined;
-let simulation = undefined;
 let field = undefined;
+
+function log(msg) {
+    console.log("Simulation: " + msg)
+}
 
 let simulationList = [];
 // simulationList = simulationList.concat(nearForce);
@@ -44,13 +41,9 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
-console.log("simulations loaded: " + simulationList.length);
 //simulationList.reverse();
 let particlesSetup = simulationList[0];
-
-function log(msg) {
-    console.log("Simulation: " + msg)
-}
+log("simulations loaded: " + simulationList.length);
 
 export function setParticleRadius(radius, range) {
     simulation.particleRadius = radius;
@@ -68,10 +61,13 @@ export function setBoundaryDistance(d = 1e6) {
 
 function internalSetup(physics_) {
     physics = (physics_ || new Physics());
+
     if (useGPU) {
+        graphics = (graphics || new GraphicsGPU());
         simulation = new SimulationGPU(graphics, physics);
         field = new FieldGPU(graphics, physics);
     } else {
+        graphics = (graphics || new GraphicsCPU());
         simulation = new SimulationCPU(graphics, physics);
         field = new FieldCPU(graphics, physics);
     }

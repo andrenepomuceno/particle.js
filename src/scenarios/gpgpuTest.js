@@ -3,7 +3,6 @@ import { setParticleList, createParticle, bidimensionalMode, createParticles, ra
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
-import { maxParticles } from '../gpu/graphicsGPU';
 
 export const gpgpu = [
     GPU_string,
@@ -45,7 +44,7 @@ function GPU_string(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(maxParticles / 3);
+    let n = Math.round(graphics.maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -116,7 +115,7 @@ function GPU_string_m50(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(maxParticles / 3);
+    let n = Math.round(graphics.maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -187,7 +186,7 @@ function GPU_string_m20(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = Math.round(maxParticles / 3);
+    let n = Math.round(graphics.maxParticles / 3);
 
     createParticles(n,
         (i) => {
@@ -257,7 +256,7 @@ function GPU_blob1(graphics, physics) {
     let nq = 1;
     let r0 = physics.nearChargeRange * 4;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -298,7 +297,7 @@ function GPU_nucleiGrid(graphics, physics) {
     let m = 5e-1 / 0.511;
     let q = 3.0;
     let nq = 1.0;
-    let width = Math.round(Math.sqrt(maxParticles/6));
+    let width = Math.round(Math.sqrt(graphics.maxParticles/6));
     if (width%2 === 0) width += 1;
     let grid = [width, Math.round(width * 9 / 16), 1];
     let r0 = physics.nearChargeRange * 0.05;

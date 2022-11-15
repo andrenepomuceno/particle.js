@@ -29,7 +29,7 @@ const axisObject = [
 //const textureWidth = 80;
 const textureWidth = Math.round(Math.sqrt(22e3));
 //const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
-export const maxParticles = textureWidth * textureWidth;
+const _maxParticles = textureWidth * textureWidth;
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
 const particleVelocity = new Float32Array(4 * textureWidth * textureWidth);
@@ -47,6 +47,8 @@ export class GraphicsGPU {
         log("constructor");
 
         this.cleanup();
+
+        this.maxParticles = _maxParticles;
 
         this.renderer = new WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -121,8 +123,8 @@ export class GraphicsGPU {
         log("drawParticles");
         log("textureWidth = " + textureWidth);
 
-        if (particleList.length > maxParticles) {
-            let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", maxParticles);
+        if (particleList.length > this.maxParticles) {
+            let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", particleList.length).replace("{1}", this.maxParticles);
             log(msg);
             alert("ERROR: too many particles!");
 
@@ -390,7 +392,7 @@ export class GraphicsGPU {
     #fillPointUVs() {
         log("#fillPointUVs");
 
-        const uvs = new Float32Array(2 * maxParticles);
+        const uvs = new Float32Array(2 * this.maxParticles);
         let particles = this.particleList.length;
         let p = 0;
         for (let j = 0; j < textureWidth; j++) {

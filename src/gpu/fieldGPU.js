@@ -2,7 +2,6 @@ import { ArrowHelper, Color, MathUtils } from 'three';
 import { Vector3 } from 'three';
 import { Particle } from '../physics.js'
 import { cubeGenerator, sphereGenerator } from '../helpers'
-import { maxParticles } from './graphicsGPU.js';
 import { ParticleType } from '../physics'
 
 function viewSize(graphics) {
@@ -151,9 +150,9 @@ export class FieldGPU {
         console.log("#populateField");
 
         let probeCount = gridSize[0] * gridSize[1] * gridSize[2];
-        if (this.particleList.length + probeCount > maxParticles) {
+        if (this.particleList.length + probeCount > this.graphics.maxParticles) {
             log("error: too many probes: " + probeCount);
-            log("free: " + (maxParticles - this.particleList.length));
+            log("free: " + (this.graphics.maxParticles - this.particleList.length));
         }
         console.log("probeCount = " + probeCount);
 

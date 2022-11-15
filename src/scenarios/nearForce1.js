@@ -3,7 +3,6 @@ import { setParticleList, createParticle, bidimensionalMode, createParticles, ra
 import { setParticleRadius, setBoundaryDistance } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
-import { maxParticles } from '../gpu/graphicsGPU';
 
 export const nearForce1 = [
     cloud2,
@@ -61,7 +60,7 @@ function cloud2(graphics, physics) {
     let nq = 1;
     let r0 = physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -112,7 +111,7 @@ function cloud1(graphics, physics) {
     let nq = 1;
     let r0 = 8 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -163,7 +162,7 @@ function cloud0(graphics, physics) {
     let nq = 1;
     let r0 = 1e6;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -214,7 +213,7 @@ function triforce2(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -266,7 +265,7 @@ function triforce1(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -317,7 +316,7 @@ function triforce0(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -368,7 +367,7 @@ function charge_nearCharge_point0(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -419,7 +418,7 @@ function GPU_point14(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -459,7 +458,7 @@ function GPU_point13(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -499,7 +498,7 @@ function GPU_point12(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -539,7 +538,7 @@ function GPU_point11(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -579,7 +578,7 @@ function GPU_point10(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -619,7 +618,7 @@ function GPU_blob9_posNQ(graphics, physics) {
     let nq = 1;
     let r0 = 1e6;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -659,7 +658,7 @@ function GPU_blob8_posNQ_rng(graphics, physics) {
     let nq = 1;
     let r0 = 1e6;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -699,7 +698,7 @@ function GPU_point7(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -739,7 +738,7 @@ function GPU_point6(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -779,7 +778,7 @@ function GPU_point5(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -819,7 +818,7 @@ function GPU_point4(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -859,7 +858,7 @@ function GPU_point3(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {
@@ -899,7 +898,7 @@ function GPU_point2(graphics, physics) {
     let nq = 1;
     let r0 = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     createParticles(n,
         (i) => {

@@ -3,7 +3,6 @@ import { setParticleList, createParticle, bidimensionalMode, createParticles, ra
 import { setParticleRadius, setBoundaryDistance, fieldSetup, fieldProbeConfig } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
-import { maxParticles } from '../gpu/graphicsGPU';
 
 export const experiments = [
     density,
@@ -55,7 +54,7 @@ function density(graphics, physics) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let density = 1e-4;
     let area = n / density;
@@ -192,7 +191,7 @@ function experiment9(graphics, physics) {
     let q = 1 / 3;
     let nq = 1;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let density = 1e-3;
     let area = n / density;
@@ -257,7 +256,7 @@ function donut(graphics, physics) {
     let nq = 1;
     let r0 = 4 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -316,7 +315,7 @@ function terrarium(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.5 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -432,7 +431,7 @@ function experiment5(graphics, physics) {
     let nq = 1;
     let r0 = 0.1 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -490,7 +489,7 @@ function wildParticles(graphics, physics) {
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let typeList = [
         [0, 0, 1],
@@ -548,7 +547,7 @@ function experiment3(graphics, physics) {
     let nq = 1;
     let r0 = 0.01 * physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     let list = [
         [0, 0],
@@ -608,7 +607,7 @@ function experiment2(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -666,7 +665,7 @@ function experiment1(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = Math.min(maxParticles, 80 * 80);
+    let n = Math.min(graphics.maxParticles, 80 * 80);
 
     const massThreshold = 0.2;
     createParticles(n,
@@ -722,7 +721,7 @@ function experiment0(graphics, physics) {
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;
     let v = 0;
-    let n = maxParticles;
+    let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
     createParticles(n,

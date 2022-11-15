@@ -157,12 +157,11 @@ export let guiOptions = {
         boundaryDistance: "",
         minDistance: "",
         forceConstant: "",
+        maxParticles: "",
     }
 }
 
 export function guiSetup() {
-
-
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
@@ -226,6 +225,10 @@ export function guiSetup() {
     });
     guiEdit.add(guiOptions.edit, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
+    });
+    guiEdit.add(guiOptions.edit, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("maxParticles", val);
+
     });
 
     //gui.close();
@@ -402,6 +405,7 @@ function resetEditView() {
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(3);
     edit.minDistance = simulation.physics.minDistance.toExponential(3);
     edit.forceConstant = simulation.physics.forceConstant.toExponential(3);
+    edit.maxParticles = graphics.maxParticles.toExponential(3);
 }
 
 function snapshot() {

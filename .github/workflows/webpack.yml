@@ -31,6 +31,6 @@ jobs:
 
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "particle.js_${GITHUB_REF#refs/*/}.zip"
+        artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true

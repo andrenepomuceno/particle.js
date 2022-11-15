@@ -26,10 +26,9 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-//const textureWidth = 80;
-const textureWidth = Math.round(Math.sqrt(22e3));
+const textureWidth = 128;
+//const textureWidth = Math.round(Math.sqrt(22e3));
 //const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
-const _maxParticles = textureWidth * textureWidth;
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
 const particleVelocity = new Float32Array(4 * textureWidth * textureWidth);
@@ -48,7 +47,7 @@ export class GraphicsGPU {
 
         this.cleanup();
 
-        this.maxParticles = _maxParticles;
+        this.maxParticles = textureWidth * textureWidth;
 
         this.renderer = new WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);

@@ -162,6 +162,9 @@ export let guiOptions = {
 }
 
 export function guiSetup() {
+    console.log(gui.width);
+    gui.width = 300;
+
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
@@ -228,7 +231,7 @@ export function guiSetup() {
     });
     guiEdit.add(guiOptions.edit, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         simulationUpdatePhysics("maxParticles", val);
-
+        setup();
     });
 
     //gui.close();

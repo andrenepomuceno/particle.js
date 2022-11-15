@@ -335,6 +335,10 @@ export function simulationUpdatePhysics(key, value) {
             physics.forceConstant = parseFloat(value);
             break;
 
+        case "maxParticles":
+            graphics.maxParticles = parseFloat(value);
+            break;
+
         default:
             update = false;
             break;

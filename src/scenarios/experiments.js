@@ -40,9 +40,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function density2(graphics, physics) {
-    defaultParameters(graphics, physics, 3e3);
+    defaultParameters(graphics, physics, 1.5e3);
     setParticleRadius(10, 5);
-    physics.boundaryDistance = 10e3;
+    physics.boundaryDistance = 5e3;
     physics.boundaryDamping = 0.9;
     physics.minDistance = Math.pow(0.5, 2);
 
@@ -57,24 +57,24 @@ function density2(graphics, physics) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    let density = 1e-4;
+    let density = 1e-3;
     let area = n / density;
     let r0 = Math.sqrt(area / (2 * Math.PI));
-    console.log(r0);
-    console.log(r0 / physics.nearChargeRange);
+    console.log("r0 = " + r0);
+    console.log("r0/nearChargeRange = " + r0 / physics.nearChargeRange);
 
     let typeList = [
         [0, 0, 1],
-        //[1e-3, 0, 1],
-        [0.5, -3, 1],
-        [3, 2, 1],
-        [6, -1, 1],
-    ]
+        [0.5, -1, 1],
+        [3, 2/3, 1],
+        [6, -1/3, 1]
+    ];
 
     let idx = undefined;
     createParticles(n,
         (i) => {
-            idx = random(0, typeList.length - 1, true);
+            let len = typeList.length - 1;
+            idx = random(0, len, true);
             return m * typeList[idx][0];
         },
         (i, n) => {

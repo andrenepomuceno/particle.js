@@ -165,9 +165,19 @@ export let guiOptions = {
     }
 }
 
+let mouseOverGUI = false;
+
 export function guiSetup() {
-    console.log(gui.width);
     gui.width = 300;
+
+    gui.domElement.addEventListener("mouseover", () => {
+        mouseOverGUI = true;
+        console.log("mouseover");
+    });
+    gui.domElement.addEventListener("mouseleave", () => {
+        mouseOverGUI = false;
+        console.log("mouseleave");
+    });
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
@@ -339,6 +349,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("click", (event) => {
+    if (mouseOverGUI) return;
+
     let particle = graphics.raycast(mousePosition);
     if (particle) {
         guiOptions.particle.obj = particle;
@@ -363,9 +375,9 @@ function updateInfoView(now) {
 function updateParticleView() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
+
     if (particle) {
-        if (useGPU)
-            graphics.readbackParticleData(particle);
+        if (useGPU) graphics.readbackParticleData(particle);
 
         //static info
         particleView.id = particle.id;

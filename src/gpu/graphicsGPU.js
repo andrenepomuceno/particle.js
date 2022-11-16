@@ -282,7 +282,7 @@ export class GraphicsGPU {
         }
     }
 
-    readbackParticleData(particle) {
+    readbackParticleData() {
         log("readbackParticleData");
 
         if (!this.initialized){

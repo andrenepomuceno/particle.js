@@ -147,7 +147,7 @@ export function downloadFile(data, filename, type) {
 
 export function generateParticleColor(p, absCharge) {
     let h = 0, s = 100, l = 50;
-    let lmin = 15, lmax = 55;
+    let lmin = 30, lmax = 60;
 
     let charge = p.charge;
     if (charge > 0) {

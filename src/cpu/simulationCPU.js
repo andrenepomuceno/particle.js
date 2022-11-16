@@ -60,7 +60,7 @@ export class SimulationCPU {
         log("setup");
 
         this.populateSimulationCallback = populateSimulationCallback;
-        this.physics.name = populateSimulationCallback.name;
+        this.name = populateSimulationCallback.name;
 
         console.log("simulationSetup ----------");
 
@@ -87,6 +87,8 @@ export class SimulationCPU {
         /*this.particleList.forEach((p, i) => {
             this.graphics.scene.remove(p.mesh);
         });*/
+
+        this.name = "untitled";
 
         for (var i = this.graphics.scene.children.length - 1; i >= 0; i--) {
             let obj = this.graphics.scene.children[i];
@@ -134,7 +136,7 @@ export class SimulationCPU {
     state() {
         let particles = this.particleList.length;
         return [
-            this.physics.name,
+            this.name,
             particles,
             cycles,
             energy / particles,

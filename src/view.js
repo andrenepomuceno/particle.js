@@ -29,7 +29,7 @@ const guiInfo = gui.addFolder("Information");
 const guiParticle = gui.addFolder("Particle");
 const guiSimulation = gui.addFolder("Simulation");
 const guiView = gui.addFolder("View");
-const guiEdit = gui.addFolder("Edit");
+const guiParameters = gui.addFolder("Parameters");
 
 let hideAxis = false;
 let nextFrame = false;
@@ -149,7 +149,7 @@ export let guiOptions = {
             resetParticleView();
         }
     },
-    edit: {
+    parameters: {
         massConstant: "",
         chargeConstant: "",
         nearChargeConstant: "",
@@ -160,7 +160,7 @@ export let guiOptions = {
         forceConstant: "",
         maxParticles: "",
         close: () => {
-            guiEdit.close();
+            guiParameters.close();
         }
     }
 }
@@ -226,38 +226,38 @@ export function guiSetup() {
     guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
     guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
 
-    guiEdit.add(guiOptions.edit, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("massConstant", val);
     });
-    guiEdit.add(guiOptions.edit, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("chargeConstant", val);
     });
-    guiEdit.add(guiOptions.edit, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("nearChargeConstant", val);
     });
-    guiEdit.add(guiOptions.edit, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
         simulationUpdatePhysics("nearChargeRange", val);
     });
-    guiEdit.add(guiOptions.edit, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDamping", val);
     });
-    guiEdit.add(guiOptions.edit, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDistance", val);
     });
-    guiEdit.add(guiOptions.edit, 'minDistance').name("minDistance").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'minDistance').name("minDistance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("minDistance", val);
     });
-    guiEdit.add(guiOptions.edit, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
     });
-    guiEdit.add(guiOptions.edit, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val != simulation.physics.particleList.length) {
             simulationUpdatePhysics("maxParticles", val);
             setup();
         }
     });
-    guiEdit.add(guiOptions.edit, 'close').name("Close");
+    guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
     //gui.close();
 }
@@ -424,7 +424,7 @@ function resetParticleView(clear = true) {
 }
 
 function resetEditView() {
-    let edit = guiOptions.edit;
+    let edit = guiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(3);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(3);
     edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(3);

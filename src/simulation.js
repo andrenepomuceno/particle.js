@@ -185,7 +185,6 @@ export function simulationImportCSV(filename, content) {
     log("Importing " + filename);
 
     let imported = { physics: new Physics() };
-    imported.physics.name = filename;
 
     const particleDataColumns = 13;
     const simulationDataColumns = 19;
@@ -289,6 +288,7 @@ export function simulationImportCSV(filename, content) {
 
     internalSetup(imported.physics);
 
+    simulation.name = filename;
     simulation.particleRadius = imported.particleRadius;
     simulation.particleRadiusRange = imported.particleRadiusRange;
 

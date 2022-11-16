@@ -9,7 +9,6 @@ export class Physics {
     constructor() {
         log("constructor");
 
-        this.name = "untitled";
         this.enableColision = true;
         this.minDistance = Math.pow(0.5, 2);
         this.boundaryDistance = 1e12;

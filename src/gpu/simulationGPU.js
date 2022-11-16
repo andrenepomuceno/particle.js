@@ -26,7 +26,7 @@ export class SimulationGPU {
 
         if (populateSimulationCallback != undefined) {
             this.populateSimulationCallback = populateSimulationCallback;
-            this.physics.name = populateSimulationCallback.name;
+            this.name = populateSimulationCallback.name;
 
             this.graphics.cameraDefault();
 
@@ -52,6 +52,8 @@ export class SimulationGPU {
 
     cleanup() {
         log("cleanup");
+
+        this.name = "untitled";
 
         this.cycles = 0;
         this.energy = 0.0;
@@ -92,7 +94,7 @@ export class SimulationGPU {
         this.physics.collisionCounter = collisions;
 
         return [
-            this.physics.name,
+            this.name,
             particles,
             this.cycles,
             this.energy / particles,

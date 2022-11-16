@@ -39,18 +39,24 @@ Main considerations:
 - Uses a fictional "Near Force", trying to imitate the Strong Force.
 
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and near charge $n_i$, the resulting force acting on this particle is
-$$F(P_i)=\sum_{j \ne i}^N [F_g(P_i,P_j) + F_e(P_i,P_j) + F_n(P_i,P_j)]$$
+$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)]$$
 where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and near fields:
 
-$$F_g(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+$$\vec{F_g}(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
-$$F_e(P_i,P_j)=-k_e.\frac{q_i q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
-$$F_n(P_i,P_j)=-k_n.n_i.n_j.V(||\vec{d_{ij}}||)$$
+$$\vec{F_n}(P_i,P_j)=-k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
 
 where
 
+$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
+
+and
+
 $V(d)=\sin{(\frac{2.d - d_{max}}{d_{max}})}$ for $d \le d_{max}$, else $V(d)=0$.
+
+Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
 
 So, the velocity of the particle is described by
 

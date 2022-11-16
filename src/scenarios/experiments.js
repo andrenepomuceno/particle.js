@@ -40,15 +40,15 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function density2(graphics, physics) {
-    defaultParameters(graphics, physics, 3e2);
-    setParticleRadius(1, 1);
+    defaultParameters(graphics, physics, 5e2);
+    setParticleRadius(1, 0.5);
     physics.boundaryDistance = 5e3;
     physics.boundaryDamping = 0.9;
     physics.minDistance = Math.pow(0.1, 2);
 
-    physics.nearChargeRange = 1e2;
-    physics.nearChargeConstant = 1;
-    physics.massConstant = 0;
+    physics.nearChargeRange = 10;
+    physics.nearChargeConstant = 1/4;
+    physics.massConstant = 1e-9;
     physics.chargeConstant = 0;
 
     let m = 10;
@@ -57,9 +57,9 @@ function density2(graphics, physics) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    let density = 5e-2;
+    let density = 4;
     let area = n / density;
-    let r0 = Math.sqrt(area / (2 * Math.PI));
+    let r0 = physics.nearChargeRange * Math.sqrt(area / (2 * Math.PI));
     console.log("r0 = " + r0);
     console.log("r0/nearChargeRange = " + r0 / physics.nearChargeRange);
 

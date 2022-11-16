@@ -181,7 +181,7 @@ export function fillParticleRadius(particleList, particleRadius, particleRadiusR
     let minRadius = particleRadius - particleRadiusRange;
     let maxRadius = particleRadius + particleRadiusRange;
     if (minRadius <= 0)
-        minRadius = 1;
+        minRadius = 0.1;
     const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));
 
     particleList.forEach((p, i) => {

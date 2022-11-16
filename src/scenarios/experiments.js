@@ -40,16 +40,16 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function density2(graphics, physics) {
-    defaultParameters(graphics, physics, 1.5e3);
-    setParticleRadius(10, 5);
+    defaultParameters(graphics, physics, 3e2);
+    setParticleRadius(1, 1);
     physics.boundaryDistance = 5e3;
     physics.boundaryDamping = 0.9;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance = Math.pow(0.1, 2);
 
-    physics.nearChargeRange = 2e2;
+    physics.nearChargeRange = 1e2;
     physics.nearChargeConstant = 1;
-    physics.massConstant = 1e-6;
-    physics.chargeConstant = 1/3;
+    physics.massConstant = 0;
+    physics.chargeConstant = 0;
 
     let m = 10;
     let q = 1;
@@ -57,7 +57,7 @@ function density2(graphics, physics) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    let density = 1e-3;
+    let density = 5e-2;
     let area = n / density;
     let r0 = Math.sqrt(area / (2 * Math.PI));
     console.log("r0 = " + r0);

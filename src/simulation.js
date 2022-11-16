@@ -338,6 +338,17 @@ export function simulationUpdatePhysics(key, value) {
 
         case "maxParticles":
             graphics.maxParticles = parseFloat(value);
+            update = false;
+            break;
+
+        case "radius":
+            simulation.particleRadius = parseFloat(value);
+            simulation.setParticleRadius();
+            break;
+
+        case "radiusRange":
+            simulation.particleRadiusRange = parseFloat(value);
+            simulation.setParticleRadius();
             break;
 
         default:
@@ -354,7 +365,7 @@ function decodeVector(value) {
     let split = value.split(",");
     if (split.length != 3) {
         log("error decoding position");
-        return;
+        return { x: 0, y: 0, z: 0 };
     }
     let vec = {
         x: parseFloat(split[0]),

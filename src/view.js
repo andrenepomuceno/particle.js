@@ -40,6 +40,7 @@ let makeSnapshot = false;
 let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
 const viewUpdateDelay = 250;
+let mouseOverGUI = false;
 
 function setup(idx) {
     resetParticleView();
@@ -79,7 +80,10 @@ export let guiOptions = {
                 reader.readAsText(file, 'UTF-8');
                 reader.onload = readerEvent => {
                     let content = readerEvent.target.result;
+
+                    resetParticleView();
                     simulationImportCSV(file.name, content);
+                    resetEditView();
                 }
             }
             input.click();
@@ -159,13 +163,13 @@ export let guiOptions = {
         minDistance: "",
         forceConstant: "",
         maxParticles: "",
+        radius: "",
+        radiusRange: "",
         close: () => {
             guiParameters.close();
         }
     }
 }
-
-let mouseOverGUI = false;
 
 export function guiSetup() {
     gui.width = 300;
@@ -260,6 +264,12 @@ export function guiSetup() {
     guiParameters.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
     });
+    guiParameters.add(guiOptions.parameters, 'radius').name("radius").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("radius", val);
+    });
+    guiParameters.add(guiOptions.parameters, 'radiusRange').name("radiusRange").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("radiusRange", val);
+    });
     guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val != simulation.physics.particleList.length) {
@@ -284,6 +294,8 @@ window.addEventListener('pointermove', function (event) {
 });
 
 document.addEventListener("keydown", (event) => {
+    if (mouseOverGUI) return;
+
     let key = event.key;
     switch (key) {
         case ' ':
@@ -441,10 +453,12 @@ function resetEditView() {
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(3);
     edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(3);
     edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(3);
-    edit.boundaryDamping = simulation.physics.boundaryDamping.toExponential(3);
+    edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(3);
-    edit.minDistance = simulation.physics.minDistance.toExponential(3);
-    edit.forceConstant = simulation.physics.forceConstant.toExponential(3);
+    edit.minDistance = simulation.physics.minDistance;
+    edit.forceConstant = simulation.physics.forceConstant;
+    edit.radius = simulation.particleRadius;
+    edit.radiusRange = simulation.particleRadiusRange;
     edit.maxParticles = graphics.maxParticles;
 }
 

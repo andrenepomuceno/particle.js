@@ -125,11 +125,11 @@ export class SimulationGPU {
     }
 
     setParticleRadius(radius, range) {
-        this.particleRadius = radius;
-        this.particleRadiusRange = range;
+        this.radius = (radius || this.particleRadius);
+        this.particleRadiusRange = (range || this.particleRadiusRange);
 
-        /*this.#fillParticleRadius();
-        this.graphics.fillPointRadius();*/
+        this.#fillParticleRadius();
+        this.graphics.fillPointRadius();
     }
 
     drawParticles() {

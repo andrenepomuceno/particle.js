@@ -1,9 +1,8 @@
 
 import { Vector3 } from 'three';
-import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance } from '../simulation';
-import { fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
-import { cubeGenerator, random, sphereGenerator } from '../helpers';
+import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { setParticleRadius, setBoundaryDistance, bidimensionalMode, fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
+import { cubeGenerator, random } from '../helpers';
 
 export const nearForce = [
     crystal,
@@ -16,7 +15,6 @@ export const nearForce = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
-    setParticleList(physics.particleList);
     let mode2d = true;
     bidimensionalMode(mode2d);
 
@@ -47,11 +45,11 @@ function crystal(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
 
-    let m = 1/10;
+    let m = 1 / 10;
     let q = 10;
     let nq = 1;
     let grid = [23, 23, 1];
-    let r0 = physics.nearChargeRange * 1/100;
+    let r0 = physics.nearChargeRange * 1 / 100;
     let r1 = physics.nearChargeRange * 0.639;
     let v = 0;
     let n = 2;
@@ -89,7 +87,7 @@ function randomBlob(graphics, physics) {
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
 
-    let m = 1/10;
+    let m = 1 / 10;
     let q = 1;
     let nq = 1;
     let r0 = physics.nearChargeRange * 0;
@@ -98,7 +96,7 @@ function randomBlob(graphics, physics) {
     let n = 1200;
 
     let pos = new Vector3(r1, 0, 0);
-    
+
 
     createParticles(n,
         (i) => {

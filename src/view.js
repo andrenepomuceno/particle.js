@@ -39,8 +39,8 @@ let colorMode = "charge";
 let makeSnapshot = false;
 let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
-const viewUpdateDelay = 250;
 let mouseOverGUI = false;
+const viewUpdateDelay = 1000;
 
 function setup(idx) {
     resetParticleView();
@@ -149,8 +149,11 @@ export let guiOptions = {
 
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
-        clear: function () {
+        close: function () {
             resetParticleView();
+        },
+        reset: () => {
+            simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);   
         }
     },
     parameters: {
@@ -167,7 +170,7 @@ export let guiOptions = {
         radiusRange: "",
         close: () => {
             guiParameters.close();
-        }
+        },
     }
 }
 
@@ -176,11 +179,9 @@ export function guiSetup() {
 
     gui.domElement.addEventListener("mouseover", () => {
         mouseOverGUI = true;
-        console.log("mouseover");
     });
     gui.domElement.addEventListener("mouseleave", () => {
         mouseOverGUI = false;
-        console.log("mouseleave");
     });
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
@@ -224,7 +225,8 @@ export function guiSetup() {
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticle.add(guiOptions.particle, 'clear').name('Clear');
+    guiParticle.add(guiOptions.particle, 'reset').name('Reset');
+    guiParticle.add(guiOptions.particle, 'close').name('Close');
     //guiParticle.open();
 
     guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -449,12 +451,12 @@ function resetParticleView(clear = true) {
 
 function resetEditView() {
     let edit = guiOptions.parameters;
-    edit.massConstant = simulation.physics.massConstant.toExponential(3);
-    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(3);
-    edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(3);
-    edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(3);
+    edit.massConstant = simulation.physics.massConstant.toExponential(2);
+    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
+    edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(2);
+    edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
-    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(3);
+    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
     edit.minDistance = simulation.physics.minDistance;
     edit.forceConstant = simulation.physics.forceConstant;
     edit.radius = simulation.particleRadius;

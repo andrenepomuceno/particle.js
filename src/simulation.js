@@ -15,9 +15,8 @@ import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
-import { fillParticleRadius } from './helpers.js';
 
-export const useGPU = true;
+export const useGPU = false;
 export let graphics = undefined;
 export let simulation = undefined;
 let physics = undefined;
@@ -285,6 +284,14 @@ export function simulationImportCSV(filename, content) {
     }
 
     log(imported.physics.particleList.length + " particles loaded!");
+    /*imported.physics.particleList.every((p) => {
+        if (p.position.z != 0) {
+            
+            log("3d simulation detected");
+            return false;
+        }
+        return true;
+    });*/
 
     internalSetup(imported.physics);
 
@@ -301,7 +308,7 @@ export function simulationUpdatePhysics(key, value) {
 
     if (value == undefined || value == "") return;
 
-    let update = true;
+    let updatePhysics = true;
 
     switch (key) {
         case "massConstant":
@@ -338,25 +345,27 @@ export function simulationUpdatePhysics(key, value) {
 
         case "maxParticles":
             graphics.maxParticles = parseFloat(value);
-            update = false;
+            updatePhysics = false;
             break;
 
         case "radius":
             simulation.particleRadius = parseFloat(value);
             simulation.setParticleRadius();
+            updatePhysics = false;
             break;
 
         case "radiusRange":
             simulation.particleRadiusRange = parseFloat(value);
             simulation.setParticleRadius();
+            updatePhysics = false;
             break;
 
         default:
-            update = false;
+            updatePhysics = false;
             break;
     }
 
-    if (update && useGPU) {
+    if (updatePhysics && useGPU) {
         simulation.graphics.fillPhysicsUniforms();
     }
 }
@@ -377,7 +386,7 @@ function decodeVector(value) {
 
 export function simulationUpdateParticle(particle, key, value) {
     log("simulationUpdateParticle key = " + key + " val = " + value);
-    log("particle = " + particle);
+    log("particle = " + particle || particle.id);
 
     if (value == undefined || value == "") return;
     if (particle == undefined && key != "id") return;
@@ -438,6 +447,14 @@ export function simulationUpdateParticle(particle, key, value) {
             }
             break;
 
+        case "reset":
+            particle.mass = 0;
+            particle.charge = 0;
+            particle.nearCharge = 0;
+            particle.velocity.set(0, 0, 0);
+            particle.position.set(0, 0, 0);
+            break;
+
         default:
             update = false;
             break;
@@ -445,5 +462,14 @@ export function simulationUpdateParticle(particle, key, value) {
 
     if (update && useGPU) {
         simulation.drawParticles();
+    }
+}
+
+export function bidimensionalMode(enable = true) {
+    simulation.mode2D = enable;
+    if (enable) {
+        graphics.controls.enableRotate = false;
+    } else {
+        graphics.controls.enableRotate = true;
     }
 }

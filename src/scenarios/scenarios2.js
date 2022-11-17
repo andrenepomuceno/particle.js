@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance } from '../simulation';
+import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { setParticleRadius, setBoundaryDistance, bidimensionalMode } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
@@ -13,7 +13,6 @@ export const scenarios2 = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
-    setParticleList(physics.particleList);
     let mode2d = true;
     bidimensionalMode(mode2d);
 

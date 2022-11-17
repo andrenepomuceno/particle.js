@@ -89,6 +89,7 @@ export class SimulationCPU {
         });*/
 
         this.name = "untitled";
+        this.mode2D = false;
 
         for (var i = this.graphics.scene.children.length - 1; i >= 0; i--) {
             let obj = this.graphics.scene.children[i];
@@ -164,6 +165,7 @@ export class SimulationCPU {
     }
 
     #drawParticles() {
+        log("#drawParticles");
         mMin = Infinity, mMax = -Infinity;
         qMin = Infinity, qMax = -Infinity;
         this.particleList.forEach((p, idx) => {
@@ -191,6 +193,7 @@ export class SimulationCPU {
     }
 
     #addParticles() {
+        log("#addParticles");
         let minRadius = this.particleRadius - this.particleRadiusRange / 2;
         let maxRadius = this.particleRadius + this.particleRadiusRange / 2;
         const absMass = Math.max(Math.abs(mMin), Math.abs(mMax));

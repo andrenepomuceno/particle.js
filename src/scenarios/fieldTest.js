@@ -1,8 +1,7 @@
 import { Vector3 } from 'three';
 import { setParticleRadius } from '../simulation'
 import { Particle } from '../physics'
-import { fieldProbeConfig, fieldSetup } from '../simulation'
-import { bidimensionalMode } from './helpers';
+import { fieldProbeConfig, fieldSetup, bidimensionalMode } from '../simulation'
 
 export const fields = [
     nearField,

@@ -1,8 +1,8 @@
 import { Vector3 } from 'three';
-import { setParticleList, createParticle, bidimensionalMode, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance, fieldSetup, fieldProbeConfig } from '../simulation';
+import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { setParticleRadius, setBoundaryDistance, fieldSetup, fieldProbeConfig, bidimensionalMode } from '../simulation';
 import { fieldCleanup } from '../simulation';
-import { cubeGenerator, random } from '../helpers';
+import { random } from '../helpers';
 
 export const experiments = [
     density2,
@@ -21,7 +21,6 @@ export const experiments = [
 ];
 
 function defaultParameters(graphics, physics, cameraDistance = 5000) {
-    setParticleList(physics.particleList);
     fieldCleanup(graphics);
 
     graphics.cameraDistance = cameraDistance;
@@ -44,12 +43,12 @@ function density2(graphics, physics) {
     setParticleRadius(10, 5);
     physics.boundaryDistance = 1e4;
     physics.boundaryDamping = 0.9;
-    physics.minDistance = Math.pow(0.1, 2);
+    physics.minDistance = Math.pow(1, 2);
 
     physics.nearChargeRange = 2e2;
     physics.nearChargeConstant = 1;
-    physics.massConstant = 1e-9;
-    physics.chargeConstant = 1e-3;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
 
     let m = 10;
     let q = 1;

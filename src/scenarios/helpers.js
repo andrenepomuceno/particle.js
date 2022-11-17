@@ -1,23 +1,7 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle } from "../physics"
 import { Vector3 } from 'three';
-import { graphics } from '../simulation'
-
-let bidimensionalModeEnable = false;
-let particleList = undefined;
-
-export function bidimensionalMode(enable = true) {
-    bidimensionalModeEnable = enable;
-    if (enable) {
-        graphics.controls.enableRotate = false;
-    } else {
-        graphics.controls.enableRotate = true;
-    }
-}
-
-export function setParticleList(list) {
-    particleList = list;
-}
+import { simulation } from '../simulation'
 
 export function randomVector(range, round = false) {
     let v = new Vector3(
@@ -25,18 +9,19 @@ export function randomVector(range, round = false) {
         random(-range, range, round),
         random(-range, range, round)
     );
-    if (bidimensionalModeEnable) v.z = 0;
+    if (simulation.mode2D) v.z = 0;
     return v;
 }
 
 export function randomSphericVector(r1, r2, mode = 0) {
     let x, y, z = 0;
-    if (bidimensionalModeEnable) [x, y, z] = randomDisc(r1, r2, mode);
+    if (simulation.mode2D) [x, y, z] = randomDisc(r1, r2, mode);
     else [x, y, z] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }
 
 export function createParticle(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+    let particleList = simulation.physics.particleList;
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;

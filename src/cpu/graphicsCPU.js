@@ -99,6 +99,7 @@ export class GraphicsCPU {
     }
 
     raycast(pointer) {
+        log("raycast");
         this.raycaster.setFromCamera(pointer, this.camera);
         const intersects = this.raycaster.intersectObjects(this.scene.children, false);
         for (let i = 0; i < intersects.length; i++) {

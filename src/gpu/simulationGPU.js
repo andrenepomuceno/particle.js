@@ -54,6 +54,7 @@ export class SimulationGPU {
         log("cleanup");
 
         this.name = "untitled";
+        this.mode2D = false;
 
         this.cycles = 0;
         this.energy = 0.0;

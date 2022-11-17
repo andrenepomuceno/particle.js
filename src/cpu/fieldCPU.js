@@ -117,8 +117,7 @@ export class FieldCPU {
         fieldProbeConfig(m, q, nq);
     }
 
-    update() {
-        // log("update");
+    update() {        
         let probe = new Particle();
         probe.mass = updateProbe.m;
         probe.charge = updateProbe.q;

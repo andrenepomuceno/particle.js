@@ -37,7 +37,6 @@ let nextFrame = false;
 let pause = false;
 let simulationIdx = 0;
 let colorMode = "charge";
-let makeSnapshot = false;
 let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
 let mouseOverGUI = false;
@@ -68,8 +67,12 @@ export let guiOptions = {
             setup(--simulationIdx);
         },
         snapshot: function () {
-            if (!makeSnapshot)
-                makeSnapshot = true;
+            let timestamp = new Date().toISOString().replace(" ", "_");
+            let name = simulationState()[0];
+            downloadFile(simulationExportCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
+            graphics.renderer.domElement.toBlob((blob) => {
+                downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
+            });
         },
         import: function () {
             let input = document.createElement('input');
@@ -154,7 +157,7 @@ export let guiOptions = {
             resetParticleView();
         },
         reset: () => {
-            simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);   
+            simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);
         }
     },
     parameters: {
@@ -465,15 +468,6 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
-function snapshot() {
-    let timestamp = new Date().toISOString();
-    let name = simulationState()[0];
-    downloadFile(simulationExportCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
-    graphics.renderer.domElement.toBlob((blob) => {
-        downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
-    });
-}
-
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
@@ -483,11 +477,6 @@ export function animate(time) {
 
     graphics.update();
     stats.update();
-
-    if (makeSnapshot) {
-        makeSnapshot = false;
-        snapshot();
-    }
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;

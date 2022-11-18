@@ -27,7 +27,7 @@ const axisObject = [
 ];
 
 //const textureWidth = 64;
-const textureWidth = Math.round(Math.sqrt(22e3));
+const textureWidth = Math.round(Math.sqrt(5e3));
 //const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
 
 const particlePosition = new Float32Array(4 * textureWidth * textureWidth);

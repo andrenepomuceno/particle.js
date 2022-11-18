@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { random, randomSpheric } from '../helpers.js'
-import { Particle } from '../physics.js'
+import { Particle, ParticleType } from '../physics.js'
 import { setParticleRadius } from '../simulation'
 
 let particleList = undefined;
@@ -30,7 +30,7 @@ function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity
     p.charge = charge;
     p.position.add(position);
     p.velocity.add(velocity);
-    p.fixed = fixed;
+    if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
 }
 
@@ -118,13 +118,6 @@ function simulationAtom(graphics, physics) {
         return [pos[0], pos[1], pos[2]];
         //return [r, 0, 0];
     }, new Vector3(), new Vector3());
-
-    // let p = new Particle();
-    // p.mass = 1e3;
-    // p.charge = 8;
-    // p.position.set(0, 0, 0);
-    // p.fixed = true;
-    // particleList.push(p);
 }
 
 function simulation0(graphics, physics) {

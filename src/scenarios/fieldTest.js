@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { setParticleRadius } from '../simulation'
-import { Particle } from '../physics'
+import { Particle, ParticleType } from '../physics'
 import { fieldProbeConfig, fieldSetup, bidimensionalMode } from '../simulation'
 
 export const fields = [
@@ -18,7 +18,7 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
     p.nearCharge = nearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
-    p.fixed = fixed;
+    if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
 }
 

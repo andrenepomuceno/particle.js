@@ -1,5 +1,5 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
-import { Particle } from "../physics"
+import { Particle, ParticleType } from "../physics"
 import { Vector3 } from 'three';
 import { simulation } from '../simulation'
 
@@ -28,7 +28,7 @@ export function createParticle(mass = 1, charge = 0, nearCharge = 0, position = 
     p.nearCharge = nearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
-    p.fixed = fixed;
+    if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
     return p;
 }

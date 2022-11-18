@@ -253,13 +253,12 @@ export class GraphicsGPU {
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;
             posArray[offset4 + 2] = p.position.z;
-            if (p.fixed) p.type = ParticleType.fixed; // probe
             posArray[offset4 + 3] = p.type;
 
             velocityArray[offset4 + 0] = p.velocity.x;
             velocityArray[offset4 + 1] = p.velocity.y;
             velocityArray[offset4 + 2] = p.velocity.z;
-            velocityArray[offset4 + 3] = 0;
+            velocityArray[offset4 + 3] = p.collisions;
         });
 
         for (let k = particles; k < maxParticles; k++) {

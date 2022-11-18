@@ -16,7 +16,7 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 
-export const useGPU = false;
+export const useGPU = true;
 export let graphics = undefined;
 export let simulation = undefined;
 let physics = undefined;
@@ -384,14 +384,30 @@ function decodeVector(value) {
     return vec;
 }
 
+export function simulationFindParticle(id) {
+    let result = undefined;
+    graphics.particleList.every((p) => {
+        if (p.id == id) {
+            result = p;
+            return false;
+        }
+        return true;
+    });
+    return result;
+}
+
 export function simulationUpdateParticle(particle, key, value) {
     log("simulationUpdateParticle key = " + key + " val = " + value);
     log("particle = " + particle || particle.id);
 
-    if (value == undefined || value == "") return;
-    if (particle == undefined && key != "id") return;
+    if (value == undefined || value === "") return;
+    if (particle == undefined) return;
 
     let update = true;
+
+    if (useGPU) {
+        graphics.readbackParticleData();
+    }
 
     switch (key) {
         case "mass":
@@ -430,20 +446,6 @@ export function simulationUpdateParticle(particle, key, value) {
                     particle.velocity.set(dir.x, dir.y, dir.z);
                     particle.velocity.multiplyScalar(abs);
                 }
-            }
-            break;
-
-        case "id":
-            {
-                let particle = undefined;
-                physics.particleList.every((p) => {
-                    if (p.id == parseInt(value)) {
-                        particle = p;
-                        return false;
-                    }
-                    return true;
-                });
-                return particle;
             }
             break;
 

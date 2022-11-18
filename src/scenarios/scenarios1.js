@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { setParticleRadius } from '../simulation.js'
 import { random, randomSpheric } from '../helpers.js'
-import { Particle } from '../physics.js'
+import { Particle, ParticleType } from '../physics.js'
 
 let particleList = undefined;
 
@@ -42,7 +42,7 @@ function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity
     p.charge = charge;
     p.position.add(position);
     p.velocity.add(velocity);
-    p.fixed = fixed;
+    if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
 }
 
@@ -59,7 +59,7 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
     p.nearCharge = nearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
-    p.fixed = fixed;
+    if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
 }
 

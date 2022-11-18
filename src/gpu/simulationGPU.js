@@ -137,6 +137,11 @@ export class SimulationGPU {
         log("drawParticles")
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;
+
+        this.totalMass = 0.0;
+        this.energy = 0.0;
+        this.totalCharge = 0.0;
+
         this.particleList.forEach((p, idx) => {
             if (p.type == ParticleType.probe) return;
 

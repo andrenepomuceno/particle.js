@@ -96,7 +96,6 @@ void main() {
 
                 float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                 x = sin(PI * x);
-                //x = cos(PI * x);
                 force += -nearChargeConstant * nq1 * nq2 * x;
             }
 
@@ -113,19 +112,20 @@ void main() {
     
         // check boundary colision
         vec3 nextPos = pos1 + vel1;
-        if (length(nextPos) >= boundaryDistance) {
-        //if ((abs(nextPos.x) >= boundaryDistance) || (abs(nextPos.y) >= boundaryDistance || (abs(nextPos.z) >= boundaryDistance)) {
-            if (length(vel1) < boundaryDistance) {
-                vel1 = reflect(vel1, normalize(-nextPos));
-                vel1 *= boundaryDamping;
-            } else {
-                // particle will go out of boundaries
-                vel1 = vec3(0.0);
+        #if 1
+            if (length(nextPos) >= boundaryDistance) {
+                if (length(vel1) < boundaryDistance) {
+                    vel1 = boundaryDamping * reflect(vel1, normalize(-nextPos));
+                } else {
+                    // particle will go out of boundaries
+                    vel1 = vec3(0.0);
+                }
             }
-        }
-
-        //if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
-        //if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
+        #else
+            if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
+            if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
+            if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
+        #endif
     } else if (type1 == PROBE) {
         vel1 = rForce;
     }

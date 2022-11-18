@@ -18,6 +18,7 @@ import {
     simulation,
     simulationUpdatePhysics,
     simulationUpdateParticle,
+    simulationFindParticle,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -196,11 +197,11 @@ export function guiSetup() {
     guiInfo.open();
 
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
-        let obj = simulationUpdateParticle(guiOptions.particle.obj, "id", val);
+        let obj = simulationFindParticle(parseInt(val));
         if (obj) {
             guiOptions.particle.obj = obj;
         }
-    });;
+    });
     guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
     });

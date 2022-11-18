@@ -83,7 +83,7 @@ export class Physics {
     }
 
     update(p) {
-        if (p.fixed) {
+        if (p.type == ParticleType.fixed) {
             return;
         }
 
@@ -128,7 +128,6 @@ export class Particle {
     constructor() {
         this.id = particleId++;
         this.type = ParticleType.default;
-        this.fixed = false;
 
         this.mass = 0.0;
         this.charge = 0.0;

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setBoundaryDistance, fieldSetup, fieldProbeConfig, bidimensionalMode } from '../simulation';
+import { fieldSetup, fieldProbeConfig } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { random } from '../helpers';
 

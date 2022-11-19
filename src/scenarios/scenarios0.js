@@ -287,8 +287,6 @@ function colisionTest(simulation) {
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    let massRange = [1, 50];
-    let chargeRange = [-1, 1];
 
     let r = 10;
     physics.minDistance = Math.pow(r, 2);

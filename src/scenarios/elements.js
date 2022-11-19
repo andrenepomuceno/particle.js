@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { fieldProbeConfig, fieldSetup, bidimensionalMode } from '../simulation';
+import { fieldProbeConfig, fieldSetup } from '../simulation';
 import { createCloud0, createNuclei0, atom0, createCloud3 } from './helpers.js';
 
 export const elements = [

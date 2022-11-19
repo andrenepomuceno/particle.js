@@ -1,7 +1,6 @@
 import { Vector3 } from 'three';
-import { setParticleRadius } from '../simulation'
 import { Particle, ParticleType } from '../physics'
-import { fieldProbeConfig, fieldSetup, bidimensionalMode } from '../simulation'
+import { fieldProbeConfig, fieldSetup } from '../simulation'
 
 export const fields = [
     nearField,
@@ -24,8 +23,11 @@ function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Ve
 
 let grid = 50;
 
-function defaultConfig(graphics, physics, distance = 4.0e2) {
-    particleList = physics.particleList;
+function defaultConfig(simulation, distance = 4.0e2) {
+    particleList = simulation.particleList;
+
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
 
     graphics.cameraDistance = distance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -44,7 +46,7 @@ function defaultConfig(graphics, physics, distance = 4.0e2) {
 function nearField(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultConfig(graphics, physics)
+    defaultConfig(simulation);
 
     fieldProbeConfig(0, 0, 5e2);
     fieldSetup("2d", grid);
@@ -63,7 +65,7 @@ function nearField(simulation) {
 function electromagneticField(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultConfig(graphics, physics);
+    defaultConfig(simulation);
 
     fieldProbeConfig(0, 1e5, 0);
     fieldSetup("2d", grid);
@@ -82,7 +84,7 @@ function electromagneticField(simulation) {
 function gravityField(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultConfig(graphics, physics);
+    defaultConfig(simulation);
     simulation.setParticleRadius(20, 10);
 
     fieldProbeConfig(1e5, 0, 0);

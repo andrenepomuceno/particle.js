@@ -9,8 +9,6 @@ import {
     simulationStep,
     simulationState,
     simulationExportCsv,
-    simulationFieldSetup,
-    simulationFieldProbe,
     setColorMode,
     graphics,
     useGPU,
@@ -19,6 +17,8 @@ import {
     simulationUpdatePhysics,
     simulationUpdateParticle,
     simulationFindParticle,
+    fieldProbe,
+    fieldSetup,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -64,8 +64,8 @@ export let guiOptions = {
             setup(++simulationIdx);
         },
         previous: function () {
-            if (simulationIdx == 0) return;
-            setup(--simulationIdx);
+            if (simulationIdx > 0)
+                setup(--simulationIdx);
         },
         snapshot: function () {
             if (!makeSnapshot) makeSnapshot = true
@@ -350,7 +350,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            simulationFieldSetup("update");
+            fieldSetup("update");
             break;
 
         case 'h':
@@ -426,7 +426,7 @@ function updateParticleView() {
         probe.mass = 1;
         probe.nearCharge = 1;
         probe.position = particle.position;
-        let field = simulationFieldProbe(probe);
+        let field = fieldProbe(probe);
         let fieldAmp = field.length();
         particleView.field.amplitude = fieldAmp.toExponential(3);
         particleView.field.direction = arrayToString(field.normalize().toArray(), 2);

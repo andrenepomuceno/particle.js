@@ -90,21 +90,6 @@ export function simulationState() {
     return simulation.state();
 }
 
-export function simulationFieldSetup(mode) {
-    log("simulationFieldSetup");
-    log("mode = " + mode);
-
-    if (field) {
-        field.setup(mode);
-    }
-}
-
-export function simulationFieldProbe(probe) {
-    if (field) {
-        return field.probe(probe);
-    }
-}
-
 export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
     log("fieldProbeConfig");
 
@@ -115,6 +100,7 @@ export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
 
 export function fieldSetup(mode = "update", grid = 10, size = 1e3) {
     log("fieldSetup");
+    log("mode = " + mode);
 
     if (field)
         field.setup(mode, grid, size);

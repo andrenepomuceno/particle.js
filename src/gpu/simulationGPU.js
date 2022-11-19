@@ -58,7 +58,7 @@ export class SimulationGPU {
         this.cycles = 0;
         this.energy = 0.0;
         this.particleRadius = 20;
-        this.particleRadiusRange = this.particleRadius / 2;
+        this.particleRadiusRange = 10;
         this.totalMass = 0.0;
         this.totalTime = 0.0;
         this.totalCharge = 0.0;
@@ -127,8 +127,11 @@ export class SimulationGPU {
     setParticleRadius(radius, range) {
         log("setParticleRadius " + radius + " " + range);
 
-        this.particleRadius = (radius || this.particleRadius);
-        this.particleRadiusRange = (range || this.particleRadiusRange);
+        if (radius == undefined) radius = this.particleRadius;
+        if (range == undefined) range = this.particleRadiusRange;
+
+        this.particleRadius = radius;
+        this.particleRadiusRange = range;
 
         if (this.particleList != undefined && this.particleList.length > 0) {
             this.#fillParticleRadius();
@@ -137,7 +140,13 @@ export class SimulationGPU {
     }
 
     drawParticles() {
-        log("drawParticles")
+        log("drawParticles");
+
+        if (this.particleList == undefined || this.particleList.length == 0) {
+            log("empty particle list!");
+            return;
+        }
+
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;
 
@@ -175,16 +184,18 @@ export class SimulationGPU {
     }
 
     #fillParticleRadius() {
-        log("#calcParticleRadius");
+        log("#fillParticleRadius");
         fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.mMin, this.mMax, this.enableMassRadius);
     }
 
     #fillParticleColor() {
-        log("#calcParticleColor");
+        log("#fillParticleColor");
         fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
     }
 
     bidimensionalMode(enable = true) {
+        log("bidimensionalMode " + enable);
+
         this.mode2D = enable;
         if (enable) {
             this.graphics.controls.enableRotate = false;

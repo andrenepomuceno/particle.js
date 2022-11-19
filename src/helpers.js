@@ -178,7 +178,10 @@ export function generateParticleColor(p, absCharge) {
 }
 
 export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {
-    if (particleList == undefined || particleList.length == 0) return;
+    if (particleList == undefined || particleList.length == 0) {
+        console.log("empty particle list");
+        return;
+    }
 
     let minRadius = particleRadius - particleRadiusRange;
     let maxRadius = particleRadius + particleRadiusRange;
@@ -200,6 +203,11 @@ export function fillParticleRadius(particleList, particleRadius, particleRadiusR
 }
 
 export function fillParticleColor(particleList, qMin, qMax, enableChargeColor) {
+    if (particleList == undefined || particleList.length == 0) {
+        console.log("empty particle list");
+        return;
+    }
+
     const absCharge = Math.max(Math.abs(qMin), Math.abs(qMax));
     particleList.forEach((p, i) => {
         let color;

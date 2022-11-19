@@ -1,7 +1,5 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { fieldSetup, fieldProbeConfig } from '../simulation';
-import { fieldCleanup } from '../simulation';
 import { random } from '../helpers';
 
 export const experiments = [
@@ -23,7 +21,7 @@ export const experiments = [
 function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -184,8 +182,8 @@ function magnecticForce(simulation) {
     physics.chargeConstant = 1;
     physics.minDistance = Math.pow(1e-6, 2);
 
-    fieldProbeConfig(0, 1e4, 0);
-    fieldSetup("2d", 40);
+    simulation.fieldProbeConfig(0, 1e4, 0);
+    simulation.fieldSetup("2d", 40);
 
     let m = 1e30;
     let q = 1e3;
@@ -620,7 +618,7 @@ function experiment3(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e7);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(3e1, 1e1);
     simulation.physics.boundaryDistance = 2e9;
 
@@ -682,7 +680,7 @@ function experiment2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e7);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 
@@ -742,7 +740,7 @@ function experiment1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 
@@ -800,7 +798,7 @@ function experiment0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 

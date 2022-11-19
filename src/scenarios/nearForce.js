@@ -1,7 +1,6 @@
 
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance, bidimensionalMode, fieldSetup, fieldProbeConfig, fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const nearForce = [
@@ -34,19 +33,19 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e5;
 
-    //fieldProbeConfig(0, 0, 100);
-    //fieldProbeConfig(1e10, 0, 0);
-    //fieldProbeConfig(0, 1e9, 0);
+    //simulation.fieldProbeConfig(0, 0, 100);
+    //simulation.fieldProbeConfig(1e10, 0, 0);
+    //simulation.fieldProbeConfig(0, 1e9, 0);
 
-    if (mode2d) fieldSetup("2d", 70);
-    if (!mode2d) fieldSetup("3d", 16);
+    if (mode2d) simulation.fieldSetup("2d", 70);
+    if (!mode2d) simulation.fieldSetup("3d", 16);
 }
 
 function crystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 15e3);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(50, 10);
 
     let m = 1 / 10;
@@ -90,7 +89,7 @@ function randomBlob(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(50, 10);
 
     let m = 1 / 10;
@@ -136,7 +135,7 @@ function molecule(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 5e3);
-    //fieldCleanup(graphics);
+    //simulation.fieldCleanup();
 
     let m = 1;
     let q = 32;
@@ -199,7 +198,7 @@ function oppositChargeBall(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
 
     let m = 1;
     let q = 1;
@@ -234,7 +233,7 @@ function sameChargeBall(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
 
     let m = 1;
     let q = 0;

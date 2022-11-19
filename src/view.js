@@ -17,8 +17,6 @@ import {
     simulationUpdatePhysics,
     simulationUpdateParticle,
     simulationFindParticle,
-    fieldProbe,
-    fieldSetup,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -350,7 +348,7 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'f':
-            fieldSetup("update");
+            simulation.fieldSetup("update");
             break;
 
         case 'h':
@@ -426,7 +424,7 @@ function updateParticleView() {
         probe.mass = 1;
         probe.nearCharge = 1;
         probe.position = particle.position;
-        let field = fieldProbe(probe);
+        let field = simulation.fieldProbe(probe);
         let fieldAmp = field.length();
         particleView.field.amplitude = fieldAmp.toExponential(3);
         particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
@@ -523,7 +521,7 @@ export function animate(time) {
 
         if (updateField) {
             updateField = false;
-            fieldSetup("update");
+            simulation.fieldSetup("update");
         }
     }
 

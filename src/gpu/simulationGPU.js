@@ -17,6 +17,8 @@ export class SimulationGPU {
         this.enableChargeColor = true;
         this.populateSimulationCallback = undefined;
 
+        this.field = undefined;
+
         this.cleanup();
     }
 
@@ -202,5 +204,42 @@ export class SimulationGPU {
         } else {
             this.graphics.controls.enableRotate = true;
         }
+    }
+
+    fieldProbeConfig(m = 0, q = 0, nq = 0) {
+        log("fieldProbeConfig");
+    
+        if (this.field) {
+            this.field.probeConfig(m, q, nq);
+        }
+    }
+    
+    fieldSetup(mode = "update", grid = 10, size = 1e3) {
+        log("fieldSetup");
+        log("mode = " + mode);
+    
+        if (this.field)
+            this.field.setup(mode, grid, size);
+    }
+    
+    fieldUpdate() {
+        //log("fieldUpdate");
+    
+        if (this.field)
+            this.field.update();
+    }
+    
+    fieldCleanup() {
+        log("fieldCleanup");
+    
+        if (this.field)
+            this.field.cleanup();
+    }
+    
+    fieldProbe(probe) {
+        log("fieldProbe");
+    
+        if (this.field)
+            return this.field.probe(probe);
     }
 }

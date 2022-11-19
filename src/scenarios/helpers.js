@@ -162,3 +162,4 @@ export function atom0(n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, 
     createNuclei0(n1, m, q, nq, r0, 0, center);
     createCloud3(n2, m, -q, 0, r1, r2, v, center);
 }
+

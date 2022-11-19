@@ -1,6 +1,5 @@
 import { Vector3 } from 'three';
 import { Particle, ParticleType } from '../physics'
-import { fieldProbeConfig, fieldSetup } from '../simulation'
 
 export const fields = [
     nearField,
@@ -48,8 +47,8 @@ function nearField(simulation) {
     let physics = simulation.physics;
     defaultConfig(simulation);
 
-    fieldProbeConfig(0, 0, 5e2);
-    fieldSetup("2d", grid);
+    simulation.fieldProbeConfig(0, 0, 5e2);
+    simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(1.1 * physics.nearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
@@ -67,8 +66,8 @@ function electromagneticField(simulation) {
     let physics = simulation.physics;
     defaultConfig(simulation);
 
-    fieldProbeConfig(0, 1e5, 0);
-    fieldSetup("2d", grid);
+    simulation.fieldProbeConfig(0, 1e5, 0);
+    simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);
     let v = new Vector3(0, 0, 0);
@@ -87,8 +86,8 @@ function gravityField(simulation) {
     defaultConfig(simulation);
     simulation.setParticleRadius(20, 10);
 
-    fieldProbeConfig(1e5, 0, 0);
-    fieldSetup("2d", grid);
+    simulation.fieldProbeConfig(1e5, 0, 0);
+    simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);
     let v = new Vector3(0, 1, 0);

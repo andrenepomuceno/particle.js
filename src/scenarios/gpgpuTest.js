@@ -1,7 +1,5 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance, bidimensionalMode } from '../simulation';
-import { fieldCleanup } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
@@ -255,7 +253,7 @@ function GPU_blob1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e4);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(50, 25);
     simulation.physics.boundaryDistance = 1e6;
     simulation.bidimensionalMode(false);
@@ -294,7 +292,7 @@ function GPU_nucleiGrid(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(50, 10);
     simulation.physics.boundaryDistance = 1e5;
     simulation.bidimensionalMode(true);
@@ -427,7 +425,7 @@ function GPU_shootedBarrier(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 30e3);
-    fieldCleanup(graphics);
+    simulation.fieldCleanup();
     simulation.setParticleRadius(50, 10);
     simulation.bidimensionalMode(false);
 

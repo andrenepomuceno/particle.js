@@ -1,6 +1,5 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance, bidimensionalMode } from '../simulation';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [

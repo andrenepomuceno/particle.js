@@ -1,5 +1,4 @@
 import { randomColor, generateParticleColor } from './../helpers.js';
-import { fieldUpdate, fieldCleanup } from './../simulation';
 
 let particlesSetup = undefined;
 const enableMassRadius = true;
@@ -64,7 +63,7 @@ export class SimulationCPU {
         console.log("simulationSetup ----------");
 
         this.cleanup();
-        fieldCleanup(this.graphics);
+        this.fieldCleanup(this.graphics);
         this.graphics.cameraDefault();
 
         particlesSetup = populateSimulationCallback;
@@ -79,7 +78,7 @@ export class SimulationCPU {
 
         this.graphics.cameraSetup();
         this.#drawParticles();
-        fieldUpdate();
+        this.fieldUpdate();
 
         console.log("simulationSetup done ----------");
     }
@@ -132,7 +131,7 @@ export class SimulationCPU {
         }
         ++cycles;
 
-        fieldUpdate();
+        this.fieldUpdate();
 
         if (dt < 1e3) totalTime += dt;
     }
@@ -211,9 +210,13 @@ export class SimulationCPU {
     }
 
     setParticleRadius(radius, range) {
-        console.log("setParticleRadius");
-        this.radius = (radius || this.particleRadius);
-        this.particleRadiusRange = (range || this.particleRadiusRange);
+        log("setParticleRadius " + radius + " " + range);
+
+        if (radius == undefined) radius = this.particleRadius;
+        if (range == undefined) range = this.particleRadiusRange;
+
+        this.particleRadius = radius;
+        this.particleRadiusRange = range;
     }
 
     bidimensionalMode(enable = true) {
@@ -223,5 +226,42 @@ export class SimulationCPU {
         } else {
             this.graphics.controls.enableRotate = true;
         }
+    }
+
+    fieldProbeConfig(m = 0, q = 0, nq = 0) {
+        log("fieldProbeConfig");
+    
+        if (this.field) {
+            this.field.probeConfig(m, q, nq);
+        }
+    }
+    
+    fieldSetup(mode = "update", grid = 10, size = 1e3) {
+        log("fieldSetup");
+        log("mode = " + mode);
+    
+        if (this.field)
+            this.field.setup(mode, grid, size);
+    }
+    
+    fieldUpdate() {
+        //log("fieldUpdate");
+    
+        if (this.field)
+            this.field.update();
+    }
+    
+    fieldCleanup() {
+        log("fieldCleanup");
+    
+        if (this.field)
+            this.field.cleanup();
+    }
+    
+    fieldProbe(probe) {
+        log("fieldProbe");
+    
+        if (this.field)
+            return this.field.probe(probe);
     }
 }

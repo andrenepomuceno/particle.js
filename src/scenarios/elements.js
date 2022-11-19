@@ -1,6 +1,5 @@
 
 import { Vector3 } from 'three';
-import { fieldProbeConfig, fieldSetup } from '../simulation';
 import { createCloud0, createNuclei0, atom0, createCloud3 } from './helpers.js';
 
 export const elements = [
@@ -34,13 +33,13 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.setParticleRadius(30, 10);
     simulation.physics.boundaryDistance = 1e5;
 
-    //fieldProbeConfig(1e12, 0, 0);
-    fieldProbeConfig(0, 1e6, 0);
-    //fieldProbeConfig(0, 0, 1e2);
-    //fieldProbeConfig(1e10, 1e6, 1e2);
+    //simulation.fieldProbeConfig(1e12, 0, 0);
+    simulation.fieldProbeConfig(0, 1e6, 0);
+    //simulation.fieldProbeConfig(0, 0, 1e2);
+    //simulation.fieldProbeConfig(1e10, 1e6, 1e2);
 
-    if (mode2d) fieldSetup("2d", 70);
-    if (!mode2d) fieldSetup("3d", 16);
+    if (mode2d) simulation.fieldSetup("2d", 70);
+    if (!mode2d) simulation.fieldSetup("3d", 16);
 }
 
 function atom(physics, n, center = new Vector3()) {
@@ -89,7 +88,7 @@ function water(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 7000);
-    //fieldCleanup(graphics);
+    //simulation.fieldCleanup();
     // physics.nearChargeConstant = 60;
     // physics.nearChargeRange = 512;
     let x = physics.nearChargeRange * 1.5;

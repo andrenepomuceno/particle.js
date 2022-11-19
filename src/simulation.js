@@ -20,7 +20,6 @@ export const useGPU = true;
 export let graphics = undefined;
 export let simulation = undefined;
 let physics = undefined;
-let field = undefined;
 
 function log(msg) {
     console.log("Simulation: " + msg)
@@ -55,11 +54,11 @@ function internalSetup(physics_) {
     if (useGPU) {
         graphics = (graphics || new GraphicsGPU());
         simulation = new SimulationGPU(graphics, physics);
-        field = new FieldGPU(graphics, physics);
+        simulation.field = new FieldGPU(graphics, physics);
     } else {
         graphics = (graphics || new GraphicsCPU());
         simulation = new SimulationCPU(graphics, physics);
-        field = new FieldCPU(graphics, physics);
+        simulation.field = new FieldCPU(graphics, physics);
     }
 }
 
@@ -88,43 +87,6 @@ export function simulationStep(dt) {
 
 export function simulationState() {
     return simulation.state();
-}
-
-export function fieldProbeConfig(m = 0, q = 0, nq = 0) {
-    log("fieldProbeConfig");
-
-    if (field) {
-        field.probeConfig(m, q, nq);
-    }
-}
-
-export function fieldSetup(mode = "update", grid = 10, size = 1e3) {
-    log("fieldSetup");
-    log("mode = " + mode);
-
-    if (field)
-        field.setup(mode, grid, size);
-}
-
-export function fieldUpdate() {
-    //log("fieldUpdate");
-
-    if (field)
-        field.update();
-}
-
-export function fieldCleanup() {
-    log("fieldCleanup");
-
-    if (field)
-        field.cleanup();
-}
-
-export function fieldProbe(probe) {
-    log("fieldProbe");
-
-    if (field)
-        return field.probe(probe);
 }
 
 export function simulationExportCsv() {

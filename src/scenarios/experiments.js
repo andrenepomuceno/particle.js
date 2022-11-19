@@ -38,7 +38,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     bidimensionalMode(true);
 }
 
-function density2(graphics, physics) {
+function density2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics);
     setParticleRadius(10, 5);
 
@@ -104,7 +106,9 @@ function density2(graphics, physics) {
     );
 }
 
-function density(graphics, physics) {
+function density(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3e3);
     setParticleRadius(10, 5);
     physics.boundaryDistance = 10e3;
@@ -165,7 +169,9 @@ function density(graphics, physics) {
     );
 }
 
-function magnecticForce(graphics, physics) {
+function magnecticForce(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e3);
     setParticleRadius(10, 0);
     physics.boundaryDistance = 1e12;
@@ -241,7 +247,9 @@ function magnecticForce(graphics, physics) {
     createParticle(m2, q2, 0, new Vector3(x3, y3, 0), v3);
 }
 
-function experiment9(graphics, physics) {
+function experiment9(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3e3);
     setParticleRadius(10, 5);
     physics.boundaryDistance = 1e7;
@@ -305,7 +313,9 @@ function experiment9(graphics, physics) {
     );
 }
 
-function donut(graphics, physics) {
+function donut(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e4);
     setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 1e5;
@@ -364,7 +374,9 @@ function donut(graphics, physics) {
 }
 
 
-function terrarium(graphics, physics) {
+function terrarium(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.4e6);
     setParticleRadius(5e3, 1e3);
     physics.boundaryDistance = 1e6;
@@ -422,7 +434,9 @@ function terrarium(graphics, physics) {
     );
 }
 
-function twinsCollision(graphics, physics) {
+function twinsCollision(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3e3);
     setParticleRadius(5, 1);
     physics.boundaryDistance = 1e4;
@@ -480,7 +494,9 @@ function twinsCollision(graphics, physics) {
     );
 }
 
-function experiment5(graphics, physics) {
+function experiment5(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3.3e4);
     setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 5e4;
@@ -538,7 +554,9 @@ function experiment5(graphics, physics) {
     );
 }
 
-function wildParticles(graphics, physics) {
+function wildParticles(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e5);
     setParticleRadius(3e2, 2e2);
     physics.boundaryDistance = 5e5;
@@ -596,7 +614,9 @@ function wildParticles(graphics, physics) {
     );
 }
 
-function experiment3(graphics, physics) {
+function experiment3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e7);
     fieldCleanup(graphics);
     setParticleRadius(3e1, 1e1);
@@ -656,7 +676,9 @@ function experiment3(graphics, physics) {
     );
 }
 
-function experiment2(graphics, physics) {
+function experiment2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e7);
     fieldCleanup(graphics);
     setParticleRadius(2e1, 1e1);
@@ -714,7 +736,9 @@ function experiment2(graphics, physics) {
     );
 }
 
-function experiment1(graphics, physics) {
+function experiment1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e6);
     fieldCleanup(graphics);
     setParticleRadius(2e1, 1e1);
@@ -770,7 +794,9 @@ function experiment1(graphics, physics) {
     );
 }
 
-function experiment0(graphics, physics) {
+function experiment0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e6);
     fieldCleanup(graphics);
     setParticleRadius(2e1, 1e1);

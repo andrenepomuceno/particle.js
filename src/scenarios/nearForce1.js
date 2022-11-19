@@ -43,7 +43,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     bidimensionalMode(true);
 }
 
-function cloud2(graphics, physics) {
+function cloud2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e6);
     fieldCleanup(graphics);
     setParticleRadius(5e3, 1e3);
@@ -94,7 +96,9 @@ function cloud2(graphics, physics) {
     );
 }
 
-function cloud1(graphics, physics) {
+function cloud1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e4);
     fieldCleanup(graphics);
     setParticleRadius(50, 25);
@@ -145,7 +149,9 @@ function cloud1(graphics, physics) {
     );
 }
 
-function cloud0(graphics, physics) {
+function cloud0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e6);
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
@@ -196,7 +202,9 @@ function cloud0(graphics, physics) {
     );
 }
 
-function triforce2(graphics, physics) {
+function triforce2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 2e6);
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
@@ -248,7 +256,9 @@ function triforce2(graphics, physics) {
 }
 
 
-function triforce1(graphics, physics) {
+function triforce1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e7);
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
@@ -299,7 +309,9 @@ function triforce1(graphics, physics) {
     );
 }
 
-function triforce0(graphics, physics) {
+function triforce0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
@@ -350,7 +362,9 @@ function triforce0(graphics, physics) {
     );
 }
 
-function charge_nearCharge_point0(graphics, physics) {
+function charge_nearCharge_point0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(2e3, 5e2);
@@ -401,7 +415,9 @@ function charge_nearCharge_point0(graphics, physics) {
     );
 }
 
-function GPU_point14(graphics, physics) {
+function GPU_point14(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -441,7 +457,9 @@ function GPU_point14(graphics, physics) {
     );
 }
 
-function GPU_point13(graphics, physics) {
+function GPU_point13(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -481,7 +499,9 @@ function GPU_point13(graphics, physics) {
     );
 }
 
-function GPU_point12(graphics, physics) {
+function GPU_point12(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -521,7 +541,9 @@ function GPU_point12(graphics, physics) {
     );
 }
 
-function GPU_point11(graphics, physics) {
+function GPU_point11(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -561,7 +583,9 @@ function GPU_point11(graphics, physics) {
     );
 }
 
-function GPU_point10(graphics, physics) {
+function GPU_point10(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -601,7 +625,9 @@ function GPU_point10(graphics, physics) {
     );
 }
 
-function GPU_blob9_posNQ(graphics, physics) {
+function GPU_blob9_posNQ(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e7);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -641,7 +667,9 @@ function GPU_blob9_posNQ(graphics, physics) {
     );
 }
 
-function GPU_blob8_posNQ_rng(graphics, physics) {
+function GPU_blob8_posNQ_rng(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.2e7);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -681,7 +709,9 @@ function GPU_blob8_posNQ_rng(graphics, physics) {
     );
 }
 
-function GPU_point7(graphics, physics) {
+function GPU_point7(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -721,7 +751,9 @@ function GPU_point7(graphics, physics) {
     );
 }
 
-function GPU_point6(graphics, physics) {
+function GPU_point6(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -761,7 +793,9 @@ function GPU_point6(graphics, physics) {
     );
 }
 
-function GPU_point5(graphics, physics) {
+function GPU_point5(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -801,7 +835,9 @@ function GPU_point5(graphics, physics) {
     );
 }
 
-function GPU_point4(graphics, physics) {
+function GPU_point4(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -841,7 +877,9 @@ function GPU_point4(graphics, physics) {
     );
 }
 
-function GPU_point3(graphics, physics) {
+function GPU_point3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);
@@ -881,7 +919,9 @@ function GPU_point3(graphics, physics) {
     );
 }
 
-function GPU_point2(graphics, physics) {
+function GPU_point2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1.7e6);
     fieldCleanup(graphics);
     setParticleRadius(1e3, 1e2);

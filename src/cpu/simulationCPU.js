@@ -55,7 +55,7 @@ export class SimulationCPU {
         this.cleanup();
     }
 
-    setup(populateSimulationCallback) {
+    setup(populateSimulationCallback, legacyMode = false) {
         log("setup");
 
         this.populateSimulationCallback = populateSimulationCallback;
@@ -69,9 +69,13 @@ export class SimulationCPU {
 
         particlesSetup = populateSimulationCallback;
 
-        console.log("particleSetup ----------");
-        particlesSetup(this.graphics, this.physics);
-        console.log("particleSetup done ----------");
+        if (legacyMode) {
+            log("Populating... (legacy)");
+            populateSimulationCallback(this.graphics, this.physics);
+        } else {
+            log("Populating...");
+            populateSimulationCallback(this);
+        }
 
         this.graphics.cameraSetup();
         this.#drawParticles();

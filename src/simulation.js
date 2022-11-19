@@ -82,7 +82,7 @@ export function simulationSetup(idx) {
 
     internalSetup();
 
-    simulation.setup(particlesSetup, true);
+    simulation.setup(particlesSetup);
 
     log("simulationSetup done");
 }

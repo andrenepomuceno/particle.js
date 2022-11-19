@@ -30,7 +30,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setBoundaryDistance(1e6);
 }
 
-function GPU_string(graphics, physics) {
+function GPU_string(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e7);
     setBoundaryDistance(1e9);
     setParticleRadius(1e4, 1e2);
@@ -101,7 +103,9 @@ function GPU_string(graphics, physics) {
     );
 }
 
-function GPU_string_m50(graphics, physics) {
+function GPU_string_m50(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e7);
     setBoundaryDistance(1e9);
     setParticleRadius(1e4, 1e3);
@@ -172,7 +176,9 @@ function GPU_string_m50(graphics, physics) {
     );
 }
 
-function GPU_string_m20(graphics, physics) {
+function GPU_string_m20(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e7);
     setBoundaryDistance(1e9);
     setParticleRadius(1e4, 1e3);
@@ -243,7 +249,9 @@ function GPU_string_m20(graphics, physics) {
     );
 }
 
-function GPU_blob1(graphics, physics) {
+function GPU_blob1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e4);
     fieldCleanup(graphics);
     setParticleRadius(50, 25);
@@ -280,7 +288,9 @@ function GPU_blob1(graphics, physics) {
     );
 }
 
-function GPU_nucleiGrid(graphics, physics) {
+function GPU_nucleiGrid(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 10e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
@@ -411,7 +421,9 @@ function GPU_nucleiGrid(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function GPU_shootedBarrier(graphics, physics) {
+function GPU_shootedBarrier(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 30e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);

@@ -40,7 +40,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     if (!mode2d) fieldSetup("3d", 16);
 }
 
-function crystal(graphics, physics) {
+function crystal(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 15e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
@@ -82,7 +84,9 @@ function crystal(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function randomBlob(graphics, physics) {
+function randomBlob(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 10e3);
     fieldCleanup(graphics);
     setParticleRadius(50, 10);
@@ -126,7 +130,9 @@ function randomBlob(graphics, physics) {
     )
 }
 
-function molecule(graphics, physics) {
+function molecule(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 5e3);
     //fieldCleanup(graphics);
 
@@ -187,7 +193,9 @@ function molecule(graphics, physics) {
     )
 }
 
-function oppositChargeBall(graphics, physics) {
+function oppositChargeBall(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 10e3);
     fieldCleanup(graphics);
 
@@ -220,7 +228,9 @@ function oppositChargeBall(graphics, physics) {
     )
 }
 
-function sameChargeBall(graphics, physics) {
+function sameChargeBall(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics);
     fieldCleanup(graphics);
 
@@ -243,7 +253,9 @@ function sameChargeBall(graphics, physics) {
     )
 }
 
-function oppositeCharge(graphics, physics) {
+function oppositeCharge(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics);
 
     let m = 1;
@@ -263,7 +275,9 @@ function oppositeCharge(graphics, physics) {
     createParticle(m, q, -nq, pos, vel);
 }
 
-function sameCharge(graphics, physics) {
+function sameCharge(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics);
 
     let m = 1;

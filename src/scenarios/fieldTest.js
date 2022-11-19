@@ -41,7 +41,9 @@ function defaultConfig(graphics, physics, distance = 4.0e2) {
     setParticleRadius(10, 0);
 }
 
-function nearField(graphics, physics) {
+function nearField(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultConfig(graphics, physics)
 
     fieldProbeConfig(0, 0, 5e2);
@@ -58,7 +60,9 @@ function nearField(graphics, physics) {
     createParticle2(m, -q, -nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }
 
-function electromagneticField(graphics, physics) {
+function electromagneticField(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultConfig(graphics, physics);
 
     fieldProbeConfig(0, 1e5, 0);
@@ -75,7 +79,9 @@ function electromagneticField(graphics, physics) {
     createParticle2(m, -q, nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }
 
-function gravityField(graphics, physics) {
+function gravityField(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultConfig(graphics, physics);
     setParticleRadius(20, 10);
 

@@ -65,7 +65,9 @@ function atom(physics, n, center = new Vector3()) {
     );
 }
 
-function h2(graphics, physics) {
+function h2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 5000);
 
     let m = 1 / 100;
@@ -82,7 +84,9 @@ function h2(graphics, physics) {
     createCloud3(8, m, -q, 0, r1, r2, v);
 }
 
-function water(graphics, physics) {
+function water(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 7000);
     //fieldCleanup(graphics);
     // physics.nearChargeConstant = 60;
@@ -96,32 +100,44 @@ function water(graphics, physics) {
     //createCloud0(64, 1 / 4, -1e2, 0, 0, 5e3, 1);
 }
 
-function hydrogen(graphics, physics) {
+function hydrogen(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3000);
     atom(physics, 1);
 }
 
-function helium(graphics, physics) {
+function helium(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 3000);
     atom(physics, 2);
 }
 
-function lithium(graphics, physics) {
+function lithium(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 5000);
     atom(physics, 3);
 }
 
-function carbon(graphics, physics) {
+function carbon(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 5000);
     atom(physics, 6);
 }
 
-function nitrogen(graphics, physics) {
+function nitrogen(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 7000);
     atom(physics, 7);
 }
 
-function oxigen(graphics, physics) {
+function oxigen(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 7000);
     atom(physics, 8);
 }

@@ -52,7 +52,9 @@ function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center
     createParticles(particles, massRange, chargeRange, (x, y, z) => randomSpheric(r1, r2, mode), center, velocity);
 }
 
-function simulationDev(graphics, physics) {
+function simulationDev(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 1000;
@@ -80,7 +82,9 @@ function simulationDev(graphics, physics) {
     }
 }
 
-function simulationAtom(graphics, physics) {
+function simulationAtom(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 500;
@@ -120,7 +124,9 @@ function simulationAtom(graphics, physics) {
     }, new Vector3(), new Vector3());
 }
 
-function simulation0(graphics, physics) {
+function simulation0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 5000;
@@ -136,7 +142,9 @@ function simulation0(graphics, physics) {
     createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(), new Vector3());
 }
 
-function simulation1(graphics, physics) {
+function simulation1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 4000;
@@ -155,7 +163,9 @@ function simulation1(graphics, physics) {
     createParticlesSphere(initialParticles, 0, radiusRange, massRange, chargeRange, new Vector3(-x, -y, 0), new Vector3(v, 0, 0));
 }
 
-function simulationGrid2D(graphics, physics) {
+function simulationGrid2D(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 5000
@@ -181,7 +191,9 @@ function simulationGrid2D(graphics, physics) {
     }
 }
 
-function simulationGrid3D(graphics, physics) {
+function simulationGrid3D(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 3000;
@@ -211,7 +223,9 @@ function simulationGrid3D(graphics, physics) {
     }
 }
 
-function simulationCross(graphics, physics) {
+function simulationCross(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 5000;
@@ -235,7 +249,9 @@ function simulationCross(graphics, physics) {
     createParticlesSphere(initialParticles, 0, 10000, massRange, chargeRange, new Vector3(), new Vector3());
 }
 
-function simulationSpheres(graphics, physics) {
+function simulationSpheres(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 3000;
@@ -261,7 +277,9 @@ function simulationSpheres(graphics, physics) {
     }
 }
 
-function colisionTest(graphics, physics) {
+function colisionTest(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 500;

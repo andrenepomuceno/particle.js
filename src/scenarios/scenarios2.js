@@ -31,7 +31,9 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     setBoundaryDistance(1e6);
 }
 
-function string(graphics, physics) {
+function string(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 1e5);
     setBoundaryDistance(1e9);
     setParticleRadius(50, 40);
@@ -102,7 +104,9 @@ function string(graphics, physics) {
     );
 }
 
-function nucleiGrid(graphics, physics) {
+function nucleiGrid(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 10e3);
         setParticleRadius(50, 10);
     setBoundaryDistance(20e3);
@@ -222,7 +226,9 @@ function nucleiGrid(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function shootedBarrier(graphics, physics) {
+function shootedBarrier(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 30e3);
         setParticleRadius(50, 10);
 
@@ -267,7 +273,9 @@ function shootedBarrier(graphics, physics) {
     }, grid[0] * r1, grid);
 }
 
-function standardModelBlob2(graphics, physics) {
+function standardModelBlob2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 15e3);
         setParticleRadius(50, 40);
     setBoundaryDistance(1e7);
@@ -377,7 +385,9 @@ function standardModelBlob2(graphics, physics) {
     );
 }
 
-function standardModelBlobSymetric(graphics, physics) {
+function standardModelBlobSymetric(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 15e3);
         setParticleRadius(50, 40);
     setBoundaryDistance(1e10);
@@ -467,7 +477,9 @@ function standardModelBlobSymetric(graphics, physics) {
     );
 }
 
-function standardModelBlob0(graphics, physics) {
+function standardModelBlob0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     defaultParameters(graphics, physics, 15e3);
         setParticleRadius(50, 40);
 

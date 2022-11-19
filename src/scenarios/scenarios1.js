@@ -69,7 +69,9 @@ function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc,
     }
 }
 
-function simulationNuclei4(graphics, physics) {
+function simulationNuclei4(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 5000;
@@ -149,7 +151,9 @@ function simulationNuclei4(graphics, physics) {
     )
 }
 
-function simulationNuclei3(graphics, physics) {
+function simulationNuclei3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 20000;
@@ -211,7 +215,9 @@ function simulationNuclei3(graphics, physics) {
     )
 }
 
-function simulationStrongCube0(graphics, physics) {
+function simulationStrongCube0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 20000;
@@ -277,7 +283,9 @@ function simulationStrongCube0(graphics, physics) {
     }
 }
 
-function simulationStrongBlob0(graphics, physics) {
+function simulationStrongBlob0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 10000;
@@ -320,7 +328,9 @@ function simulationStrongBlob0(graphics, physics) {
     );
 }
 
-function simulationNuclei2(graphics, physics) {
+function simulationNuclei2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 10000;
@@ -352,7 +362,9 @@ function simulationNuclei2(graphics, physics) {
     createParticle2(1, -3 * q, 0, new Vector3(0, 2000, 0), new Vector3(ve, 0, 0)); //e
 }
 
-function simulationNuclei1(graphics, physics) {
+function simulationNuclei1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 1000;
@@ -379,7 +391,9 @@ function simulationNuclei1(graphics, physics) {
         new Vector3(0, -x, 0));
 }
 
-function simulationNuclei0(graphics, physics) {
+function simulationNuclei0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 2000;
@@ -426,7 +440,9 @@ function createNuclei0(x0 = 128 / 3, position = new Vector3(), velocity = new Ve
         velocity);
 }
 
-function simulationStrong2(graphics, physics) {
+function simulationStrong2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 5000;
@@ -470,7 +486,9 @@ function simulationStrong2(graphics, physics) {
     )
 }
 
-function simulationStrong1(graphics, physics) {
+function simulationStrong1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 4000;
@@ -495,7 +513,9 @@ function simulationStrong1(graphics, physics) {
         new Vector3(v1, 0, 0));
 }
 
-function simulationStrong0(graphics, physics) {
+function simulationStrong0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 2000;
@@ -517,7 +537,9 @@ function simulationStrong0(graphics, physics) {
     createParticle2(m, -q, -sq, new Vector3(-x, 0, 0), new Vector3(-0, v, 0));
 }
 
-function simulationMove1(graphics, physics) {
+function simulationMove1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 3000;
@@ -563,7 +585,9 @@ function simulationMove1(graphics, physics) {
     )
 }
 
-function simulationMove0(graphics, physics) {
+function simulationMove0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 3000;
@@ -590,7 +614,9 @@ function simulationMove0(graphics, physics) {
     )
 }
 
-function simulationBlob0(graphics, physics) {
+function simulationBlob0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 4000;
@@ -611,7 +637,9 @@ function simulationBlob0(graphics, physics) {
     )
 }
 
-function simulationAtom1(graphics, physics) {
+function simulationAtom1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 3000;
@@ -645,7 +673,9 @@ function simulationAtom1(graphics, physics) {
     );
 }
 
-function simulationAtom0(graphics, physics) {
+function simulationAtom0(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     particleList = physics.particleList;
 
     graphics.cameraDistance = 1000;

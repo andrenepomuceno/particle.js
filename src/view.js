@@ -177,12 +177,17 @@ export let guiOptions = {
 export function guiSetup() {
     gui.width = 300;
 
-    gui.domElement.addEventListener("mouseover", () => {
+    function mouseOver() {
         mouseOverGUI = true;
-    });
-    gui.domElement.addEventListener("mouseleave", () => {
+    }
+    function mouseLeave() {
         mouseOverGUI = false;
-    });
+    }
+
+    gui.domElement.addEventListener("mouseover", mouseOver);
+    gui.domElement.addEventListener("mouseleave", mouseLeave);
+    stats.domElement.addEventListener("mouseover", mouseOver);
+    stats.domElement.addEventListener("mouseleave", mouseLeave);
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();

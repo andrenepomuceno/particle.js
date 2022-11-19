@@ -45,12 +45,6 @@ simulationList = simulationList.concat(scenarios0);
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 
-export function setParticleRadius(radius, range) {
-    simulation.particleRadius = radius;
-    simulation.particleRadiusRange = range;
-    //simulation.setParticleRadius(radius, range);
-}
-
 export function setColorMode(mode) {
     simulation.setColorMode(mode);
 }
@@ -76,8 +70,13 @@ function internalSetup(physics_) {
 export function simulationSetup(idx) {
     log("simulationSetup idx = " + idx);
 
-    if (idx != undefined && idx >= 0 && idx < simulationList.length) {
-        particlesSetup = simulationList[idx];
+    if (idx != undefined) {
+        if (idx >= 0 && idx < simulationList.length) {
+            particlesSetup = simulationList[idx];
+        } else {
+            log("invalid simulationList index");
+            return;
+        }
     }
 
     internalSetup();

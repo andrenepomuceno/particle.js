@@ -292,7 +292,7 @@ function colisionTest(simulation) {
 
     let r = 10;
     physics.minDistance = Math.pow(r, 2);
-    setParticleRadius(r, 0);
+    simulation.setParticleRadius(r, 0);
 
     /*let i = -250;
     createParticles(10, [1, 1], chargeRange, (x, y, z) => {

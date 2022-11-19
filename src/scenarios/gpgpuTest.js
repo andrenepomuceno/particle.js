@@ -13,7 +13,9 @@ export const gpgpu = [
     GPU_shootedBarrier,
 ];
 
-function defaultParameters(graphics, physics, cameraDistance = 5000) {
+function defaultParameters(simulation, cameraDistance = 5000) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     bidimensionalMode(true);
 
     graphics.cameraDistance = cameraDistance;
@@ -26,16 +28,16 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeConstant = 1.0;
     physics.nearChargeRange = 1e3;
 
-    setParticleRadius(20, 10);
+    simulation.setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
 }
 
 function GPU_string(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e7);
+    defaultParameters(simulation, 1e7);
     setBoundaryDistance(1e9);
-    setParticleRadius(1e4, 1e2);
+    simulation.setParticleRadius(1e4, 1e2);
     bidimensionalMode(true);
 
     physics.nearChargeRange = 1e6;
@@ -106,9 +108,9 @@ function GPU_string(simulation) {
 function GPU_string_m50(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e7);
+    defaultParameters(simulation, 1e7);
     setBoundaryDistance(1e9);
-    setParticleRadius(1e4, 1e3);
+    simulation.setParticleRadius(1e4, 1e3);
     bidimensionalMode(true);
 
     physics.nearChargeRange = 1e7;
@@ -179,9 +181,9 @@ function GPU_string_m50(simulation) {
 function GPU_string_m20(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e7);
+    defaultParameters(simulation, 1e7);
     setBoundaryDistance(1e9);
-    setParticleRadius(1e4, 1e3);
+    simulation.setParticleRadius(1e4, 1e3);
     bidimensionalMode(true);
 
     physics.nearChargeRange = 1e7;
@@ -252,9 +254,9 @@ function GPU_string_m20(simulation) {
 function GPU_blob1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e4);
+    defaultParameters(simulation, 1e4);
     fieldCleanup(graphics);
-    setParticleRadius(50, 25);
+    simulation.setParticleRadius(50, 25);
     setBoundaryDistance(1e6);
     bidimensionalMode(false);
 
@@ -291,9 +293,9 @@ function GPU_blob1(simulation) {
 function GPU_nucleiGrid(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 10e3);
+    defaultParameters(simulation, 10e3);
     fieldCleanup(graphics);
-    setParticleRadius(50, 10);
+    simulation.setParticleRadius(50, 10);
     setBoundaryDistance(1e5);
     bidimensionalMode(true);
 
@@ -424,9 +426,9 @@ function GPU_nucleiGrid(simulation) {
 function GPU_shootedBarrier(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 30e3);
+    defaultParameters(simulation, 30e3);
     fieldCleanup(graphics);
-    setParticleRadius(50, 10);
+    simulation.setParticleRadius(50, 10);
     bidimensionalMode(false);
 
     let m = 1 / 10;

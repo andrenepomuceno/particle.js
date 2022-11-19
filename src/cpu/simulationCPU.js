@@ -209,4 +209,10 @@ export class SimulationCPU {
             this.graphics.render(p);
         });
     }
+
+    setParticleRadius(radius, range) {
+        console.log("setParticleRadius");
+        this.radius = (radius || this.particleRadius);
+        this.particleRadiusRange = (range || this.particleRadiusRange);
+    }
 }

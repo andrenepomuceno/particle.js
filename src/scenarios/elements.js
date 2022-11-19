@@ -15,7 +15,9 @@ export const elements = [
     water,
 ];
 
-function defaultParameters(graphics, physics, cameraDistance = 5000) {
+function defaultParameters(simulation, cameraDistance = 5000) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     let mode2d = true;
     bidimensionalMode(mode2d);
 
@@ -30,7 +32,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeRange = 200;
     physics.chargeConstant = Math.abs(physics.nearChargeConstant) / 60;
 
-    setParticleRadius(30, 10);
+    simulation.setParticleRadius(30, 10);
     setBoundaryDistance(1e5);
 
     //fieldProbeConfig(1e12, 0, 0);
@@ -68,7 +70,7 @@ function atom(physics, n, center = new Vector3()) {
 function h2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(simulation, 5000);
 
     let m = 1 / 100;
     let q = 100;
@@ -87,7 +89,7 @@ function h2(simulation) {
 function water(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 7000);
+    defaultParameters(simulation, 7000);
     //fieldCleanup(graphics);
     // physics.nearChargeConstant = 60;
     // physics.nearChargeRange = 512;
@@ -103,42 +105,42 @@ function water(simulation) {
 function hydrogen(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3000);
+    defaultParameters(simulation, 3000);
     atom(physics, 1);
 }
 
 function helium(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3000);
+    defaultParameters(simulation, 3000);
     atom(physics, 2);
 }
 
 function lithium(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(simulation, 5000);
     atom(physics, 3);
 }
 
 function carbon(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 5000);
+    defaultParameters(simulation, 5000);
     atom(physics, 6);
 }
 
 function nitrogen(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 7000);
+    defaultParameters(simulation, 7000);
     atom(physics, 7);
 }
 
 function oxigen(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 7000);
+    defaultParameters(simulation, 7000);
     atom(physics, 8);
 }
 

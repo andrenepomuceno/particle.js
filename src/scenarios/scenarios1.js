@@ -76,7 +76,7 @@ function simulationNuclei4(simulation) {
 
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(30, 10);
+    simulation.setParticleRadius(30, 10);
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
@@ -158,7 +158,7 @@ function simulationNuclei3(simulation) {
 
     graphics.cameraDistance = 20000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(30, 10);
+    simulation.setParticleRadius(30, 10);
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
@@ -222,7 +222,7 @@ function simulationStrongCube0(simulation) {
 
     graphics.cameraDistance = 20000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(30, 10);
+    simulation.setParticleRadius(30, 10);
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
@@ -290,7 +290,7 @@ function simulationStrongBlob0(simulation) {
 
     graphics.cameraDistance = 10000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(50, 10);
+    simulation.setParticleRadius(50, 10);
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
@@ -335,7 +335,7 @@ function simulationNuclei2(simulation) {
 
     graphics.cameraDistance = 10000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    setParticleRadius(100, 50);
+    simulation.setParticleRadius(100, 50);
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;

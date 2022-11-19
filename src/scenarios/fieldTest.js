@@ -38,7 +38,7 @@ function defaultConfig(graphics, physics, distance = 4.0e2) {
     physics.nearChargeRange = 2e2;
 
     bidimensionalMode(true);
-    setParticleRadius(10, 0);
+    simulation.setParticleRadius(10, 0);
 }
 
 function nearField(simulation) {
@@ -83,7 +83,7 @@ function gravityField(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultConfig(graphics, physics);
-    setParticleRadius(20, 10);
+    simulation.setParticleRadius(20, 10);
 
     fieldProbeConfig(1e5, 0, 0);
     fieldSetup("2d", grid);

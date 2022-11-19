@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
-import { setParticleRadius, setBoundaryDistance, fieldSetup, fieldProbeConfig, bidimensionalMode } from '../simulation';
+import { setBoundaryDistance, fieldSetup, fieldProbeConfig, bidimensionalMode } from '../simulation';
 import { fieldCleanup } from '../simulation';
 import { random } from '../helpers';
 
@@ -20,7 +20,9 @@ export const experiments = [
     experiment0,
 ];
 
-function defaultParameters(graphics, physics, cameraDistance = 5000) {
+function defaultParameters(simulation, cameraDistance = 5000) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     fieldCleanup(graphics);
 
     graphics.cameraDistance = cameraDistance;
@@ -33,7 +35,7 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e3;
 
-    setParticleRadius(20, 10);
+    simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
     bidimensionalMode(true);
 }
@@ -41,8 +43,8 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 function density2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics);
-    setParticleRadius(10, 5);
+    defaultParameters(simulation);
+    simulation.setParticleRadius(10, 5);
 
     let n = graphics.maxParticles;
 
@@ -109,8 +111,8 @@ function density2(simulation) {
 function density(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3e3);
-    setParticleRadius(10, 5);
+    defaultParameters(simulation, 3e3);
+    simulation.setParticleRadius(10, 5);
     physics.boundaryDistance = 10e3;
     physics.boundaryDamping = 0.9;
     physics.minDistance = Math.pow(0.5, 2);
@@ -172,8 +174,8 @@ function density(simulation) {
 function magnecticForce(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e3);
-    setParticleRadius(10, 0);
+    defaultParameters(simulation, 1e3);
+    simulation.setParticleRadius(10, 0);
     physics.boundaryDistance = 1e12;
 
     physics.nearChargeRange = 0;
@@ -250,8 +252,8 @@ function magnecticForce(simulation) {
 function experiment9(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3e3);
-    setParticleRadius(10, 5);
+    defaultParameters(simulation, 3e3);
+    simulation.setParticleRadius(10, 5);
     physics.boundaryDistance = 1e7;
     physics.boundaryDamping = 0.9;
 
@@ -316,8 +318,8 @@ function experiment9(simulation) {
 function donut(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e4);
-    setParticleRadius(5e1, 3e1);
+    defaultParameters(simulation, 1e4);
+    simulation.setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 1e5;
     physics.boundaryDamping = 0.9;
 
@@ -377,8 +379,8 @@ function donut(simulation) {
 function terrarium(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1.4e6);
-    setParticleRadius(5e3, 1e3);
+    defaultParameters(simulation, 1.4e6);
+    simulation.setParticleRadius(5e3, 1e3);
     physics.boundaryDistance = 1e6;
     physics.boundaryDamping = 0.95;
 
@@ -437,8 +439,8 @@ function terrarium(simulation) {
 function twinsCollision(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3e3);
-    setParticleRadius(5, 1);
+    defaultParameters(simulation, 3e3);
+    simulation.setParticleRadius(5, 1);
     physics.boundaryDistance = 1e4;
     physics.boundaryDamping = 0.95;
 
@@ -497,8 +499,8 @@ function twinsCollision(simulation) {
 function experiment5(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 3.3e4);
-    setParticleRadius(5e1, 3e1);
+    defaultParameters(simulation, 3.3e4);
+    simulation.setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 5e4;
     physics.boundaryDamping = 0.95;
 
@@ -557,8 +559,8 @@ function experiment5(simulation) {
 function wildParticles(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 2e5);
-    setParticleRadius(3e2, 2e2);
+    defaultParameters(simulation, 2e5);
+    simulation.setParticleRadius(3e2, 2e2);
     physics.boundaryDistance = 5e5;
     physics.boundaryDamping = 0.99;
 
@@ -617,9 +619,9 @@ function wildParticles(simulation) {
 function experiment3(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 2e7);
+    defaultParameters(simulation, 2e7);
     fieldCleanup(graphics);
-    setParticleRadius(3e1, 1e1);
+    simulation.setParticleRadius(3e1, 1e1);
     setBoundaryDistance(2e9);
 
     physics.nearChargeConstant = 1;
@@ -679,9 +681,9 @@ function experiment3(simulation) {
 function experiment2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 2e7);
+    defaultParameters(simulation, 2e7);
     fieldCleanup(graphics);
-    setParticleRadius(2e1, 1e1);
+    simulation.setParticleRadius(2e1, 1e1);
     setBoundaryDistance(1e8);
 
     physics.nearChargeConstant = 1;
@@ -739,9 +741,9 @@ function experiment2(simulation) {
 function experiment1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 2e6);
+    defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
-    setParticleRadius(2e1, 1e1);
+    simulation.setParticleRadius(2e1, 1e1);
     setBoundaryDistance(1e8);
 
     physics.nearChargeConstant = 1;
@@ -797,9 +799,9 @@ function experiment1(simulation) {
 function experiment0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 2e6);
+    defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
-    setParticleRadius(2e1, 1e1);
+    simulation.setParticleRadius(2e1, 1e1);
     setBoundaryDistance(1e8);
 
     physics.nearChargeConstant = 1;

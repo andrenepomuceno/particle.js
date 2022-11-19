@@ -12,7 +12,9 @@ export const scenarios2 = [
     standardModelBlob0,
 ];
 
-function defaultParameters(graphics, physics, cameraDistance = 5000) {
+function defaultParameters(simulation, cameraDistance = 5000) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
     let mode2d = true;
     bidimensionalMode(mode2d);
 
@@ -27,16 +29,16 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e3;
 
-    setParticleRadius(20, 10);
+    simulation.setParticleRadius(20, 10);
     setBoundaryDistance(1e6);
 }
 
 function string(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 1e5);
+    defaultParameters(simulation, 1e5);
     setBoundaryDistance(1e9);
-    setParticleRadius(50, 40);
+    simulation.setParticleRadius(50, 40);
     bidimensionalMode(true);
     
     physics.nearChargeRange = 1e5;
@@ -107,8 +109,8 @@ function string(simulation) {
 function nucleiGrid(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 10e3);
-        setParticleRadius(50, 10);
+    defaultParameters(simulation, 10e3);
+        simulation.setParticleRadius(50, 10);
     setBoundaryDistance(20e3);
     bidimensionalMode(true);
 
@@ -229,8 +231,8 @@ function nucleiGrid(simulation) {
 function shootedBarrier(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 30e3);
-        setParticleRadius(50, 10);
+    defaultParameters(simulation, 30e3);
+        simulation.setParticleRadius(50, 10);
 
     let m = 1 / 10;
     let q = 10;
@@ -276,8 +278,8 @@ function shootedBarrier(simulation) {
 function standardModelBlob2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 15e3);
-        setParticleRadius(50, 40);
+    defaultParameters(simulation, 15e3);
+        simulation.setParticleRadius(50, 40);
     setBoundaryDistance(1e7);
 
     // ve m < 0.120 eV q = 0
@@ -388,8 +390,8 @@ function standardModelBlob2(simulation) {
 function standardModelBlobSymetric(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 15e3);
-        setParticleRadius(50, 40);
+    defaultParameters(simulation, 15e3);
+        simulation.setParticleRadius(50, 40);
     setBoundaryDistance(1e10);
 
     // ve m < 0.120 eV q = 0
@@ -480,8 +482,8 @@ function standardModelBlobSymetric(simulation) {
 function standardModelBlob0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    defaultParameters(graphics, physics, 15e3);
-        setParticleRadius(50, 40);
+    defaultParameters(simulation, 15e3);
+        simulation.setParticleRadius(50, 40);
 
     // ve m = 0.1 eV q = 0
     // e m = 0.511 MeV q = -1

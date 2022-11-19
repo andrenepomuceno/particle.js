@@ -41,6 +41,7 @@ let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
 let mouseOverGUI = false;
 const viewUpdateDelay = 1000;
+let makeSnapshot = false;
 
 function setup(idx) {
     resetParticleView();
@@ -67,12 +68,7 @@ export let guiOptions = {
             setup(--simulationIdx);
         },
         snapshot: function () {
-            let timestamp = new Date().toISOString().replace(" ", "_");
-            let name = simulationState()[0];
-            downloadFile(simulationExportCsv(), name + "-" + timestamp + ".csv", "text/plain;charset=utf-8");
-            graphics.renderer.domElement.toBlob((blob) => {
-                downloadFile(blob, name + "-" + timestamp + ".png", "image/png");
-            });
+            if (!makeSnapshot) makeSnapshot = true
         },
         import: function () {
             let input = document.createElement('input');
@@ -382,12 +378,12 @@ function updateInfoView(now) {
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
-    guiOptions.info.energy = e.toExponential(3);
+    guiOptions.info.energy = (e/n).toExponential(2) + " / " + Math.sqrt(e/m).toExponential(2);
     guiOptions.info.collisions = c;
-    guiOptions.info.mass = m.toExponential(3);
-    guiOptions.info.radius = r.toExponential(3);
-    guiOptions.info.charge = totalCharge.toExponential(3);
-    guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(3);
+    guiOptions.info.mass = m.toExponential(2);
+    guiOptions.info.radius = r.toExponential(2);
+    guiOptions.info.charge = totalCharge.toExponential(2);
+    guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
 }
 
 function updateParticleView() {
@@ -468,6 +464,18 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
+function snapshot() {
+    let timestamp = new Date().toISOString();
+    let name = simulationState()[0];
+    let finalName = name + "_" + timestamp;
+    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    console.log("snapshot " + finalName);
+    downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
+    graphics.renderer.domElement.toBlob((blob) => {
+        downloadFile(blob, finalName + ".png", "image/png");
+    });
+}
+
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
@@ -477,6 +485,11 @@ export function animate(time) {
 
     graphics.update();
     stats.update();
+
+    if (makeSnapshot) {
+        makeSnapshot = false;
+        snapshot();
+    }
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;

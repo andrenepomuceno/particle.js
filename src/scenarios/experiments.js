@@ -39,31 +39,35 @@ function defaultParameters(graphics, physics, cameraDistance = 5000) {
 }
 
 function density2(graphics, physics) {
-    defaultParameters(graphics, physics, 3e3);
+    defaultParameters(graphics, physics);
     setParticleRadius(10, 5);
-    physics.boundaryDistance = 1e4;
-    physics.boundaryDamping = 0.9;
-    physics.minDistance = Math.pow(1, 2);
+
+    let n = graphics.maxParticles;
 
     physics.nearChargeRange = 2e2;
     physics.nearChargeConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
 
-    let m = 10;
-    let q = 1;
-    let nq = 1;
-    let v = 0;
-    let n = graphics.maxParticles;
-
-    let density = 2;
+    let density = 1;
     let area = n / density;
     let r0 = Math.sqrt(physics.nearChargeRange * area);
     console.log("r0 = " + r0);
     console.log("r0/nearChargeRange = " + r0 / physics.nearChargeRange);
 
+    graphics.cameraDistance = r0;
+
+    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1.0 * r0;
+    physics.minDistance = Math.pow(1, 2);
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let v = 0;
+
     let typeList = [
-        [0, 0, 1],
+        //[0, 0, 1],
         [0.5, -1, 1],
         [3, 2/3, 1],
         [6, -1/3, 1]
@@ -91,8 +95,8 @@ function density2(graphics, physics) {
             return v;
         },
         (i) => {
-            //return randomSphericVector(0, r0);
-            return randomVector(r0);
+            return randomSphericVector(0, r0);
+            //return randomVector(r0);
         },
         (i) => {
             return randomVector(v);

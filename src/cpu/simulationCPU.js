@@ -1,4 +1,3 @@
-import { Scene } from 'three';
 import { randomColor, generateParticleColor } from './../helpers.js';
 import { fieldUpdate, fieldCleanup } from './../simulation';
 
@@ -140,7 +139,7 @@ export class SimulationCPU {
             this.name,
             particles,
             cycles,
-            energy / particles,
+            energy,
             this.physics.collisionCounter,
             totalMass,
             maxDistance,

@@ -1,6 +1,5 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
 import { ParticleType } from '../physics';
-import { fieldUpdate, fieldCleanup, setParticleRadius } from '../simulation';
 
 function log(msg) {
     console.log("SimulationGPU: " + msg);
@@ -45,7 +44,7 @@ export class SimulationGPU {
         }
 
         this.drawParticles();
-        fieldUpdate();
+        //fieldUpdate();
 
         //this.graphics.compute();
     }
@@ -76,7 +75,7 @@ export class SimulationGPU {
         this.graphics.compute();
         ++this.cycles;
 
-        fieldUpdate();
+        //fieldUpdate();
 
         if (dt < 1e3) this.totalTime += dt;
     }
@@ -98,7 +97,7 @@ export class SimulationGPU {
             this.name,
             particles,
             this.cycles,
-            this.energy / particles,
+            this.energy,
             this.physics.collisionCounter,
             this.totalMass,
             this.physics.boundaryDistance,

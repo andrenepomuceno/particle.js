@@ -153,6 +153,7 @@ export class FieldGPU {
         if (this.particleList.length + probeCount > this.graphics.maxParticles) {
             log("error: too many probes: " + probeCount);
             log("free: " + (this.graphics.maxParticles - this.particleList.length));
+            return;
         }
         console.log("probeCount = " + probeCount);
 

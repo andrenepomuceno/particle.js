@@ -149,6 +149,8 @@ export function generateParticleColor(p, absCharge) {
     let h = 0, s = 100, l = 50;
     let lmin = 30, lmax = 60;
 
+    if (absCharge <= 0) absCharge = 1;
+
     let charge = p.charge;
     if (charge > 0) {
         h = 240;

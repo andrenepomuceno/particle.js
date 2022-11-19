@@ -185,7 +185,7 @@ export class SimulationCPU {
                 qMin = p.charge;
             }
 
-            totalMass += p.mass;
+            totalMass += Math.abs(p.mass);
             energy += (p.mass * p.velocity.lengthSq());
             totalCharge += p.charge;
         });

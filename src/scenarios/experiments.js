@@ -46,10 +46,10 @@ function density2(simulation) {
 
     let n = graphics.maxParticles;
 
-    physics.nearChargeRange = 2e2;
+    physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
     physics.massConstant = 1e-3;
-    physics.chargeConstant = 1;
+    physics.chargeConstant = 1/60;
 
     let density = 1;
     let area = n / density;

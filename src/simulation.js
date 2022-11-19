@@ -81,14 +81,6 @@ export function simulationSetup(idx) {
     log("simulationSetup done");
 }
 
-export function simulationStep(dt) {
-    simulation.step(dt);
-}
-
-export function simulationState() {
-    return simulation.state();
-}
-
 export function simulationExportCsv() {
     log("simulationCsv");
 
@@ -227,14 +219,6 @@ export function simulationImportCSV(filename, content) {
     }
 
     log(imported.physics.particleList.length + " particles loaded!");
-    /*imported.physics.particleList.every((p) => {
-        if (p.position.z != 0) {
-            
-            log("3d simulation detected");
-            return false;
-        }
-        return true;
-    });*/
 
     internalSetup(imported.physics);
 
@@ -313,7 +297,7 @@ export function simulationUpdatePhysics(key, value) {
     }
 }
 
-function decodeVector(value) {
+function decodeVector3(value) {
     let split = value.split(",");
     if (split.length != 3) {
         log("error decoding position");
@@ -367,7 +351,7 @@ export function simulationUpdateParticle(particle, key, value) {
 
         case "position":
             {
-                let v = decodeVector(value);
+                let v = decodeVector3(value);
                 if (v) {
                     particle.position.set(v.x, v.y, v.z);
                 }
@@ -383,7 +367,7 @@ export function simulationUpdateParticle(particle, key, value) {
 
         case "velocityDir":
             {
-                let dir = decodeVector(value);
+                let dir = decodeVector3(value);
                 if (dir) {
                     let abs = (particle.velocity.length() || 1.0);
                     particle.velocity.set(dir.x, dir.y, dir.z);
@@ -406,6 +390,43 @@ export function simulationUpdateParticle(particle, key, value) {
     }
 
     if (update && useGPU) {
+        simulation.drawParticles();
+    }
+}
+
+export function simulationUpdateAll(parameter, value) {
+    log("simulationUpdateAll " + parameter + " " + value);
+
+    let ratio = parseFloat(value);
+    if (ratio == NaN) return;
+
+    switch (parameter) {
+        case "mass":
+            {
+                if (ratio.toExponential(1) == simulation.totalMass.toExponential(1)) return;
+                if (useGPU) graphics.readbackParticleData();
+                graphics.particleList.forEach((p) => {
+                    p.mass *= ratio;
+                });
+            }
+            break;
+
+        case "charge":
+            {
+                if (ratio.toExponential(1) == simulation.totalCharge.toExponential(1)) return;
+                if (useGPU) graphics.readbackParticleData();
+                graphics.particleList.forEach((p) => {
+                    p.charge *= ratio;
+                });
+            }
+            break;
+
+        default:
+            return;
+    }
+
+
+    if (useGPU) {
         simulation.drawParticles();
     }
 }

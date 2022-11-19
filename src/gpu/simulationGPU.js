@@ -173,7 +173,7 @@ export class SimulationGPU {
                 this.qMin = p.charge;
             }
 
-            this.totalMass += p.mass;
+            this.totalMass += Math.abs(p.mass);
             this.energy += (p.mass * p.velocity.lengthSq());
             this.totalCharge += p.charge;
         });

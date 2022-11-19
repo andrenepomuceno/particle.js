@@ -22,6 +22,9 @@ const float height = resolution.y;
 #define PROBE 1.0
 #define FIXED 2.0
 
+#define USE_BOX_BOUNDARY 0
+#define USE_DISTANCE1 0
+
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
 
@@ -88,11 +91,20 @@ void main() {
 
             force += massConstant * m1 * m2;
             force += -chargeConstant * q1 * q2;
-            force /= distance2;
+
+            #if !USE_DISTANCE1
+                force /= distance2;
+            #else
+                float distance1 = sqrt(distance2);
+                force /= distance1;
+            #endif
 
             if (distance2 <= nearChargeRange2) {
                 float nq2 = props2.w;
-                float distance1 = sqrt(distance2);
+
+                #if !USE_DISTANCE1
+                    float distance1 = sqrt(distance2);
+                #endif
 
                 float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                 x = sin(PI * x);
@@ -112,7 +124,7 @@ void main() {
     
         // check boundary colision
         vec3 nextPos = pos1 + vel1;
-        #if 1
+        #if !USE_BOX_BOUNDARY
             if (length(nextPos) >= boundaryDistance) {
                 if (length(vel1) < boundaryDistance) {
                     vel1 = boundaryDamping * reflect(vel1, normalize(-nextPos));

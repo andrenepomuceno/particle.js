@@ -6,8 +6,6 @@ import { Particle } from './physics.js';
 import { downloadFile, arrayToString } from './helpers.js';
 import {
     simulationSetup,
-    simulationStep,
-    simulationState,
     simulationExportCsv,
     setColorMode,
     graphics,
@@ -17,6 +15,7 @@ import {
     simulationUpdatePhysics,
     simulationUpdateParticle,
     simulationFindParticle,
+    simulationUpdateAll,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -187,14 +186,20 @@ export function guiSetup() {
     stats.domElement.addEventListener("mouseover", mouseOver);
     stats.domElement.addEventListener("mouseleave", mouseLeave);
 
-    guiInfo.add(guiOptions.info, 'name').name('Name').listen();
+    guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
+        simulation.name = val; 
+    });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen();
-    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen();
+    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen().onFinishChange((val) => {
+        simulationUpdateAll("mass", val);
+    });
+    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen().onFinishChange((val) => {
+        simulationUpdateAll("charge", val);
+    });;
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
-    guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
+    //guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
     guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
     guiInfo.open();
 
@@ -237,7 +242,7 @@ export function guiSetup() {
     guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
     guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
     guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
-    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Snapshot [P]");
+    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Export [P]");
     guiSimulation.add(guiOptions.simulation, 'import').name("Import");
 
     guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
@@ -376,7 +381,7 @@ document.addEventListener("click", (event) => {
 });
 
 function updateInfoView(now) {
-    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulationState();
+    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
     guiOptions.info.name = name;
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
@@ -469,7 +474,7 @@ function resetEditView() {
 
 function snapshot() {
     let timestamp = new Date().toISOString();
-    let name = simulationState()[0];
+    let name = simulation.state()[0];
     let finalName = name + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
     console.log("snapshot " + finalName);
@@ -510,7 +515,7 @@ export function animate(time) {
             dt = time - lastAnimateTime;
         }
 
-        simulationStep(dt);
+        simulation.step(dt);
     }
 
     if (time - lastViewUpdate >= viewUpdateDelay) {

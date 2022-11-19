@@ -16,7 +16,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     let mode2d = true;
-    bidimensionalMode(mode2d);
+    simulation.bidimensionalMode(mode2d);
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -30,16 +30,16 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.nearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
-    setBoundaryDistance(1e6);
+    simulation.physics.boundaryDistance = 1e6;
 }
 
 function string(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e5);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     simulation.setParticleRadius(50, 40);
-    bidimensionalMode(true);
+    simulation.bidimensionalMode(true);
     
     physics.nearChargeRange = 1e5;
 
@@ -111,8 +111,8 @@ function nucleiGrid(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
         simulation.setParticleRadius(50, 10);
-    setBoundaryDistance(20e3);
-    bidimensionalMode(true);
+    simulation.physics.boundaryDistance = 20e3;
+    simulation.bidimensionalMode(true);
 
     let m = 5e-1 / 0.511;
     let q = 3;
@@ -280,7 +280,7 @@ function standardModelBlob2(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 15e3);
         simulation.setParticleRadius(50, 40);
-    setBoundaryDistance(1e7);
+    simulation.physics.boundaryDistance = 1e7;
 
     // ve m < 0.120 eV q = 0
     // e m = 0.511 MeV q = -1
@@ -392,7 +392,7 @@ function standardModelBlobSymetric(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 15e3);
         simulation.setParticleRadius(50, 40);
-    setBoundaryDistance(1e10);
+    simulation.physics.boundaryDistance = 1e10;
 
     // ve m < 0.120 eV q = 0
     // e m = 0.511 MeV q = -1

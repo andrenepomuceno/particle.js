@@ -37,7 +37,7 @@ function defaultConfig(graphics, physics, distance = 4.0e2) {
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 2e2;
 
-    bidimensionalMode(true);
+    simulation.bidimensionalMode(true);
     simulation.setParticleRadius(10, 0);
 }
 

@@ -183,4 +183,13 @@ export class SimulationGPU {
         log("#calcParticleColor");
         fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
     }
+
+    bidimensionalMode(enable = true) {
+        this.mode2D = enable;
+        if (enable) {
+            this.graphics.controls.enableRotate = false;
+        } else {
+            this.graphics.controls.enableRotate = true;
+        }
+    }
 }

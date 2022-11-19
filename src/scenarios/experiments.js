@@ -37,7 +37,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
 
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
-    bidimensionalMode(true);
+    simulation.bidimensionalMode(true);
 }
 
 function density2(simulation) {
@@ -622,7 +622,7 @@ function experiment3(simulation) {
     defaultParameters(simulation, 2e7);
     fieldCleanup(graphics);
     simulation.setParticleRadius(3e1, 1e1);
-    setBoundaryDistance(2e9);
+    simulation.physics.boundaryDistance = 2e9;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e3;
@@ -684,7 +684,7 @@ function experiment2(simulation) {
     defaultParameters(simulation, 2e7);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e1, 1e1);
-    setBoundaryDistance(1e8);
+    simulation.physics.boundaryDistance = 1e8;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e6;
@@ -744,7 +744,7 @@ function experiment1(simulation) {
     defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e1, 1e1);
-    setBoundaryDistance(1e8);
+    simulation.physics.boundaryDistance = 1e8;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e6;
@@ -802,7 +802,7 @@ function experiment0(simulation) {
     defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e1, 1e1);
-    setBoundaryDistance(1e8);
+    simulation.physics.boundaryDistance = 1e8;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e6;

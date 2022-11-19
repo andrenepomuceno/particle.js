@@ -1,7 +1,6 @@
 
 import { Vector3 } from 'three';
 import { fieldProbeConfig, fieldSetup, bidimensionalMode } from '../simulation';
-import { setParticleRadius, setBoundaryDistance } from '../simulation.js'
 import { createCloud0, createNuclei0, atom0, createCloud3 } from './helpers.js';
 
 export const elements = [
@@ -19,7 +18,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     let mode2d = true;
-    bidimensionalMode(mode2d);
+    simulation.bidimensionalMode(mode2d);
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -33,7 +32,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.chargeConstant = Math.abs(physics.nearChargeConstant) / 60;
 
     simulation.setParticleRadius(30, 10);
-    setBoundaryDistance(1e5);
+    simulation.physics.boundaryDistance = 1e5;
 
     //fieldProbeConfig(1e12, 0, 0);
     fieldProbeConfig(0, 1e6, 0);

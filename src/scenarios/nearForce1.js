@@ -41,8 +41,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.nearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
-    setBoundaryDistance(1e6);
-    bidimensionalMode(true);
+    simulation.physics.boundaryDistance = 1e6;
+    simulation.bidimensionalMode(true);
 }
 
 function cloud2(simulation) {
@@ -51,7 +51,7 @@ function cloud2(simulation) {
     defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(5e3, 1e3);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
@@ -104,7 +104,7 @@ function cloud1(simulation) {
     defaultParameters(simulation, 1e4);
     fieldCleanup(graphics);
     simulation.setParticleRadius(50, 25);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e3;
     physics.massConstant = 1;
@@ -157,7 +157,7 @@ function cloud0(simulation) {
     defaultParameters(simulation, 1e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e3, 5e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e5;
     physics.massConstant = 1;
@@ -210,7 +210,7 @@ function triforce2(simulation) {
     defaultParameters(simulation, 2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e3, 5e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
@@ -264,7 +264,7 @@ function triforce1(simulation) {
     defaultParameters(simulation, 1e7);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e3, 5e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
@@ -317,7 +317,7 @@ function triforce0(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e3, 5e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
@@ -370,7 +370,7 @@ function charge_nearCharge_point0(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(2e3, 5e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -423,7 +423,7 @@ function GPU_point14(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -465,7 +465,7 @@ function GPU_point13(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -507,7 +507,7 @@ function GPU_point12(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -549,7 +549,7 @@ function GPU_point11(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -591,7 +591,7 @@ function GPU_point10(simulation) {
     defaultParameters(simulation, 1.2e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -633,7 +633,7 @@ function GPU_blob9_posNQ(simulation) {
     defaultParameters(simulation, 1.2e7);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -675,7 +675,7 @@ function GPU_blob8_posNQ_rng(simulation) {
     defaultParameters(simulation, 1.2e7);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -717,7 +717,7 @@ function GPU_point7(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -759,7 +759,7 @@ function GPU_point6(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -801,7 +801,7 @@ function GPU_point5(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -843,7 +843,7 @@ function GPU_point4(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -885,7 +885,7 @@ function GPU_point3(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
@@ -927,7 +927,7 @@ function GPU_point2(simulation) {
     defaultParameters(simulation, 1.7e6);
     fieldCleanup(graphics);
     simulation.setParticleRadius(1e3, 1e2);
-    setBoundaryDistance(1e9);
+    simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;

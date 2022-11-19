@@ -18,7 +18,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     let mode2d = true;
-    bidimensionalMode(mode2d);
+    simulation.bidimensionalMode(mode2d);
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -32,7 +32,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.nearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
-    setBoundaryDistance(1e5);
+    simulation.physics.boundaryDistance = 1e5;
 
     //fieldProbeConfig(0, 0, 100);
     //fieldProbeConfig(1e10, 0, 0);

@@ -215,4 +215,13 @@ export class SimulationCPU {
         this.radius = (radius || this.particleRadius);
         this.particleRadiusRange = (range || this.particleRadiusRange);
     }
+
+    bidimensionalMode(enable = true) {
+        this.mode2D = enable;
+        if (enable) {
+            this.graphics.controls.enableRotate = false;
+        } else {
+            this.graphics.controls.enableRotate = true;
+        }
+    }
 }

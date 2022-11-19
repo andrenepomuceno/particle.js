@@ -49,10 +49,6 @@ export function setColorMode(mode) {
     simulation.setColorMode(mode);
 }
 
-export function setBoundaryDistance(d = 1e6) {
-    simulation.physics.boundaryDistance = d;
-}
-
 function internalSetup(physics_) {
     physics = (physics_ || new Physics());
 
@@ -463,14 +459,5 @@ export function simulationUpdateParticle(particle, key, value) {
 
     if (update && useGPU) {
         simulation.drawParticles();
-    }
-}
-
-export function bidimensionalMode(enable = true) {
-    simulation.mode2D = enable;
-    if (enable) {
-        graphics.controls.enableRotate = false;
-    } else {
-        graphics.controls.enableRotate = true;
     }
 }

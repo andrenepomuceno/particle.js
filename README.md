@@ -54,7 +54,7 @@ $\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
 
 and
 
-$V(d)=\sin{(\frac{2.d - d_{max}}{d_{max}})}$ for $d \le d_{max}$, else $V(d)=0$.
+$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$.
 
 Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
 

@@ -46,7 +46,7 @@ $$\vec{F_g}(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
 $$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
-$$\vec{F_n}(P_i,P_j)=-k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
+$$\vec{F_n}(P_i,P_j)=k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
 
 where
 

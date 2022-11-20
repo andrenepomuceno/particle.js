@@ -23,7 +23,7 @@ const float height = resolution.y;
 #define FIXED 2.0
 
 #define USE_BOX_BOUNDARY 0
-#define USE_DISTANCE1 0
+#define USE_DISTANCE1 1
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;

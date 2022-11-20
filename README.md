@@ -46,7 +46,7 @@ $$\vec{F_g}(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
 $$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
 
-$$\vec{F_n}(P_i,P_j)=-k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
+$$\vec{F_n}(P_i,P_j)=k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
 
 where
 
@@ -54,7 +54,7 @@ $\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
 
 and
 
-$V(d)=\sin{(\frac{2.d - d_{max}}{d_{max}})}$ for $d \le d_{max}$, else $V(d)=0$.
+$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$.
 
 Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
 

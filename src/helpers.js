@@ -120,6 +120,45 @@ export function sphereGenerator(callback, radius = 1e3, gridSize = [10, 10, 10])
     }
 }
 
+export function hexagonGenerator(callback, cellRadius, grid) {
+    function hexToPixel(row, col, size) {
+        let x = size * Math.sqrt(3) * (col + 0.5 * (row % 2));
+        let y = size * 3 / 2 * row;
+        return [x, y];
+    }
+
+    function generate(cx, cy, radius) {
+        let s = 1;
+        for (let i = 0; i < 6; ++i) {
+            let theta = (30 + 60 * i) * Math.PI / 180;
+            let x = radius * Math.cos(theta) + cx;
+            let y = radius * Math.sin(theta) + cy;
+
+            let vertex = { x: Math.round(x), y: Math.round(y) };
+            let str = JSON.stringify(vertex);
+            if (!vertexMap.has(str)) {
+                vertex.i = i;
+                vertexMap.set(str, vertex);
+            }
+        }
+    }
+
+    let vertexMap = new Map();
+    let width = grid[0];
+    let height = grid[1];
+    for (let i = -height / 2; i <= height / 2; ++i) {
+        for (let j = -width / 2; j <= width / 2; ++j) {
+            let [cx, cy] = hexToPixel(i, j, cellRadius);
+            generate(cx, cy, cellRadius);
+        }
+    }
+
+    console.log("hexagonGenerator vertex count: " + vertexMap.size);
+    vertexMap.forEach((vertex) => {
+        callback(vertex);
+    });
+}
+
 export function arrayToString(array, precision) {
     let str = "";
     array.forEach((v, idx) => {

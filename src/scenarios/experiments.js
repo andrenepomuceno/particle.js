@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
-import { random } from '../helpers';
+import { random, hexagonGenerator } from '../helpers';
 
 export const experiments = [
     hexagon,
@@ -43,34 +43,43 @@ function hexagon(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
-    simulation.setParticleRadius(10, 5);
 
     let n = graphics.maxParticles;
+    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1.5e4;
+    physics.minDistance = Math.pow(0.5, 2);
 
     physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
 
-    physics.boundaryDamping = 0.5;
-    physics.boundaryDistance = 1e5;
-    physics.minDistance = Math.pow(1, 2);
-
-    graphics.cameraDistance = 4 * physics.nearChargeRange;
+    simulation.setParticleRadius(50, 20);
+    graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 1e2);
-    simulation.fieldSetup("2d", 100);
+    simulation.fieldProbeConfig(0, 0, 10);
+    //simulation.fieldSetup("2d", 100);
 
-    let m = 10;
+    let m = 1;
     let q = 1;
     let nq = 1;
     let v = 0;
     let r0 = 0.03 * physics.nearChargeRange;
     let r1 = 0.618 * physics.nearChargeRange;
+    let r2 = 0.575 * physics.nearChargeRange;
+    let an = 3;
+    let w = Math.round(Math.sqrt(n / (7 * an * 2.5)));
+    let grid = [w, w];
 
-    let an = 2;
-    createNuclei(an, m, q, nq, r0, r1, v, new Vector3(), an, an);
+    hexagonGenerator((vertex) => {
+        let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+        createNuclei(an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y), an, an);
+    }, r2, grid);
+
+    // for (let i = 0; i < 15; i++) {
+    //     createParticle(3, -q, nq, new Vector3(0, 1e4 + i * physics.nearChargeRange, 0), new Vector3(0, -100, 0));
+    // }
 }
 
 function density2(simulation) {

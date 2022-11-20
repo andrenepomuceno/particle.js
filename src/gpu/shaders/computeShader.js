@@ -36,8 +36,6 @@ void main() {
     vec4 props1 = texture2D(textureProperties, uv1);
     float id1 = props1.x;
     float m1 = props1.y;
-    float q1 = props1.z;
-    float nq1 = props1.w;
     vec4 tVel1 = texture2D(textureVelocity, uv1);
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
@@ -87,6 +85,7 @@ void main() {
 
             float force = 0.0;
 
+            float q1 = props1.z;
             float q2 = props2.z;
 
             force += massConstant * m1 * m2;
@@ -96,11 +95,12 @@ void main() {
                 force /= distance2;
             #else
                 float distance1 = sqrt(distance2);
-                //force /= pow(distance1, 1.5);
                 force /= distance1;
+                //force /= pow(distance1, 1.5);
             #endif
 
             if (distance2 <= nearChargeRange2) {
+                float nq1 = props1.w;
                 float nq2 = props2.w;
 
                 #if !USE_DISTANCE1
@@ -112,8 +112,7 @@ void main() {
                     x = sin(PI * x);
                     force += -nearChargeConstant * nq1 * nq2 * x;
                 #else
-                    float x = distance1/nearChargeRange;
-                    x = sin(2.0 * PI * x);
+                    float x = sin(2.0 * PI * distance1/nearChargeRange);
                     force += nearChargeConstant * nq1 * nq2 * x;
                 #endif
             }

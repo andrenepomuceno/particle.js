@@ -4,42 +4,6 @@ import { Particle } from '../physics.js'
 import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { ParticleType } from '../physics'
 
-function newArrowObject(pos, len) {
-    let headh = len / 2;
-    let headw = headh / 2
-    return new ArrowHelper(
-        new Vector3(1, 0, 0),
-        pos,
-        len,
-        0xffffff,
-        headh,
-        headw
-    );
-}
-
-function updateArrow(object) {
-    const forceMin = 0;
-    const forceMax = 1e3;
-
-    let force = object.particle.velocity.clone();
-
-    let forceLen = force.length();
-    if (forceLen > forceMax) forceLen = forceMax;
-    else if (forceLen < forceMin) forceLen = forceMin;
-    let forceLenRel = (forceLen - forceMin) / (forceMax - forceMin);
-    //forceLenRel = Math.log10(1 + 9*forceLenRel);
-
-    if (forceLenRel < 1e-3)
-        object.setColor(new Color('hsl(0, 100%, ' + Math.round(50e3 * forceLenRel) + '%)'));
-    else if (forceLenRel < 0.99)
-        object.setColor(new Color('hsl(' + 360 * forceLenRel + ', 100%, 50%)'));
-    else
-        object.setColor(new Color(0xffffff));
-
-    force.normalize();
-    object.setDirection(force);
-}
-
 function log(msg) {
     console.log("FieldGPU: " + msg);
 }
@@ -103,13 +67,7 @@ export class FieldGPU {
     }
 
     update() {
-        //log("update");
-
-        //this.graphics.readbackParticleData();
-
-        this.objectList.forEach((obj) => {
-            updateArrow(obj);
-        })
+        log("update");
     }
 
     cleanup() {
@@ -128,7 +86,7 @@ export class FieldGPU {
     probe(probeParticle) {
         //log("probe");
         return new Vector3();
-        
+
         probeParticle.force.setScalar(0);
         this.particleList.forEach((p, idx) => {
             //if (p.position.clone().sub(probleParticle.position).length() > 5e3) return;
@@ -187,14 +145,5 @@ export class FieldGPU {
         p.position = position;
         p.radius = this.elementSize();
         this.particleList.push(p);
-
-        /*let obj = {};
-        obj.particle = p;
-        this.objectList.push(obj);*/
-
-        /*let obj = newArrowObject(position, len);
-        obj.particle = p;
-        this.objectList.push(obj);
-        this.graphics.scene.add(obj);*/
     }
 }

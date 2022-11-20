@@ -66,10 +66,11 @@ function hexagon(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.05 * physics.nearChargeRange;
+    let r0 = 0.03 * physics.nearChargeRange;
     let r1 = 0.618 * physics.nearChargeRange;
 
-    createNuclei(3, m, q, nq, r0, r1, v, new Vector3(), true, true);
+    let an = 2;
+    createNuclei(an, m, q, nq, r0, r1, v, new Vector3(), an, an);
 }
 
 function density2(simulation) {

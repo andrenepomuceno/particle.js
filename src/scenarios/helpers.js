@@ -16,7 +16,7 @@ export function randomVector(range, round = false) {
 export function randomSphericVector(r1, r2, mode = 0) {
     let x, y, z = 0;
     if (simulation.mode2D) [x, y, z] = randomDisc(r1, r2, mode);
-    else [x, y, z] = randomSpheric(r1, r2, mode);
+    else[x, y, z] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }
 
@@ -163,7 +163,7 @@ export function atom0(n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, 
     createCloud3(n2, m, -q, 0, r1, r2, v, center);
 }
 
-export function createNuclei(n, m, q, nq, r0, r1, v, center, electron = true, neutron = false) {
+export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0) {
     let typeList = [
         { m: 0.5, q: -1, nq: -1 },
         { m: 3, q: 2 / 3, nq: 1 },
@@ -205,7 +205,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electron = true, ne
         }
     );
 
-    if (electron) createParticles(n,
+    createParticles(electrons,
         (i) => {
             return m * typeList[0].m;
         },
@@ -223,42 +223,40 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electron = true, ne
         }
     );
 
-    if (neutron) {
-        createParticles(1 * n,
-            (i) => {
-                return m * typeList[1].m;
-            },
-            (i) => {
-                return q * typeList[1].q;
-            },
-            (i) => {
-                return nq * typeList[1].nq;
-            },
-            (i) => {
-                return randomSphericVector(0, r0).add(center);
-            },
-            (i) => {
-                return randomVector(0);
-            }
-        );
+    createParticles(1 * neutrons,
+        (i) => {
+            return m * typeList[1].m;
+        },
+        (i) => {
+            return q * typeList[1].q;
+        },
+        (i) => {
+            return nq * typeList[1].nq;
+        },
+        (i) => {
+            return randomSphericVector(0, r0).add(center);
+        },
+        (i) => {
+            return randomVector(0);
+        }
+    );
 
-        createParticles(2 * n,
-            (i) => {
-                return m * typeList[2].m;
-            },
-            (i) => {
-                return q * typeList[2].q;
-            },
-            (i) => {
-                return nq * typeList[2].nq;
-            },
-            (i) => {
-                return randomSphericVector(0, r0).add(center);
-            },
-            (i) => {
-                return randomVector(0);
-            }
-        );
-    }
+    createParticles(2 * neutrons,
+        (i) => {
+            return m * typeList[2].m;
+        },
+        (i) => {
+            return q * typeList[2].q;
+        },
+        (i) => {
+            return nq * typeList[2].nq;
+        },
+        (i) => {
+            return randomSphericVector(0, r0).add(center);
+        },
+        (i) => {
+            return randomVector(0);
+        }
+    );
 }
 

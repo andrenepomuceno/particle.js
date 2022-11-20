@@ -1,15 +1,8 @@
 import { ArrowHelper, Color, MathUtils } from 'three';
 import { Vector3 } from 'three';
 import { Particle } from '../physics.js'
-import { cubeGenerator, sphereGenerator } from '../helpers'
+import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { ParticleType } from '../physics'
-
-function viewSize(graphics) {
-    var vFOV = MathUtils.degToRad(graphics.camera.fov);
-    var height = 2 * Math.tan(vFOV / 2) * graphics.controls.getDistance();
-    var width = height * graphics.camera.aspect;
-    return [width, height];
-}
 
 function newArrowObject(pos, len) {
     let headh = len / 2;
@@ -95,7 +88,7 @@ export class FieldGPU {
 
         this.mode = mode;
         let center = this.graphics.controls.target.clone();
-        this.#populateField(this.size, this.grid, center);
+        this.#populateField(center);
 
         console.log("setup done");
     }
@@ -146,10 +139,20 @@ export class FieldGPU {
         return probeParticle.force;
     }
 
-    #populateField(size = 1e3, gridSize = [10, 10, 10], center = new Vector3(), mode = "cube") {
+    elementSize() {
+        let spacing = this.size / this.grid[0];
+        let len = spacing / 2;
+        if (this.grid[2] > 1) {
+            len /= 2;
+        }
+        len *= 0.75;
+        return len;
+    }
+
+    #populateField(center = new Vector3(), mode = "cube") {
         console.log("#populateField");
 
-        let probeCount = gridSize[0] * gridSize[1] * gridSize[2];
+        let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
         if (this.particleList.length + probeCount > this.graphics.maxParticles) {
             log("error: too many probes: " + probeCount);
             log("free: " + (this.graphics.maxParticles - this.particleList.length));
@@ -157,38 +160,32 @@ export class FieldGPU {
         }
         console.log("probeCount = " + probeCount);
 
-        let spacing = size / gridSize[0];
-        let len = spacing / 2;
-        if (gridSize[2] > 1) {
-            len /= 2;
-        }
-
         this.firstProbeIdx = this.particleList.length - 1;
 
         switch (mode) {
             case "sphere":
                 sphereGenerator((x, y, z) => {
-                    this.#createFieldElement(new Vector3(x, y, z).add(center), len);
-                }, size, gridSize);
+                    this.#createFieldElement(new Vector3(x, y, z).add(center));
+                }, this.size, this.grid);
                 break;
 
             case "cube":
             default:
                 cubeGenerator((x, y, z) => {
-                    this.#createFieldElement(new Vector3(x, y, z).add(center), len);
-                }, size, gridSize);
+                    this.#createFieldElement(new Vector3(x, y, z).add(center));
+                }, this.size, this.grid);
                 break;
         }
     }
 
-    #createFieldElement(position, len) {
+    #createFieldElement(position) {
         let p = new Particle();
         p.type = ParticleType.probe;
         p.mass = this.probeParam.m;
         p.charge = this.probeParam.q;
         p.nearCharge = this.probeParam.nq;
         p.position = position;
-        p.radius = len * 0.75;
+        p.radius = this.elementSize();
         this.particleList.push(p);
 
         /*let obj = {};

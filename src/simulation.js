@@ -84,7 +84,7 @@ export function simulationSetup(idx) {
 export function simulationExportCsv() {
     log("simulationCsv");
 
-    const csvVersion = "1.0";
+    const csvVersion = "1.1";
 
     if (useGPU) {
         graphics.readbackParticleData();
@@ -92,7 +92,7 @@ export function simulationExportCsv() {
 
     let output = "";
     output += "version," + physics.header();
-    output += ",cycles,targetX,targetY,targetZ,cameraX,cameraY,cameraZ,particleRadius,particleRadiusRange";
+    output += ",cycles,targetX,targetY,targetZ,cameraX,cameraY,cameraZ,particleRadius,particleRadiusRange,mode2D";
     output += "\n";
     output += csvVersion + "," + physics.csv();
     output += "," + simulation.cycles;
@@ -106,6 +106,7 @@ export function simulationExportCsv() {
     output += "," + camera.z;
     output += "," + simulation.particleRadius;
     output += "," + simulation.particleRadiusRange;
+    output += "," + simulation.mode2D;
     output += "\n";
 
     output += physics.particleList[0].header() + "\n";
@@ -120,8 +121,8 @@ export function simulationImportCSV(filename, content) {
 
     let imported = { physics: new Physics() };
 
-    const particleDataColumns = 13;
-    const simulationDataColumns = 19;
+    let particleDataColumns = 13;
+    let simulationDataColumns = 19;
 
     let lines = content.split("\n");
     let result = lines.every((line, index) => {
@@ -141,8 +142,7 @@ export function simulationImportCSV(filename, content) {
                 particle.id = parseInt(values[0]);
                 particle.type = parseFloat(values[1]);
                 if (particle.type == ParticleType.probe) {
-                    // TODO fix this
-                    particle.radius = imported.particleRadius;
+                    particle.radius = field.elementSize();
                 }
                 particle.mass = parseFloat(values[2]);
                 particle.charge = parseFloat(values[3]);
@@ -162,7 +162,7 @@ export function simulationImportCSV(filename, content) {
 
             case 0:
                 // physics header
-                if (values.length != simulationDataColumns) {
+                if (values.length < simulationDataColumns) {
                     log("invalid physics header");
                     return false;
                 }
@@ -170,11 +170,11 @@ export function simulationImportCSV(filename, content) {
 
             case 1:
                 // physics data
-                if (values.length != simulationDataColumns) {
+                if (values.length < simulationDataColumns) {
                     log("invalid physics data");
                     return false;
                 }
-                // values[0] version
+                imported.version = values[0];
                 imported.physics.enableColision = (values[1] == "true") ? (true) : (false);
                 imported.physics.minDistance = parseFloat(values[2]);
                 imported.physics.forceConstant = parseFloat(values[3]);
@@ -200,6 +200,8 @@ export function simulationImportCSV(filename, content) {
                 graphics.controls.update();
                 imported.particleRadius = parseFloat(values[17]);
                 imported.particleRadiusRange = parseFloat(values[18]);
+                if (parseFloat(imported.version) >= 1.1)
+                    imported.mode2D = (values[19] === "true");
                 break;
 
             case 2:
@@ -225,6 +227,7 @@ export function simulationImportCSV(filename, content) {
     simulation.name = filename;
     simulation.particleRadius = imported.particleRadius;
     simulation.particleRadiusRange = imported.particleRadiusRange;
+    simulation.mode2D = imported.mode2D;
 
     simulation.setup();
 

@@ -96,6 +96,7 @@ void main() {
                 force /= distance2;
             #else
                 float distance1 = sqrt(distance2);
+                //force /= pow(distance1, 1.5);
                 force /= distance1;
             #endif
 
@@ -106,9 +107,15 @@ void main() {
                     float distance1 = sqrt(distance2);
                 #endif
 
-                float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
-                x = sin(PI * x);
-                force += -nearChargeConstant * nq1 * nq2 * x;
+                #if 0
+                    float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
+                    x = sin(PI * x);
+                    force += -nearChargeConstant * nq1 * nq2 * x;
+                #else
+                    float x = distance1/nearChargeRange;
+                    x = sin(2.0 * PI * x);
+                    force += nearChargeConstant * nq1 * nq2 * x;
+                #endif
             }
 
             rForce += forceConstant * force * normalize(dPos);

@@ -1,8 +1,9 @@
 import { Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random } from '../helpers';
 
 export const experiments = [
+    hexagon,
     density2,
     density,
     magnecticForce,
@@ -38,6 +39,39 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.bidimensionalMode(true);
 }
 
+function hexagon(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+    simulation.setParticleRadius(10, 5);
+
+    let n = graphics.maxParticles;
+
+    physics.nearChargeRange = 5e2;
+    physics.nearChargeConstant = 1;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1 / 60;
+
+    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1e5;
+    physics.minDistance = Math.pow(1, 2);
+
+    graphics.cameraDistance = 4 * physics.nearChargeRange;
+    graphics.cameraSetup();
+
+    simulation.fieldProbeConfig(0, 0, 1e2);
+    simulation.fieldSetup("2d", 100);
+
+    let m = 10;
+    let q = 1;
+    let nq = 1;
+    let v = 0;
+    let r0 = 0.05 * physics.nearChargeRange;
+    let r1 = 0.618 * physics.nearChargeRange;
+
+    createNuclei(3, m, q, nq, r0, r1, v, new Vector3(), true, true);
+}
+
 function density2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
@@ -49,7 +83,7 @@ function density2(simulation) {
     physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
     physics.massConstant = 1e-3;
-    physics.chargeConstant = 1/60;
+    physics.chargeConstant = 1 / 60;
 
     let density = 1;
     let area = n / density;
@@ -71,8 +105,8 @@ function density2(simulation) {
     let typeList = [
         //[0, 0, 1],
         [0.5, -1, 1],
-        [3, 2/3, 1],
-        [6, -1/3, 1]
+        [3, 2 / 3, 1],
+        [6, -1 / 3, 1]
     ];
 
     let idx = undefined;
@@ -118,7 +152,7 @@ function density(simulation) {
     physics.nearChargeRange = 2e2;
     physics.nearChargeConstant = 1;
     physics.massConstant = 1e-6;
-    physics.chargeConstant = 1/3;
+    physics.chargeConstant = 1 / 3;
 
     let m = 10;
     let q = 1;

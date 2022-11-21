@@ -172,7 +172,7 @@ export let guiOptions = {
 }
 
 export function guiSetup() {
-    gui.width = 300;
+    //gui.width = 300;
 
     function mouseOver() {
         mouseOverGUI = true;

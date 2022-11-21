@@ -39,7 +39,7 @@ jobs:
         draft: true
 
     - name: Deploy gh-pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          brach: gh-pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: dist
+        branch: gh-pages

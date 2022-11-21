@@ -163,7 +163,7 @@ export function atom0(n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, 
     createCloud3(n2, m, -q, 0, r1, r2, v, center);
 }
 
-export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0) {
+export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0, v2 = new Vector3()) {
     let typeList = [
         { m: 0.5, q: -1, nq: -1 },
         { m: 3, q: 2 / 3, nq: 1 },
@@ -184,7 +184,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return randomSphericVector(0, r0).add(center);
         },
         (i) => {
-            return randomVector(0);
+            return v2;
         }
     );
     createParticles(1 * n,
@@ -201,7 +201,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return randomSphericVector(0, r0).add(center);
         },
         (i) => {
-            return randomVector(0);
+            return v2;
         }
     );
 
@@ -219,7 +219,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return randomSphericVector(r0, r1).add(center);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v).add(v2);
         }
     );
 
@@ -237,7 +237,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return randomSphericVector(0, r0).add(center);
         },
         (i) => {
-            return randomVector(0);
+            return v2;
         }
     );
 
@@ -255,7 +255,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return randomSphericVector(0, r0).add(center);
         },
         (i) => {
-            return randomVector(0);
+            return v2;
         }
     );
 }

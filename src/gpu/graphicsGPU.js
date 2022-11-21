@@ -84,7 +84,7 @@ export class GraphicsGPU {
             if (object.object.type != "Points") continue;
             for (let j = 0; j < this.particleList.length; ++j) {
                 let p = this.particleList[j];
-                if (p.id == object.index && p.type != ParticleType.probe) {
+                if (j == object.index && p.type != ParticleType.probe) {
                     //if (p.id == object.index) {
                     return p;
                 }

@@ -172,7 +172,7 @@ export let guiOptions = {
 }
 
 export function guiSetup() {
-    gui.width = 300;
+    //gui.width = 300;
 
     function mouseOver() {
         mouseOverGUI = true;
@@ -283,7 +283,7 @@ export function guiSetup() {
     guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val != simulation.physics.particleList.length) {
-            simulationUpdatePhysics("maxParticles", val);
+            graphics.setMaxParticles(val);
             setup();
         }
     });

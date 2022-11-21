@@ -134,11 +134,10 @@ export function hexagonGenerator(callback, cellRadius, grid) {
             let x = radius * Math.cos(theta) + cx;
             let y = radius * Math.sin(theta) + cy;
 
-            let vertex = { x: Math.round(x), y: Math.round(y) };
-            let str = JSON.stringify(vertex);
-            if (!vertexMap.has(str)) {
-                vertex.i = i;
-                vertexMap.set(str, vertex);
+            let vertex = { x, y, i };
+            let tag = x.toExponential(2) + " " + y.toExponential(2);
+            if (!vertexMap.has(tag)) {
+                vertexMap.set(tag, vertex);
             }
         }
     }
@@ -153,7 +152,7 @@ export function hexagonGenerator(callback, cellRadius, grid) {
         }
     }
 
-    console.log("hexagonGenerator vertex count: " + vertexMap.size);
+    console.log("hexagonGenerator vertex count: " + vertexMap.size);    
     vertexMap.forEach((vertex) => {
         callback(vertex);
     });
@@ -267,4 +266,11 @@ export function viewSize(graphics) {
     var height = 2 * Math.tan(vFOV / 2) * graphics.controls.getDistance();
     var width = height * graphics.camera.aspect;
     return [width, height];
+}
+
+export function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }

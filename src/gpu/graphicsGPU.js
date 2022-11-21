@@ -26,12 +26,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-//const textureWidth = 64;
-const textureWidth = Math.round(Math.sqrt(22e3));
-//const textureWidth = 1 << 31 - Math.clz32(Math.round(Math.sqrt(5e3)));
-
-const particlePosition = new Float32Array(4 * textureWidth * textureWidth);
-const particleVelocity = new Float32Array(4 * textureWidth * textureWidth);
+const textureWidth0 = Math.round(Math.sqrt(10e3)/16)*16;
 
 function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
@@ -47,7 +42,8 @@ export class GraphicsGPU {
 
         this.cleanup();
 
-        this.maxParticles = textureWidth * textureWidth;
+        this.textureWidth = textureWidth0;
+        this.maxParticles = this.textureWidth * this.textureWidth;
 
         this.renderer = new WebGLRenderer();
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -84,7 +80,7 @@ export class GraphicsGPU {
             if (object.object.type != "Points") continue;
             for (let j = 0; j < this.particleList.length; ++j) {
                 let p = this.particleList[j];
-                if (p.id == object.index && p.type != ParticleType.probe) {
+                if (j == object.index && p.type != ParticleType.probe) {
                     //if (p.id == object.index) {
                     return p;
                 }
@@ -123,7 +119,7 @@ export class GraphicsGPU {
 
     drawParticles(particleList, physics) {
         log("drawParticles");
-        log("textureWidth = " + textureWidth);
+        log("textureWidth = " + this.textureWidth);
 
         this.particleList = (particleList || this.particleList);
         this.physics = (physics || this.physics);
@@ -137,6 +133,9 @@ export class GraphicsGPU {
             this.physics = undefined;
             return;
         }
+
+        this.particlePosition = new Float32Array(4 * this.textureWidth * this.textureWidth);
+        this.particleVelocity = new Float32Array(4 * this.textureWidth * this.textureWidth);
 
         this.#initComputeRenderer();
         this.#initPointsObject();
@@ -183,7 +182,7 @@ export class GraphicsGPU {
     #initComputeRenderer() {
         log("#initComputeRenderer");
 
-        this.gpuCompute = new GPUComputationRenderer(textureWidth, textureWidth, this.renderer);
+        this.gpuCompute = new GPUComputationRenderer(this.textureWidth, this.textureWidth, this.renderer);
         let gpuCompute = this.gpuCompute;
 
         if (this.renderer.capabilities.isWebGL2 === false) {
@@ -292,10 +291,10 @@ export class GraphicsGPU {
         let current = (this.renderTarget + 0) % 2;
         
         let texture = this.positionVariable.renderTargets[current];
-        this.renderer.readRenderTargetPixels(texture, 0, 0, textureWidth, textureWidth, particlePosition);
+        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particlePosition);
 
         texture = this.velocityVariable.renderTargets[current];
-        this.renderer.readRenderTargetPixels(texture, 0, 0, textureWidth, textureWidth, particleVelocity);
+        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particleVelocity);
 
         let positions = [];
         let i = 0;
@@ -396,11 +395,11 @@ export class GraphicsGPU {
         const uvs = new Float32Array(2 * this.maxParticles);
         let particles = this.particleList.length;
         let p = 0;
-        for (let j = 0; j < textureWidth; j++) {
-            for (let i = 0; i < textureWidth; i++) {
+        for (let j = 0; j < this.textureWidth; j++) {
+            for (let i = 0; i < this.textureWidth; i++) {
                 let offset = 2 * p;
-                let u = i / (textureWidth - 1);
-                let v = j / (textureWidth - 1);
+                let u = i / (this.textureWidth - 1);
+                let v = j / (this.textureWidth - 1);
                 uvs[offset + 0] = u;
                 uvs[offset + 1] = v;
                 /*uvs[p++] = u;
@@ -454,5 +453,10 @@ export class GraphicsGPU {
 
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+    }
+
+    setMaxParticles(n) {
+        this.textureWidth = Math.round(Math.sqrt(n)/16)*16;
+        this.maxParticles = this.textureWidth * this.textureWidth;
     }
 }

@@ -273,11 +273,6 @@ export function simulationUpdatePhysics(key, value) {
             physics.forceConstant = parseFloat(value);
             break;
 
-        case "maxParticles":
-            graphics.maxParticles = parseFloat(value);
-            updatePhysics = false;
-            break;
-
         case "radius":
             simulation.particleRadius = parseFloat(value);
             simulation.setParticleRadius();

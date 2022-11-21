@@ -9,6 +9,8 @@ Try to simulate 3 forces on point-like particles:
 - Electromagnetic
 - Near force (an analogy to the Strong Force)
 
+Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
+
 ## Build
 
 To run the test server on `localhost:8080`

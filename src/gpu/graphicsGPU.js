@@ -288,6 +288,9 @@ export class GraphicsGPU {
             return;
         }
 
+        let particlePosition = this.particlePosition;
+        let particleVelocity = this.particleVelocity;
+
         let current = (this.renderTarget + 0) % 2;
         
         let texture = this.positionVariable.renderTargets[current];

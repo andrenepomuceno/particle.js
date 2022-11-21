@@ -71,8 +71,8 @@ function hexagon2(simulation) {
     let r1 = 0.618 * physics.nearChargeRange;
     let r2 = 0.57 * physics.nearChargeRange;
     let an = 2;
-    let w = Math.round(Math.sqrt(n / (7 * an * 2.5)));
-    let grid = [10, 10];
+    let w = Math.round(Math.sqrt(n / (7 * an * 8)));
+    let grid = [w, w];
 
     let c = new Vector3(5e3, 0, 0);
     let v2 = new Vector3(2, 0, 0);
@@ -115,8 +115,8 @@ function hexagon1(simulation) {
     let r1 = 0.618 * physics.nearChargeRange;
     let r2 = 0.57 * physics.nearChargeRange;
     let an = 2;
-    let w = Math.round(Math.sqrt(n / (7 * an * 2.5)));
-    let grid = [40, 30];
+    let w = Math.round(Math.sqrt(n / (7 * an * 4)));
+    let grid = [w, w/2];
 
     hexagonGenerator((vertex) => {
         let hole = 1e3;
@@ -127,7 +127,7 @@ function hexagon1(simulation) {
 
     shuffleArray(simulation.particleList);
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 500; i++) {
          createParticle(
             0.5 * m, -1 * q, (i%2)?(-nq):(nq), 
             new Vector3(-2e4 - 2.0 * i * physics.nearChargeRange, 0, 0), 
@@ -176,7 +176,7 @@ function hexagon0(simulation) {
     let r1 = 0.618 * physics.nearChargeRange;
     let r2 = 0.57 * physics.nearChargeRange;
     let an = 2;
-    let w = Math.round(Math.sqrt(n / (7 * an * 2.5)));
+    let w = Math.round(Math.sqrt(n / (7 * an * 4)));
     let grid = [w, w];
 
     hexagonGenerator((vertex) => {

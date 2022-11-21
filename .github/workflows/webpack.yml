@@ -4,6 +4,9 @@ on:
   push:
     tags: "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,3 +37,9 @@ jobs:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         draft: true
+
+    - name: Deploy gh-pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: dist
+        branch: gh-pages

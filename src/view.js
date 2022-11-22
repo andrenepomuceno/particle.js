@@ -1,9 +1,9 @@
 import {
-    Vector2,
+    Vector2, Vector3,
 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString } from './helpers.js';
+import { downloadFile, arrayToString, cameraToWorld } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -189,7 +189,7 @@ export function guiSetup() {
     stats.domElement.addEventListener("mouseleave", mouseLeave);
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
-        simulation.name = val; 
+        simulation.name = val;
     });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
@@ -372,13 +372,68 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-document.addEventListener("click", (event) => {
-    if (mouseOverGUI) return;
+let selectionStarted = false;
+let selectionP0 = undefined;
+let selectionP1 = undefined;
 
-    let particle = graphics.raycast(mousePosition);
-    if (particle) {
-        guiOptions.particle.obj = particle;
-        guiParticle.open();
+function startSelection() {
+    selectionStarted = true;
+    graphics.controls.enabled = false;
+    selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
+}
+
+function endSelection() {
+    selectionStarted = false;
+    selectionP1 = cameraToWorld(mousePosition, graphics.camera, 0);
+    graphics.controls.enabled = true;
+
+    graphics.readbackParticleData();
+
+    let top = selectionP0;
+    let botton = selectionP1;
+
+    let particles = 0;
+    let totalMass = 0;
+    let totalCharge = 0;
+    let totalVelocity = new Vector3();
+
+    graphics.particleList.forEach(p => {
+        let pos = p.position;
+        if (
+            pos.x >= top.x && 
+            pos.x <= botton.x && 
+            pos.y >= botton.y && 
+            pos.y <= top.y
+        ) {
+            particles++;
+            totalMass += p.mass;
+            totalCharge += p.charge;
+            totalVelocity.add(p.velocity);
+        }
+    })
+
+    console.log(particles);
+    console.log(totalMass);
+    console.log(totalCharge);
+    console.log(totalVelocity.length()/particles);
+    console.log(totalVelocity.normalize().toArray());
+}
+
+document.addEventListener("mousedown", (event) => {
+    if (event.button == 0 && event.shiftKey) {
+        startSelection();
+    }
+});
+
+document.addEventListener("mouseup", (event) => {
+    if (event.button == 0 && selectionStarted) {
+        endSelection();
+    } else if (event.button == 0 && !mouseOverGUI) {
+        let particle = graphics.raycast(mousePosition);
+        if (particle) {
+            guiOptions.particle.obj = particle;
+            guiParticle.open();
+        }
     }
 });
 
@@ -388,7 +443,7 @@ function updateInfoView(now) {
     guiOptions.info.particles = n;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
-    guiOptions.info.energy = (e/n).toExponential(2) + " / " + Math.sqrt(e/m).toExponential(2);
+    guiOptions.info.energy = (e / n).toExponential(2) + " / " + Math.sqrt(e / m).toExponential(2);
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(2);
     guiOptions.info.radius = r.toExponential(2);

@@ -1,5 +1,5 @@
 import { ParticleType } from "./physics";
-import { MathUtils } from "three";
+import { MathUtils, Vector3 } from "three";
 
 export function random(a, b, round = false) {
     let r = Math.random();
@@ -152,7 +152,7 @@ export function hexagonGenerator(callback, cellRadius, grid) {
         }
     }
 
-    console.log("hexagonGenerator vertex count: " + vertexMap.size);    
+    console.log("hexagonGenerator vertex count: " + vertexMap.size);
     vertexMap.forEach((vertex) => {
         callback(vertex);
     });
@@ -273,4 +273,13 @@ export function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+export function cameraToWorld(pointer, camera, targetZ = 0) {
+    let point = new Vector3(pointer.x, pointer.y, 0.5).unproject(camera);
+    point.sub(camera.position).normalize();
+    let d = (targetZ - camera.position.z) / point.z;
+    point.multiplyScalar(d);
+    let pos = camera.position.clone().add(point);
+    return pos;
 }

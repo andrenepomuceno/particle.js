@@ -116,7 +116,7 @@ function hexagon1(simulation) {
     let r2 = 0.57 * physics.nearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
-    let grid = [w, w/2];
+    let grid = [5/3*w, 3/5*w];
 
     hexagonGenerator((vertex) => {
         let hole = 1e3;

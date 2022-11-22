@@ -288,7 +288,7 @@ function colisionTest(simulation) {
     physics.chargeConstant = 0;
 
     let r = 10;
-    physics.minDistance = Math.pow(r, 2);
+    physics.minDistance = Math.pow(2*r, 2);
     simulation.setParticleRadius(r, 0);
 
     /*let i = -250;
@@ -306,10 +306,10 @@ function colisionTest(simulation) {
     particleList.at(-1).charge = 1;
     particleList.at(-1).position.set(400, 0, 0);*/
 
-    let v = 5;
+    let v = 1;
     let m1 = 1;
     let p1 = 50;
-    let m2 = 500;
+    let m2 = 1e3;
     let p2 = 100;
     particleList.push(new Particle());
     particleList.at(-1).mass = m1;
@@ -321,20 +321,58 @@ function colisionTest(simulation) {
     particleList.at(-1).charge = -1;
     particleList.at(-1).position.set(p1, p1, 0);
     particleList.at(-1).velocity.set(-v, -v, 0);
+    // top
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;
     particleList.at(-1).charge = 0;
-    particleList.at(-1).position.set(-p2, -p2+r, 0);
+    particleList.at(-1).position.set(-p2-r, p2, 0); //left
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;
     particleList.at(-1).charge = 0;
-    particleList.at(-1).position.set(p2, -p2+r, 0);
+    particleList.at(-1).position.set(p2+r, p2, 0); //right
+    // bottom
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;
     particleList.at(-1).charge = 0;
-    particleList.at(-1).position.set(-p2, p2, 0);
+    particleList.at(-1).position.set(-p2-r, -p2, 0);
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;
     particleList.at(-1).charge = 0;
-    particleList.at(-1).position.set(p2, p2, 0);
+    particleList.at(-1).position.set(p2+r, -p2, 0);
+
+
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m1;
+    particleList.at(-1).charge = 1;
+    particleList.at(-1).position.set(-2*p1, -2*p2, 0);
+    particleList.at(-1).velocity.set(v, 0, 0);
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m1;
+    particleList.at(-1).charge = -1;
+    particleList.at(-1).position.set(2*p1, -2*p2, 0);
+    particleList.at(-1).velocity.set(-v, 0, 0);
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(-3*p1, -2*p2, 0);
+    particleList.at(-1).velocity.set(0, 0, 0);
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m2;
+    particleList.at(-1).charge = 0;
+    particleList.at(-1).position.set(3*p1, -2*p2, 0);
+    particleList.at(-1).velocity.set(0, 0, 0);
+
+    m1 = 10;
+    p1 = 60;
+    v = 1;
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m1;
+    particleList.at(-1).charge = 1;
+    particleList.at(-1).position.set(0, 2*p2, 0);
+    particleList.at(-1).velocity.set(0, 0, 0);
+    particleList.push(new Particle());
+    particleList.at(-1).mass = m1;
+    particleList.at(-1).charge = -1;
+    particleList.at(-1).position.set(p1, r + 2*p2, 0);
+    particleList.at(-1).velocity.set(-v, 0, 0);
 }

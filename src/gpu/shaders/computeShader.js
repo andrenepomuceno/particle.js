@@ -70,8 +70,10 @@ void main() {
                         continue;
                     }
 
-                    float s = 2.0 * m1 * m2 / m;
-                    vec3 dv = vel2 - vel1;
+                    float s = m1 * m2 / m;
+                    vec3 dv = (vel2 - vel1);
+
+                    //dv -= reflect(dv, normalize(-dPos));
 
                     rForce += s * dv;
                     

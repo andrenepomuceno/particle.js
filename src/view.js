@@ -44,6 +44,7 @@ function setup(idx) {
     resetParticleView();
     simulationSetup(idx);
     resetEditView();
+    updateInfoView();
 }
 
 export let guiOptions = {
@@ -81,6 +82,7 @@ export let guiOptions = {
                     resetParticleView();
                     simulationImportCSV(file.name, content);
                     resetEditView();
+                    updateInfoView();
                 }
             }
             input.click();

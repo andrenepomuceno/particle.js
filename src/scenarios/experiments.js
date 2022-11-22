@@ -15,7 +15,7 @@ export const experiments = [
     twinsCollision,
     experiment5,
     wildParticles,
-    experiment3,
+    easterEgg,
     experiment2,
     experiment1,
     experiment0,
@@ -763,7 +763,7 @@ function wildParticles(simulation) {
     );
 }
 
-function experiment3(simulation) {
+function easterEgg(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e7);

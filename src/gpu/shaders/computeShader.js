@@ -70,12 +70,14 @@ void main() {
                         continue;
                     }
 
-                    float s = m1 * m2 / m;
-                    vec3 dv = (vel2 - vel1);
-
-                    //dv -= reflect(dv, normalize(-dPos));
-
-                    rForce += s * dv;
+                    float s = 2.0 * m1 * m2 / m;
+                    vec3 dVel = vel2 - vel1;
+                    if (distance2 > 0.0) {
+                        vec3 res = (s * dot(dVel, dPos) / distance2) * dPos;
+                        rForce += res;
+                    } else {
+                        rForce += s * dVel;
+                    }
                     
                     ++collisions;
                     continue;

@@ -76,10 +76,17 @@ export class Physics {
 
         let s = 2 * p1.mass * p2.mass / m;
         let dv = p2.velocity.clone().sub(p1.velocity);
-        dv.multiplyScalar(s);
-
-        p1.force.add(dv);
-        p2.force.sub(dv);
+        let dp = p2.position.clone().sub(p1.position);
+        let dp2 = dp.lengthSq();
+        if (dp2 > 0) {
+            dp.multiplyScalar(s * dv.dot(dp)/dp2);
+            p1.force.add(dp);
+            p2.force.sub(dp);
+        } else {
+            dv.multiplyScalar(s);
+            p1.force.add(dv);
+            p2.force.sub(dv);
+        }
     }
 
     update(p) {

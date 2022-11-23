@@ -40,7 +40,7 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
-simulationList.reverse();
+//simulationList.reverse();
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 
@@ -176,7 +176,7 @@ export function simulationImportCSV(filename, content) {
                 }
                 imported.version = values[0];
                 imported.physics.enableColision = (values[1] == "true") ? (true) : (false);
-                imported.physics.minDistance = parseFloat(values[2]);
+                imported.physics.minDistance2 = parseFloat(values[2]);
                 imported.physics.forceConstant = parseFloat(values[3]);
                 imported.physics.massConstant = parseFloat(values[4]);
                 imported.physics.chargeConstant = parseFloat(values[5]);
@@ -265,8 +265,8 @@ export function simulationUpdatePhysics(key, value) {
             physics.boundaryDistance = parseFloat(value);
             break;
 
-        case "minDistance":
-            physics.minDistance = parseFloat(value);
+        case "minDistance2":
+            physics.minDistance2 = parseFloat(value);
             break;
 
         case "forceConstant":

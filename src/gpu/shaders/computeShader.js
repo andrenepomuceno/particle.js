@@ -3,7 +3,7 @@ export const computeVelocity = /* glsl */ `
 
 precision highp float;
 
-uniform float minDistance;
+uniform float minDistance2;
 uniform float massConstant;
 uniform float chargeConstant;
 uniform float nearChargeConstant;
@@ -61,11 +61,11 @@ void main() {
             float distance2 = dot(dPos, dPos);
             
             // check collision
-            if (distance2 <= minDistance) {
+            if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
 
-                    float m = m1 + m2;
+                    float m = m1 + m2; // precision loss if m1 >> m2
                     if (m == 0.0) {
                         continue;
                     }
@@ -73,7 +73,8 @@ void main() {
                     float s = 2.0 * m1 * m2 / m;
                     vec3 dVel = vel2 - vel1;
                     if (distance2 > 0.0) {
-                        vec3 res = (s * dot(dVel, dPos) / distance2) * dPos;
+                        vec3 res = s * dot(dVel, dPos) * dPos;
+                        res /= distance2;
                         rForce += res;
                     } else {
                         rForce += s * dVel;
@@ -83,7 +84,7 @@ void main() {
                     continue;
                 } else {
                     // for probe
-                    distance2 = minDistance;
+                    distance2 = minDistance2;
                 }
             }
 

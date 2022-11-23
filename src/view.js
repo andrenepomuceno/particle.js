@@ -162,7 +162,7 @@ export let guiOptions = {
         nearChargeRange: "",
         boundaryDamping: "",
         boundaryDistance: "",
-        minDistance: "",
+        minDistance2: "",
         forceConstant: "",
         maxParticles: "",
         radius: "",
@@ -270,8 +270,8 @@ export function guiSetup() {
     guiParameters.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDistance", val);
     });
-    guiParameters.add(guiOptions.parameters, 'minDistance').name("minDistance").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("minDistance", val);
+    guiParameters.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("minDistance2", val);
     });
     guiParameters.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
@@ -522,7 +522,7 @@ function resetEditView() {
     edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance = simulation.physics.minDistance;
+    edit.minDistance2 = simulation.physics.minDistance2;
     edit.forceConstant = simulation.physics.forceConstant;
     edit.radius = simulation.particleRadius;
     edit.radiusRange = simulation.particleRadiusRange;

@@ -288,23 +288,8 @@ function colisionTest(simulation) {
     physics.chargeConstant = 0;
 
     let r = 10;
-    physics.minDistance = Math.pow(2*r, 2);
+    physics.minDistance2 = Math.pow(2*r, 2);
     simulation.setParticleRadius(r, 0);
-
-    /*let i = -250;
-    createParticles(10, [1, 1], chargeRange, (x, y, z) => {
-        i += 50;
-        return [i, 0, 0];
-    })
-    particleList.at(-1).velocity.set(-1, 0, 0);
-    particleList.push(new Particle());
-    particleList.at(-1).mass = 50;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(-400, 0, 0);
-    particleList.push(new Particle());
-    particleList.at(-1).mass = 50;
-    particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(400, 0, 0);*/
 
     let v = 1;
     let m1 = 1;
@@ -316,13 +301,13 @@ function colisionTest(simulation) {
     particleList.push(new Particle());
     particleList.at(-1).mass = m1;
     particleList.at(-1).charge = 1;
-    particleList.at(-1).position.set(r, 0, 0); //left
-    particleList.at(-1).velocity.set(-v, -v, 0);
+    particleList.at(-1).position.set(-r, 0, 0); //left
+    particleList.at(-1).velocity.set(v, -v, 0);
     particleList.push(new Particle());
     particleList.at(-1).mass = m1;
     particleList.at(-1).charge = -1;
-    particleList.at(-1).position.set(-r, 0, 0); //right
-    particleList.at(-1).velocity.set(v, -v, 0);
+    particleList.at(-1).position.set(r, 0, 0); //right
+    particleList.at(-1).velocity.set(-v, -v, 0);
     // barrier top
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;

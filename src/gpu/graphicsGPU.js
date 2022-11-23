@@ -213,7 +213,7 @@ export class GraphicsGPU {
     fillPhysicsUniforms() {
         let physics = this.physics;
         let uniforms = this.velocityVariable.material.uniforms;
-        uniforms['minDistance'] = { value: physics.minDistance };
+        uniforms['minDistance2'] = { value: physics.minDistance2 };
         uniforms['massConstant'] = { value: physics.massConstant };
         uniforms['chargeConstant'] = { value: physics.chargeConstant };
         uniforms['nearChargeConstant'] = { value: physics.nearChargeConstant };

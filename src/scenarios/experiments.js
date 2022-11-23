@@ -49,7 +49,7 @@ function hexagon2(simulation) {
     let n = graphics.maxParticles;
     physics.boundaryDamping = 0.5;
     physics.boundaryDistance = 1e5;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
@@ -93,7 +93,7 @@ function hexagon1(simulation) {
     let n = graphics.maxParticles;
     physics.boundaryDamping = 0.5;
     physics.boundaryDistance = 1e12;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
@@ -154,7 +154,7 @@ function hexagon0(simulation) {
     let n = graphics.maxParticles;
     physics.boundaryDamping = 0.5;
     physics.boundaryDistance = 1e5;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     physics.nearChargeRange = 5e2;
     physics.nearChargeConstant = 1;
@@ -210,7 +210,7 @@ function density2(simulation) {
 
     physics.boundaryDamping = 0.5;
     physics.boundaryDistance = 1.0 * r0;
-    physics.minDistance = Math.pow(1, 2);
+    physics.minDistance2 = Math.pow(1, 2);
 
     let m = 10;
     let q = 1;
@@ -262,7 +262,7 @@ function density(simulation) {
     simulation.setParticleRadius(10, 5);
     physics.boundaryDistance = 10e3;
     physics.boundaryDamping = 0.9;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     physics.nearChargeRange = 2e2;
     physics.nearChargeConstant = 1;
@@ -329,7 +329,7 @@ function magnecticForce(simulation) {
     physics.nearChargeConstant = 0;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(1e-6, 2);
+    physics.minDistance2 = Math.pow(1e-6, 2);
 
     simulation.fieldProbeConfig(0, 1e4, 0);
     simulation.fieldSetup("2d", 40);
@@ -408,7 +408,7 @@ function experiment9(simulation) {
     physics.nearChargeConstant = 10;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e3;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1 / 3;
@@ -474,7 +474,7 @@ function donut(simulation) {
     physics.nearChargeConstant = 60;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e3;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1 / 3;
@@ -535,7 +535,7 @@ function terrarium(simulation) {
     physics.nearChargeConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1 / 3;
@@ -595,7 +595,7 @@ function twinsCollision(simulation) {
     physics.nearChargeConstant = 10;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1 / 3;
@@ -655,7 +655,7 @@ function experiment5(simulation) {
     physics.nearChargeRange = 1e4;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1e3;
     let q = 1 / 3;
@@ -715,7 +715,7 @@ function wildParticles(simulation) {
     physics.nearChargeRange = 1e4;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
     let q = 1 / 3;
@@ -775,7 +775,7 @@ function easterEgg(simulation) {
     physics.nearChargeRange = 1e3;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
     let q = 1;
@@ -837,7 +837,7 @@ function experiment2(simulation) {
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
     let q = 1 / 3;
@@ -897,7 +897,7 @@ function experiment1(simulation) {
     physics.nearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
     let q = 1 / 3;
@@ -955,7 +955,7 @@ function experiment0(simulation) {
     physics.nearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.minDistance = Math.pow(0.5, 2);
+    physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
     let q = 1 / 3;

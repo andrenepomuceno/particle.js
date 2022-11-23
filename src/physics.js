@@ -10,7 +10,7 @@ export class Physics {
         log("constructor");
 
         this.enableColision = true;
-        this.minDistance = Math.pow(0.5, 2);
+        this.minDistance2 = Math.pow(0.5, 2);
         this.boundaryDistance = 1e12;
         this.boundaryDamping = 0.99;//1.0;
 
@@ -33,12 +33,12 @@ export class Physics {
         distance.sub(p1.position);
 
         let absDistance2 = distance.lengthSq();
-        if (absDistance2 <= this.minDistance) {
+        if (absDistance2 <= this.minDistance2) {
             if (!probe) {
                 this.colide(p1, p2);
                 return;
             }
-            absDistance2 = this.minDistance; // for probe
+            absDistance2 = this.minDistance2; // for probe
         }
 
         let force = 0.0;
@@ -79,7 +79,7 @@ export class Physics {
         let dp = p2.position.clone().sub(p1.position);
         let dp2 = dp.lengthSq();
         if (dp2 > 0) {
-            dp.multiplyScalar(s * dv.dot(dp)/dp2);
+            dp.multiplyScalar(s * dv.dot(dp) / dp2);
             p1.force.add(dp);
             p2.force.sub(dp);
         } else {
@@ -108,12 +108,12 @@ export class Physics {
     }
 
     header() {
-        return "enableColision,minDistance,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange,boundaryDistance,boundaryDamping";
+        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange,boundaryDistance,boundaryDamping";
     }
 
     csv() {
         return this.enableColision + ","
-            + this.minDistance + ","
+            + this.minDistance2 + ","
             + this.forceConstant + ","
             + this.massConstant + ","
             + this.chargeConstant + ","

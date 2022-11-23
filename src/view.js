@@ -1,6 +1,8 @@
 import {
-    Vector2, Vector3,
+    Vector2, Vector3
 } from 'three';
+import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
+import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorld } from './helpers.js';
@@ -298,13 +300,6 @@ window.onresize = () => {
     graphics.onWindowResize(window);
 };
 
-window.addEventListener('pointermove', function (event) {
-    // calculate pointer position in normalized device coordinates
-    // (-1 to +1) for both components
-    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
-});
-
 document.addEventListener("keydown", (event) => {
     if (mouseOverGUI) return;
 
@@ -375,19 +370,28 @@ document.addEventListener("keydown", (event) => {
 let selectionStarted = false;
 let selectionP0 = undefined;
 let selectionP1 = undefined;
+let selectionBox = undefined;
+let selectionHelper = undefined;
 
 function startSelection() {
     selectionStarted = true;
     graphics.controls.enabled = false;
-    selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
+    //selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
+
+    selectionBox = new SelectionBox(graphics.camera, graphics.scene);
+    selectionHelper = new SelectionHelper(graphics.renderer, 'selectBox');
+    selectionBox.startPoint.set(mousePosition.x, mousePosition.y, 0.5);
 }
 
 function endSelection() {
     selectionStarted = false;
-    selectionP1 = cameraToWorld(mousePosition, graphics.camera, 0);
     graphics.controls.enabled = true;
 
+    selectionBox.endPoint.set(mousePosition.x, mousePosition.y, 0.5);
+
     graphics.readbackParticleData();
+
+    console.log(selectionBox.select());
 
     let top = selectionP0;
     let botton = selectionP1;
@@ -400,9 +404,9 @@ function endSelection() {
     graphics.particleList.forEach(p => {
         let pos = p.position;
         if (
-            pos.x >= top.x && 
-            pos.x <= botton.x && 
-            pos.y >= botton.y && 
+            pos.x >= top.x &&
+            pos.x <= botton.x &&
+            pos.y >= botton.y &&
             pos.y <= top.y
         ) {
             particles++;
@@ -410,22 +414,31 @@ function endSelection() {
             totalCharge += p.charge;
             totalVelocity.add(p.velocity);
         }
-    })
+    });
 
-    console.log(particles);
-    console.log(totalMass);
-    console.log(totalCharge);
-    console.log(totalVelocity.length()/particles);
+    console.log("particles = " + particles);
+    console.log("m = " + totalMass);
+    console.log("q = " + totalCharge);
+    console.log("v = " + totalVelocity.length() / particles);
     console.log(totalVelocity.normalize().toArray());
 }
 
-document.addEventListener("mousedown", (event) => {
+document.addEventListener("pointerdown", (event) => {
     if (event.button == 0 && event.shiftKey) {
         startSelection();
     }
 });
 
-document.addEventListener("mouseup", (event) => {
+window.addEventListener('pointermove', function (event) {
+    // calculate pointer position in normalized device coordinates
+    // (-1 to +1) for both components
+    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+    selectionBox.endPoint.set(mousePosition.x, mousePosition.y, 0.5);
+});
+
+document.addEventListener("pointerup", (event) => {
     if (event.button == 0 && selectionStarted) {
         endSelection();
     } else if (event.button == 0 && !mouseOverGUI) {

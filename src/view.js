@@ -1,8 +1,6 @@
 import {
     Vector2, Vector3
 } from 'three';
-import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
-import { SelectionHelper } from 'three/examples/jsm/interactive/SelectionHelper.js';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorld } from './helpers.js';
@@ -370,33 +368,25 @@ document.addEventListener("keydown", (event) => {
 let selectionStarted = false;
 let selectionP0 = undefined;
 let selectionP1 = undefined;
-let selectionBox = undefined;
-let selectionHelper = undefined;
+let selectionList = [];
 
 function startSelection() {
     selectionStarted = true;
     graphics.controls.enabled = false;
-    //selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
-
-    selectionBox = new SelectionBox(graphics.camera, graphics.scene);
-    selectionHelper = new SelectionHelper(graphics.renderer, 'selectBox');
-    selectionBox.startPoint.set(mousePosition.x, mousePosition.y, 0.5);
+    selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
+    selectionList = [];
 }
 
 function endSelection() {
     selectionStarted = false;
     graphics.controls.enabled = true;
-
-    selectionBox.endPoint.set(mousePosition.x, mousePosition.y, 0.5);
+    selectionP1 = cameraToWorld(mousePosition, graphics.camera, 0);
 
     graphics.readbackParticleData();
-
-    console.log(selectionBox.select());
 
     let top = selectionP0;
     let botton = selectionP1;
 
-    let particles = 0;
     let totalMass = 0;
     let totalCharge = 0;
     let totalVelocity = new Vector3();
@@ -409,18 +399,18 @@ function endSelection() {
             pos.y >= botton.y &&
             pos.y <= top.y
         ) {
-            particles++;
+            selectionList.push(p);
             totalMass += p.mass;
             totalCharge += p.charge;
             totalVelocity.add(p.velocity);
         }
     });
 
+    let particles = selectionList.length;
     console.log("particles = " + particles);
     console.log("m = " + totalMass);
     console.log("q = " + totalCharge);
-    console.log("v = " + totalVelocity.length() / particles);
-    console.log(totalVelocity.normalize().toArray());
+    console.log("v = " + totalVelocity.length() / particles + " | " + totalVelocity.normalize().toArray());
 }
 
 document.addEventListener("pointerdown", (event) => {
@@ -434,8 +424,6 @@ window.addEventListener('pointermove', function (event) {
     // (-1 to +1) for both components
     mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
     mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
-    selectionBox.endPoint.set(mousePosition.x, mousePosition.y, 0.5);
 });
 
 document.addEventListener("pointerup", (event) => {

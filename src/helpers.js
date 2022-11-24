@@ -280,6 +280,6 @@ export function cameraToWorld(pointer, camera, targetZ = 0) {
     point.sub(camera.position).normalize();
     let d = (targetZ - camera.position.z) / point.z;
     point.multiplyScalar(d);
-    let pos = camera.position.clone().add(point);
+    let pos = point.add(camera.position);
     return pos;
 }

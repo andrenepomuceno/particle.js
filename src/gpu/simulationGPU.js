@@ -25,6 +25,8 @@ export class SimulationGPU {
     setup(populateSimulationCallback, legacyMode = false) {
         log("setup");
 
+        this.graphics.cleanup();
+
         if (populateSimulationCallback != undefined) {
             this.populateSimulationCallback = populateSimulationCallback;
             this.name = populateSimulationCallback.name;
@@ -180,8 +182,6 @@ export class SimulationGPU {
 
         this.#fillParticleRadius();
         this.#fillParticleColor();
-
-        this.graphics.cleanup();
         this.graphics.drawParticles(this.particleList, this.physics);
     }
 

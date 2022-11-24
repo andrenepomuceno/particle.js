@@ -15,6 +15,7 @@ import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
+import { tests } from './scenarios/tests.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -26,9 +27,7 @@ function log(msg) {
 }
 
 let simulationList = [];
-// simulationList = simulationList.concat(nearForce);
-// simulationList = simulationList.concat(fields);
-// simulationList = simulationList.concat(elements);
+//simulationList = simulationList.concat(tests);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);
@@ -40,7 +39,7 @@ simulationList = simulationList.concat(fields);
 simulationList = simulationList.concat(elements);
 simulationList = simulationList.concat(scenarios1);
 simulationList = simulationList.concat(scenarios0);
-//simulationList.reverse();
+simulationList = simulationList.concat(tests);
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 

@@ -23,7 +23,7 @@ const float height = resolution.y;
 #define FIXED 2.0
 
 #define USE_BOX_BOUNDARY 0
-#define USE_DISTANCE1 0
+#define USE_DISTANCE1 1
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -114,7 +114,6 @@ void main() {
 
                 #if 0
                     float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
-                    x = sin(PI * x);
                     force += -nearChargeConstant * nq1 * nq2 * x;
                 #else
                     float x = sin(2.0 * PI * distance1/nearChargeRange);
@@ -138,7 +137,7 @@ void main() {
         #if !USE_BOX_BOUNDARY
             if (length(nextPos) >= boundaryDistance) {
                 if (length(vel1) < boundaryDistance) {
-                    vel1 = boundaryDamping * reflect(vel1, normalize(-nextPos));
+                    vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
                 } else {
                     // particle will go out of boundaries
                     vel1 = vec3(0.0);

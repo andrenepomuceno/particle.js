@@ -26,7 +26,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth0 = Math.round(Math.sqrt(10e3)/16)*16;
+const textureWidth0 = Math.round(Math.sqrt(25600)/16)*16;
 
 function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
@@ -163,7 +163,11 @@ export class GraphicsGPU {
         this.initialized = false;
 
         if (this.scene) {
-            this.scene.remove(this.pointsObject);
+            for (let i = this.scene.children.length - 1; i >= 0 ; i--) {
+                let obj = this.scene.children[i];
+                if (obj.type == "ArrowHelper") continue;
+                this.scene.remove(obj);
+            }
         }
 
         this.physics = undefined;
@@ -177,6 +181,11 @@ export class GraphicsGPU {
         this.pointsObject = undefined;
         this.pointsUniforms = undefined;
         this.pointsGeometry = undefined;
+    }
+
+    setMaxParticles(n) {
+        this.textureWidth = Math.round(Math.sqrt(n)/16)*16;
+        this.maxParticles = this.textureWidth * this.textureWidth;
     }
 
     #initComputeRenderer() {
@@ -338,6 +347,9 @@ export class GraphicsGPU {
         this.#fillPointUVs();
         //this.#fillPointTypes();
 
+        if (this.pointsObject) {
+            this.scene.remove(this.pointsObject);
+        }
         this.pointsObject = new Points(this.pointsGeometry, pointsMaterial);
         this.pointsObject.frustumCulled = false;
         this.pointsObject.matrixAutoUpdate = false;
@@ -456,10 +468,5 @@ export class GraphicsGPU {
 
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
-    }
-
-    setMaxParticles(n) {
-        this.textureWidth = Math.round(Math.sqrt(n)/16)*16;
-        this.maxParticles = this.textureWidth * this.textureWidth;
     }
 }

@@ -108,12 +108,6 @@ float sdCylinder(vec3 p, vec3 a, vec3 b, float r)
     return sign(d)*sqrt(abs(d))/baba;
 }
 
-float sdArrow(vec3 p) {
-    float d1 = sdCylinder(p, vec3(-0.45,0.0,0.0), vec3(0.1,0.0,0.0), 0.05);
-    float d2 = sdCone(p, vec3(0.1,0.0,0.0), vec3(0.45,0.0,0.0), 0.2, 0.0);
-    return min(d1, d2);
-}
-
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
@@ -125,6 +119,12 @@ const float antialias = 0.01;
 varying vec4 vColor;
 flat varying float vType;
 flat varying vec3 vVelocity;
+
+float sdArrow(vec3 p) {
+    float d1 = sdCylinder(p, vec3(-(0.5 - linewidth),0.0,0.0), vec3(0.1,0.0,0.0), linewidth);
+    float d2 = sdCone(p, vec3(0.1,0.0,0.0), vec3(0.5 - linewidth,0.0,0.0), 0.2, 0.0);
+    return min(d1, d2);
+}
 
 vec3 velocityColor(vec3 vel) {
     const float velMax = 1e3;
@@ -143,7 +143,7 @@ vec3 velocityColor(vec3 vel) {
 
 void main() {
     if (vType != PROBE) {        
-        float d = length(gl_PointCoord - vec2(0.5)) - 0.45;
+        float d = length(gl_PointCoord - vec2(0.5)) - (0.5 - linewidth);
         gl_FragColor = filled(d, linewidth, antialias, vColor);
     } else {
         vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);

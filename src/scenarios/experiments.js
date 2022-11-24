@@ -3,8 +3,8 @@ import { createParticle, createParticles, randomSphericVector, randomVector, cre
 import { random, hexagonGenerator, shuffleArray } from '../helpers';
 
 export const experiments = [
-    hexagon2,
     hexagon1,
+    hexagon2,
     hexagon0,
     density2,
     density,
@@ -116,32 +116,39 @@ function hexagon1(simulation) {
     let r2 = 0.57 * physics.nearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
-    let grid = [5/3*w, 3/5*w];
+    let grid = [5 / 3 * w, 3 / 5 * w];
 
     hexagonGenerator((vertex) => {
         let hole = 1e3;
         //if (vertex.x > hole && (Math.abs(vertex.y) < hole)) return;
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
-        createNuclei(an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y), 0, 0);
+        let center = new Vector3(vertex.x, vertex.y, 0).applyAxisAngle(
+            new Vector3(0, 0, 1),
+            20 * Math.PI / 180
+        ).add(new Vector3(0, 3.3e3, 0));
+        //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
+        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
     }, r2, grid);
 
     shuffleArray(simulation.particleList);
 
     for (let i = 0; i < 500; i++) {
-         createParticle(
-            0.5 * m, -1 * q, (i%2)?(-nq):(nq), 
-            new Vector3(-2e4 - 2.0 * i * physics.nearChargeRange, 0, 0), 
-            new Vector3(1.5e2, 0, 0)
+        let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
+        let v0 = 1.5e2;
+        createParticle(
+            0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
+            new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
+            new Vector3(v0, 0, 0)
         );
         createParticle(
-            0.5 * m, -1 * q, (i%2)?(nq):(-nq), 
-            new Vector3(-2e4 - 2.0 * i * physics.nearChargeRange, - 2.0 * physics.nearChargeRange, 0), 
-            new Vector3(1.5e2, 0, 0)
+            0.5 * m, -1 * q, (i % 2) ? (-nq) : (nq),
+            new Vector3(x0, 0, 0),
+            new Vector3(v0, 0, 0)
         );
         createParticle(
-            0.5 * m, -1 * q, (i%2)?(nq):(-nq), 
-            new Vector3(-2e4 - 2.0 * i * physics.nearChargeRange, 2.0 * physics.nearChargeRange, 0), 
-            new Vector3(1.5e2, 0, 0)
+            0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
+            new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
+            new Vector3(v0, 0, 0)
         );
     }
 }

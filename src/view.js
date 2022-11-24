@@ -104,10 +104,8 @@ export let guiOptions = {
             graphics.controls.update();
         },
         colorMode: function () {
-            let newMode;
-            (colorMode == "charge") ? (newMode = "random") : (newMode = "charge");
-            colorMode = newMode;
-            setColorMode(newMode);
+            (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
+            setColorMode(colorMode);
         }
     },
     info: {
@@ -420,8 +418,6 @@ document.addEventListener("pointerdown", (event) => {
 });
 
 window.addEventListener('pointermove', function (event) {
-    // calculate pointer position in normalized device coordinates
-    // (-1 to +1) for both components
     mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
     mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
 });
@@ -478,7 +474,7 @@ function updateParticleView() {
         });
         particleView.position = position;
         particleView.velocityDir = arrayToString(
-            particle.velocity.clone().normalize().toArray(), 2);
+            particle.velocity.clone().normalize().toArray(), 3);
         particleView.velocityAbs = particle.velocity.length().toExponential(3);
 
         // field info

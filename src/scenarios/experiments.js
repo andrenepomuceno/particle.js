@@ -1,8 +1,10 @@
 import { Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
-import { random, hexagonGenerator, shuffleArray } from '../helpers';
+import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
 export const experiments = [
+    hexagon3,
+    //hexagon3d,
     hexagon1,
     hexagon2,
     hexagon0,
@@ -39,6 +41,175 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
     simulation.bidimensionalMode(true);
+}
+
+function hexagon3d(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+    simulation.bidimensionalMode(false);
+
+    let n = graphics.maxParticles;
+    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1e12;
+    physics.minDistance2 = Math.pow(0.5, 2);
+
+    physics.nearChargeRange = 5e2;
+    physics.nearChargeConstant = 2;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1 / 60;
+
+    simulation.setParticleRadius(50, 20);
+    graphics.cameraDistance = 1e4;
+    graphics.cameraSetup();
+
+    simulation.fieldProbeConfig(0, 0, 10);
+    //simulation.fieldSetup("2d", 100);
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let v = 0;
+    let r0 = 0.05 * physics.nearChargeRange;
+    let r1 = 0.618 * physics.nearChargeRange;
+    let r2 = 0.59 * physics.nearChargeRange;
+    let r3 = 0.69 * physics.nearChargeRange;
+    let an = 1;
+    let w = Math.round(Math.sqrt(n / (7 * an * 4)));
+    let grid = [6, 6];
+
+    let depth = 30;
+    for (let z = -depth / 2; z <= depth / 2; z++)
+        hexagonGenerator((vertex, totalLen) => {
+            //let hole = 1e3;
+            //if (vertex.x > hole && (Math.abs(vertex.y) < hole)) return;
+            let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+            if (z % 2 == 0) {
+                s = ((vertex.i % 2 == 0) ? (-1) : (1));
+            }
+            let width = totalLen[0];
+            let height = totalLen[1];
+            let theta = 20 * Math.PI / 180;
+            let center = new Vector3(vertex.x, vertex.y, r3 * z).applyAxisAngle(
+                new Vector3(0, 1, 0), Math.PI / 2
+            ).applyAxisAngle(
+                new Vector3(0, 0, 1), theta
+            ).add(
+                new Vector3(0, depth * r3 / 2 * Math.sin(theta), 0)
+            );
+            //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
+            createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
+        }, r2, grid);
+
+    shuffleArray(simulation.particleList);
+
+    //m = 0;
+    //nq = 0;
+    for (let i = 0; i < 500; i++) {
+        let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
+        let v0 = 3e2;
+        createParticle(
+            0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
+            new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
+            new Vector3(v0, 0, 0)
+        );
+        createParticle(
+            0.5 * m, -1 * q, (i % 2) ? (-nq) : (nq),
+            new Vector3(x0, 0, 0),
+            new Vector3(v0, 0, 0)
+        );
+        createParticle(
+            0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
+            new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
+            new Vector3(v0, 0, 0)
+        );
+    }
+}
+
+function hexagon3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    let n = graphics.maxParticles;
+    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1e12;
+    physics.minDistance2 = Math.pow(0.5, 2);
+
+    physics.nearChargeRange = 5e2;
+    physics.nearChargeConstant = 1;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1 / 60;
+
+    simulation.setParticleRadius(50, 20);
+    graphics.cameraDistance = 1e4;
+    graphics.cameraSetup();
+
+    simulation.fieldProbeConfig(0, 0, 10);
+    //simulation.fieldSetup("2d", 100);
+
+    let m = 1;
+    let q = 1;
+    let nq = 1;
+    let v = 0;
+    let r0 = 0.05 * physics.nearChargeRange;
+    let r1 = 0.618 * physics.nearChargeRange;
+    let r2 = 0.57 * physics.nearChargeRange;
+    let an = 2;
+    let w = Math.round(Math.sqrt(n / (6 * an * 4)));
+    let grid = [1.2 * w, w * 0.8, 1];
+
+    hexagonGenerator((vertex, totalLen) => {
+        //let hole = 1e3;
+        //if (vertex.x > hole && (Math.abs(vertex.y) < hole)) return;
+        let width = totalLen[0];
+        let theta = 20 * Math.PI / 180;
+        let center = new Vector3(vertex.x, vertex.y, 0).applyAxisAngle(
+            new Vector3(0, 0, 1), theta
+        ).add(new Vector3(0, width / 2 * Math.sin(theta), 0));
+        //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
+        let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, an);
+    }, r2, grid);
+
+    /*w = Math.round(Math.sqrt(n / (6 * an)));
+    w = (w % 2 == 0) ? (w - 1) : (w);
+    grid = [2*w - 1, w/2, 1];
+    let theta = 45 * Math.PI / 180;
+    let width = grid[0] * r1;
+    let aux = 0;
+    cubeGenerator((x, y, z) => {
+        let s = ((aux % 2 == 0) ? (1) : (-1));
+        let center = new Vector3(x, y, z).applyAxisAngle(
+            new Vector3(0, 0, 1), theta
+        );
+        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
+        ++aux;
+    }, width, grid);*/
+
+    shuffleArray(simulation.particleList);
+
+    for (let i = 0; i < 500; i++) {
+        let focus = 0.25;
+        let spacing = 3;
+        let x0 = -2e4 - spacing * i * physics.nearChargeRange;
+        let v0 = 2.5e2;
+        let ne = random(1, 10, true);
+        createParticles(ne,
+            () => { return 0.5 * m; },
+            () => { return -1 * q; },
+            () => {
+                return (random(0, 1, true)) ? (nq) : (-nq);
+                //return (i % 2) ? (-nq) : (nq);
+            },
+            () => {
+                return randomSphericVector(0, focus * physics.nearChargeRange).add(
+                    new Vector3(x0, 0, 0)
+                )
+            },
+            () => { return new Vector3(v0, 0, 0); }
+        );
+    }
 }
 
 function hexagon2(simulation) {
@@ -118,14 +289,16 @@ function hexagon1(simulation) {
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
     let grid = [5 / 3 * w, 3 / 5 * w];
 
-    hexagonGenerator((vertex) => {
-        let hole = 1e3;
+    hexagonGenerator((vertex, totalLen) => {
+        //let hole = 1e3;
         //if (vertex.x > hole && (Math.abs(vertex.y) < hole)) return;
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+        let width = totalLen[0];
+        let height = totalLen[1];
+        let theta = 20 * Math.PI / 180;
         let center = new Vector3(vertex.x, vertex.y, 0).applyAxisAngle(
-            new Vector3(0, 0, 1),
-            20 * Math.PI / 180
-        ).add(new Vector3(0, 3.3e3, 0));
+            new Vector3(0, 0, 1), theta
+        ).add(new Vector3(0, width / 2 * Math.sin(theta), 0));
         //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
         createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
     }, r2, grid);
@@ -134,7 +307,7 @@ function hexagon1(simulation) {
 
     for (let i = 0; i < 500; i++) {
         let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
-        let v0 = 1.5e2;
+        let v0 = 2e2;
         createParticle(
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
             new Vector3(x0, 2.0 * physics.nearChargeRange, 0),

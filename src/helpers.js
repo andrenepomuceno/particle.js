@@ -120,13 +120,19 @@ export function sphereGenerator(callback, radius = 1e3, gridSize = [10, 10, 10])
     }
 }
 
-export function hexagonGenerator(callback, cellRadius, grid) {
-    function hexToPixel(row, col, size) {
-        let x = size * Math.sqrt(3) * (col + 0.5 * (row % 2));
-        let y = size * 3 / 2 * row;
-        return [x, y];
-    }
+function offsetHexToPixel(row, col, size) {
+    let x = size * Math.sqrt(3) * (col + 0.5 * (row % 2));
+    let y = size * 3 / 2 * row;
+    return [x, y];
+}
 
+function axialHexToPixel(q, r, size) {
+    let x = size * (Math.sqrt(3) * q + Math.sqrt(3) / 2 * r);
+    let y = size * (3. / 2 * r);
+    return [x, y];
+}
+
+export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
     function generate(cx, cy, radius) {
         let s = 1;
         for (let i = 0; i < 6; ++i) {
@@ -142,9 +148,16 @@ export function hexagonGenerator(callback, cellRadius, grid) {
         }
     }
 
+    let hexToPixel = (mode == "offset") ? offsetHexToPixel : axialHexToPixel;
+
     let vertexMap = new Map();
     let width = grid[0];
     let height = grid[1];
+
+    let totalLen = hexToPixel(height, width, cellRadius);
+    totalLen[0] += 2 * cellRadius * Math.cos(30 * Math.PI / 180);
+    totalLen[1] += 2 * cellRadius;
+
     for (let i = -height / 2; i <= height / 2; ++i) {
         for (let j = -width / 2; j <= width / 2; ++j) {
             let [cx, cy] = hexToPixel(i, j, cellRadius);
@@ -154,7 +167,7 @@ export function hexagonGenerator(callback, cellRadius, grid) {
 
     console.log("hexagonGenerator vertex count: " + vertexMap.size);
     vertexMap.forEach((vertex) => {
-        callback(vertex);
+        callback(vertex, totalLen);
     });
 }
 
@@ -281,5 +294,12 @@ export function cameraToWorld(pointer, camera, targetZ = 0) {
     let d = (targetZ - camera.position.z) / point.z;
     point.multiplyScalar(d);
     let pos = point.add(camera.position);
+    return pos;
+}
+
+export function mouseToRelative(event) {
+    let pos = {};
+    pos.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pos.y = - (event.clientY / window.innerHeight) * 2 + 1;
     return pos;
 }

@@ -3,7 +3,7 @@ import {
 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, cameraToWorld } from './helpers.js';
+import { downloadFile, arrayToString, cameraToWorld, mouseToRelative } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -18,6 +18,7 @@ import {
     simulationUpdateAll,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { SelectionHelper } from './selectionHelper.js';
 
 let stats = new Stats();
 document.getElementById("container").appendChild(stats.dom);
@@ -28,6 +29,7 @@ const guiParticle = gui.addFolder("Particle");
 const guiSimulation = gui.addFolder("Simulation");
 const guiView = gui.addFolder("View");
 const guiParameters = gui.addFolder("Parameters");
+const guiSelection = gui.addFolder("Selection");
 
 let hideAxis = false;
 let nextFrame = false;
@@ -168,6 +170,15 @@ export let guiOptions = {
         close: () => {
             guiParameters.close();
         },
+    },
+    selection: {
+        particles: 0,
+        mass: "",
+        charge: "",
+        nearCharge: "",
+        velocity: "",
+        velocityDir: "",
+        center: "",
     }
 }
 
@@ -289,6 +300,13 @@ export function guiSetup() {
     });
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
+    guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
+    guiSelection.add(guiOptions.selection, 'mass').name("mass").listen();
+    guiSelection.add(guiOptions.selection, 'charge').name("charge").listen();
+    guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen();
+    guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen();
+    guiSelection.add(guiOptions.selection, 'center').name("center").listen();
+
     //gui.close();
 }
 
@@ -363,68 +381,25 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-let selectionStarted = false;
-let selectionP0 = undefined;
-let selectionP1 = undefined;
-let selectionList = [];
+let selection = new SelectionHelper();
 
-function startSelection() {
-    selectionStarted = true;
-    graphics.controls.enabled = false;
-    selectionP0 = cameraToWorld(mousePosition, graphics.camera, 0);
-    selectionList = [];
-}
-
-function endSelection() {
-    selectionStarted = false;
-    graphics.controls.enabled = true;
-    selectionP1 = cameraToWorld(mousePosition, graphics.camera, 0);
-
-    graphics.readbackParticleData();
-
-    let top = selectionP0;
-    let botton = selectionP1;
-
-    let totalMass = 0;
-    let totalCharge = 0;
-    let totalVelocity = new Vector3();
-
-    graphics.particleList.forEach(p => {
-        let pos = p.position;
-        if (
-            pos.x >= top.x &&
-            pos.x <= botton.x &&
-            pos.y >= botton.y &&
-            pos.y <= top.y
-        ) {
-            selectionList.push(p);
-            totalMass += p.mass;
-            totalCharge += p.charge;
-            totalVelocity.add(p.velocity);
-        }
-    });
-
-    let particles = selectionList.length;
-    console.log("particles = " + particles);
-    console.log("m = " + totalMass);
-    console.log("q = " + totalCharge);
-    console.log("v = " + totalVelocity.length() / particles + " | " + totalVelocity.normalize().toArray());
-}
-
-document.addEventListener("pointerdown", (event) => {
-    if (event.button == 0 && event.shiftKey) {
-        startSelection();
+window.addEventListener('pointermove', function (event) {
+    mousePosition = mouseToRelative(event);
+    if (selection.started) {
+        selection.update(event);
     }
 });
 
-window.addEventListener('pointermove', function (event) {
-    mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mousePosition.y = - (event.clientY / window.innerHeight) * 2 + 1;
+document.addEventListener("pointerdown", (event) => {
+    if (event.button == 0 && event.shiftKey) {
+        selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+        selection.start(event);
+    }
 });
 
 document.addEventListener("pointerup", (event) => {
-    if (event.button == 0 && selectionStarted) {
-        endSelection();
+    if (event.button == 0 && selection.started) {
+        selection.end(event);
     } else if (event.button == 0 && !mouseOverGUI) {
         let particle = graphics.raycast(mousePosition);
         if (particle) {

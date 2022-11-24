@@ -22,8 +22,9 @@ const float height = resolution.y;
 #define PROBE 1.0
 #define FIXED 2.0
 
-#define USE_BOX_BOUNDARY 0
 #define USE_DISTANCE1 1
+#define USE_BOX_BOUNDARY 0
+#define USE_HOOKS_LAW 0
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -93,15 +94,17 @@ void main() {
             float q1 = props1.z;
             float q2 = props2.z;
 
+            #if USE_DISTANCE1
+                float distance1 = sqrt(distance2);
+            #endif
+
             force += massConstant * m1 * m2;
             force += -chargeConstant * q1 * q2;
 
             #if !USE_DISTANCE1
                 force /= distance2;
             #else
-                float distance1 = sqrt(distance2);
                 force /= distance1;
-                //force /= pow(distance1, 1.5);
             #endif
 
             if (distance2 <= nearChargeRange2) {
@@ -112,7 +115,7 @@ void main() {
                     float distance1 = sqrt(distance2);
                 #endif
 
-                #if 0
+                #if USE_HOOKS_LAW
                     float x = (2.0 * distance1 - nearChargeRange)/nearChargeRange;
                     force += -nearChargeConstant * nq1 * nq2 * x;
                 #else

@@ -3,7 +3,7 @@ import {
 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, cameraToWorld, mouseToRelative } from './helpers.js';
+import { downloadFile, arrayToString, mouseToRelative } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -24,6 +24,7 @@ let stats = new Stats();
 document.getElementById("container").appendChild(stats.dom);
 
 export const gui = new dat.GUI();
+//export const gui = new GUI();
 const guiInfo = gui.addFolder("Information");
 const guiParticle = gui.addFolder("Particle");
 const guiSimulation = gui.addFolder("Simulation");

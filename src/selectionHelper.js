@@ -47,6 +47,19 @@ export class SelectionHelper {
         this.element.style.height = pointBottomRight.y - pointTopLeft.y + 'px';
     }
 
+    #topBottom(p0, p1) {
+        // console.log(p0);
+        // console.log(p1);
+        let top = {}, bottom = {};
+        bottom.x = Math.max(p0.x, p1.x);
+        bottom.y = Math.min(p0.y, p1.y);
+        top.x = Math.min(p0.x, p1.x);
+        top.y = Math.max(p0.y, p1.y);
+        // console.log(top);
+        // console.log(bottom);
+        return [top, bottom];
+    }
+
     end(event) {
         this.started = false;
         this.graphics.controls.enabled = true;
@@ -56,8 +69,7 @@ export class SelectionHelper {
 
         this.graphics.readbackParticleData();
 
-        let top = this.p0;
-        let botton = this.p1;
+        let [top, bottom] = this.#topBottom(this.p0, this.p1);
 
         let totalMass = 0;
         let totalCharge = 0;
@@ -69,8 +81,8 @@ export class SelectionHelper {
             let pos = p.position;
             if (
                 pos.x >= top.x &&
-                pos.x <= botton.x &&
-                pos.y >= botton.y &&
+                pos.x <= bottom.x &&
+                pos.y >= bottom.y &&
                 pos.y <= top.y
             ) {
                 this.list.push(p);
@@ -83,21 +95,33 @@ export class SelectionHelper {
         });
 
         let particles = this.list.length;
+
         let view = this.options;
         view.particles = particles;
-        view.mass = totalMass.toExponential(2);
-        view.charge = totalCharge.toExponential(2);
-        view.nearCharge = totalNQ.toExponential(2);
-        totalVelocity.divideScalar(particles);
-        view.velocity = totalVelocity.length().toExponential(2);
-        view.velocityDir = arrayToString(totalVelocity.normalize().toArray(), 2);
-        totalPos.divideScalar(particles);
-        let center = totalPos.toArray();
-        center.forEach((v, i) => {
-            center[i] = v.toExponential(2);
-        })
-        view.center = center;
+        if (particles > 0) {
+            view.mass = totalMass.toExponential(2);
+            view.charge = totalCharge.toExponential(2);
+            view.nearCharge = totalNQ.toExponential(2);
+            totalVelocity.divideScalar(particles);
+            view.velocity = totalVelocity.length().toExponential(2);
+            view.velocityDir = arrayToString(totalVelocity.normalize().toArray(), 2);
+            totalPos.divideScalar(particles);
+            let center = totalPos.toArray();
+            center.forEach((v, i) => {
+                center[i] = v.toExponential(2);
+            })
+            view.center = center;
 
-        this.guiSelection.open();
+            this.guiSelection.open();
+        } else {
+            view.mass = "";
+            view.charge = "";
+            view.nearCharge = "";
+            view.velocity = "";
+            view.velocityDir = "";
+            view.center = "";
+
+            //this.guiSelection.close();
+        }
     }
 }

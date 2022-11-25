@@ -545,7 +545,7 @@ function simulationMove1(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1;
+    physics.massConstant = 5e-2;
     physics.chargeConstant = 1;
 
     let r0 = 32;
@@ -593,7 +593,7 @@ function simulationMove0(simulation) {
     //graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1;
+    physics.massConstant = 5e-2;
     physics.chargeConstant = 1;
 
     let x = -1000;
@@ -681,7 +681,7 @@ function simulationAtom0(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1;
+    physics.massConstant = 1e-2;
     physics.chargeConstant = 1;
 
     createParticle(1836, 1);

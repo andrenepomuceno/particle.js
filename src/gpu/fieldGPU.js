@@ -1,4 +1,3 @@
-import { ArrowHelper, Color, MathUtils } from 'three';
 import { Vector3 } from 'three';
 import { Particle } from '../physics.js'
 import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
@@ -75,7 +74,6 @@ export class FieldGPU {
 
         this.objectList.forEach(obj => {
             this.particleList.pop(obj.particle);
-            this.graphics.scene.remove(obj);
         })
 
         this.objectList = [];
@@ -85,16 +83,8 @@ export class FieldGPU {
 
     probe(probeParticle) {
         //log("probe");
+        // TODO
         return new Vector3();
-
-        probeParticle.force.setScalar(0);
-        this.particleList.forEach((p, idx) => {
-            //if (p.position.clone().sub(probleParticle.position).length() > 5e3) return;
-            if (p.type == ParticleType.default)
-                this.physics.interact(probeParticle, p, true);
-            p.force.setScalar(0);
-        });
-        return probeParticle.force;
     }
 
     elementSize() {
@@ -145,5 +135,7 @@ export class FieldGPU {
         p.position = position;
         p.radius = this.elementSize();
         this.particleList.push(p);
+
+        this.objectList.push({particle: p});
     }
 }

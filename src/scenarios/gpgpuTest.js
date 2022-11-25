@@ -3,9 +3,9 @@ import { createParticle, createParticles, randomSphericVector, randomVector } fr
 import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
-    GPU_string,
-    GPU_string_m20,
-    GPU_string_m50,
+    //GPU_string,
+    //GPU_string_m20,
+    //GPU_string_m50,
     GPU_blob1,
     GPU_nucleiGrid,
     GPU_shootedBarrier,

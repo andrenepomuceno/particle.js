@@ -190,17 +190,17 @@ function hexagon3(simulation) {
     shuffleArray(simulation.particleList);
 
     for (let i = 0; i < 500; i++) {
-        let focus = 0.25;
+        let focus = 0.01;
         let spacing = 3;
         let x0 = -2e4 - spacing * i * physics.nearChargeRange;
         let v0 = 2.5e2;
-        let ne = random(1, 10, true);
+        let ne = random(1, 4, true);
         createParticles(ne,
             () => { return 0.5 * m; },
             () => { return -1 * q; },
             () => {
-                return (random(0, 1, true)) ? (nq) : (-nq);
-                //return (i % 2) ? (-nq) : (nq);
+                //return (random(0, 1, true)) ? (nq) : (-nq);
+                return (i % 2) ? (-nq) : (nq);
             },
             () => {
                 return randomSphericVector(0, focus * physics.nearChargeRange).add(
@@ -511,7 +511,7 @@ function magnecticForce(simulation) {
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(1e-6, 2);
 
-    simulation.fieldProbeConfig(0, 1e4, 0);
+    simulation.fieldProbeConfig(0, 50, 0);
     simulation.fieldSetup("2d", 40);
 
     let m = 1e30;
@@ -526,14 +526,14 @@ function magnecticForce(simulation) {
     let y0 = 0.01;
 
     let m2 = 1e-0;
-    let q2 = 1;
+    let q2 = 2;
 
     let v2 = 0;
     let x2 = 0;
     let y2 = -500;
 
     let x3 = 0;
-    let y3 = -300;
+    let y3 = -200;
     let v3 = new Vector3(0, 1, 0);
 
     createParticles(n,
@@ -553,7 +553,6 @@ function magnecticForce(simulation) {
             return new Vector3(0, 0, 0);
         }
     );
-
     createParticles(n,
         (i) => {
             return m;
@@ -768,7 +767,7 @@ function twinsCollision(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 3e3);
     simulation.setParticleRadius(5, 1);
-    physics.boundaryDistance = 1e4;
+    physics.boundaryDistance = 2e4;
     physics.boundaryDamping = 0.95;
 
     physics.nearChargeRange = 1e3;
@@ -829,11 +828,11 @@ function experiment5(simulation) {
     defaultParameters(simulation, 3.3e4);
     simulation.setParticleRadius(5e1, 3e1);
     physics.boundaryDistance = 5e4;
-    physics.boundaryDamping = 0.95;
+    physics.boundaryDamping = 0.9;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e4;
-    physics.massConstant = 1e-3;
+    physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
 
@@ -889,12 +888,12 @@ function wildParticles(simulation) {
     defaultParameters(simulation, 2e5);
     simulation.setParticleRadius(3e2, 2e2);
     physics.boundaryDistance = 5e5;
-    physics.boundaryDamping = 0.99;
+    physics.boundaryDamping = 0.9;
 
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 1e4;
-    physics.massConstant = 1;
-    physics.chargeConstant = 1;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1e-2;
     physics.minDistance2 = Math.pow(0.5, 2);
 
     let m = 1;
@@ -1018,6 +1017,7 @@ function experiment2(simulation) {
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
+    physics.boundaryDamping = 0.9;
 
     let m = 1;
     let q = 1 / 3;
@@ -1070,7 +1070,7 @@ function experiment1(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
     simulation.fieldCleanup();
-    simulation.setParticleRadius(2e1, 1e1);
+    simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e8;
 
     physics.nearChargeConstant = 1;
@@ -1079,7 +1079,7 @@ function experiment1(simulation) {
     physics.chargeConstant = 0;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    let m = 1;
+    let m = 2;
     let q = 1 / 3;
     let nq = 1;
     let r0 = 1;//0.01*physics.nearChargeRange;

@@ -1,5 +1,6 @@
 import { Vector3 } from "three";
 import { arrayToString, cameraToWorld, mouseToRelative } from "./helpers";
+import { ParticleType } from "./physics";
 
 export class SelectionHelper {
     constructor(graphics, options, guiSelection) {
@@ -79,6 +80,7 @@ export class SelectionHelper {
         let totalNQ = 0;
 
         this.graphics.particleList.forEach(p => {
+            if (p.type != ParticleType.default) return;
             let pos = p.position;
             if (
                 pos.x >= top.x &&

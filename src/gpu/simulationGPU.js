@@ -30,6 +30,7 @@ export class SimulationGPU {
         if (populateSimulationCallback != undefined) {
             this.populateSimulationCallback = populateSimulationCallback;
             this.name = populateSimulationCallback.name;
+            this.folderName = populateSimulationCallback.folderName;
 
             this.graphics.cameraDefault();
 
@@ -98,7 +99,7 @@ export class SimulationGPU {
         this.physics.collisionCounter = collisions;
 
         return [
-            this.name,
+            (this.folderName != undefined) ? (this.name + "_" + this.folderName) : (this.name),
             particles,
             this.cycles,
             this.energy,

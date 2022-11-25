@@ -86,7 +86,7 @@ function gravityField(simulation) {
     defaultConfig(simulation);
     simulation.setParticleRadius(20, 10);
 
-    simulation.fieldProbeConfig(1e5, 0, 0);
+    simulation.fieldProbeConfig(1e2, 0, 0);
     simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);

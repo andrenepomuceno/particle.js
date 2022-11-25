@@ -8,20 +8,20 @@ export const nearForce1 = [
     triforce2,
     triforce1,
     triforce0,
-    charge_nearCharge_point0,
-    GPU_point14,
+    //charge_nearCharge_point0,
+    //GPU_point14,
     GPU_point13,
     GPU_point12,
     GPU_point11,
     GPU_point10,
     GPU_blob9_posNQ,
-    GPU_blob8_posNQ_rng,
+    //GPU_blob8_posNQ_rng,
     GPU_point7,
     GPU_point6,
     GPU_point5,
-    GPU_point4,
-    GPU_point3,
-    GPU_point2,
+    //GPU_point4,
+    //GPU_point3,
+    //GPU_point2,
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {
@@ -104,7 +104,7 @@ function cloud1(simulation) {
     simulation.physics.boundaryDistance = 1e9;
     
     physics.nearChargeRange = 1e3;
-    physics.massConstant = 1;
+    physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
 
     let m = 1;

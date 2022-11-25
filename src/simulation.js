@@ -27,19 +27,25 @@ function log(msg) {
 }
 
 let simulationList = [];
-simulationList = simulationList.concat(tests);
-if (useGPU) {
-    simulationList = simulationList.concat(experiments);
-    simulationList = simulationList.concat(nearForce1);
-    simulationList = simulationList.concat(gpgpu);
+function addFolder(name, list) {
+    list.forEach((value, index) => {
+        list[index].folderName = name;
+    });
+    simulationList = simulationList.concat(list);
 }
-simulationList = simulationList.concat(scenarios2);
-simulationList = simulationList.concat(nearForce);
-simulationList = simulationList.concat(fields);
-simulationList = simulationList.concat(elements);
-simulationList = simulationList.concat(scenarios1);
-simulationList = simulationList.concat(scenarios0);
-simulationList = simulationList.concat(tests);
+
+if (useGPU) {
+    addFolder("experiments", experiments);
+    addFolder("nearForce1", nearForce1);
+    addFolder("gpgpu", gpgpu);
+}
+addFolder("scenarios2", scenarios2);
+addFolder("nearForce", nearForce);
+addFolder("fields", fields);
+addFolder("elements", elements);
+addFolder("scenarios1", scenarios1);
+addFolder("scenarios0", scenarios0);
+addFolder("tests", tests);
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 

@@ -3,11 +3,11 @@ import { createParticle, createParticles, randomSphericVector, randomVector } fr
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
-    string,
+    //string,
     nucleiGrid,
     shootedBarrier,
     standardModelBlob2,
-    standardModelBlobSymetric,
+    //standardModelBlobSymetric,
     standardModelBlob0,
 ];
 

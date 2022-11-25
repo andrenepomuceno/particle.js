@@ -2,10 +2,6 @@ const path = require('path');
 const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require('webpack');
 
-module.exports = {
-
-};
-
 module.exports = (env) => {
     return {
         entry: './src/main.js',

@@ -26,7 +26,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth0 = Math.round(Math.sqrt(ENV?.PARTICLES)/16)*16;
+const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles)/16)*16;
 
 function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);

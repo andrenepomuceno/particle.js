@@ -50,16 +50,6 @@ const guiSelection = gui.addFolder("Selection");
 const guiCreate = gui.addFolder("Create");
 let selection = new SelectionHelper();
 
-function selectionReset() {
-    selection.clear();
-    guiSelection.close();
-}
-
-function selectionUpdate(param, val) {
-    simulationUpdateAll(param, val, selection.list);
-    selection.updateView();
-}
-
 function setup(idx) {
     selectionReset();
     resetParticleView();
@@ -583,6 +573,16 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
+function selectionReset() {
+    selection.clear();
+    guiSelection.close();
+}
+
+function selectionUpdate(param, val) {
+    simulationUpdateAll(param, val, selection.list);
+    selection.updateView();
+}
+
 function snapshot(selectionList) {
     let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
@@ -642,6 +642,7 @@ export function animate(time) {
 
         updateParticleView();
         updateInfoView(time);
+        selection.updateView();
 
         if (updateField) {
             updateField = false;

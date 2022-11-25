@@ -259,8 +259,7 @@ export function simulationImportSelectionCSV(selection, filename, content) {
     let imported = parseCsv(content);
     if (imported == undefined) return;
 
-    selection.import = imported;
-    selection.imported = true;
+    selection.importedData = imported;
 
     selection.list = imported.physics.particleList;
     selection.source = filename;
@@ -268,7 +267,7 @@ export function simulationImportSelectionCSV(selection, filename, content) {
 }
 
 function normalizedClone(list) {
-    log("normalize");
+    log("normalizedClone");
     let normalizedList = [];
 
     let meanPosition = new Vector3();
@@ -470,6 +469,26 @@ export function simulationUpdateParticle(particle, key, value) {
     }
 }
 
+export function simulationDelete(list) {
+    log("simulationDelete " + list.length);
+
+    if (list == undefined) return;
+
+    list.forEach((ref) => {
+        simulation.particleList.every((src, srcIdx) => {
+            if (src.id == ref.id) {
+                simulation.particleList.splice(srcIdx, 1);
+                return false;
+            }
+            return true;
+        });
+    });
+
+    if (useGPU) {
+        simulation.drawParticles();
+    }
+}
+
 export function simulationUpdateAll(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
@@ -508,3 +527,4 @@ export function simulationUpdateAll(parameter, value, list) {
         simulation.drawParticles();
     }
 }
+

@@ -15,19 +15,25 @@ export class SelectionHelper {
         this.started = false;
         this.p0 = undefined;
         this.p1 = undefined;
+        this.mouse0 = undefined;
+        this.mouse1 = undefined;
         this.list = [];
         this.element = document.createElement('div');
         this.element.classList.add('selectBox');
         this.element.style.pointerEvents = 'none';
         this.startPoint = {};
-        this.imported = false;
         this.source = "";
+        this.importedData = {};
     }
 
     start(event) {
         log("start");
         this.started = true;
         this.graphics.controls.enabled = false;
+        this.mouse0 = {
+            x: event.clientX,
+            y: event.clientY
+        };
         this.p0 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         this.list = [];
 
@@ -60,7 +66,13 @@ export class SelectionHelper {
         log("end");
         this.started = false;
         this.graphics.controls.enabled = true;
+        this.mouse1 = {
+            x: event.clientX,
+            y: event.clientY
+        };
         this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+
+        [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
         this.element.parentElement.removeChild(this.element);
 
@@ -72,16 +84,18 @@ export class SelectionHelper {
     clear() {
         log("clear");
         this.list = [];
-        this.imported = false;
+        this.importedData = {};
         let view = this.options;
-        view.particles = 0;
-        view.mass = "";
-        view.charge = "";
-        view.nearCharge = "";
-        view.velocity = "";
-        view.velocityDir = "";
-        view.center = "";
-        view.source = "";
+        if (view != undefined) {
+            view.particles = 0;
+            view.mass = "";
+            view.charge = "";
+            view.nearCharge = "";
+            view.velocity = "";
+            view.velocityDir = "";
+            view.center = "";
+            view.source = "";
+        }
     }
 
     clone() {

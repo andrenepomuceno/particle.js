@@ -16,6 +16,7 @@ import {
     simulationUpdateAll,
     simulationImportSelectionCSV,
     simulationCreateParticles,
+    simulationDelete,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
@@ -49,7 +50,13 @@ const guiSelection = gui.addFolder("Selection");
 const guiCreate = gui.addFolder("Create");
 let selection = new SelectionHelper();
 
+function selectionReset() {
+    selection.clear();
+    guiSelection.close();
+}
+
 function setup(idx) {
+    selectionReset();
     resetParticleView();
     simulationSetup(idx);
     resetEditView();
@@ -209,9 +216,13 @@ export let guiOptions = {
             selection.updateView();
         },
         clear: () => {
-            selection.clear();
-            guiSelection.close();
+            selectionReset();
         },
+        delete: () => {
+            if (selection.source != "simulation") return;
+            simulationDelete(selection.list);
+            selectionReset();
+        }
     },
     create: {
         mass: "",
@@ -366,6 +377,7 @@ export function guiSetup() {
     guiSelection.add(guiOptions.selection, 'import').name("Import");
     guiSelection.add(guiOptions.selection, 'clone').name("Clone");
     guiSelection.add(guiOptions.selection, 'clear').name("Clear");
+    guiSelection.add(guiOptions.selection, 'delete').name("Delete");
 
     //gui.close();
 }
@@ -563,19 +575,24 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
-function snapshot(selection) {
+function snapshot(selectionList) {
     let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
     let finalName = name + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
-    if (selection != undefined) {
+    if (selectionList != undefined) {
         finalName = "selection_" + finalName;
     }
     console.log("snapshot " + finalName);
-    downloadFile(simulationExportCsv(selection), finalName + ".csv", "text/plain;charset=utf-8");
+    downloadFile(simulationExportCsv(selectionList), finalName + ".csv", "text/plain;charset=utf-8");    
+
     graphics.renderer.domElement.toBlob((blob) => {
+        if (selectionList != undefined) {
+            console.log(selection.mouse0);
+            console.log(selection.mouse1);
+        }
         downloadFile(blob, finalName + ".png", "image/png");
-    });
+    }, 'image/png', 1);
 }
 
 export function animate(time) {

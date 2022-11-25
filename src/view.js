@@ -55,6 +55,11 @@ function selectionReset() {
     guiSelection.close();
 }
 
+function selectionUpdate(param, val) {
+    simulationUpdateAll(param, val, selection.list);
+    selection.updateView();
+}
+
 function setup(idx) {
     selectionReset();
     resetParticleView();
@@ -359,22 +364,22 @@ export function guiSetup() {
     guiSelection.add(guiOptions.selection, 'source').name("source").listen();
     guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
     guiSelection.add(guiOptions.selection, 'mass').name("mass").listen().onFinishChange((val) => {
-        simulationUpdateAll("mass", val, selection.list);
+        selectionUpdate("mass", val);
     });
     guiSelection.add(guiOptions.selection, 'charge').name("charge").listen().onFinishChange((val) => {
-        simulationUpdateAll("charge", val, selection.list);
+        selectionUpdate("charge", val);
     });
     guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen().onFinishChange((val) => {
-        simulationUpdateAll("nearCharge", val, selection.list);
+        selectionUpdate("nearCharge", val);
     });
     guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen().onFinishChange((val) => {
-        simulationUpdateAll("velocity", val, selection.list);
+        selectionUpdate("velocityAbs", val);
     });
     guiSelection.add(guiOptions.selection, 'velocityDir').name("direction").listen().onFinishChange((val) => {
-        simulationUpdateAll("velocityDir", val, selection.list);
+        selectionUpdate("velocityDir", val);
     });
     guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
-        simulationUpdateAll("center", val, selection.list);
+        selectionUpdate("center", val);
     });
     guiSelection.add(guiOptions.selection, 'export').name("Export");
     guiSelection.add(guiOptions.selection, 'import').name("Import");

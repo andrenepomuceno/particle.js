@@ -275,14 +275,13 @@ function normalizedClone(list) {
         meanPosition.add(p.position);
     });
     meanPosition.divideScalar(list.length);
+    if (simulation.mode2D) {
+        meanPosition.z = 0.0;
+    }
 
     list.forEach((p, index) => {
         let np = p.clone();
         np.position.sub(meanPosition);
-
-        if (simulation.mode2D) {
-            np.position.z = 0.0;
-        }
 
         normalizedList.push(np);
     });
@@ -294,6 +293,12 @@ export function simulationCreateParticles(particleList, center = new Vector3()) 
     log("simulationCreateParticles " + particleList.length + " " + center.toArray());
 
     if (particleList == undefined || particleList.length == 0) return;
+
+    if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
+        alert("maxParticles exceeded!");
+        return;
+    }
+
     let normalizedList = normalizedClone(particleList);
 
     if (useGPU) {
@@ -451,7 +456,7 @@ export function simulationUpdateParticle(particle, key, value) {
                 }
                 particle.velocity.normalize().multiplyScalar(velocity);
             }
-            
+
             break;
 
         case "velocityDir":
@@ -460,7 +465,7 @@ export function simulationUpdateParticle(particle, key, value) {
                 if (dir) {
                     let vec = new Vector3(dir.x, dir.y, dir.z);
                     vec.normalize();
-                    
+
                     let abs = (particle.velocity.length() || 1.0);
                     particle.velocity = vec;
                     particle.velocity.multiplyScalar(abs);
@@ -524,6 +529,8 @@ export function simulationUpdateAll(parameter, value, list) {
 
     if (list == undefined) list = graphics.particleList;
 
+    if (useGPU) graphics.readbackParticleData();
+
     switch (parameter) {
         case "mass":
             {
@@ -573,30 +580,52 @@ export function simulationUpdateAll(parameter, value, list) {
             }
             break;
 
-        case "velocity":
+        case "velocityAbs":
             {
-                let velocity = parseFloat(value);
-                if (velocity >= physics.boundaryDistance) {
+                let newVelocityAbs = parseFloat(value);
+                if (Math.abs(newVelocityAbs) >= physics.boundaryDistance) {
                     alert("Value is too big.");
                     return;
                 }
+
+                let totalVelocityMean = new Vector3();
                 list.forEach((particle, index) => {
-                    if (particle.velocity.length() == 0) {
+                    totalVelocityMean.add(particle.velocity);
+                });
+                totalVelocityMean.divideScalar(list.length);
+                let totalVelocityAbs = totalVelocityMean.length();
+                totalVelocityMean.normalize().multiplyScalar(newVelocityAbs - totalVelocityAbs);
+
+                list.forEach((particle, index) => {
+                    let len = particle.velocity.length();
+                    if (len == 0) {
                         particle.velocity.set(1.0, 0.0, 0.0);
                     }
-                    particle.velocity.normalize().multiplyScalar(newVelocity);
+                    particle.velocity.add(totalVelocityMean);
                 });
             }
             break;
 
         case "velocityDir":
             {
-                let dir = decodeVector3(value);
-                if (dir) {
+                let newDir = decodeVector3(value);
+                if (newDir) {
+                    let totalVelocityMean = new Vector3();
                     list.forEach((particle, index) => {
-                        let abs = (particle.velocity.length() || 1.0);
-                        particle.velocity.set(dir.x, dir.y, dir.z);
-                        particle.velocity.multiplyScalar(abs);
+                        totalVelocityMean.add(particle.velocity);
+                    });
+                    totalVelocityMean.divideScalar(list.length);
+                    let totalVelocityAbs = totalVelocityMean.length();
+                    totalVelocityMean.normalize();
+
+                    let dirVec = new Vector3(newDir.x, newDir.y, newDir.z);
+                    dirVec.normalize();
+
+                    dirVec.sub(totalVelocityMean).normalize().multiplyScalar(totalVelocityAbs);
+
+                    list.forEach((particle, index) => {
+                        //let abs = (particle.velocity.length() || 1.0);
+                        particle.velocity.add(dirVec);
                     });
                 } else {
                     alert("Invalid value.");

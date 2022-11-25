@@ -16,6 +16,7 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
+import { Vector3 } from 'three';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -86,8 +87,12 @@ export function simulationSetup(idx) {
     log("simulationSetup done");
 }
 
-export function simulationExportCsv() {
+export function simulationExportCsv(list) {
     log("simulationCsv");
+
+    if (list == undefined) {
+        list = physics.particleList;
+    }
 
     const csvVersion = "1.1";
 
@@ -114,16 +119,14 @@ export function simulationExportCsv() {
     output += "," + simulation.mode2D;
     output += "\n";
 
-    output += physics.particleList[0].header() + "\n";
-    physics.particleList.forEach((p, i) => {
+    output += list[0].header() + "\n";
+    list.forEach((p, i) => {
         output += p.csv() + "\n";
     });
     return output;
 }
 
-export function simulationImportCSV(filename, content) {
-    log("Importing " + filename);
-
+function parseCsv(content) {
     let imported = { physics: new Physics() };
 
     let particleDataColumns = 13;
@@ -200,9 +203,8 @@ export function simulationImportCSV(filename, content) {
                     y: parseFloat(values[15]),
                     z: parseFloat(values[16])
                 }
-                graphics.camera.position.set(camera.x, camera.y, camera.z);
-                graphics.controls.target.set(target.x, target.y, target.z);
-                graphics.controls.update();
+                imported.camera = camera;
+                imported.target = target;
                 imported.particleRadius = parseFloat(values[17]);
                 imported.particleRadiusRange = parseFloat(values[18]);
                 if (parseFloat(imported.version) >= 1.1)
@@ -222,10 +224,18 @@ export function simulationImportCSV(filename, content) {
 
     if (!result) {
         log("failed to import CSV");
-        return;
+        return undefined;
     }
 
     log(imported.physics.particleList.length + " particles loaded!");
+    return imported;
+}
+
+export function simulationImportCSV(filename, content) {
+    log("Importing " + filename);
+
+    let imported = parseCsv(content);
+    if (imported == undefined) return;
 
     internalSetup(imported.physics);
 
@@ -234,10 +244,73 @@ export function simulationImportCSV(filename, content) {
     simulation.particleRadiusRange = imported.particleRadiusRange;
     simulation.mode2D = imported.mode2D;
 
+    graphics.camera.position.set(imported.camera.x, imported.camera.y, imported.camera.z);
+    graphics.controls.target.set(imported.target.x, imported.target.y, imported.target.z);
+    graphics.controls.update();
+
     simulation.setup();
 
     simulation.cycles = imported.cycles;
 }
+
+export function simulationImportSelectionCSV(selection, filename, content) {
+    log("Importing selection " + filename);
+
+    let imported = parseCsv(content);
+    if (imported == undefined) return;
+
+    selection.import = imported;
+    selection.imported = true;
+
+    selection.list = imported.physics.particleList;
+    selection.source = filename;
+    selection.updateView();
+}
+
+function normalizedClone(list) {
+    log("normalize");
+    let normalizedList = [];
+
+    let meanPosition = new Vector3();
+    list.forEach((p, index) => {
+        meanPosition.add(p.position);
+    });
+    meanPosition.divideScalar(list.length);
+
+    list.forEach((p, index) => {
+        let np = p.clone();
+        np.position.sub(meanPosition);
+
+        if (simulation.mode2D) {
+            np.position.z = 0.0;
+        }
+
+        normalizedList.push(np);
+    });
+
+    return normalizedList;
+}
+
+export function simulationCreateParticles(particleList, center = new Vector3()) {
+    log("simulationCreateParticles " + particleList.length + " " + center.toArray());
+
+    if (particleList == undefined || particleList.length == 0) return;
+    let normalizedList = normalizedClone(particleList);
+
+    if (useGPU) {
+        graphics.readbackParticleData();
+    }
+
+    normalizedList.forEach((p, index) => {
+        p.position.add(center);
+        graphics.particleList.push(p);
+    });
+
+    if (useGPU) {
+        simulation.drawParticles();
+    }
+}
+
 export function simulationUpdatePhysics(key, value) {
     log("simulationUpdatePhysics key " + key + " val " + value);
 
@@ -398,7 +471,7 @@ export function simulationUpdateParticle(particle, key, value) {
 }
 
 export function simulationUpdateAll(parameter, value, list) {
-    log("simulationUpdateAll " + parameter + " " + value + " " + list);
+    log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
     let ratio = parseFloat(value);
     if (ratio == NaN) return;

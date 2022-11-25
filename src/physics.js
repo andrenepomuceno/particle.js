@@ -151,6 +151,16 @@ export class Particle {
         this.collisions = 0.0;
     }
 
+    clone() {
+        let p = new Particle();
+        p.mass = this.mass;
+        p.charge = this.charge;
+        p.nearCharge = this.nearCharge;
+        p.position = this.position.clone();
+        p.velocity = this.velocity.clone();
+        return p;
+    }
+
     energy() {
         return this.mass * this.velocity.lengthSq();
     }

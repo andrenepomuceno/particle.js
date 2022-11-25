@@ -1,9 +1,14 @@
 import { Vector3 } from "three";
-import { arrayToString, cameraToWorld, mouseToRelative } from "./helpers";
+import { arrayToString, cameraToWorldCoord, mouseToScreenCoord } from "./helpers";
 import { ParticleType } from "./physics";
+
+function log(msg) {
+    console.log("SelectionHelper: " + msg);
+}
 
 export class SelectionHelper {
     constructor(graphics, options, guiSelection) {
+        log("constructor");
         this.graphics = graphics;
         this.options = options;
         this.guiSelection = guiSelection;
@@ -14,13 +19,16 @@ export class SelectionHelper {
         this.element = document.createElement('div');
         this.element.classList.add('selectBox');
         this.element.style.pointerEvents = 'none';
-        this.startPoint = {}
+        this.startPoint = {};
+        this.imported = false;
+        this.source = "";
     }
 
     start(event) {
+        log("start");
         this.started = true;
         this.graphics.controls.enabled = false;
-        this.p0 = cameraToWorld(mouseToRelative(event), this.graphics.camera, 0);
+        this.p0 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         this.list = [];
 
         this.startPoint.x = event.clientX;
@@ -48,36 +56,59 @@ export class SelectionHelper {
         this.element.style.height = pointBottomRight.y - pointTopLeft.y + 'px';
     }
 
-    #topBottom(p0, p1) {
-        // console.log(p0);
-        // console.log(p1);
-        let top = {}
-        let bottom = {};
-        bottom.x = Math.max(p0.x, p1.x);
-        bottom.y = Math.min(p0.y, p1.y);
-        top.x = Math.min(p0.x, p1.x);
-        top.y = Math.max(p0.y, p1.y);
-        // console.log(top);
-        // console.log(bottom);
-        return [top, bottom];
-    }
-
     end(event) {
+        log("end");
         this.started = false;
         this.graphics.controls.enabled = true;
-        this.p1 = cameraToWorld(mouseToRelative(event), this.graphics.camera, 0);
+        this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
 
         this.element.parentElement.removeChild(this.element);
+
+        this.#pushList();
+        this.source = "simulation";
+        this.updateView();
+    }
+
+    clear() {
+        log("clear");
+        this.list = [];
+        this.imported = false;
+        let view = this.options;
+        view.particles = 0;
+        view.mass = "";
+        view.charge = "";
+        view.nearCharge = "";
+        view.velocity = "";
+        view.velocityDir = "";
+        view.center = "";
+        view.source = "";
+    }
+
+    clone() {
+        log("clone");
+        if (this.list.length == 0) return;
+        this.list.forEach((val, idx) => {
+            this.list[idx] = val.clone();
+        });
+        this.source = "clone";
+    }
+
+    #topBottom(p0, p1) {
+        let topLeft = {}
+        let bottomRight = {};
+        bottomRight.x = Math.max(p0.x, p1.x);
+        bottomRight.y = Math.min(p0.y, p1.y);
+        topLeft.x = Math.min(p0.x, p1.x);
+        topLeft.y = Math.max(p0.y, p1.y);
+        return [topLeft, bottomRight];
+    }
+
+    #pushList() {
+        log("pushList");
 
         this.graphics.readbackParticleData();
 
         let [top, bottom] = this.#topBottom(this.p0, this.p1);
-
-        let totalMass = 0;
-        let totalCharge = 0;
-        let totalPos = new Vector3();
-        let totalVelocity = new Vector3();
-        let totalNQ = 0;
 
         this.graphics.particleList.forEach(p => {
             if (p.type != ParticleType.default) return;
@@ -89,27 +120,47 @@ export class SelectionHelper {
                 pos.y <= top.y
             ) {
                 this.list.push(p);
-                totalPos.add(p.position);
-                totalMass += p.mass;
-                totalCharge += p.charge;
-                totalVelocity.add(p.velocity);
-                totalNQ += p.nearCharge;
             }
         });
+    }
+
+    #updateStats() {
+        log("updateStats");
+
+        this.totalMass = 0;
+        this.totalCharge = 0;
+        this.totalPos = new Vector3();
+        this.totalVelocity = new Vector3();
+        this.totalNQ = 0;
+
+        this.list.forEach(p => {
+            if (p.type != ParticleType.default) return;
+            this.totalPos.add(p.position);
+            this.totalMass += p.mass;
+            this.totalCharge += p.charge;
+            this.totalVelocity.add(p.velocity);
+            this.totalNQ += p.nearCharge;
+        });
+    }
+
+    updateView() {
+        log("updateView");
+
+        this.#updateStats();
 
         let particles = this.list.length;
-
         if (particles > 0) {
             let view = this.options;
+            view.source = this.source;
             view.particles = particles;
-            view.mass = totalMass.toExponential(2);
-            view.charge = totalCharge.toExponential(2);
-            view.nearCharge = totalNQ.toExponential(2);
-            totalVelocity.divideScalar(particles);
-            view.velocity = totalVelocity.length().toExponential(2);
-            view.velocityDir = arrayToString(totalVelocity.normalize().toArray(), 2);
-            totalPos.divideScalar(particles);
-            let center = totalPos.toArray();
+            view.mass = this.totalMass.toExponential(2);
+            view.charge = this.totalCharge.toExponential(2);
+            view.nearCharge = this.totalNQ.toExponential(2);
+            this.totalVelocity.divideScalar(particles);
+            view.velocity = this.totalVelocity.length().toExponential(2);
+            view.velocityDir = arrayToString(this.totalVelocity.normalize().toArray(), 2);
+            this.totalPos.divideScalar(particles);
+            let center = this.totalPos.toArray();
             center.forEach((v, i) => {
                 center[i] = v.toExponential(2);
             })
@@ -120,16 +171,5 @@ export class SelectionHelper {
             this.clear();
             //this.guiSelection.close();
         }
-    }
-
-    clear() {
-        let view = this.options;
-        view.particles = 0;
-        view.mass = "";
-        view.charge = "";
-        view.nearCharge = "";
-        view.velocity = "";
-        view.velocityDir = "";
-        view.center = "";
     }
 }

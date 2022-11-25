@@ -1,7 +1,7 @@
 import { Vector2 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToRelative } from './helpers.js';
+import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -14,6 +14,8 @@ import {
     simulationUpdateParticle,
     simulationFindParticle,
     simulationUpdateAll,
+    simulationImportSelectionCSV,
+    simulationCreateParticles,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
@@ -29,6 +31,7 @@ let mousePosition = new Vector2(1e5, 1e5);
 let mouseOverGUI = false;
 const viewUpdateDelay = 1000;
 let makeSnapshot = false;
+let makeSelectionSnapshot = false;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
@@ -43,6 +46,7 @@ const guiView = gui.addFolder("View");
 const guiParticle = gui.addFolder("Particle");
 const guiParameters = gui.addFolder("Parameters");
 const guiSelection = gui.addFolder("Selection");
+const guiCreate = gui.addFolder("Create");
 let selection = new SelectionHelper();
 
 function setup(idx) {
@@ -50,6 +54,22 @@ function setup(idx) {
     simulationSetup(idx);
     resetEditView();
     updateInfoView();
+}
+
+function uploadCsv(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".csv";
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
 }
 
 export let guiOptions = {
@@ -74,23 +94,12 @@ export let guiOptions = {
             if (!makeSnapshot) makeSnapshot = true
         },
         import: function () {
-            let input = document.createElement('input');
-            input.type = 'file';
-            input.accept = ".csv";
-            input.onchange = e => {
-                let file = e.target.files[0];
-                let reader = new FileReader();
-                reader.readAsText(file, 'UTF-8');
-                reader.onload = readerEvent => {
-                    let content = readerEvent.target.result;
-
-                    resetParticleView();
-                    simulationImportCSV(file.name, content);
-                    resetEditView();
-                    updateInfoView();
-                }
-            }
-            input.click();
+            uploadCsv((name, content) => {
+                resetParticleView();
+                simulationImportCSV(name, content);
+                resetEditView();
+                updateInfoView();
+            });
         }
     },
     view: {
@@ -156,7 +165,10 @@ export let guiOptions = {
         },
         reset: () => {
             simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);
-        }
+        },
+        delete: () => {
+
+        },
     },
     parameters: {
         massConstant: "",
@@ -175,6 +187,7 @@ export let guiOptions = {
         },
     },
     selection: {
+        source: "",
         particles: 0,
         mass: "",
         charge: "",
@@ -182,7 +195,31 @@ export let guiOptions = {
         velocity: "",
         velocityDir: "",
         center: "",
-    }
+        export: () => {
+            if (!makeSelectionSnapshot) makeSelectionSnapshot = true;
+        },
+        import: () => {
+            uploadCsv((name, content) => {
+                selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+                simulationImportSelectionCSV(selection, name, content);
+            });
+        },
+        clone: () => {
+            selection.clone();
+            selection.updateView();
+        },
+        clear: () => {
+            selection.clear();
+            guiSelection.close();
+        },
+    },
+    create: {
+        mass: "",
+        charge: "",
+        nearCharge: "",
+        position: "",
+        velocity: "",
+    },
 }
 
 export function guiSetup() {
@@ -305,6 +342,7 @@ export function guiSetup() {
     });
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
+    guiSelection.add(guiOptions.selection, 'source').name("source").listen();
     guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
     guiSelection.add(guiOptions.selection, 'mass').name("mass").listen().onFinishChange((val) => {
         simulationUpdateAll("mass", val, selection.list);
@@ -324,6 +362,10 @@ export function guiSetup() {
     guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
         simulationUpdateAll("center", val, selection.list);
     });
+    guiSelection.add(guiOptions.selection, 'export').name("Export");
+    guiSelection.add(guiOptions.selection, 'import').name("Import");
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone");
+    guiSelection.add(guiOptions.selection, 'clear').name("Clear");
 
     //gui.close();
 }
@@ -400,7 +442,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener('pointermove', function (event) {
-    mousePosition = mouseToRelative(event);
+    mousePosition = mouseToScreenCoord(event);
     if (selection.started) {
         selection.update(event);
     }
@@ -422,6 +464,10 @@ document.addEventListener("pointerup", (event) => {
             guiOptions.particle.obj = particle;
             guiParticle.open();
         }
+    } else if (event.button == 1 && event.shiftKey && !mouseOverGUI && selection.list != undefined) {
+        if (selection.list.length == 0) return;
+        let center = cameraToWorldCoord(mouseToScreenCoord(event), graphics.camera, 0);
+        simulationCreateParticles(selection.list, center);
     }
 });
 
@@ -517,13 +563,16 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
-function snapshot() {
+function snapshot(selection) {
     let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
     let finalName = name + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    if (selection != undefined) {
+        finalName = "selection_" + finalName;
+    }
     console.log("snapshot " + finalName);
-    downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
+    downloadFile(simulationExportCsv(selection), finalName + ".csv", "text/plain;charset=utf-8");
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + ".png", "image/png");
     });
@@ -538,6 +587,10 @@ export function animate(time) {
     if (makeSnapshot) {
         makeSnapshot = false;
         snapshot();
+    }
+    if (makeSelectionSnapshot) {
+        makeSelectionSnapshot = false;
+        snapshot(selection.list);
     }
 
     if (followParticle && guiOptions.particle.obj) {

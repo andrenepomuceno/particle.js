@@ -219,7 +219,10 @@ export let guiOptions = {
             selectionReset();
         },
         delete: () => {
-            if (selection.source != "simulation") return;
+            if (selection.source != "simulation") {
+                alert('Selection source must be "simulation".\n Select particles first.');
+                return;
+            }
             simulationDelete(selection.list);
             selectionReset();
         }

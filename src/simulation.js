@@ -428,25 +428,45 @@ export function simulationUpdateParticle(particle, key, value) {
             {
                 let v = decodeVector3(value);
                 if (v) {
-                    particle.position.set(v.x, v.y, v.z);
+                    let vec = new Vector3(v.x, v.y, v.z);
+                    if (vec.length() >= physics.boundaryDistance) {
+                        alert("Value is too big!");
+                        return;
+                    }
+                    particle.position = vec;
                 }
             }
             break;
 
         case "velocityAbs":
-            if (particle.velocity.length() == 0) {
-                particle.velocity.set(1.0, 0.0, 0.0);
+            {
+                let velocity = parseFloat(value);
+                if (velocity >= physics.boundaryDistance) {
+                    alert("Value is too big!");
+                    return;
+                }
+
+                if (particle.velocity.length() == 0) {
+                    particle.velocity.set(1.0, 0.0, 0.0);
+                }
+                particle.velocity.normalize().multiplyScalar(velocity);
             }
-            particle.velocity.normalize().multiplyScalar(parseFloat(value));
+            
             break;
 
         case "velocityDir":
             {
                 let dir = decodeVector3(value);
                 if (dir) {
+                    let vec = new Vector3(dir.x, dir.y, dir.z);
+                    vec.normalize();
+                    
                     let abs = (particle.velocity.length() || 1.0);
-                    particle.velocity.set(dir.x, dir.y, dir.z);
+                    particle.velocity = vec;
                     particle.velocity.multiplyScalar(abs);
+                } else {
+                    alert("Invalid value.");
+                    return;
                 }
             }
             break;
@@ -474,6 +494,10 @@ export function simulationDelete(list) {
 
     if (list == undefined) return;
 
+    if (useGPU) {
+        graphics.readbackParticleData();
+    }
+
     list.forEach((ref) => {
         simulation.particleList.every((src, srcIdx) => {
             if (src.id == ref.id) {
@@ -493,7 +517,10 @@ export function simulationUpdateAll(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
     let ratio = parseFloat(value);
-    if (ratio == NaN) return;
+    if (ratio == NaN) {
+        alert("Invalid value.");
+        return;
+    }
 
     if (list == undefined) list = graphics.particleList;
 
@@ -501,6 +528,11 @@ export function simulationUpdateAll(parameter, value, list) {
         case "mass":
             {
                 if (ratio.toExponential(1) == simulation.totalMass.toExponential(1)) return;
+                if (ratio > 1e6) {
+                    alert("Value is too big.");
+                    return;
+                }
+
                 if (useGPU) graphics.readbackParticleData();
                 list.forEach((p) => {
                     p.mass *= ratio;
@@ -511,6 +543,11 @@ export function simulationUpdateAll(parameter, value, list) {
         case "charge":
             {
                 if (ratio.toExponential(1) == simulation.totalCharge.toExponential(1)) return;
+                if (ratio >= 1e6) {
+                    alert("Value is too big.");
+                    return;
+                }
+
                 if (useGPU) graphics.readbackParticleData();
                 list.forEach((p) => {
                     p.charge *= ratio;
@@ -518,7 +555,58 @@ export function simulationUpdateAll(parameter, value, list) {
             }
             break;
 
+        case "center":
+            {
+                let center = decodeVector3(value);
+                if (center) {
+                    let tmpList = normalizedClone(list);
+                    let centerVector = new Vector3(center.x, center.y, center.z);
+                    if (centerVector.length() >= physics.boundaryDistance) {
+                        alert("Value out of boundaries.");
+                        return;
+                    }
+                    list.forEach((particle, index) => {
+                        tmpList[index].position.add(centerVector);
+                        particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
+                    });
+                }
+            }
+            break;
+
+        case "velocity":
+            {
+                let velocity = parseFloat(value);
+                if (velocity >= physics.boundaryDistance) {
+                    alert("Value is too big.");
+                    return;
+                }
+                list.forEach((particle, index) => {
+                    if (particle.velocity.length() == 0) {
+                        particle.velocity.set(1.0, 0.0, 0.0);
+                    }
+                    particle.velocity.normalize().multiplyScalar(newVelocity);
+                });
+            }
+            break;
+
+        case "velocityDir":
+            {
+                let dir = decodeVector3(value);
+                if (dir) {
+                    list.forEach((particle, index) => {
+                        let abs = (particle.velocity.length() || 1.0);
+                        particle.velocity.set(dir.x, dir.y, dir.z);
+                        particle.velocity.multiplyScalar(abs);
+                    });
+                } else {
+                    alert("Invalid value.");
+                    return;
+                }
+            }
+            break;
+
         default:
+            log("invalid parameter");
             return;
     }
 

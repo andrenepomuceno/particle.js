@@ -1,6 +1,4 @@
-import {
-    Vector2, Vector3
-} from 'three';
+import { Vector2 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, mouseToRelative } from './helpers.js';
@@ -20,10 +18,24 @@ import {
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
 
-let stats = new Stats();
-document.getElementById("container").appendChild(stats.dom);
+let hideAxis = false;
+let simulationIdx = 0;
+let colorMode = "charge";
 
-export const gui = new dat.GUI();
+let nextFrame = false;
+let pause = false;
+let followParticle = false;
+let mousePosition = new Vector2(1e5, 1e5);
+let mouseOverGUI = false;
+const viewUpdateDelay = 1000;
+let makeSnapshot = false;
+let lastViewUpdate = 0;
+let lastAnimateTime = 0;
+let updateField = false;
+
+let stats = new Stats();
+
+const gui = new dat.GUI();
 //export const gui = new GUI();
 const guiInfo = gui.addFolder("Information");
 const guiParticle = gui.addFolder("Particle");
@@ -31,17 +43,7 @@ const guiSimulation = gui.addFolder("Simulation");
 const guiView = gui.addFolder("View");
 const guiParameters = gui.addFolder("Parameters");
 const guiSelection = gui.addFolder("Selection");
-
-let hideAxis = false;
-let nextFrame = false;
-let pause = false;
-let simulationIdx = 0;
-let colorMode = "charge";
-let followParticle = false;
-let mousePosition = new Vector2(1e5, 1e5);
-let mouseOverGUI = false;
-const viewUpdateDelay = 1000;
-let makeSnapshot = false;
+let selection = new SelectionHelper();
 
 function setup(idx) {
     resetParticleView();
@@ -193,10 +195,12 @@ export function guiSetup() {
         mouseOverGUI = false;
     }
 
-    gui.domElement.addEventListener("mouseover", mouseOver);
-    gui.domElement.addEventListener("mouseleave", mouseLeave);
+    document.getElementById("container").appendChild(stats.dom);
     stats.domElement.addEventListener("mouseover", mouseOver);
     stats.domElement.addEventListener("mouseleave", mouseLeave);
+
+    gui.domElement.addEventListener("mouseover", mouseOver);
+    gui.domElement.addEventListener("mouseleave", mouseLeave);
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
         simulation.name = val;
@@ -302,11 +306,24 @@ export function guiSetup() {
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
     guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
-    guiSelection.add(guiOptions.selection, 'mass').name("mass").listen();
-    guiSelection.add(guiOptions.selection, 'charge').name("charge").listen();
-    guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen();
-    guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen();
-    guiSelection.add(guiOptions.selection, 'center').name("center").listen();
+    guiSelection.add(guiOptions.selection, 'mass').name("mass").listen().onFinishChange((val) => {
+        simulationUpdateAll("mass", val, selection.list);
+    });
+    guiSelection.add(guiOptions.selection, 'charge').name("charge").listen().onFinishChange((val) => {
+        simulationUpdateAll("charge", val, selection.list);
+    });
+    guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen().onFinishChange((val) => {
+        simulationUpdateAll("nearCharge", val, selection.list);
+    });
+    guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen().onFinishChange((val) => {
+        simulationUpdateAll("velocity", val, selection.list);
+    });
+    guiSelection.add(guiOptions.selection, 'velocityDir').name("direction").listen().onFinishChange((val) => {
+        simulationUpdateAll("velocityDir", val, selection.list);
+    });
+    guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
+        simulationUpdateAll("center", val, selection.list);
+    });
 
     //gui.close();
 }
@@ -381,8 +398,6 @@ document.addEventListener("keydown", (event) => {
 
     }
 });
-
-let selection = new SelectionHelper();
 
 window.addEventListener('pointermove', function (event) {
     mousePosition = mouseToRelative(event);
@@ -513,10 +528,6 @@ function snapshot() {
         downloadFile(blob, finalName + ".png", "image/png");
     });
 }
-
-let lastViewUpdate = 0;
-let lastAnimateTime = 0;
-let updateField = false;
 
 export function animate(time) {
     requestAnimationFrame(animate);

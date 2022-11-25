@@ -1,5 +1,5 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { guiSetup, animate, guiOptions } from './view';
+import { animate, guiSetup, guiOptions } from './view';
 
 if (WebGL.isWebGLAvailable()) {
     guiSetup();

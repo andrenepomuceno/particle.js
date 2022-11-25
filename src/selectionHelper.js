@@ -50,7 +50,8 @@ export class SelectionHelper {
     #topBottom(p0, p1) {
         // console.log(p0);
         // console.log(p1);
-        let top = {}, bottom = {};
+        let top = {}
+        let bottom = {};
         bottom.x = Math.max(p0.x, p1.x);
         bottom.y = Math.min(p0.y, p1.y);
         top.x = Math.min(p0.x, p1.x);
@@ -96,9 +97,9 @@ export class SelectionHelper {
 
         let particles = this.list.length;
 
-        let view = this.options;
-        view.particles = particles;
         if (particles > 0) {
+            let view = this.options;
+            view.particles = particles;
             view.mass = totalMass.toExponential(2);
             view.charge = totalCharge.toExponential(2);
             view.nearCharge = totalNQ.toExponential(2);
@@ -114,14 +115,19 @@ export class SelectionHelper {
 
             this.guiSelection.open();
         } else {
-            view.mass = "";
-            view.charge = "";
-            view.nearCharge = "";
-            view.velocity = "";
-            view.velocityDir = "";
-            view.center = "";
-
+            this.clear();
             //this.guiSelection.close();
         }
+    }
+
+    clear() {
+        let view = this.options;
+        view.particles = 0;
+        view.mass = "";
+        view.charge = "";
+        view.nearCharge = "";
+        view.velocity = "";
+        view.velocityDir = "";
+        view.center = "";
     }
 }

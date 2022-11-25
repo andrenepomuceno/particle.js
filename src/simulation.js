@@ -27,7 +27,7 @@ function log(msg) {
 }
 
 let simulationList = [];
-//simulationList = simulationList.concat(tests);
+simulationList = simulationList.concat(tests);
 if (useGPU) {
     simulationList = simulationList.concat(experiments);
     simulationList = simulationList.concat(nearForce1);
@@ -391,18 +391,20 @@ export function simulationUpdateParticle(particle, key, value) {
     }
 }
 
-export function simulationUpdateAll(parameter, value) {
-    log("simulationUpdateAll " + parameter + " " + value);
+export function simulationUpdateAll(parameter, value, list) {
+    log("simulationUpdateAll " + parameter + " " + value + " " + list);
 
     let ratio = parseFloat(value);
     if (ratio == NaN) return;
+
+    if (list == undefined) list = graphics.particleList;
 
     switch (parameter) {
         case "mass":
             {
                 if (ratio.toExponential(1) == simulation.totalMass.toExponential(1)) return;
                 if (useGPU) graphics.readbackParticleData();
-                graphics.particleList.forEach((p) => {
+                list.forEach((p) => {
                     p.mass *= ratio;
                 });
             }
@@ -412,7 +414,7 @@ export function simulationUpdateAll(parameter, value) {
             {
                 if (ratio.toExponential(1) == simulation.totalCharge.toExponential(1)) return;
                 if (useGPU) graphics.readbackParticleData();
-                graphics.particleList.forEach((p) => {
+                list.forEach((p) => {
                     p.charge *= ratio;
                 });
             }

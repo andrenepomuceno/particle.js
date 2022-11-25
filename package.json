@@ -4,8 +4,8 @@
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
-    "build": "webpack -c webpack-prod.config.js ",
-    "test": "webpack serve --config webpack-dev.config.js"
+    "build": "webpack -c webpack-prod.config.js --env PARTICLES=10e3",
+    "test": "webpack serve --config webpack-dev.config.js --env PARTICLES=25e3"
   },
   "repository": {
     "type": "git",

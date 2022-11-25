@@ -93,7 +93,7 @@ function simulationAtom(simulation) {
     const nMass = 1.67492749804e-27;*/
 
     physics.forceConstant = 1;
-    physics.massConstant = 1;
+    physics.massConstant =5e-2;
     physics.chargeConstant = 100;
     let massRange = [1, 1839];
     let chargeRange = [-1, 1];

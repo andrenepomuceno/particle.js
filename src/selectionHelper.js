@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import { arrayToString, cameraToWorldCoord, downloadFile, mouseToScreenCoord } from "./helpers";
-import { ParticleType } from "./physics";
+import { calcListStatistics, ParticleType } from "./physics";
 const { Image } = require('image-js');
 import { simulation, simulationExportCsv } from "./simulation";
 
@@ -27,6 +27,7 @@ export class SelectionHelper {
         this.source = "";
         this.importedData = {};
         this.blob = undefined;
+        this.stats = {};
     }
 
     start(event) {
@@ -129,6 +130,7 @@ export class SelectionHelper {
         this.list = [];
         this.importedData = {};
         this.blob = undefined;
+        this.stats = {};
         let view = this.options;
         if (view != undefined) {
             view.particles = 0;
@@ -186,41 +188,22 @@ export class SelectionHelper {
         return this.list.length;
     }
 
-    #updateStats() {
-        this.totalMass = 0;
-        this.totalCharge = 0;
-        this.totalPos = new Vector3();
-        this.totalVelocity = new Vector3();
-        this.totalNearCharge = 0;
-
-        this.list.forEach(p => {
-            if (p.type != ParticleType.default) return;
-            this.totalPos.add(p.position);
-            this.totalMass += p.mass;
-            this.totalCharge += p.charge;
-            this.totalVelocity.add(p.velocity);
-            this.totalNearCharge += p.nearCharge;
-        });
-    }
-
     updateView() {
-        log("updateView");
+        //log("updateView");
 
-        this.#updateStats();
+        this.stats = calcListStatistics(this.list);
 
         let particles = this.list.length;
         if (particles > 0) {
             let view = this.options;
             view.source = this.source;
             view.particles = particles;
-            view.mass = this.totalMass.toExponential(2);
-            view.charge = this.totalCharge.toExponential(2);
-            view.nearCharge = this.totalNearCharge.toExponential(2);
-            this.totalVelocity.divideScalar(particles);
-            view.velocity = this.totalVelocity.length().toExponential(2);
-            view.velocityDir = arrayToString(this.totalVelocity.normalize().toArray(), 2);
-            this.totalPos.divideScalar(particles);
-            let center = this.totalPos.toArray();
+            view.mass = this.stats.totalMass.toExponential(2);
+            view.charge = this.stats.totalCharge.toExponential(2);
+            view.nearCharge = this.stats.totalNearCharge.toExponential(2);
+            view.velocity = this.stats.avgVelocity.length().toExponential(2);
+            view.velocityDir = arrayToString(this.stats.avgVelocity.clone().normalize().toArray(), 2);
+            let center = this.stats.center.toArray();
             center.forEach((v, i) => {
                 center[i] = v.toExponential(2);
             })

@@ -13,7 +13,7 @@ import {
     simulationUpdatePhysics,
     simulationUpdateParticle,
     simulationFindParticle,
-    simulationUpdateAll,
+    simulationUpdateParticleList as simulationUpdateParticleList,
     simulationImportSelectionCSV,
     simulationCreateParticles,
     simulationDelete,
@@ -255,10 +255,10 @@ export function guiSetup() {
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
     guiInfo.add(guiOptions.info, 'mass').name('Mass').listen().onFinishChange((val) => {
-        simulationUpdateAll("mass", val);
+        simulationUpdateParticleList("mass", val);
     });
     guiInfo.add(guiOptions.info, 'charge').name('Charge').listen().onFinishChange((val) => {
-        simulationUpdateAll("charge", val);
+        simulationUpdateParticleList("charge", val);
     });;
     guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
@@ -591,7 +591,7 @@ function selectionReset() {
 }
 
 function selectionUpdate(param, val) {
-    simulationUpdateAll(param, val, selection.list);
+    simulationUpdateParticleList(param, val, selection.list);
     selection.updateView();
 }
 

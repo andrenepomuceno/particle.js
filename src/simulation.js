@@ -1,4 +1,4 @@
-import { Particle, ParticleType, Physics } from './physics.js';
+import { calcListStatistics, Particle, ParticleType, Physics } from './physics.js';
 import { SimulationGPU } from './gpu/simulationGPU';
 import { GraphicsGPU } from './gpu/graphicsGPU'
 import { FieldGPU } from './gpu/fieldGPU';
@@ -518,7 +518,7 @@ export function simulationDelete(list) {
     }
 }
 
-export function simulationUpdateAll(parameter, value, list) {
+export function simulationUpdateParticleList(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
     let ratio = parseFloat(value);
@@ -527,14 +527,20 @@ export function simulationUpdateAll(parameter, value, list) {
         return;
     }
 
-    if (list == undefined) list = graphics.particleList;
-
-    if (useGPU) graphics.readbackParticleData();
+    let totalMass = simulation.totalMass.toExponential(1);
+    let totalCharge = simulation.totalCharge.toExponential(1);
+    if (list == undefined) {
+        list = graphics.particleList;
+    } else {
+        let stats = calcListStatistics(list);
+        totalMass = stats.totalMass.toExponential(1);
+        totalCharge = stats.totalCharge.toExponential(1);
+    }    
 
     switch (parameter) {
         case "mass":
             {
-                if (ratio.toExponential(1) == simulation.totalMass.toExponential(1)) return;
+                if (ratio.toExponential(1) == totalMass) return;
                 if (ratio > 1e6) {
                     alert("Value is too big.");
                     return;
@@ -549,7 +555,7 @@ export function simulationUpdateAll(parameter, value, list) {
 
         case "charge":
             {
-                if (ratio.toExponential(1) == simulation.totalCharge.toExponential(1)) return;
+                if (ratio.toExponential(1) == totalCharge) return;
                 if (ratio >= 1e6) {
                     alert("Value is too big.");
                     return;
@@ -565,18 +571,22 @@ export function simulationUpdateAll(parameter, value, list) {
         case "center":
             {
                 let center = decodeVector3(value);
-                if (center) {
-                    let tmpList = normalizedClone(list);
-                    let centerVector = new Vector3(center.x, center.y, center.z);
-                    if (centerVector.length() >= physics.boundaryDistance) {
-                        alert("Value out of boundaries.");
-                        return;
-                    }
-                    list.forEach((particle, index) => {
-                        tmpList[index].position.add(centerVector);
-                        particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
-                    });
+                if (center == undefined) {
+                    alert("Invalid value.");
+                    return;
                 }
+                let centerVector = new Vector3(center.x, center.y, center.z);
+                if (centerVector.length() >= physics.boundaryDistance) {
+                    alert("Value out of boundaries.");
+                    return;
+                }
+
+                if (useGPU) graphics.readbackParticleData();
+                let tmpList = normalizedClone(list);
+                list.forEach((particle, index) => {
+                    tmpList[index].position.add(centerVector);
+                    particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
+                });
             }
             break;
 
@@ -588,6 +598,7 @@ export function simulationUpdateAll(parameter, value, list) {
                     return;
                 }
 
+                if (useGPU) graphics.readbackParticleData();
                 let totalVelocityMean = new Vector3();
                 list.forEach((particle, index) => {
                     totalVelocityMean.add(particle.velocity);
@@ -609,28 +620,27 @@ export function simulationUpdateAll(parameter, value, list) {
         case "velocityDir":
             {
                 let newDir = decodeVector3(value);
-                if (newDir) {
-                    let totalVelocityMean = new Vector3();
-                    list.forEach((particle, index) => {
-                        totalVelocityMean.add(particle.velocity);
-                    });
-                    totalVelocityMean.divideScalar(list.length);
-                    let totalVelocityAbs = totalVelocityMean.length();
-                    totalVelocityMean.normalize();
-
-                    let dirVec = new Vector3(newDir.x, newDir.y, newDir.z);
-                    dirVec.normalize();
-
-                    dirVec.sub(totalVelocityMean).normalize().multiplyScalar(totalVelocityAbs);
-
-                    list.forEach((particle, index) => {
-                        //let abs = (particle.velocity.length() || 1.0);
-                        particle.velocity.add(dirVec);
-                    });
-                } else {
+                if (newDir == undefined) {
                     alert("Invalid value.");
                     return;
                 }
+
+                if (useGPU) graphics.readbackParticleData();
+                let totalVelocityMean = new Vector3();
+                list.forEach((particle, index) => {
+                    totalVelocityMean.add(particle.velocity);
+                });
+                totalVelocityMean.divideScalar(list.length);
+                let totalVelocityAbs = totalVelocityMean.length();
+                totalVelocityMean.normalize();
+
+                let dirVec = new Vector3(newDir.x, newDir.y, newDir.z);
+                dirVec.normalize();
+                dirVec.sub(totalVelocityMean).normalize().multiplyScalar(totalVelocityAbs);
+
+                list.forEach((particle, index) => {
+                    particle.velocity.add(dirVec);
+                });
             }
             break;
 

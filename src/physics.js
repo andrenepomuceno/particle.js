@@ -21,7 +21,7 @@ export class Physics {
         this.nearChargeRange = 1e3;
 
         this.collisionCounter = 0;
-        
+
         //particleId = 0;
         this.particleList = [];
     }
@@ -197,4 +197,29 @@ export class Particle {
             this.energy() + "," +
             this.collisions;
     }
+}
+
+export function calcListStatistics(list) {
+    let stats = {};
+
+    stats.center = new Vector3();
+    stats.avgVelocity = new Vector3();
+    stats.totalMass = 0;
+    stats.totalCharge = 0;
+    stats.totalNearCharge = 0;
+    stats.particles = list.length;
+
+    list.forEach(p => {
+        if (p.type != ParticleType.default) return;
+        stats.center.add(p.position);
+        stats.avgVelocity.add(p.velocity);
+        stats.totalMass += p.mass;
+        stats.totalCharge += p.charge;
+        stats.totalNearCharge += p.nearCharge;
+    });
+
+    stats.center.divideScalar(list.length);
+    stats.avgVelocity.divideScalar(list.length);
+
+    return stats;
 }

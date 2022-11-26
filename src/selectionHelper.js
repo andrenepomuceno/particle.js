@@ -1,6 +1,8 @@
 import { Vector3 } from "three";
-import { arrayToString, cameraToWorldCoord, mouseToScreenCoord } from "./helpers";
+import { arrayToString, cameraToWorldCoord, downloadFile, mouseToScreenCoord } from "./helpers";
 import { ParticleType } from "./physics";
+const { Image } = require('image-js');
+import { simulation, simulationExportCsv } from "./simulation";
 
 function log(msg) {
     console.log("SelectionHelper: " + msg);
@@ -24,6 +26,7 @@ export class SelectionHelper {
         this.startPoint = {};
         this.source = "";
         this.importedData = {};
+        this.blob = undefined;
     }
 
     start(event) {
@@ -64,19 +67,16 @@ export class SelectionHelper {
 
     end(event) {
         log("end");
-        this.started = false;
-        this.graphics.controls.enabled = true;
+
         this.mouse1 = {
             x: event.clientX,
             y: event.clientY
         };
         this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
-
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
-        this.element.parentElement.removeChild(this.element);
-
         if (this.#readParticleData() > 0) {
+            this.#snapshot();
             this.source = "simulation";
             this.updateView();
             this.guiSelection.open();
@@ -84,12 +84,51 @@ export class SelectionHelper {
             this.clear();
             this.guiSelection.close();
         }
+
+        this.element.parentElement.removeChild(this.element);
+
+        this.graphics.controls.enabled = true;
+        this.started = false;
+    }
+
+    #snapshot() {
+        log("#snapshot");
+        this.graphics.update();
+        this.graphics.renderer.domElement.toBlob((blob) => {
+            blob.arrayBuffer().then((dataBuffer) => {
+                Image.load(dataBuffer).then((image) => {
+                    let topLeft = this.mouse0;
+                    let bottomRight = this.mouse1;
+                    let width = bottomRight.x - topLeft.x;
+                    let height = topLeft.y - bottomRight.y;
+                    image.crop({
+                        x: topLeft.x,
+                        y: bottomRight.y,
+                        width,
+                        height,
+                    }).toBlob().then((croped) => {
+                        this.blob = croped;
+                    });
+                });
+            });
+        }, 'image/png', 1);
+    }
+
+    export() {
+        log("export");
+        let timestamp = new Date().toISOString();
+        let name = simulation.state()[0];
+        let finalName = "selection_" + name + "_" + timestamp;
+        finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+        downloadFile(this.blob, finalName + ".png", "image/png");
+        downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
     }
 
     clear() {
         log("clear");
         this.list = [];
         this.importedData = {};
+        this.blob = undefined;
         let view = this.options;
         if (view != undefined) {
             view.particles = 0;
@@ -123,7 +162,9 @@ export class SelectionHelper {
     }
 
     #readParticleData() {
-        log("pushList");
+        log("#readParticleData");
+
+        this.list = [];
 
         this.graphics.readbackParticleData();
 
@@ -146,8 +187,6 @@ export class SelectionHelper {
     }
 
     #updateStats() {
-        //log("updateStats");
-
         this.totalMass = 0;
         this.totalCharge = 0;
         this.totalPos = new Vector3();
@@ -165,7 +204,7 @@ export class SelectionHelper {
     }
 
     updateView() {
-        //log("updateView");
+        log("updateView");
 
         this.#updateStats();
 
@@ -186,10 +225,6 @@ export class SelectionHelper {
                 center[i] = v.toExponential(2);
             })
             view.center = center;
-
-            //this.guiSelection.open();
-        } else {
-            //this.clear();
         }
     }
 }

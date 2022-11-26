@@ -31,8 +31,6 @@ let followParticle = false;
 let mousePosition = new Vector2(1e5, 1e5);
 let mouseOverGUI = false;
 const viewUpdateDelay = 1000;
-let makeSnapshot = false;
-let makeSelectionSnapshot = false;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
@@ -92,7 +90,7 @@ export let guiOptions = {
                 setup(--simulationIdx);
         },
         snapshot: function () {
-            if (!makeSnapshot) makeSnapshot = true
+            snapshot();
         },
         import: function () {
             uploadCsv((name, content) => {
@@ -197,7 +195,7 @@ export let guiOptions = {
         velocityDir: "",
         center: "",
         export: () => {
-            if (!makeSelectionSnapshot) makeSelectionSnapshot = true;
+            selection.export();
         },
         import: () => {
             uploadCsv((name, content) => {
@@ -597,41 +595,18 @@ function selectionUpdate(param, val) {
     selection.updateView();
 }
 
-const { Image } = require('image-js');
-
-function snapshot(selectionList) {
+function snapshot() {
     let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
     let finalName = name + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
-    if (selectionList != undefined) {
-        finalName = "selection_" + finalName;
-    }
     console.log("snapshot " + finalName);
-    downloadFile(simulationExportCsv(selectionList), finalName + ".csv", "text/plain;charset=utf-8");    
 
+    graphics.update();
     graphics.renderer.domElement.toBlob((blob) => {
-        if (selectionList != undefined) {
-            blob.arrayBuffer().then((dataBuffer) => {
-                Image.load(dataBuffer).then((image) => {
-                    let topLeft = selection.mouse0;
-                    let bottomRight = selection.mouse1;
-                    let width = bottomRight.x - topLeft.x;
-                    let height = topLeft.y - bottomRight.y;
-                    image.crop({
-                        x: topLeft.x,
-                        y: bottomRight.y,
-                        width,
-                        height,
-                    }).toBlob().then((croped) => {
-                        downloadFile(croped, finalName + ".png", "image/png");
-                    });
-                });
-            });
-        } else {
-            downloadFile(blob, finalName + ".png", "image/png");
-        }
+        downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
+    downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
 }
 
 export function animate(time) {
@@ -639,15 +614,6 @@ export function animate(time) {
 
     graphics.update();
     stats.update();
-
-    if (makeSnapshot) {
-        makeSnapshot = false;
-        snapshot();
-    }
-    if (makeSelectionSnapshot) {
-        makeSelectionSnapshot = false;
-        snapshot(selection.list);
-    }
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;

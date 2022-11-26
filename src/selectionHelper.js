@@ -76,9 +76,14 @@ export class SelectionHelper {
 
         this.element.parentElement.removeChild(this.element);
 
-        this.#readParticleData();
-        this.source = "simulation";
-        this.updateView();
+        if (this.#readParticleData() > 0) {
+            this.source = "simulation";
+            this.updateView();
+            this.guiSelection.open();
+        } else {
+            this.clear();
+            this.guiSelection.close();
+        }
     }
 
     clear() {
@@ -136,6 +141,8 @@ export class SelectionHelper {
                 this.list.push(p);
             }
         });
+
+        return this.list.length;
     }
 
     #updateStats() {
@@ -180,7 +187,7 @@ export class SelectionHelper {
             })
             view.center = center;
 
-            this.guiSelection.open();
+            //this.guiSelection.open();
         } else {
             //this.clear();
         }

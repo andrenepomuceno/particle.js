@@ -22,7 +22,7 @@ export class Physics {
 
         this.collisionCounter = 0;
         
-        particleId = 0;
+        //particleId = 0;
         this.particleList = [];
     }
 

@@ -488,6 +488,9 @@ document.addEventListener("pointerup", (event) => {
     } else if (event.button == 1 && event.shiftKey && !mouseOverGUI && selection.list != undefined) {
         if (selection.list.length == 0) return;
         let center = cameraToWorldCoord(mouseToScreenCoord(event), graphics.camera, 0);
+        if (simulation.mode2D) {
+            center.z = 0;
+        }
         simulationCreateParticles(selection.list, center);
     }
 });

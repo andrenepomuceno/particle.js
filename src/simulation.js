@@ -147,7 +147,7 @@ function parseCsv(content) {
                     return false;
                 }
                 let particle = new Particle();
-                particle.id = parseInt(values[0]);
+                //particle.id = parseInt(values[0]);
                 particle.type = parseFloat(values[1]);
                 if (particle.type == ParticleType.probe) {
                     particle.radius = field.elementSize();

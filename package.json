@@ -19,6 +19,7 @@
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
     "dat.gui": "^0.7.9",
+    "image-js": "^0.35.2",
     "three": "^0.143.0"
   },
   "devDependencies": {

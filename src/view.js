@@ -1,4 +1,4 @@
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
@@ -36,9 +36,9 @@ let makeSelectionSnapshot = false;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
+let selection = new SelectionHelper();
 
 let stats = new Stats();
-
 const gui = new dat.GUI();
 //export const gui = new GUI();
 const guiInfo = gui.addFolder("Information");
@@ -48,7 +48,6 @@ const guiParticle = gui.addFolder("Particle");
 const guiParameters = gui.addFolder("Parameters");
 const guiSelection = gui.addFolder("Selection");
 const guiCreate = gui.addFolder("Create");
-let selection = new SelectionHelper();
 
 function setup(idx) {
     selectionReset();
@@ -223,11 +222,15 @@ export let guiOptions = {
         }
     },
     create: {
-        mass: "",
-        charge: "",
-        nearCharge: "",
-        position: "",
-        velocity: "",
+        mass: "1",
+        charge: "1",
+        nearCharge: "1",
+        velocity: "1,0,0",
+        radius: "100",
+        quantity: "8",
+        create: () => {
+
+        }
     },
 }
 
@@ -376,6 +379,14 @@ export function guiSetup() {
     guiSelection.add(guiOptions.selection, 'clone').name("Clone");
     guiSelection.add(guiOptions.selection, 'clear').name("Clear");
     guiSelection.add(guiOptions.selection, 'delete').name("Delete");
+
+    guiCreate.add(guiOptions.create, "mass");
+    guiCreate.add(guiOptions.create, "charge");
+    guiCreate.add(guiOptions.create, "nearCharge");
+    guiCreate.add(guiOptions.create, "velocity");
+    guiCreate.add(guiOptions.create, "radius");
+    guiCreate.add(guiOptions.create, "quantity");
+    guiCreate.add(guiOptions.create, "create").name("Generate");
 
     //gui.close();
 }
@@ -583,6 +594,8 @@ function selectionUpdate(param, val) {
     selection.updateView();
 }
 
+const { Image } = require('image-js');
+
 function snapshot(selectionList) {
     let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
@@ -596,10 +609,25 @@ function snapshot(selectionList) {
 
     graphics.renderer.domElement.toBlob((blob) => {
         if (selectionList != undefined) {
-            console.log(selection.mouse0);
-            console.log(selection.mouse1);
+            blob.arrayBuffer().then((dataBuffer) => {
+                Image.load(dataBuffer).then((image) => {
+                    let topLeft = selection.mouse0;
+                    let bottomRight = selection.mouse1;
+                    let width = bottomRight.x - topLeft.x;
+                    let height = topLeft.y - bottomRight.y;
+                    image.crop({
+                        x: topLeft.x,
+                        y: bottomRight.y,
+                        width,
+                        height,
+                    }).toBlob().then((croped) => {
+                        downloadFile(croped, finalName + ".png", "image/png");
+                    });
+                });
+            });
+        } else {
+            downloadFile(blob, finalName + ".png", "image/png");
         }
-        downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
 }
 

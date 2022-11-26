@@ -76,7 +76,7 @@ export class SelectionHelper {
 
         this.element.parentElement.removeChild(this.element);
 
-        this.#pushList();
+        this.#readParticleData();
         this.source = "simulation";
         this.updateView();
     }
@@ -117,7 +117,7 @@ export class SelectionHelper {
         return [topLeft, bottomRight];
     }
 
-    #pushList() {
+    #readParticleData() {
         log("pushList");
 
         this.graphics.readbackParticleData();
@@ -139,13 +139,13 @@ export class SelectionHelper {
     }
 
     #updateStats() {
-        log("updateStats");
+        //log("updateStats");
 
         this.totalMass = 0;
         this.totalCharge = 0;
         this.totalPos = new Vector3();
         this.totalVelocity = new Vector3();
-        this.totalNQ = 0;
+        this.totalNearCharge = 0;
 
         this.list.forEach(p => {
             if (p.type != ParticleType.default) return;
@@ -153,12 +153,12 @@ export class SelectionHelper {
             this.totalMass += p.mass;
             this.totalCharge += p.charge;
             this.totalVelocity.add(p.velocity);
-            this.totalNQ += p.nearCharge;
+            this.totalNearCharge += p.nearCharge;
         });
     }
 
     updateView() {
-        log("updateView");
+        //log("updateView");
 
         this.#updateStats();
 
@@ -169,7 +169,7 @@ export class SelectionHelper {
             view.particles = particles;
             view.mass = this.totalMass.toExponential(2);
             view.charge = this.totalCharge.toExponential(2);
-            view.nearCharge = this.totalNQ.toExponential(2);
+            view.nearCharge = this.totalNearCharge.toExponential(2);
             this.totalVelocity.divideScalar(particles);
             view.velocity = this.totalVelocity.length().toExponential(2);
             view.velocityDir = arrayToString(this.totalVelocity.normalize().toArray(), 2);
@@ -182,8 +182,7 @@ export class SelectionHelper {
 
             this.guiSelection.open();
         } else {
-            this.clear();
-            //this.guiSelection.close();
+            //this.clear();
         }
     }
 }

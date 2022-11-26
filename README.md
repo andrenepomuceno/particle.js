@@ -26,10 +26,11 @@ npm run build
 
 ## Features
 - Runs on GPU.
-- Supports 2D and 3D.
+- Supports 2D and 3D modes.
 - Can export and import simulations.
 - Adjustable parameters during runtime.
 - Vector field visualization.
+- Interactive simulation and particles. Almost everything is editable.
 
 ## Mathematical Model
 Main considerations:

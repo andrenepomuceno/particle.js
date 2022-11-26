@@ -381,7 +381,7 @@ function decodeVector3(value) {
     let split = value.split(",");
     if (split.length != 3) {
         log("error decoding position");
-        return { x: 0, y: 0, z: 0 };
+        return undefined;
     }
     let vec = {
         x: parseFloat(split[0]),
@@ -405,7 +405,7 @@ export function simulationFindParticle(id) {
 
 export function simulationUpdateParticle(particle, key, value) {
     log("simulationUpdateParticle key = " + key + " val = " + value);
-    log("particle = " + particle || particle.id);
+    log("particle = " + particle);
 
     if (value == undefined || value === "") return;
     if (particle == undefined) return;

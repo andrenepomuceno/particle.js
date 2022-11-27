@@ -5,6 +5,8 @@ import { FieldGPU } from './gpu/fieldGPU';
 import { SimulationCPU } from './cpu/simulationCPU';
 import { GraphicsCPU } from './cpu/graphicsCPU'
 import { FieldCPU } from './cpu/fieldCPU';
+import { Vector3 } from 'three';
+import { decodeVector3 } from './helpers.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
@@ -16,7 +18,6 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
-import { Vector3 } from 'three';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -377,20 +378,6 @@ export function simulationUpdatePhysics(key, value) {
     }
 }
 
-function decodeVector3(value) {
-    let split = value.split(",");
-    if (split.length != 3) {
-        log("error decoding position");
-        return undefined;
-    }
-    let vec = {
-        x: parseFloat(split[0]),
-        y: parseFloat(split[1]),
-        z: parseFloat(split[2])
-    };
-    return vec;
-}
-
 export function simulationFindParticle(id) {
     let result = undefined;
     graphics.particleList.every((p) => {
@@ -651,3 +638,6 @@ export function simulationUpdateParticleList(parameter, value, list) {
     }
 }
 
+export function simulationDeleteAll() {
+    log("simulationDeleteAll");
+}

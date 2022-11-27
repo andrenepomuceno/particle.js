@@ -1,7 +1,7 @@
 import { Box2, Color, Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
+import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3 } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -40,10 +40,10 @@ let stats = new Stats();
 const gui = new dat.GUI();
 //export const gui = new GUI();
 const guiInfo = gui.addFolder("Global Info");
-const guiControls = gui.addFolder("Controls (keyboard shortcuts)");
+const guiControls = gui.addFolder("Controls (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("Particle Info (click on particle or enter ID)");
+const guiSelection = gui.addFolder("Selection (shift + click + drag)");
 const guiParameters = gui.addFolder("Simulation Parameters");
-const guiSelection = gui.addFolder("Selection Info (select with shift + click/drag");
 const guiCreate = gui.addFolder("Create (Work in progress)");
 
 function setup(idx) {
@@ -120,7 +120,7 @@ export let guiOptions = {
         placeHint: function () {
             alert(
                 "Press 'Z' to place a particle selection on the mouse/pointer position.\n" +
-                "First, select particles with SHIFT + CLICK/DRAG, then press 'Z' to make clones!"
+                "First, select particles with SHIFT + CLICK + DRAG, then press 'Z' to make clones!"
             );
         },
         wip: function () {
@@ -133,10 +133,15 @@ export let guiOptions = {
         mouseHint: () => {
             alert(
                 "LEFT BUTTON: select particle/camera rotation (3D mode only)\n" +
-                "MIDDLE BUTTON/SCROLL: zoom.\n" +
-                "RIGHT BUTTON: move camera position.\n" +
-                "SHIFT+LEFT CLICK/DRAG: mass selection."
+                "MIDDLE BUTTON/SCROLL: zoom in/out.\n" +
+                "RIGHT BUTTON: move camera position (pan).\n" +
+                "SHIFT+LEFT CLICK/DRAG: select a group of particles."
             );
+        },
+        deleteAll: () => {
+            if (confirm("Are you sure?")) {
+                simulationDeleteAll();
+            }
         }
     },
     info: {
@@ -150,6 +155,7 @@ export let guiOptions = {
         charge: "",
         cameraDistance: "",
         mode: "",
+        cameraPosition: "",
     },
     particle: {
         obj: undefined,
@@ -282,14 +288,19 @@ export function guiSetup() {
     guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
     //guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
-    guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
+    //guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
+    guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Position').listen().onFinishChange((val) => {
+        let p = decodeVector3(val);
+        if (p == undefined) return;
+        graphics.camera.position.set(p.x, p.y, p.z);
+    });
     guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
     guiInfo.open();
 
     guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
-    guiControls.add(guiOptions.controls, 'placeHint').name("Insert selection [Z] (click for more...)");
+    guiControls.add(guiOptions.controls, 'placeHint').name("Place selection [Z] (click for more...)");
     guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiControls.add(guiOptions.controls, 'step').name("Step [N]");
+    guiControls.add(guiOptions.controls, 'step').name("Step [N] (when paused)");
     guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
     guiControls.add(guiOptions.controls, 'next').name("Next [PAGEDOWN]");
     guiControls.add(guiOptions.controls, 'previous').name("Previous [PAGEUP]");
@@ -299,8 +310,8 @@ export function guiSetup() {
     guiControls.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
     guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
-    guiControls.add(guiOptions.controls, 'home').name("Home [HOME]");
-    guiControls.add(guiOptions.controls, 'wip').name("Sandbox Mode [WIP]");
+    guiControls.add(guiOptions.controls, 'home').name("Go to start [HOME]");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All");
 
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
         let obj = simulationFindParticle(parseInt(val));
@@ -332,9 +343,16 @@ export function guiSetup() {
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticle.add(guiOptions.particle, 'reset').name('Reset');
-    guiParticle.add(guiOptions.particle, 'close').name('Close');
+    guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
+    guiParticle.add(guiOptions.particle, 'close').name('Clear');
 
+    guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
+        val = parseFloat(val);
+        if (val != simulation.physics.particleList.length) {
+            graphics.setMaxParticles(val);
+            setup();
+        }
+    });
     guiParameters.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("massConstant", val);
     });
@@ -364,13 +382,6 @@ export function guiSetup() {
     });
     guiParameters.add(guiOptions.parameters, 'radiusRange').name("radiusRange").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radiusRange", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
-        val = parseFloat(val);
-        if (val != simulation.physics.particleList.length) {
-            graphics.setMaxParticles(val);
-            setup();
-        }
     });
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
@@ -419,7 +430,6 @@ document.addEventListener("keydown", (event) => {
     if (mouseOverGUI) return;
 
     let key = event.key.toLowerCase();
-    console.log(key);
     switch (key) {
         case ' ':
             guiOptions.controls.pauseResume();
@@ -536,6 +546,11 @@ function updateInfoView(now) {
     guiOptions.info.radius = r.toExponential(2);
     guiOptions.info.charge = totalCharge.toExponential(2);
     guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
+    let position = graphics.camera.position.toArray();
+    position.forEach((val,idx) => {
+        position[idx] = val.toExponential(1);
+    });
+    guiOptions.info.cameraPosition = position;
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
 }
 
@@ -544,7 +559,7 @@ function updateParticleView() {
     let particle = particleView.obj;
 
     if (particle) {
-        if (useGPU) graphics.readbackParticleData(particle);
+        if (useGPU) graphics.readbackParticleData();
 
         //static info
         particleView.id = particle.id;

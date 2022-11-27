@@ -179,6 +179,14 @@ export function arrayToString(array, precision) {
     return str.slice(0, -2);
 }
 
+export function floatArrayToString(array, precision) {
+    let str = "";
+    array.forEach((v, idx) => {
+        str += v.toExponential(precision) + ", ";
+    });
+    return str.slice(0, -2);
+}
+
 export function downloadFile(data, filename, type) {
     let file = new Blob([data], { type: type });
     if (window.navigator.msSaveOrOpenBlob) // IE10+
@@ -302,4 +310,18 @@ export function mouseToScreenCoord(event) {
     pos.x = (event.clientX / window.innerWidth) * 2 - 1;
     pos.y = - (event.clientY / window.innerHeight) * 2 + 1;
     return pos;
+}
+
+export function decodeVector3(value) {
+    let split = value.split(",");
+    if (split.length != 3) {
+        console.log("error decoding position");
+        return undefined;
+    }
+    let vec = {
+        x: parseFloat(split[0]),
+        y: parseFloat(split[1]),
+        z: parseFloat(split[2])
+    };
+    return vec;
 }

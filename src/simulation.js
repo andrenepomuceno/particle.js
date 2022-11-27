@@ -19,7 +19,6 @@ import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
-import { SourceType } from './selectionHelper.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -41,7 +40,7 @@ function addFolder(name, list) {
 if (!ENV?.production) {
     addFolder("dev", sandbox);
 }
-/*if (useGPU) {
+if (useGPU) {
     addFolder("experiments", experiments);
     addFolder("nearForce1", nearForce1);
     addFolder("gpgpu", gpgpu);
@@ -49,7 +48,7 @@ if (!ENV?.production) {
 addFolder("scenarios2", scenarios2);
 addFolder("nearForce", nearForce);
 addFolder("fields", fields);
-addFolder("elements", elements);*/
+addFolder("elements", elements);
 addFolder("scenarios1", scenarios1);
 addFolder("scenarios0", scenarios0);
 addFolder("tests", tests);
@@ -270,10 +269,7 @@ export function simulationImportSelectionCSV(selection, filename, content) {
         alert("Imported particle physics do not match!");
     }
 
-    selection.importedData = imported;
-    selection.list = imported.physics.particleList;
-    selection.source = SourceType.imported + " from " + filename;
-    selection.updateView();
+    selection.import(imported);
 }
 
 function normalizePosition(list) {

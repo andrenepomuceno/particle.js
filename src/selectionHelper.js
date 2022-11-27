@@ -1,4 +1,3 @@
-import { Vector3 } from "three";
 import { arrayToString, cameraToWorldCoord, downloadFile, mouseToScreenCoord } from "./helpers";
 import { calcListStatistics, ParticleType } from "./physics";
 const { Image } = require('image-js');
@@ -136,6 +135,13 @@ export class SelectionHelper {
         finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
         if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
         downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
+    }
+
+    import(imported) {
+        this.importedData = imported;
+        this.list = imported.physics.particleList;
+        this.source = SourceType.imported + " from " + filename;
+        this.updateView();
     }
 
     clear() {

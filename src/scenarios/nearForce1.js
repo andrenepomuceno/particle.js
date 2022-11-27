@@ -1,4 +1,4 @@
-import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const nearForce1 = [

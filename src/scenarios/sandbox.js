@@ -1,5 +1,5 @@
 import { GridHelper, PolarGridHelper, Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
+import { createParticleList, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
 export const sandbox = [

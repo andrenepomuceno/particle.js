@@ -37,7 +37,7 @@ function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, cente
         let [x, y, z] = positionGenerator();
         let position = new Vector3(x, y, z);
         position.add(center);
-        createParticle(
+        createParticleList(physics.particleList,
             Math.round(random(m1, m2)),
             Math.round(random(q1, q2)),
             position,
@@ -64,14 +64,14 @@ function simulationDev(simulation) {
 
     let x, y, z;
 
-    createParticle(1836, 1);
+    createParticleList(physics.particleList, 1836, 1);
 
     let v0 = 16;
     let r0 = 1e3;
     let n = 1e3;
     for (let i = 0; i < n; ++i) {
         [x, y, z] = randomSpheric(0, r0);
-        createParticle(
+        createParticleList(physics.particleList,
             1,
             -1,
             new Vector3(x, y, z),

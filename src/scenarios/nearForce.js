@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const nearForce = [
@@ -268,12 +268,12 @@ function oppositeCharge(simulation) {
     let pos = new Vector3(r, 0, 0);
     let vel = new Vector3(-v, 0, 0);
 
-    createParticle(m, q, nq, pos, vel);
+    createParticleList(physics.particleList, m, q, nq, pos, vel);
 
     pos.multiplyScalar(-1);
     vel.multiplyScalar(-1);
 
-    createParticle(m, q, -nq, pos, vel);
+    createParticleList(physics.particleList, m, q, -nq, pos, vel);
 }
 
 function sameCharge(simulation) {
@@ -290,10 +290,10 @@ function sameCharge(simulation) {
     let pos = new Vector3(r, 0, 0);
     let vel = new Vector3(-v, 0, 0);
 
-    createParticle(m, q, nq, pos, vel);
+    createParticleList(physics.particleList, m, q, nq, pos, vel);
 
     pos.multiplyScalar(-1);
     vel.multiplyScalar(-1);
 
-    createParticle(m, q, nq, pos, vel);
+    createParticleList(physics.particleList, m, q, nq, pos, vel);
 }

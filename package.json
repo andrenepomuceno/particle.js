@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env production",
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env version='dev'"
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env version='dev'",
+    "madge": "madge --image graph.svg src"
   },
   "repository": {
     "type": "git",

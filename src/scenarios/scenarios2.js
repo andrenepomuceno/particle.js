@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
@@ -243,7 +243,7 @@ function shootedBarrier(simulation) {
     let n = 2;
 
     for (let i = 0; i < 15; i++) {
-        createParticle(1, -q, nq, new Vector3(0, 1e4 + i * physics.nearChargeRange, 0), new Vector3(0, -100, 0));
+        createParticleList(physics.particleList, 1, -q, nq, new Vector3(0, 1e4 + i * physics.nearChargeRange, 0), new Vector3(0, -100, 0));
     }
 
     let aux = 0;

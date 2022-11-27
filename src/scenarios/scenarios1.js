@@ -47,7 +47,7 @@ function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity
 
 function createParticles(n, massFunc, chargeFunc, positionFunc, velocityFunc) {
     for (let i = 0; i < n; ++i) {
-        createParticle(massFunc(i, n), chargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
+        createParticleList(physics.particleList, massFunc(i, n), chargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
     }
 }
 
@@ -600,7 +600,7 @@ function simulationMove0(simulation) {
     let v = 5;
     let m = 1e3;
     let q = 1;
-    createParticle(m, q, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
+    createParticleList(physics.particleList, m, q, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
 
     let r0 = 32;
     let v0 = 0;
@@ -684,7 +684,7 @@ function simulationAtom0(simulation) {
     physics.massConstant = 1e-2;
     physics.chargeConstant = 1;
 
-    createParticle(1836, 1);
+    createParticleList(physics.particleList, 1836, 1);
 
     let v0 = 1;
     let r0 = 1e3;

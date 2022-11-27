@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
+import { createParticleList, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
 export const experiments = [
@@ -108,17 +108,17 @@ function hexagon3d(simulation) {
     for (let i = 0; i < 500; i++) {
         let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
         let v0 = 3e2;
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
             new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (-nq) : (nq),
             new Vector3(x0, 0, 0),
             new Vector3(v0, 0, 0)
         );
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
             new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
             new Vector3(v0, 0, 0)
@@ -308,17 +308,17 @@ function hexagon1(simulation) {
     for (let i = 0; i < 500; i++) {
         let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
         let v0 = 2e2;
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
             new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (-nq) : (nq),
             new Vector3(x0, 0, 0),
             new Vector3(v0, 0, 0)
         );
-        createParticle(
+        createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
             new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
             new Vector3(v0, 0, 0)
@@ -571,8 +571,8 @@ function magnecticForce(simulation) {
         }
     );
 
-    //createParticle(m2, q2, 0, new Vector3(x2, y2, 0), new Vector3(v2, v2, 0));
-    createParticle(m2, q2, 0, new Vector3(x3, y3, 0), v3);
+    //createParticleList(physics.particleList, m2, q2, 0, new Vector3(x2, y2, 0), new Vector3(v2, v2, 0));
+    createParticleList(physics.particleList, m2, q2, 0, new Vector3(x3, y3, 0), v3);
 }
 
 function experiment9(simulation) {

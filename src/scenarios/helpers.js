@@ -20,10 +20,6 @@ export function randomSphericVector(r1, r2, mode = 0) {
     return new Vector3(x, y, z);
 }
 
-export function createParticle(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
-    return createParticleList(simulation.physics.particleList, mass, charge, nearCharge, position, velocity, fixed);
-}
-
 export function createParticleList(particleList, mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;

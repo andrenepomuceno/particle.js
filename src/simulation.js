@@ -279,10 +279,11 @@ function normalizedClone(list) {
         meanPosition.z = 0.0;
     }
 
+    console.log(meanPosition);
+
     list.forEach((p, index) => {
         let np = p.clone();
         np.position.sub(meanPosition);
-
         normalizedList.push(np);
     });
 
@@ -299,12 +300,11 @@ export function simulationCreateParticles(particleList, center = new Vector3()) 
         return;
     }
 
-    let normalizedList = normalizedClone(particleList);
-
     if (useGPU) {
         graphics.readbackParticleData();
     }
 
+    let normalizedList = normalizedClone(particleList);
     normalizedList.forEach((p, index) => {
         p.position.add(center);
         graphics.particleList.push(p);

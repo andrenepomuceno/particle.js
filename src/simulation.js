@@ -18,6 +18,7 @@ import { gpgpu } from './scenarios/gpgpuTest';
 import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
+import { sandbox } from './scenarios/sandbox.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -36,6 +37,9 @@ function addFolder(name, list) {
     simulationList = simulationList.concat(list);
 }
 
+if (ENV?.production == false) {
+    addFolder("sandbox", sandbox);
+}
 if (useGPU) {
     addFolder("experiments", experiments);
     addFolder("nearForce1", nearForce1);

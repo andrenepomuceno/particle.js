@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3, random } from './helpers.js';
+import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3, random, floatArrayToString } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -449,21 +449,40 @@ export function guiSetup() {
     }
 
     function generateSetup() {
-        guiGenerate.add(guiOptions.generator, "mass").name("Mass").listen();
+        guiGenerate.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
+            guiOptions.generator.mass = parseFloat(val);
+        });
         guiGenerate.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
         guiGenerate.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
-        guiGenerate.add(guiOptions.generator, "charge").name("Charge").listen();
+        guiGenerate.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
+            guiOptions.generator.charge = parseFloat(val);
+        });
         guiGenerate.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
         guiGenerate.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
         guiGenerate.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
-        guiGenerate.add(guiOptions.generator, "nearCharge").name("Near Charge").listen();
+        guiGenerate.add(guiOptions.generator, "nearCharge").name("Near Charge").listen().onFinishChange((val) => {
+            guiOptions.generator.nearCharge = parseFloat(val);
+        });
         guiGenerate.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
         guiGenerate.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
         guiGenerate.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
-        guiGenerate.add(guiOptions.generator, "velocity").name("Velocity").listen();
+        guiGenerate.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
+            let velocity = decodeVector3(val);
+            if (velocity == undefined) {
+                velocity = parseFloat(val);
+                if (!isNaN(velocity)) {
+                    velocity = floatArrayToString([velocity, 0, 0], 2);
+                }
+            }
+            guiOptions.generator.velocity = velocity;
+        });
         guiGenerate.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
-        guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen();
-        guiGenerate.add(guiOptions.generator, "quantity").name("Quantity").listen();
+        guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
+            guiOptions.generator.radius = parseFloat(val);
+        });
+        guiGenerate.add(guiOptions.generator, "quantity").name("Quantity").listen().onFinishChange((val) => {
+            guiOptions.generator.Quantity = Math.round(parseFloat(val));
+        });
         guiGenerate.add(guiOptions.generator, "generate").name("Generate").listen();
         guiGenerate.add(guiOptions.generator, "default").name("Default Values").listen();
     }

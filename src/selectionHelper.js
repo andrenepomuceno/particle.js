@@ -8,6 +8,15 @@ function log(msg) {
     console.log("SelectionHelper: " + msg);
 }
 
+export const SourceType = {
+    none: "None",
+    selection: "Selection",
+    simulation: "Simulation",
+    imported: "Imported",
+    generated: "Generated",
+    clone: "Clone",
+}
+
 export class SelectionHelper {
     constructor(graphics, options, guiSelection) {
         log("constructor");
@@ -24,7 +33,7 @@ export class SelectionHelper {
         this.element.classList.add('selectBox');
         this.element.style.pointerEvents = 'none';
         this.startPoint = {};
-        this.source = "";
+        this.source = SourceType.none;
         this.importedData = {};
         this.blob = undefined;
         this.stats = {};
@@ -78,7 +87,7 @@ export class SelectionHelper {
 
         if (this.#readParticleData() > 0) {
             this.#snapshot();
-            this.source = "simulation";
+            this.source = SourceType.simulation;
             this.updateView();
             this.guiSelection.open();
         } else {
@@ -144,7 +153,7 @@ export class SelectionHelper {
             view.velocity = "";
             view.velocityDir = "";
             view.center = "";
-            view.source = "";
+            view.source = SourceType.none;
         }
     }
 
@@ -154,7 +163,7 @@ export class SelectionHelper {
         this.list.forEach((val, idx) => {
             this.list[idx] = val.clone();
         });
-        this.source = "clone";
+        this.source = SourceType.clone;
     }
 
     #topBottom(p0, p1) {

@@ -271,7 +271,7 @@ export function simulationImportSelectionCSV(selection, filename, content) {
 
     selection.importedData = imported;
     selection.list = imported.physics.particleList;
-    selection.source = "imported: " + filename;
+    selection.source = SourceType.imported + " from " + filename;
     selection.updateView();
 }
 

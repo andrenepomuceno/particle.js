@@ -19,7 +19,7 @@ import {
     simulationDeleteAll,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { SelectionHelper } from './selectionHelper.js';
+import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticles, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
@@ -258,7 +258,7 @@ let guiOptions = {
         },
         delete: () => {
             if (selection.list == undefined || selection.list.length == 0) return;
-            if (selection.source != "simulation") {
+            if (selection.source != SourceType.simulation) {
                 alert('Selection source must be "simulation".\nSelect particles first.');
                 return;
             }
@@ -666,7 +666,7 @@ function onKeydown(event) {
                 if (simulation.mode2D) {
                     center.z = 0;
                 }
-                if (selection.source == "generated") {
+                if (selection.source == SourceType.generated) {
                     generateParticles();
                 }
                 simulationCreateParticles(selection.list, center);
@@ -910,7 +910,7 @@ function generateParticles() {
     );
 
     selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
-    selection.source = "generated";
+    selection.source = SourceType.generated;
     selection.list = newParticles;
     guiSelection.open();
 }

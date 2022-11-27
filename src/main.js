@@ -8,6 +8,12 @@ if (ENV?.production === true) {
     gtag('config', 'G-STP92EN2LF');
 }
 
+if (ENV?.version) {
+    let dom = document.getElementById("info");
+    console.log(dom);
+    dom.innerHTML = dom.innerHTML.replace("loading...", ENV?.version);
+}
+
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
     animate();

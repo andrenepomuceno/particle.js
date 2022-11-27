@@ -87,10 +87,10 @@ function cloud2(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -140,10 +140,10 @@ function cloud1(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -193,10 +193,10 @@ function cloud0(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -246,10 +246,10 @@ function triforce2(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -300,10 +300,10 @@ function triforce1(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -353,10 +353,10 @@ function triforce0(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -406,10 +406,10 @@ function charge_nearCharge_point0(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -448,10 +448,10 @@ function GPU_point14(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -490,10 +490,10 @@ function GPU_point13(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -532,10 +532,10 @@ function GPU_point12(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -574,10 +574,10 @@ function GPU_point11(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -616,10 +616,10 @@ function GPU_point10(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -658,10 +658,10 @@ function GPU_blob9_posNQ(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -700,10 +700,10 @@ function GPU_blob8_posNQ_rng(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -742,10 +742,10 @@ function GPU_point7(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -784,10 +784,10 @@ function GPU_point6(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -826,10 +826,10 @@ function GPU_point5(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -868,10 +868,10 @@ function GPU_point4(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -910,10 +910,10 @@ function GPU_point3(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -952,10 +952,10 @@ function GPU_point2(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }

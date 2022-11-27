@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
-import { random, randomSpheric } from '../helpers.js'
+import { random } from '../helpers.js'
 import { Particle, ParticleType } from '../physics.js'
-import { createParticleList } from './helpers'
+import { createParticleList, randomSphericVector, randomVector } from './helpers'
 
 let particleList = undefined;
 
@@ -22,19 +22,6 @@ export const scenarios1 = [
     simulationAtom1,
     simulationAtom0,
 ];
-
-function randomVector(range, round = false) {
-    return new Vector3(
-        random(-range, range, round),
-        random(-range, range, round),
-        random(-range, range, round)
-    );
-}
-
-function randomSphericVector(r1, r2) {
-    let [x, y, z] = randomSpheric(r1, r2);
-    return new Vector3(x, y, z);
-}
 
 function createParticles__(n, massFunc, chargeFunc, positionFunc, velocityFunc) {
     for (let i = 0; i < n; ++i) {
@@ -90,11 +77,11 @@ function simulationNuclei4(simulation) {
             return nq;
         },
         () => {
-            let vec = randomSphericVector(0, r);
+            let vec = randomSphericVector(0, r, simulation.mode2D);
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             return vec;
         },
     );
@@ -109,11 +96,11 @@ function simulationNuclei4(simulation) {
             return nq;
         },
         () => {
-            let vec = randomSphericVector(0, r);
+            let vec = randomSphericVector(0, r, simulation.mode2D);
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             return vec;
         },
     );
@@ -129,12 +116,12 @@ function simulationNuclei4(simulation) {
             return 0;
         },
         () => {
-            let vec = randomSphericVector(2 * r, 10 * r);
+            let vec = randomSphericVector(2 * r, 10 * r, simulation.mode2D);
             // vec.z = 0;
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             //vec.z = 0;
             return vec;
         }
@@ -173,11 +160,11 @@ function simulationNuclei3(simulation) {
             return nq;
         },
         () => {
-            let vec = randomSphericVector(0, r);
+            let vec = randomSphericVector(0, r, simulation.mode2D);
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             return vec;
         },
     );
@@ -193,12 +180,12 @@ function simulationNuclei3(simulation) {
             return 0;
         },
         () => {
-            let vec = randomSphericVector(2 * r, 10 * r);
+            let vec = randomSphericVector(2 * r, 10 * r, simulation.mode2D);
             // vec.z = 0;
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             //vec.z = 0;
             return vec;
         }
@@ -256,14 +243,14 @@ function simulationStrongCube0(simulation) {
                         return nq;
                     },
                     () => {
-                        let vec = randomSphericVector(0, r).add(offset);
+                        let vec = randomSphericVector(0, r).add(offset, simulation.mode2D);
                         //vec.z = 0;
                         return vec;
                     },
                     () => {
                         //if (offset.x > 0) return new Vector3(-v, 0, 0);
                         //else return new Vector3(v, 0, 0);
-                        let vec = randomVector(v);
+                        let vec = randomVector(v, simulation.mode2D);
                         //vec.z = 0;
                         return vec;
                     },
@@ -306,12 +293,12 @@ function simulationStrongBlob0(simulation) {
             return random(0, 1, true) ? (-nq) : (nq);
         },
         () => {
-            let vec = randomSphericVector(0, r);
+            let vec = randomSphericVector(0, r, simulation.mode2D);
             //vec.z = 0;
             return vec;
         },
         () => {
-            let vec = randomVector(v);
+            let vec = randomVector(v, simulation.mode2D);
             //vec.z = 0;
             return vec;
         },
@@ -467,11 +454,11 @@ function simulationStrong2(simulation) {
         (i) => { return 1; },
         (i) => { return -3; },
         () => {
-            let p = randomSphericVector(0, r0);
+            let p = randomSphericVector(0, r0, simulation.mode2D);
             return p;
         },
         () => {
-            return randomVector(0);
+            return randomVector(0, simulation.mode2D);
         }
     )
 }
@@ -551,7 +538,7 @@ function simulationMove1(simulation) {
         (i) => { return m; },
         (i) => { return q; },
         () => {
-            let p = randomSphericVector(0, r0);
+            let p = randomSphericVector(0, r0, simulation.mode2D);
             p.add(new Vector3(x, 0, 0));
             return p;
         },
@@ -565,7 +552,7 @@ function simulationMove1(simulation) {
         (i) => { return m; },
         (i) => { return -q; },
         () => {
-            let p = randomSphericVector(0, r0);
+            let p = randomSphericVector(0, r0, simulation.mode2D);
             p.add(new Vector3(-x, 0, 0));
             return p;
         },
@@ -599,8 +586,8 @@ function simulationMove0(simulation) {
         1000,
         (i) => { return 1; },
         (i) => { return -q; },
-        () => { return randomSphericVector(0, r0); },
-        () => { return randomVector(v0); }
+        () => { return randomSphericVector(0, r0, simulation.mode2D); },
+        () => { return randomVector(v0, simulation.mode2D); }
     )
 }
 
@@ -622,8 +609,8 @@ function simulationBlob0(simulation) {
         1024,
         (i) => { return 1; },
         (i) => { return random(-1, 1, true); },
-        () => { return randomSphericVector(0, r0); },
-        () => { return randomVector(v0); }
+        () => { return randomSphericVector(0, r0, simulation.mode2D); },
+        () => { return randomVector(v0, simulation.mode2D); }
     )
 }
 
@@ -648,8 +635,8 @@ function simulationAtom1(simulation) {
         (i) => { return (i % 2) ? (1839) : (1836); },
         (i) => { return (i % 2) ? (0) : (1); },
         (i) => { return (i % 2) ? (-1) : (1); },
-        () => { return randomSphericVector(0, r0); },
-        () => { return randomVector(v0); }
+        () => { return randomSphericVector(0, r0, simulation.mode2D); },
+        () => { return randomVector(v0, simulation.mode2D); }
     )
 
     let r1 = 1e3;
@@ -658,8 +645,8 @@ function simulationAtom1(simulation) {
         1000,
         () => { return 1; },
         () => { return -1; },
-        () => { return randomSphericVector(r0, r1); },
-        () => { return randomVector(v1); }
+        () => { return randomSphericVector(r0, r1, simulation.mode2D); },
+        () => { return randomVector(v1, simulation.mode2D); }
     );
 }
 
@@ -684,7 +671,7 @@ function simulationAtom0(simulation) {
         n,
         () => { return 1; },
         () => { return -1; },
-        () => { return randomSphericVector(0, r0); },
-        () => { return randomVector(v0); }
+        () => { return randomSphericVector(0, r0, simulation.mode2D); },
+        () => { return randomVector(v0, simulation.mode2D); }
     );
 }

@@ -61,10 +61,10 @@ function string(simulation) {
             //return 0;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -79,10 +79,10 @@ function string(simulation) {
             return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -97,10 +97,10 @@ function string(simulation) {
             return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -134,10 +134,10 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
         createParticles(physics.particleList, 1 * n,
@@ -151,10 +151,10 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
 
@@ -169,10 +169,10 @@ function nucleiGrid(simulation) {
                 return -nq;
             },
             (i) => {
-                return randomSphericVector(r0, r1).add(center);
+                return randomSphericVector(r0, r1).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(v);
+                return randomVector(v, simulation.mode2D);
             }
         );
 
@@ -189,10 +189,10 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
         createParticles(physics.particleList, 2 * n,
@@ -206,10 +206,10 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
     }
@@ -264,10 +264,10 @@ function shootedBarrier(simulation) {
                 }
             },
             (i) => {
-                return randomSphericVector(0, r0).add(new Vector3(x, y, z));
+                return randomSphericVector(0, r0).add(new Vector3(x, y, z), simulation.mode2D);
             },
             (i) => {
-                return randomVector(v);
+                return randomVector(v, simulation.mode2D);
             }
         );
         ++aux;
@@ -305,10 +305,10 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );*/
 
@@ -323,10 +323,10 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -342,10 +342,10 @@ function standardModelBlob2(simulation) {
             //return 0;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -360,10 +360,10 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -378,10 +378,10 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -416,10 +416,10 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -434,10 +434,10 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -452,10 +452,10 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -470,10 +470,10 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -511,10 +511,10 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -529,10 +529,10 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -547,10 +547,10 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
@@ -565,10 +565,10 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }

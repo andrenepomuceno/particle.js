@@ -1,21 +1,20 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle, ParticleType } from "../physics"
 import { Vector3 } from 'three';
-import { simulation } from '../simulation'
 
-export function randomVector(range, round = false) {
+export function randomVector(range, mode2D = true, round = false) {
     let v = new Vector3(
         random(-range, range, round),
         random(-range, range, round),
         random(-range, range, round)
     );
-    if (simulation.mode2D) v.z = 0;
+    if (mode2D) v.z = 0;
     return v;
 }
 
-export function randomSphericVector(r1, r2, mode = 0) {
+export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
     let x, y, z = 0;
-    if (simulation.mode2D) [x, y, z] = randomDisc(r1, r2, mode);
+    if (mode2D) [x, y, z] = randomDisc(r1, r2, mode);
     else[x, y, z] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }

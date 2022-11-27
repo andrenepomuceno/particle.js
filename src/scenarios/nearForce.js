@@ -75,10 +75,10 @@ function crystal(simulation) {
                 }
             },
             (i) => {
-                return randomSphericVector(0, r0).add(new Vector3(x, y, z));
+                return randomSphericVector(0, r0).add(new Vector3(x, y, z), simulation.mode2D);
             },
             (i) => {
-                return randomVector(v);
+                return randomVector(v, simulation.mode2D);
             }
         );
         ++aux;
@@ -117,8 +117,8 @@ function randomBlob(simulation) {
             //return nq * random(-1, 1, true);
         },
         (i) => {
-            //let x = randomSphericVector(r0, r1);
-            let x = randomVector(r1);
+            //let x = randomSphericVector(r0, r1, simulation.mode2D);
+            let x = randomVector(r1, simulation.mode2D);
             //(i % 2 == 0) ? (x.add(pos)) : (x.sub(pos));
             return x;
         },
@@ -126,7 +126,7 @@ function randomBlob(simulation) {
             // let vel = new Vector3(v, 0, 0);
             // (i % 2 == 0) ? (vel.multiplyScalar(-1)) : (0);
             // return vel;
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     )
 }
@@ -164,8 +164,8 @@ function molecule(simulation) {
             return nq;
         },
         () => {
-            return randomSphericVector(0, r0).add(pos);
-            //return randomVector(r);
+            return randomSphericVector(0, r0).add(pos, simulation.mode2D);
+            //return randomVector(r, simulation.mode2D);
         },
         () => { return vel; }
     )
@@ -187,8 +187,8 @@ function molecule(simulation) {
             return -nq;
         },
         () => {
-            return randomSphericVector(0, r0).sub(pos);
-            //return randomVector(r);
+            return randomSphericVector(0, r0).sub(pos, simulation.mode2D);
+            //return randomVector(r, simulation.mode2D);
         },
         () => { return vel; }
     )
@@ -222,8 +222,8 @@ function oppositChargeBall(simulation) {
             return random(0, 1, true) ? (-nq) : (nq);
         },
         () => {
-            return randomSphericVector(0, r);
-            //return randomVector(r);
+            return randomSphericVector(0, r, simulation.mode2D);
+            //return randomVector(r, simulation.mode2D);
         },
         () => { return vel; }
     )
@@ -249,7 +249,7 @@ function sameChargeBall(simulation) {
         () => { return m; },
         () => { return q; },
         () => { return nq; },
-        () => { return randomSphericVector(0, r); },
+        () => { return randomSphericVector(0, r, simulation.mode2D); },
         () => { return vel; }
     )
 }

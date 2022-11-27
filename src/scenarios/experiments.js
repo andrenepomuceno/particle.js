@@ -203,7 +203,7 @@ function hexagon3(simulation) {
                 return (i % 2) ? (-nq) : (nq);
             },
             () => {
-                return randomSphericVector(0, focus * physics.nearChargeRange).add(
+                return randomSphericVector(0, focus * physics.nearChargeRange, simulation.mode2D).add(
                     new Vector3(x0, 0, 0)
                 )
             },
@@ -426,11 +426,11 @@ function density2(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
-            //return randomVector(r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
+            //return randomVector(r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -490,10 +490,10 @@ function density(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -633,10 +633,10 @@ function experiment9(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -693,10 +693,10 @@ function donut(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0.5 * r0, r0);
+            return randomSphericVector(0.5 * r0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -754,10 +754,10 @@ function terrarium(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -814,10 +814,10 @@ function twinsCollision(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -874,10 +874,10 @@ function experiment5(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -934,10 +934,10 @@ function wildParticles(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -996,10 +996,10 @@ function easterEgg(simulation) {
             return v;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -1057,10 +1057,10 @@ function experiment2(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -1115,10 +1115,10 @@ function experiment1(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -1173,10 +1173,10 @@ function experiment0(simulation) {
             return nearCharge;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }

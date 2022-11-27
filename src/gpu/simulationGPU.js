@@ -147,10 +147,14 @@ export class SimulationGPU {
     drawParticles() {
         log("drawParticles");
 
-        if (this.particleList == undefined || this.particleList.length == 0) {
-            log("empty particle list!");
+        if (this.particleList == undefined) {
+            log("undefined particle list!");
             return;
         }
+
+        if (this.particleList.length == 0) {
+            log("Empty particle list! Continuing...");
+        };
 
         this.mMin = Infinity, this.mMax = -Infinity;
         this.qMin = Infinity, this.qMax = -Infinity;

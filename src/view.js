@@ -5,7 +5,6 @@ import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, de
 import {
     simulationSetup,
     simulationExportCsv,
-    setColorMode,
     graphics,
     useGPU,
     simulationImportCSV,
@@ -17,6 +16,7 @@ import {
     simulationImportSelectionCSV,
     simulationCreateParticles,
     simulationDelete,
+    simulationDeleteAll,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
@@ -115,7 +115,7 @@ export let guiOptions = {
         },
         colorMode: function () {
             (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
-            setColorMode(colorMode);
+            simulation.setColorMode(colorMode);
         },
         placeHint: function () {
             alert(

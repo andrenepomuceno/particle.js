@@ -51,10 +51,6 @@ addFolder("tests", tests);
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 
-export function setColorMode(mode) {
-    simulation.setColorMode(mode);
-}
-
 function internalSetup(physics_) {
     physics = (physics_ || new Physics());
 
@@ -127,8 +123,9 @@ export function simulationExportCsv(list) {
     return output;
 }
 
-function parseCsv(content) {
+function parseCsv(filename, content) {
     let imported = { physics: new Physics() };
+    imported.filename = filename;
 
     let particleDataColumns = 13;
     let simulationDataColumns = 19;
@@ -225,6 +222,7 @@ function parseCsv(content) {
 
     if (!result) {
         log("failed to import CSV");
+        alert("Failed to import CSV.")
         return undefined;
     }
 
@@ -235,7 +233,7 @@ function parseCsv(content) {
 export function simulationImportCSV(filename, content) {
     log("Importing " + filename);
 
-    let imported = parseCsv(content);
+    let imported = parseCsv(filename, content);
     if (imported == undefined) return;
 
     internalSetup(imported.physics);
@@ -257,18 +255,21 @@ export function simulationImportCSV(filename, content) {
 export function simulationImportSelectionCSV(selection, filename, content) {
     log("Importing selection " + filename);
 
-    let imported = parseCsv(content);
+    let imported = parseCsv(filename, content);
     if (imported == undefined) return;
 
-    selection.importedData = imported;
+    if (imported.physics.nearChargeRange != physics.nearChargeRange) {
+        alert("Imported particle physics do not match!");
+    }
 
+    selection.importedData = imported;
     selection.list = imported.physics.particleList;
-    selection.source = filename;
+    selection.source = "imported: " + filename;
     selection.updateView();
 }
 
-function normalizedClone(list) {
-    log("normalizedClone");
+function normalizePosition(list) {
+    log("normalizePosition");
     let normalizedList = [];
 
     let meanPosition = new Vector3();
@@ -279,8 +280,6 @@ function normalizedClone(list) {
     if (simulation.mode2D) {
         meanPosition.z = 0.0;
     }
-
-    console.log(meanPosition);
 
     list.forEach((p, index) => {
         let np = p.clone();
@@ -305,7 +304,7 @@ export function simulationCreateParticles(particleList, center = new Vector3()) 
         graphics.readbackParticleData();
     }
 
-    let normalizedList = normalizedClone(particleList);
+    let normalizedList = normalizePosition(particleList);
     normalizedList.forEach((p, index) => {
         p.position.add(center);
         graphics.particleList.push(p);
@@ -569,7 +568,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                 }
 
                 if (useGPU) graphics.readbackParticleData();
-                let tmpList = normalizedClone(list);
+                let tmpList = normalizePosition(list);
                 list.forEach((particle, index) => {
                     tmpList[index].position.add(centerVector);
                     particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
@@ -640,4 +639,9 @@ export function simulationUpdateParticleList(parameter, value, list) {
 
 export function simulationDeleteAll() {
     log("simulationDeleteAll");
+
+    simulation.particleList = [];
+    if (useGPU) {
+        simulation.drawParticles();
+    }
 }

@@ -21,7 +21,10 @@ export function randomSphericVector(r1, r2, mode = 0) {
 }
 
 export function createParticle(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
-    let particleList = simulation.physics.particleList;
+    return createParticleList(simulation.physics.particleList, mass, charge, nearCharge, position, velocity, fixed);
+}
+
+export function createParticleList(particleList, mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;
@@ -34,10 +37,14 @@ export function createParticle(mass = 1, charge = 0, nearCharge = 0, position = 
 }
 
 export function createParticles(n, massFunc, chargeFunc, nearChargeFunc, positionFunc, velocityFunc) {
+    createParticlesList(simulation.physics.particleList, n, massFunc, chargeFunc, nearChargeFunc, positionFunc, velocityFunc);
+}
+
+export function createParticlesList(list, n, massCallback, chargeCallback, nearChargeCallback, positionCallback, velocityCallback) {
     for (let i = 0; i < n; ++i) {
-        let m = massFunc(i, n);
-        let x = positionFunc(i, n);
-        let p = createParticle(m, chargeFunc(i, n), nearChargeFunc(i, n), x, velocityFunc(i, n, x));
+        let m = massCallback(i, n);
+        let x = positionCallback(i, n);
+        let p = createParticleList(list, m, chargeCallback(i, n), nearChargeCallback(i, n), x, velocityCallback(i, n, x));
     }
 }
 

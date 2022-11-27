@@ -1,4 +1,4 @@
-import { Box2, Color, Vector2, Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3 } from './helpers.js';
@@ -20,6 +20,7 @@ import {
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
+import { createParticles, createParticlesList, randomSphericVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -43,8 +44,8 @@ const guiInfo = gui.addFolder("Global Info");
 const guiControls = gui.addFolder("Controls (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("Particle Info (click on particle or enter ID)");
 const guiSelection = gui.addFolder("Selection (shift + click + drag)");
+const guiCreate = gui.addFolder("Selection Generator");
 const guiParameters = gui.addFolder("Simulation Parameters");
-const guiCreate = gui.addFolder("Create (Work in progress)");
 
 function setup(idx) {
     selectionReset();
@@ -70,7 +71,7 @@ function uploadCsv(callback) {
     input.click();
 }
 
-export let guiOptions = {
+let guiOptions = {
     controls: {
         pauseResume: function () {
             pause = !pause;
@@ -251,20 +252,217 @@ export let guiOptions = {
         velocity: "1,0,0",
         radius: "100",
         quantity: "8",
-        create: () => {
+        generate: () => {
+            let newParticles = [];
 
+            let input = guiOptions.create;
+            let mass = parseFloat(input.mass);
+            let charge = parseFloat(input.charge);
+            let nearCharge = parseFloat(input.nearCharge);
+            let velocity = decodeVector3(input.velocity);
+            if (velocity == undefined) {
+                velocity = parseFloat(input.velocity);
+                if (velocity == NaN) {
+                    alert("Invalid velocity!");
+                    return;
+                }
+                velocity = { x: velocity, y: 0, z: 0 };
+            }
+            velocity = new Vector3(velocity.x, velocity.y, velocity.z);
+            let radius = Math.abs(parseFloat(input.radius));
+            let quantity = Math.round(parseFloat(input.quantity));
+
+            createParticlesList(newParticles, quantity,
+                () => {
+                    return mass;
+                },
+                () => {
+                    return charge;
+                },
+                () => {
+                    return nearCharge;
+                },
+                () => {
+                    return randomSphericVector(0, radius);
+                },
+                () => {
+                    return velocity;
+                }
+            );
+
+            selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+            selection.source = "generated";
+            selection.list = newParticles;
+            guiSelection.open();
         }
     },
 }
 
-export function guiSetup() {
-    //gui.width = 300;
+export function viewSetup() {
+    gui.width = 320;
 
     function mouseOver() {
         mouseOverGUI = true;
     }
     function mouseLeave() {
         mouseOverGUI = false;
+    }
+
+    function infoSetup() {
+        guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
+            simulation.name = val;
+        });
+        guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
+        guiInfo.add(guiOptions.info, 'time').name('Time').listen();
+        guiInfo.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
+            simulationUpdateParticleList("mass", val);
+        });
+        guiInfo.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
+            simulationUpdateParticleList("charge", val);
+        });;
+        guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
+        guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
+        //guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
+        //guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
+        guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Position').listen().onFinishChange((val) => {
+            let p = decodeVector3(val);
+            if (p == undefined) return;
+            graphics.camera.position.set(p.x, p.y, p.z);
+        });
+        guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
+        guiInfo.open();
+    }
+
+    function controlsSetup() {
+        guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
+        guiControls.add(guiOptions.controls, 'placeHint').name("Place selection [Z] (click for more...)");
+        guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
+        guiControls.add(guiOptions.controls, 'step').name("Step [N] (when paused)");
+        guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
+        guiControls.add(guiOptions.controls, 'next').name("Next [PAGEDOWN]");
+        guiControls.add(guiOptions.controls, 'previous').name("Previous [PAGEUP]");
+        guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
+        guiControls.add(guiOptions.controls, 'import').name("Import");
+        guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
+        guiControls.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
+        guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
+        guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+        guiControls.add(guiOptions.controls, 'home').name("Go to start [HOME]");
+        guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All");
+    }
+
+    function particleSetup() {
+        guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
+            let obj = simulationFindParticle(parseInt(val));
+            if (obj) {
+                guiOptions.particle.obj = obj;
+            }
+        });
+        guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
+        });
+        guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
+        });
+        guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
+        });
+        guiParticle.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "position", val);
+        });
+        guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "velocityAbs", val);
+        });
+        guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
+            simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
+        });
+        guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
+        guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
+        guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
+        guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
+        guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
+        guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
+        guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
+        guiParticle.add(guiOptions.particle, 'close').name('Clear');
+    }
+
+    function parametersSetup() {
+        guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
+            val = parseFloat(val);
+            if (val != simulation.physics.particleList.length) {
+                graphics.setMaxParticles(val);
+                setup();
+            }
+        });
+        guiParameters.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("massConstant", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("chargeConstant", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("nearChargeConstant", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("nearChargeRange", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("boundaryDamping", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("boundaryDistance", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("minDistance2", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("forceConstant", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'radius').name("radius").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("radius", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'radiusRange').name("radiusRange").listen().onFinishChange((val) => {
+            simulationUpdatePhysics("radiusRange", val);
+        });
+        guiParameters.add(guiOptions.parameters, 'close').name("Close");
+    }
+
+    function selectionSetup() {
+        guiSelection.add(guiOptions.selection, 'source').name("source").listen();
+        guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
+        guiSelection.add(guiOptions.selection, 'mass').name("mass").listen().onFinishChange((val) => {
+            selectionUpdate("mass", val);
+        });
+        guiSelection.add(guiOptions.selection, 'charge').name("charge").listen().onFinishChange((val) => {
+            selectionUpdate("charge", val);
+        });
+        guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen().onFinishChange((val) => {
+            selectionUpdate("nearCharge", val);
+        });
+        guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen().onFinishChange((val) => {
+            selectionUpdate("velocityAbs", val);
+        });
+        guiSelection.add(guiOptions.selection, 'velocityDir').name("direction").listen().onFinishChange((val) => {
+            selectionUpdate("velocityDir", val);
+        });
+        guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
+            selectionUpdate("center", val);
+        });
+        guiSelection.add(guiOptions.selection, 'clone').name("Clone");
+        guiSelection.add(guiOptions.selection, 'export').name("Export");
+        guiSelection.add(guiOptions.selection, 'import').name("Import");
+        guiSelection.add(guiOptions.selection, 'clear').name("Clear");
+        guiSelection.add(guiOptions.selection, 'delete').name("Delete [DEL]");
+    }
+
+    function createSetup() {
+        guiCreate.add(guiOptions.create, "mass");
+        guiCreate.add(guiOptions.create, "charge");
+        guiCreate.add(guiOptions.create, "nearCharge");
+        guiCreate.add(guiOptions.create, "velocity");
+        guiCreate.add(guiOptions.create, "radius");
+        guiCreate.add(guiOptions.create, "quantity");
+        guiCreate.add(guiOptions.create, "generate").name("Generate");
     }
 
     document.getElementById("container").appendChild(stats.dom);
@@ -274,152 +472,14 @@ export function guiSetup() {
     gui.domElement.addEventListener("mouseover", mouseOver);
     gui.domElement.addEventListener("mouseleave", mouseLeave);
 
-    guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
-        simulation.name = val;
-    });
-    guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
-    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
-        simulationUpdateParticleList("mass", val);
-    });
-    guiInfo.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
-        simulationUpdateParticleList("charge", val);
-    });;
-    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
-    guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
-    //guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
-    //guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
-    guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Position').listen().onFinishChange((val) => {
-        let p = decodeVector3(val);
-        if (p == undefined) return;
-        graphics.camera.position.set(p.x, p.y, p.z);
-    });
-    guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
-    guiInfo.open();
+    infoSetup();
+    controlsSetup();
+    particleSetup();
+    parametersSetup();
+    selectionSetup();
+    createSetup();
 
-    guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
-    guiControls.add(guiOptions.controls, 'placeHint').name("Place selection [Z] (click for more...)");
-    guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiControls.add(guiOptions.controls, 'step').name("Step [N] (when paused)");
-    guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
-    guiControls.add(guiOptions.controls, 'next').name("Next [PAGEDOWN]");
-    guiControls.add(guiOptions.controls, 'previous').name("Previous [PAGEUP]");
-    guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
-    guiControls.add(guiOptions.controls, 'import').name("Import");
-    guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
-    guiControls.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
-    guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
-    guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
-    guiControls.add(guiOptions.controls, 'home').name("Go to start [HOME]");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All");
-
-    guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
-        let obj = simulationFindParticle(parseInt(val));
-        if (obj) {
-            guiOptions.particle.obj = obj;
-        }
-    });
-    guiParticle.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
-    });
-    guiParticle.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
-    });
-    guiParticle.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
-    });
-    guiParticle.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "position", val);
-    });
-    guiParticle.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "velocityAbs", val);
-    });
-    guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
-    });
-    guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
-    guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
-    guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
-    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
-    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
-    guiParticle.add(guiOptions.particle, 'close').name('Clear');
-
-    guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
-        val = parseFloat(val);
-        if (val != simulation.physics.particleList.length) {
-            graphics.setMaxParticles(val);
-            setup();
-        }
-    });
-    guiParameters.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("massConstant", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("chargeConstant", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeConstant", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeRange", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boundaryDamping", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boundaryDistance", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("minDistance2", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("forceConstant", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'radius').name("radius").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("radius", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'radiusRange').name("radiusRange").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("radiusRange", val);
-    });
-    guiParameters.add(guiOptions.parameters, 'close').name("Close");
-
-    guiSelection.add(guiOptions.selection, 'source').name("source").listen();
-    guiSelection.add(guiOptions.selection, 'particles').name("particles").listen();
-    guiSelection.add(guiOptions.selection, 'mass').name("mass").listen().onFinishChange((val) => {
-        selectionUpdate("mass", val);
-    });
-    guiSelection.add(guiOptions.selection, 'charge').name("charge").listen().onFinishChange((val) => {
-        selectionUpdate("charge", val);
-    });
-    guiSelection.add(guiOptions.selection, 'nearCharge').name("nearCharge").listen().onFinishChange((val) => {
-        selectionUpdate("nearCharge", val);
-    });
-    guiSelection.add(guiOptions.selection, 'velocity').name("velocity").listen().onFinishChange((val) => {
-        selectionUpdate("velocityAbs", val);
-    });
-    guiSelection.add(guiOptions.selection, 'velocityDir').name("direction").listen().onFinishChange((val) => {
-        selectionUpdate("velocityDir", val);
-    });
-    guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
-        selectionUpdate("center", val);
-    });
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone");
-    guiSelection.add(guiOptions.selection, 'export').name("Export");
-    guiSelection.add(guiOptions.selection, 'import').name("Import");
-    guiSelection.add(guiOptions.selection, 'clear').name("Clear");
-    guiSelection.add(guiOptions.selection, 'delete').name("Delete");
-
-    guiCreate.add(guiOptions.create, "mass");
-    guiCreate.add(guiOptions.create, "charge");
-    guiCreate.add(guiOptions.create, "nearCharge");
-    guiCreate.add(guiOptions.create, "velocity");
-    guiCreate.add(guiOptions.create, "radius");
-    guiCreate.add(guiOptions.create, "quantity");
-    guiCreate.add(guiOptions.create, "create").name("Generate");
-
-    //gui.close();
+    guiOptions.controls.reset();
 }
 
 window.onresize = () => {
@@ -502,6 +562,10 @@ document.addEventListener("keydown", (event) => {
             }
             break;
 
+        case 'delete':
+            guiOptions.selection.delete();
+            break;
+
         default:
             break;
 
@@ -547,7 +611,7 @@ function updateInfoView(now) {
     guiOptions.info.charge = totalCharge.toExponential(2);
     guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
     let position = graphics.camera.position.toArray();
-    position.forEach((val,idx) => {
+    position.forEach((val, idx) => {
         position[idx] = val.toExponential(1);
     });
     guiOptions.info.cameraPosition = position;

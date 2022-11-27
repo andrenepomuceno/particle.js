@@ -98,14 +98,14 @@ void main() {
                 float distance1 = sqrt(distance2);
             #endif
 
-            force += massConstant * m1 * m2 / distance1;
-            force += -chargeConstant * q1 * q2 / distance2;
+            force += massConstant * m1 * m2;
+            force += -chargeConstant * q1 * q2;
 
-            /*#if !USE_DISTANCE1
+            #if !USE_DISTANCE1
                 force /= distance2;
             #else
                 force /= distance1;
-            #endif*/
+            #endif
 
             if (distance2 <= nearChargeRange2) {
                 float nq1 = props1.w;

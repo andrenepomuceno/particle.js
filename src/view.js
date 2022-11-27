@@ -122,6 +122,10 @@ export let guiOptions = {
         },
         wip: function () {
             alert("Work in progress!");
+        },
+        home: function () {
+            simulationIdx = 0;
+            setup(simulationIdx);
         }
     },
     info: {
@@ -273,14 +277,15 @@ export function guiSetup() {
     guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
     guiControls.add(guiOptions.controls, 'step').name("Step [N]");
     guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
-    guiControls.add(guiOptions.controls, 'next').name("Next [>]");
-    guiControls.add(guiOptions.controls, 'previous').name("Previous [<]");
+    guiControls.add(guiOptions.controls, 'next').name("Next [PAGEDOWN]");
+    guiControls.add(guiOptions.controls, 'previous').name("Previous [PAGEUP]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import");
     guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
     guiControls.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
     guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+    guiControls.add(guiOptions.controls, 'home').name("Home [HOME]");
     guiControls.add(guiOptions.controls, 'wip').name("Sandbox Mode [WIP]");
 
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
@@ -400,6 +405,7 @@ document.addEventListener("keydown", (event) => {
     if (mouseOverGUI) return;
 
     let key = event.key.toLowerCase();
+    console.log(key);
     switch (key) {
         case ' ':
             guiOptions.controls.pauseResume();
@@ -437,12 +443,16 @@ document.addEventListener("keydown", (event) => {
             guiOptions.controls.colorMode();
             break;
 
-        case '>':
+        case 'pagedown':
             guiOptions.controls.next();
             break;
 
-        case '<':
+        case 'pageup':
             guiOptions.controls.previous();
+            break;
+
+        case 'home':
+            guiOptions.controls.home();
             break;
 
         case 'f':

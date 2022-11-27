@@ -41,7 +41,7 @@ function addFolder(name, list) {
 if (!ENV?.production) {
     addFolder("dev", sandbox);
 }
-if (useGPU) {
+/*if (useGPU) {
     addFolder("experiments", experiments);
     addFolder("nearForce1", nearForce1);
     addFolder("gpgpu", gpgpu);
@@ -49,7 +49,7 @@ if (useGPU) {
 addFolder("scenarios2", scenarios2);
 addFolder("nearForce", nearForce);
 addFolder("fields", fields);
-addFolder("elements", elements);
+addFolder("elements", elements);*/
 addFolder("scenarios1", scenarios1);
 addFolder("scenarios0", scenarios0);
 addFolder("tests", tests);

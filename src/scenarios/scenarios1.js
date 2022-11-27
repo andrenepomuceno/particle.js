@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { random, randomSpheric } from '../helpers.js'
 import { Particle, ParticleType } from '../physics.js'
+import { createParticleList } from './helpers'
 
 let particleList = undefined;
 
@@ -35,19 +36,9 @@ function randomSphericVector(r1, r2) {
     return new Vector3(x, y, z);
 }
 
-function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
-    let p = new Particle();
-    p.mass = mass;
-    p.charge = charge;
-    p.position.add(position);
-    p.velocity.add(velocity);
-    if (fixed) p.type = ParticleType.fixed;
-    particleList.push(p);
-}
-
-function createParticles(n, massFunc, chargeFunc, positionFunc, velocityFunc) {
+function createParticles__(n, massFunc, chargeFunc, positionFunc, velocityFunc) {
     for (let i = 0; i < n; ++i) {
-        createParticleList(physics.particleList, massFunc(i, n), chargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
+        createParticle2(massFunc(i, n), chargeFunc(i, n), 0, positionFunc(i, n), velocityFunc(i, n));
     }
 }
 
@@ -448,9 +439,9 @@ function simulationStrong2(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1e-2;
-    physics.chargeConstant = Math.pow(64, 2);
-    physics.nearChargeConstant = Math.pow(7, 2);
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1;
+    physics.nearChargeConstant = 10;
     physics.nearChargeRange = 128;
 
     let x0 = physics.nearChargeRange / 3;
@@ -471,7 +462,7 @@ function simulationStrong2(simulation) {
 
     let n = 512;
     let r0 = 2048;
-    createParticles(
+    createParticles__(
         n,
         (i) => { return 1; },
         (i) => { return -3; },
@@ -545,8 +536,8 @@ function simulationMove1(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
     physics.forceConstant = 1;
-    physics.massConstant = 5e-2;
-    physics.chargeConstant = 1;
+    physics.massConstant = 5e-3;
+    physics.chargeConstant = 1e-2;
 
     let r0 = 32;
     let x = -200;
@@ -555,7 +546,7 @@ function simulationMove1(simulation) {
     let m = 1;
     let q = 1;
 
-    createParticles(
+    createParticles__(
         n,
         (i) => { return m; },
         (i) => { return q; },
@@ -569,7 +560,7 @@ function simulationMove1(simulation) {
         }
     )
 
-    createParticles(
+    createParticles__(
         n,
         (i) => { return m; },
         (i) => { return -q; },
@@ -600,11 +591,11 @@ function simulationMove0(simulation) {
     let v = 5;
     let m = 1e3;
     let q = 1;
-    createParticleList(physics.particleList, m, q, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
+    createParticleList(physics.particleList, m, q, 0, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
 
     let r0 = 32;
     let v0 = 0;
-    createParticles(
+    createParticles__(
         1000,
         (i) => { return 1; },
         (i) => { return -q; },
@@ -627,7 +618,7 @@ function simulationBlob0(simulation) {
 
     let r0 = 128;
     let v0 = 3;
-    createParticles(
+    createParticles__(
         1024,
         (i) => { return 1; },
         (i) => { return random(-1, 1, true); },
@@ -663,7 +654,7 @@ function simulationAtom1(simulation) {
 
     let r1 = 1e3;
     let v1 = 1;
-    createParticles(
+    createParticles__(
         1000,
         () => { return 1; },
         () => { return -1; },
@@ -689,7 +680,7 @@ function simulationAtom0(simulation) {
     let v0 = 1;
     let r0 = 1e3;
     let n = 1e3;
-    createParticles(
+    createParticles__(
         n,
         () => { return 1; },
         () => { return -1; },

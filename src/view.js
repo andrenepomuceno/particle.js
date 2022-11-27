@@ -269,7 +269,25 @@ let guiOptions = {
         quantity: "8",
         generate: () => {
             generateParticles();
-        }
+        },
+        default: () => {
+            let params = guiOptions.generator;
+            params.mass = "1";
+            params.randomMass = false;
+            params.enableZeroMass = true;
+            params.charge = "1";
+            params.randomCharge = false;
+            params.chargeRandomSignal = true;
+            params.enableZeroCharge = true;
+            params.nearCharge = "1";
+            params.randomNearCharge = false;
+            params.enableZeroNearCharge = false;
+            params.nearChargeRandomSignal = true;
+            params.velocity = "0,0,0";
+            params.randomVelocity = false;
+            params.radius = "1e3";
+            params.quantity = "8";
+        },
     },
 }
 
@@ -431,19 +449,23 @@ export function guiSetup() {
     }
 
     function generateSetup() {
-        guiGenerate.add(guiOptions.generator, "mass");
-        guiGenerate.add(guiOptions.generator, "randomMass");
-        guiGenerate.add(guiOptions.generator, "charge");
-        guiGenerate.add(guiOptions.generator, "randomCharge");
-        guiGenerate.add(guiOptions.generator, "chargeRandomSignal");
-        guiGenerate.add(guiOptions.generator, "nearCharge");
-        guiGenerate.add(guiOptions.generator, "randomNearCharge");
-        guiGenerate.add(guiOptions.generator, "nearChargeRandomSignal");
-        guiGenerate.add(guiOptions.generator, "velocity");
-        guiGenerate.add(guiOptions.generator, "randomVelocity");
-        guiGenerate.add(guiOptions.generator, "radius");
-        guiGenerate.add(guiOptions.generator, "quantity");
-        guiGenerate.add(guiOptions.generator, "generate").name("Generate");
+        guiGenerate.add(guiOptions.generator, "mass").name("Mass").listen();
+        guiGenerate.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
+        guiGenerate.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
+        guiGenerate.add(guiOptions.generator, "charge").name("Charge").listen();
+        guiGenerate.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
+        guiGenerate.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
+        guiGenerate.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
+        guiGenerate.add(guiOptions.generator, "nearCharge").name("Near Charge").listen();
+        guiGenerate.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
+        guiGenerate.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
+        guiGenerate.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
+        guiGenerate.add(guiOptions.generator, "velocity").name("Velocity").listen();
+        guiGenerate.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
+        guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen();
+        guiGenerate.add(guiOptions.generator, "quantity").name("Quantity").listen();
+        guiGenerate.add(guiOptions.generator, "generate").name("Generate").listen();
+        guiGenerate.add(guiOptions.generator, "default").name("Default Values").listen();
     }
 
     document.getElementById("container").appendChild(stats.dom);
@@ -731,29 +753,32 @@ function generateParticles() {
 
     function generateMass() {
         let m = mass;
-        if (guiOptions.generator.randomMass) m *= random(0, 1);
+        let m0 = 0.1;
+        if (guiOptions.generator.enableZeroMass) m0 = 0;
+        if (guiOptions.generator.randomMass) m *= random(m0, 1);
         m = Math.round(m);
-        if (!guiOptions.generator.enableZeroMass && m == 0) return generateMass();
         return m;
     }
 
     function generateCharge() {
         let s = 1;
         let q = charge;
+        let q0 = 0.1;
+        if (guiOptions.generator.enableZeroCharge) q0 = 0;
         if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomCharge) q *= random(0, 1);
+        if (guiOptions.generator.randomCharge) q *= random(q0, 1);
         q = Math.round(q);
-        if (!guiOptions.generator.enableZeroCharge && q == 0) return generateCharge();
         return s * q;
     }
 
     function generateNearCharge() {
         let s = 1;
         let nq = nearCharge;
+        let nq0 = 0.1;
+        if (guiOptions.generator.enableZeroNearCharge) nq0 = 0;
         if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomNearCharge) nq *= random(0, 1);
+        if (guiOptions.generator.randomNearCharge) nq *= random(nq0, 1);
         nq = Math.round(nq);
-        if (!guiOptions.generator.enableZeroNearCharge && nq == 0) return generateNearCharge();
         return s * nq;
     }
 

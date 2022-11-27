@@ -148,6 +148,9 @@ let guiOptions = {
             if (confirm("Are you sure?")) {
                 simulationDeleteAll();
             }
+        },
+        sandbox: () => {
+            setup(-1);
         }
     },
     info: {
@@ -274,11 +277,11 @@ let guiOptions = {
             let params = guiOptions.generator;
             params.mass = "1";
             params.randomMass = false;
-            params.enableZeroMass = true;
+            params.enableZeroMass = false;
             params.charge = "1";
             params.randomCharge = false;
             params.chargeRandomSignal = true;
-            params.enableZeroCharge = true;
+            params.enableZeroCharge = false;
             params.nearCharge = "1";
             params.randomNearCharge = false;
             params.enableZeroNearCharge = false;
@@ -341,6 +344,7 @@ export function guiSetup() {
         guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
         guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
         guiControls.add(guiOptions.controls, 'home').name("Go to start [HOME]");
+        guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox [S]");
         guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All");
     }
 
@@ -591,6 +595,10 @@ document.addEventListener("keydown", (event) => {
             guiOptions.selection.delete();
             break;
 
+        case 's':
+            guiOptions.controls.sandbox();
+            break;
+
         default:
             break;
 
@@ -772,32 +780,29 @@ function generateParticles() {
 
     function generateMass() {
         let m = mass;
-        let m0 = 0.1;
-        if (guiOptions.generator.enableZeroMass) m0 = 0;
-        if (guiOptions.generator.randomMass) m *= random(m0, 1);
+        if (guiOptions.generator.randomMass) m *= random(0, 1);
         m = Math.round(m);
+        if (!guiOptions.generator.enableZeroMass && m == 0) m = mass;
         return m;
     }
 
     function generateCharge() {
         let s = 1;
         let q = charge;
-        let q0 = 0.1;
-        if (guiOptions.generator.enableZeroCharge) q0 = 0;
         if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomCharge) q *= random(q0, 1);
+        if (guiOptions.generator.randomCharge) q *= random(0, 1);
         q = Math.round(q);
+        if (!guiOptions.generator.enableZeroCharge && q == 0) q = charge;
         return s * q;
     }
 
     function generateNearCharge() {
         let s = 1;
         let nq = nearCharge;
-        let nq0 = 0.1;
-        if (guiOptions.generator.enableZeroNearCharge) nq0 = 0;
         if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomNearCharge) nq *= random(nq0, 1);
+        if (guiOptions.generator.randomNearCharge) nq *= random(0, 1);
         nq = Math.round(nq);
+        if (!guiOptions.generator.enableZeroNearCharge && nq == 0) nq = nearCharge;
         return s * nq;
     }
 

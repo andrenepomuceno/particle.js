@@ -3,7 +3,6 @@ import { createParticle, createParticles, randomSphericVector, randomVector, cre
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
 export const experiments = [
-    sandbox,
     hexagon3,
     //hexagon3d,
     hexagon1,
@@ -42,25 +41,6 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
     simulation.bidimensionalMode(true);
-}
-
-function sandbox(simulation) {
-    let graphics = simulation.graphics;
-    let physics = simulation.physics;
-    defaultParameters(simulation);
-
-    physics.boundaryDamping = 0.9;
-    physics.boundaryDistance = 1e6;
-    physics.minDistance2 = Math.pow(1, 2);
-
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
-    physics.massConstant = 1e-5;
-    physics.chargeConstant = 1 / 60;
-
-    simulation.setParticleRadius(50, 20);
-    graphics.cameraDistance = 1e4;
-    graphics.cameraSetup();
 }
 
 function hexagon3d(simulation) {

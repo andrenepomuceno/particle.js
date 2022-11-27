@@ -37,8 +37,8 @@ function addFolder(name, list) {
     simulationList = simulationList.concat(list);
 }
 
-if (ENV?.production == false) {
-    addFolder("sandbox", sandbox);
+if (!ENV?.production) {
+    addFolder("dev", sandbox);
 }
 if (useGPU) {
     addFolder("experiments", experiments);
@@ -52,6 +52,9 @@ addFolder("elements", elements);
 addFolder("scenarios1", scenarios1);
 addFolder("scenarios0", scenarios0);
 addFolder("tests", tests);
+if (ENV?.production) {
+    addFolder("sandbox", sandbox);
+}
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 
@@ -75,6 +78,8 @@ export function simulationSetup(idx) {
     if (idx != undefined) {
         if (idx >= 0 && idx < simulationList.length) {
             particlesSetup = simulationList[idx];
+        } else if (idx == -1) {
+            particleSetup = simulationList[simulationList.length - 1];
         } else {
             log("invalid simulationList index");
             return;

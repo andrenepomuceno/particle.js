@@ -152,7 +152,18 @@ let guiOptions = {
         },
         sandbox: () => {
             setup(-1);
-        }
+        },
+        hideOverlay: () => {
+            let visibility = stats.dom.style.visibility;
+            if (visibility == "visible") {
+                stats.dom.style.visibility = "hidden";
+                //gui.domElement.style.visibility = "hidden";
+            }
+            else {
+                stats.dom.style.visibility = "visible";
+                //gui.domElement.style.visibility = "visible";
+            }
+        },
     },
     info: {
         name: "",
@@ -366,6 +377,7 @@ export function guiSetup() {
         const guiControlsView = guiControls.addFolder("[+] More Options");
         guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
         guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+        guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
 
         guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
         guiControls.add(guiOptions.controls, 'import').name("Import");
@@ -451,6 +463,7 @@ export function guiSetup() {
         guiParametersConsts.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
             simulationUpdatePhysics("minDistance2", val);
         });
+        guiParametersConsts.open();
 
         const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
         guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
@@ -459,6 +472,7 @@ export function guiSetup() {
         guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
             simulationUpdatePhysics("boundaryDamping", val);
         });
+        guiParametersBoundary.open();
 
         const guiParametersVisual = guiParameters.addFolder("[+] Visualization");
         guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {
@@ -497,12 +511,12 @@ export function guiSetup() {
             selectionUpdate("center", val);
         });
 
-
-        guiSelection.add(guiOptions.selection, 'clone').name("Clone");
-        guiSelection.add(guiOptions.selection, 'export').name("Export");
-        guiSelection.add(guiOptions.selection, 'import').name("Import");
-        guiSelection.add(guiOptions.selection, 'clear').name("Clear");
-        guiSelection.add(guiOptions.selection, 'delete').name("Delete [DEL]");
+        const guiSelectionActions = guiSelection.addFolder("[+] Actions");
+        guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone");
+        guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
+        guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
+        guiSelectionActions.add(guiOptions.selection, 'clear').name("Clear");
+        guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [DEL]");
     }
 
     function generateSetup() {
@@ -642,11 +656,7 @@ function onKeydown(event) {
             break;
 
         case 'h':
-            let visibility = stats.dom.style.visibility;
-            if (visibility != "hidden")
-                stats.dom.style.visibility = "hidden";
-            else
-                stats.dom.style.visibility = "visible";
+            guiOptions.controls.hideOverlay();
             break;
 
         case 'z':
@@ -672,6 +682,7 @@ function onKeydown(event) {
             break;
 
         default:
+            log("key = " + key);
             break;
 
     }

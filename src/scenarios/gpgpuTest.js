@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
@@ -47,7 +47,7 @@ function GPU_string(simulation) {
     let v = 0;
     let n = Math.round(graphics.maxParticles / 3);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.5 * m;
         },
@@ -66,7 +66,7 @@ function GPU_string(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 3 * m;
         },
@@ -84,7 +84,7 @@ function GPU_string(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 6 * m;
         },
@@ -120,7 +120,7 @@ function GPU_string_m50(simulation) {
     let v = 0;
     let n = Math.round(graphics.maxParticles / 3);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.5 * m;
         },
@@ -139,7 +139,7 @@ function GPU_string_m50(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 3 * m;
         },
@@ -157,7 +157,7 @@ function GPU_string_m50(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 6 * m;
         },
@@ -193,7 +193,7 @@ function GPU_string_m20(simulation) {
     let v = 0;
     let n = Math.round(graphics.maxParticles / 3);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.5 * m;
         },
@@ -212,7 +212,7 @@ function GPU_string_m20(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 3 * m;
         },
@@ -230,7 +230,7 @@ function GPU_string_m20(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 6 * m;
         },
@@ -265,7 +265,7 @@ function GPU_blob1(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return m * random(1, 3, true);
         },
@@ -317,7 +317,7 @@ function GPU_nucleiGrid(simulation) {
     function createNuclei(n, m, q, nq, r0, r1, v, center, neutron = false) {
         //if (random(0, 1) > 0.9) return;
 
-        createParticles(2 * n,
+        createParticles(physics.particleList, 2 * n,
             (i) => {
                 return 3 * m;
             },
@@ -334,7 +334,7 @@ function GPU_nucleiGrid(simulation) {
                 return randomVector(0);
             }
         );
-        createParticles(1 * n,
+        createParticles(physics.particleList, 1 * n,
             (i) => {
                 return 6 * m;
             },
@@ -352,7 +352,7 @@ function GPU_nucleiGrid(simulation) {
             }
         );
 
-        createParticles(n,
+        createParticles(physics.particleList, n,
             (i) => {
                 return 0.5 * m;
             },
@@ -372,7 +372,7 @@ function GPU_nucleiGrid(simulation) {
 
         if (!neutron) return;
 
-        createParticles(1 * n,
+        createParticles(physics.particleList, 1 * n,
             (i) => {
                 return 3 * m;
             },
@@ -389,7 +389,7 @@ function GPU_nucleiGrid(simulation) {
                 return randomVector(0);
             }
         );
-        createParticles(2 * n,
+        createParticles(physics.particleList, 2 * n,
             (i) => {
                 return 6 * m;
             },
@@ -444,7 +444,7 @@ function GPU_shootedBarrier(simulation) {
 
     let aux = 0;
     cubeGenerator((x, y, z) => {
-        createParticles(n,
+        createParticles(physics.particleList, n,
             (i) => {
                 return m;
             },

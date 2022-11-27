@@ -1,5 +1,5 @@
 import { CircleGeometry, LineBasicMaterial, Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
-import { createParticleList, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
+import { createParticleList, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random, hexagonGenerator, shuffleArray } from '../helpers';
 import { Particle } from '../physics';
 

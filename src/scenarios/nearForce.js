@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const nearForce = [
@@ -59,7 +59,7 @@ function crystal(simulation) {
 
     let aux = 0;
     cubeGenerator((x, y, z) => {
-        createParticles(n,
+        createParticles(physics.particleList, n,
             (i) => {
                 return m;
             },
@@ -103,7 +103,7 @@ function randomBlob(simulation) {
     let pos = new Vector3(r1, 0, 0);
 
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return m;
             //return m * random(0, 3, true);
@@ -148,7 +148,7 @@ function molecule(simulation) {
     let pos = new Vector3(r1, 0, 0);
     let vel = new Vector3(-v, 0, 0);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             //return m; 
             return (i % 2) ? (1000 * m) : (m);
@@ -171,7 +171,7 @@ function molecule(simulation) {
     )
 
     vel.multiplyScalar(-1);
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             //return m; 
             return (i % 2) ? (1000 * m) : (m);
@@ -210,7 +210,7 @@ function oppositChargeBall(simulation) {
     let pos = new Vector3(r, 0, 0);
     let vel = new Vector3(-v, 0, 0);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         () => { return m; },
         (i) => {
             //return q;
@@ -245,7 +245,7 @@ function sameChargeBall(simulation) {
     let pos = new Vector3(r, 0, 0);
     let vel = new Vector3(-v, 0, 0);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         () => { return m; },
         () => { return q; },
         () => { return nq; },

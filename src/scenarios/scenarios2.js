@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticleList, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
@@ -49,7 +49,7 @@ function string(simulation) {
     let v = 0;
     let n = Math.round(1024 / 3);
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.5 * m;
         },
@@ -68,7 +68,7 @@ function string(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 3 * m;
         },
@@ -86,7 +86,7 @@ function string(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 6 * m;
         },
@@ -123,7 +123,7 @@ function nucleiGrid(simulation) {
     let n = 1;
 
     function createNuclei(n, m, q, nq, r0, r1, v, center, neutron = false) {
-        createParticles(2 * n,
+        createParticles(physics.particleList, 2 * n,
             (i) => {
                 return 2.2 * m;
             },
@@ -140,7 +140,7 @@ function nucleiGrid(simulation) {
                 return randomVector(0);
             }
         );
-        createParticles(1 * n,
+        createParticles(physics.particleList, 1 * n,
             (i) => {
                 return 4.7 * m;
             },
@@ -158,7 +158,7 @@ function nucleiGrid(simulation) {
             }
         );
 
-        createParticles(n,
+        createParticles(physics.particleList, n,
             (i) => {
                 return 0.511 * m;
             },
@@ -178,7 +178,7 @@ function nucleiGrid(simulation) {
 
         if (!neutron) return;
 
-        createParticles(1 * n,
+        createParticles(physics.particleList, 1 * n,
             (i) => {
                 return 2.2 * m;
             },
@@ -195,7 +195,7 @@ function nucleiGrid(simulation) {
                 return randomVector(0);
             }
         );
-        createParticles(2 * n,
+        createParticles(physics.particleList, 2 * n,
             (i) => {
                 return 4.7 * m;
             },
@@ -248,7 +248,7 @@ function shootedBarrier(simulation) {
 
     let aux = 0;
     cubeGenerator((x, y, z) => {
-        createParticles(n,
+        createParticles(physics.particleList, n,
             (i) => {
                 return m;
             },
@@ -294,7 +294,7 @@ function standardModelBlob2(simulation) {
     let v = 0;
     let n = 1200 / 4;
 
-    /*createParticles(n,
+    /*createParticles(physics.particleList, n,
         (i) => {
             return 0;
         },
@@ -312,7 +312,7 @@ function standardModelBlob2(simulation) {
         }
     );*/
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.12e-1;
         },
@@ -330,7 +330,7 @@ function standardModelBlob2(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.511e6 * m;
         },
@@ -349,7 +349,7 @@ function standardModelBlob2(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 2.2e6 * m;
         },
@@ -367,7 +367,7 @@ function standardModelBlob2(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 4.7e6 * m;
         },
@@ -405,7 +405,7 @@ function standardModelBlobSymetric(simulation) {
     let v = 5;
     let n = 300;
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.12 * m;
         },
@@ -423,7 +423,7 @@ function standardModelBlobSymetric(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 0.511e6 * m;
         },
@@ -441,7 +441,7 @@ function standardModelBlobSymetric(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 2.2e6 * m;
         },
@@ -459,7 +459,7 @@ function standardModelBlobSymetric(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 4.7e6 * m;
         },
@@ -500,7 +500,7 @@ function standardModelBlob0(simulation) {
     let v = 0;
     let n = 300;
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return m;
         },
@@ -518,7 +518,7 @@ function standardModelBlob0(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return me;
         },
@@ -536,7 +536,7 @@ function standardModelBlob0(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 4 * me;
         },
@@ -554,7 +554,7 @@ function standardModelBlob0(simulation) {
         }
     );
 
-    createParticles(n,
+    createParticles(physics.particleList, n,
         (i) => {
             return 9 * me;
         },

@@ -32,10 +32,6 @@ export function createParticleList(particleList, mass = 1, charge = 0, nearCharg
     return p;
 }
 
-export function createParticles(n, massFunc, chargeFunc, nearChargeFunc, positionFunc, velocityFunc) {
-    createParticlesList(simulation.physics.particleList, n, massFunc, chargeFunc, nearChargeFunc, positionFunc, velocityFunc);
-}
-
 export function createParticlesList(list, n, massCallback, chargeCallback, nearChargeCallback, positionCallback, velocityCallback) {
     for (let i = 0; i < n; ++i) {
         let m = massCallback(i, n);

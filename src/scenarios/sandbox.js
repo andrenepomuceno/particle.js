@@ -21,8 +21,9 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 5e2;
 
-    physics.boundaryDistance = 1e6;
+    physics.boundaryDistance = 1e5;
     physics.boundaryDamping = 0.9;
+    physics.minDistance2 = Math.pow(1, 2);
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
@@ -32,4 +33,6 @@ function sandbox0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
+
+    graphics.setMaxParticles(10e3);
 }

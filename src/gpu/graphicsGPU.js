@@ -184,6 +184,7 @@ export class GraphicsGPU {
     }
 
     setMaxParticles(n) {
+        log("setMaxParticles");
         this.textureWidth = Math.round(Math.sqrt(n)/16)*16;
         this.maxParticles = this.textureWidth * this.textureWidth;
     }

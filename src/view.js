@@ -58,6 +58,7 @@ function setup(idx) {
     simulationSetup(idx);
     resetEditView();
     updateInfoView();
+    guiOptions.generator.default();
 }
 
 function uploadCsv(callback) {
@@ -278,16 +279,20 @@ let guiOptions = {
             params.mass = "1";
             params.randomMass = false;
             params.enableZeroMass = false;
+
             params.charge = "1";
             params.randomCharge = false;
             params.chargeRandomSignal = true;
             params.enableZeroCharge = false;
+
             params.nearCharge = "1";
             params.randomNearCharge = false;
-            params.enableZeroNearCharge = false;
             params.nearChargeRandomSignal = true;
+            params.enableZeroNearCharge = false;
+
             params.velocity = "0,0,0";
             params.randomVelocity = false;
+
             params.radius = "1e3";
             params.quantity = "8";
         },

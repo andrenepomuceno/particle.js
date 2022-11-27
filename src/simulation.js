@@ -52,9 +52,7 @@ addFolder("elements", elements);
 addFolder("scenarios1", scenarios1);
 addFolder("scenarios0", scenarios0);
 addFolder("tests", tests);
-if (ENV?.production) {
-    addFolder("sandbox", sandbox);
-}
+addFolder("sandbox", sandbox);
 let particlesSetup = simulationList[0];
 log("simulations loaded: " + simulationList.length);
 
@@ -79,7 +77,7 @@ export function simulationSetup(idx) {
         if (idx >= 0 && idx < simulationList.length) {
             particlesSetup = simulationList[idx];
         } else if (idx == -1) {
-            particleSetup = simulationList[simulationList.length - 1];
+            particlesSetup = simulationList[simulationList.length - 1];
         } else {
             log("invalid simulationList index");
             return;

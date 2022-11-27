@@ -20,7 +20,7 @@ import {
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper } from './selectionHelper.js';
-import { createParticles, createParticlesList, randomSphericVector } from './scenarios/helpers.js';
+import { createParticles, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -52,6 +52,7 @@ function log(msg) {
 }
 
 function setup(idx) {
+    log("setup " + idx);
     selectionReset();
     resetParticleView();
     simulationSetup(idx);
@@ -252,11 +253,18 @@ let guiOptions = {
     },
     generator: {
         mass: "1",
+        randomMass: false,
+        enableZeroMass: true,
         charge: "1",
+        randomCharge: false,
         chargeRandomSignal: true,
+        enableZeroCharge: true,
         nearCharge: "1",
+        randomNearCharge: false,
+        enableZeroNearCharge: false,
         nearChargeRandomSignal: true,
         velocity: "0,0,0",
+        randomVelocity: false,
         radius: "1e3",
         quantity: "8",
         generate: () => {
@@ -423,15 +431,16 @@ export function guiSetup() {
     }
 
     function generateSetup() {
-        guiGenerate.add(guiOptions.generator, "mass").onFinishChange((val) => {
-            log(val);
-            guiOptions.generator.mass = parseFloat(val);
-        });
+        guiGenerate.add(guiOptions.generator, "mass");
+        guiGenerate.add(guiOptions.generator, "randomMass");
         guiGenerate.add(guiOptions.generator, "charge");
+        guiGenerate.add(guiOptions.generator, "randomCharge");
         guiGenerate.add(guiOptions.generator, "chargeRandomSignal");
         guiGenerate.add(guiOptions.generator, "nearCharge");
+        guiGenerate.add(guiOptions.generator, "randomNearCharge");
         guiGenerate.add(guiOptions.generator, "nearChargeRandomSignal");
         guiGenerate.add(guiOptions.generator, "velocity");
+        guiGenerate.add(guiOptions.generator, "randomVelocity");
         guiGenerate.add(guiOptions.generator, "radius");
         guiGenerate.add(guiOptions.generator, "quantity");
         guiGenerate.add(guiOptions.generator, "generate").name("Generate");
@@ -720,32 +729,51 @@ function generateParticles() {
     }
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
-    log(mass);
-    log(charge);
-    log(nearCharge);
-    log(radius);
-    log(quantity);
-    log(velocity.toArray());
+    function generateMass() {
+        let m = mass;
+        if (guiOptions.generator.randomMass) m *= random(0, 1);
+        m = Math.round(m);
+        if (!guiOptions.generator.enableZeroMass && m == 0) return generateMass();
+        return m;
+    }
+
+    function generateCharge() {
+        let s = 1;
+        let q = charge;
+        if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+        if (guiOptions.generator.randomCharge) q *= random(0, 1);
+        q = Math.round(q);
+        if (!guiOptions.generator.enableZeroCharge && q == 0) return generateCharge();
+        return s * q;
+    }
+
+    function generateNearCharge() {
+        let s = 1;
+        let nq = nearCharge;
+        if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+        if (guiOptions.generator.randomNearCharge) nq *= random(0, 1);
+        nq = Math.round(nq);
+        if (!guiOptions.generator.enableZeroNearCharge && nq == 0) return generateNearCharge();
+        return s * nq;
+    }
 
     createParticlesList(newParticles, quantity,
         () => {
-            return mass;
+            return generateMass();
         },
         () => {
-            let s = 1;
-            if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-            return s * charge;
+            return generateCharge();
         },
         () => {
-            let s = 1;
-            if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-            return s * nearCharge;
+            return generateNearCharge();
         },
         () => {
             return randomSphericVector(0, radius);
         },
         () => {
-            return velocity;
+            let v = velocity;
+            if (guiOptions.generator.randomVelocity) v = randomVector(v.length());
+            return v;
         }
     );
 

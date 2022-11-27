@@ -17,12 +17,14 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-6;
-    physics.chargeConstant = 1.0 / 60;
+    physics.chargeConstant = 1 / 60;
     physics.nearChargeConstant = 1;
     physics.nearChargeRange = 5e2;
 
-    simulation.setParticleRadius(50, 25);
     physics.boundaryDistance = 1e6;
+    physics.boundaryDamping = 0.9;
+
+    simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
 }
 

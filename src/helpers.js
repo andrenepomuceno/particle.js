@@ -160,7 +160,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
     for (let i = -height / 2; i <= height / 2; ++i) {
         for (let j = -width / 2; j <= width / 2; ++j) {
             let [cx, cy] = hexToPixel(i, j, cellRadius);
-            generateHexagon(cx, cy, cellRadius, map);
+            generateHexagon(cx, cy, cellRadius, vertexMap);
         }
     }
 

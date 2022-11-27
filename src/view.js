@@ -155,14 +155,12 @@ let guiOptions = {
             setup(-1);
         },
         hideOverlay: () => {
-            let visibility = stats.dom.style.visibility;
+            let visibility = stats.domElement.style.visibility;
             if (visibility == "visible") {
-                stats.dom.style.visibility = "hidden";
-                //gui.domElement.style.visibility = "hidden";
+                stats.domElement.style.visibility = "hidden";
             }
             else {
-                stats.dom.style.visibility = "visible";
-                //gui.domElement.style.visibility = "visible";
+                stats.domElement.style.visibility = "visible";
             }
         },
     },
@@ -580,6 +578,7 @@ export function guiSetup() {
     document.getElementById("container").appendChild(stats.dom);
     stats.domElement.addEventListener("mouseover", mouseOver);
     stats.domElement.addEventListener("mouseleave", mouseLeave);
+    stats.domElement.style.visibility = "visible";
 
     window.onresize = onResize;
     document.addEventListener("keydown", onKeydown);

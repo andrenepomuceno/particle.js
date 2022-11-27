@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { GridHelper, PolarGridHelper, Vector3 } from 'three';
 import { createParticle, createParticles, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
@@ -35,4 +35,18 @@ function sandbox0(simulation) {
     defaultParameters(simulation);
 
     graphics.setMaxParticles(10e3);
+
+    let size = 2 * physics.boundaryDistance;
+    let divisions = Math.round(size/10e3);
+    let gridHelper = new GridHelper(size, divisions);
+    let z = -1;
+    gridHelper.geometry.rotateX( Math.PI / 2 );
+    gridHelper.geometry.translate(0, 0, z);
+    graphics.scene.add(gridHelper);
+
+    let radius = physics.boundaryDistance;
+    let gridPolar = new PolarGridHelper(radius, 8, divisions/2);
+    gridPolar.geometry.rotateX( Math.PI / 2 );
+    gridPolar.geometry.translate(0, 0, z);
+    graphics.scene.add(gridPolar);
 }

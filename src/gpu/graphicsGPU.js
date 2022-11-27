@@ -19,7 +19,7 @@ import { particleVertexShader, particleFragmentShader } from './shaders/particle
 import { sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
 
-const axisLineWidth = 100;
+const axisLineWidth = 1e3;
 const axisObject = [
     new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000),
     new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00),

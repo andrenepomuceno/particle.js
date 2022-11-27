@@ -19,6 +19,7 @@ import { nearForce1 } from './scenarios/nearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
+import { SourceType } from './selectionHelper.js';
 
 export const useGPU = true;
 export let graphics = undefined;

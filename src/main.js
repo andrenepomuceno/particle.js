@@ -1,5 +1,5 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { animate, viewSetup } from './view';
+import { animate, guiSetup } from './view';
 
 if (ENV?.production === true) {
     window.dataLayer = window.dataLayer || [];
@@ -9,7 +9,7 @@ if (ENV?.production === true) {
 }
 
 if (WebGL.isWebGLAvailable()) {
-    viewSetup();
+    guiSetup();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

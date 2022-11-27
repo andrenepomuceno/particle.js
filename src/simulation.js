@@ -508,7 +508,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
     let ratio = parseFloat(value);
-    if (ratio == NaN) {
+    if (isNaN(ratio)) {
         alert("Invalid value.");
         return;
     }

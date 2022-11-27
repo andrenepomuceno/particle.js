@@ -117,11 +117,15 @@ export class SelectionHelper {
 
     export() {
         log("export");
+        if (this.list == undefined || this.list.length == 0) {
+            alert("Please select particles first!");
+            return;
+        }
         let timestamp = new Date().toISOString();
         let name = simulation.state()[0];
         let finalName = "selection_" + name + "_" + timestamp;
         finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
-        downloadFile(this.blob, finalName + ".png", "image/png");
+        if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
         downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
     }
 

@@ -1,7 +1,7 @@
 import { Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3 } from './helpers.js';
+import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3, random } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -44,8 +44,12 @@ const guiInfo = gui.addFolder("Global Info");
 const guiControls = gui.addFolder("Controls (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("Particle Info (click on particle or enter ID)");
 const guiSelection = gui.addFolder("Selection (shift + click + drag)");
-const guiCreate = gui.addFolder("Selection Generator");
+const guiGenerate = gui.addFolder("Selection Generator");
 const guiParameters = gui.addFolder("Simulation Parameters");
+
+function log(msg) {
+    console.log("View: " + msg);
+}
 
 function setup(idx) {
     selectionReset();
@@ -237,68 +241,31 @@ let guiOptions = {
             selectionReset();
         },
         delete: () => {
+            if (selection.list == undefined || selection.list.length == 0) return;
             if (selection.source != "simulation") {
-                alert('Selection source must be "simulation".\n Select particles first.');
+                alert('Selection source must be "simulation".\nSelect particles first.');
                 return;
             }
             simulationDelete(selection.list);
             selectionReset();
         }
     },
-    create: {
+    generator: {
         mass: "1",
         charge: "1",
+        chargeRandomSignal: true,
         nearCharge: "1",
-        velocity: "1,0,0",
-        radius: "100",
+        nearChargeRandomSignal: true,
+        velocity: "0,0,0",
+        radius: "1e3",
         quantity: "8",
         generate: () => {
-            let newParticles = [];
-
-            let input = guiOptions.create;
-            let mass = parseFloat(input.mass);
-            let charge = parseFloat(input.charge);
-            let nearCharge = parseFloat(input.nearCharge);
-            let velocity = decodeVector3(input.velocity);
-            if (velocity == undefined) {
-                velocity = parseFloat(input.velocity);
-                if (velocity == NaN) {
-                    alert("Invalid velocity!");
-                    return;
-                }
-                velocity = { x: velocity, y: 0, z: 0 };
-            }
-            velocity = new Vector3(velocity.x, velocity.y, velocity.z);
-            let radius = Math.abs(parseFloat(input.radius));
-            let quantity = Math.round(parseFloat(input.quantity));
-
-            createParticlesList(newParticles, quantity,
-                () => {
-                    return mass;
-                },
-                () => {
-                    return charge;
-                },
-                () => {
-                    return nearCharge;
-                },
-                () => {
-                    return randomSphericVector(0, radius);
-                },
-                () => {
-                    return velocity;
-                }
-            );
-
-            selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
-            selection.source = "generated";
-            selection.list = newParticles;
-            guiSelection.open();
+            generateParticles();
         }
     },
 }
 
-export function viewSetup() {
+export function guiSetup() {
     gui.width = 320;
 
     function mouseOver() {
@@ -455,14 +422,19 @@ export function viewSetup() {
         guiSelection.add(guiOptions.selection, 'delete').name("Delete [DEL]");
     }
 
-    function createSetup() {
-        guiCreate.add(guiOptions.create, "mass");
-        guiCreate.add(guiOptions.create, "charge");
-        guiCreate.add(guiOptions.create, "nearCharge");
-        guiCreate.add(guiOptions.create, "velocity");
-        guiCreate.add(guiOptions.create, "radius");
-        guiCreate.add(guiOptions.create, "quantity");
-        guiCreate.add(guiOptions.create, "generate").name("Generate");
+    function generateSetup() {
+        guiGenerate.add(guiOptions.generator, "mass").onFinishChange((val) => {
+            log(val);
+            guiOptions.generator.mass = parseFloat(val);
+        });
+        guiGenerate.add(guiOptions.generator, "charge");
+        guiGenerate.add(guiOptions.generator, "chargeRandomSignal");
+        guiGenerate.add(guiOptions.generator, "nearCharge");
+        guiGenerate.add(guiOptions.generator, "nearChargeRandomSignal");
+        guiGenerate.add(guiOptions.generator, "velocity");
+        guiGenerate.add(guiOptions.generator, "radius");
+        guiGenerate.add(guiOptions.generator, "quantity");
+        guiGenerate.add(guiOptions.generator, "generate").name("Generate");
     }
 
     document.getElementById("container").appendChild(stats.dom);
@@ -477,9 +449,9 @@ export function viewSetup() {
     particleSetup();
     parametersSetup();
     selectionSetup();
-    createSetup();
+    generateSetup();
 
-    guiOptions.controls.reset();
+    setup();
 }
 
 window.onresize = () => {
@@ -557,6 +529,9 @@ document.addEventListener("keydown", (event) => {
                 let center = cameraToWorldCoord(mousePosition, graphics.camera, 0);
                 if (simulation.mode2D) {
                     center.z = 0;
+                }
+                if (selection.source == "generated") {
+                    generateParticles();
                 }
                 simulationCreateParticles(selection.list, center);
             }
@@ -711,13 +686,73 @@ function snapshot() {
     let name = simulation.state()[0];
     let finalName = name + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
-    console.log("snapshot " + finalName);
+    log("snapshot " + finalName);
 
     graphics.update();
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
     downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
+}
+
+function generateParticles() {
+    log("generateParticles");
+    let newParticles = [];
+
+    let input = guiOptions.generator;
+    let mass = parseFloat(input.mass);
+    let charge = parseFloat(input.charge);
+    let nearCharge = parseFloat(input.nearCharge);
+    let radius = Math.abs(parseFloat(input.radius));
+    let quantity = Math.round(parseFloat(input.quantity));
+    if (isNaN(mass) || isNaN(charge) || isNaN(nearCharge) || isNaN(radius) || isNaN(quantity)) {
+        alert("Invalid parameters!");
+        return;
+    }
+    let velocity = decodeVector3(input.velocity);
+    if (velocity == undefined) {
+        velocity = parseFloat(input.velocity);
+        if (isNaN(velocity)) {
+            alert("Invalid velocity!");
+            return;
+        }
+        velocity = { x: velocity, y: 0, z: 0 };
+    }
+    velocity = new Vector3(velocity.x, velocity.y, velocity.z);
+
+    log(mass);
+    log(charge);
+    log(nearCharge);
+    log(radius);
+    log(quantity);
+    log(velocity.toArray());
+
+    createParticlesList(newParticles, quantity,
+        () => {
+            return mass;
+        },
+        () => {
+            let s = 1;
+            if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+            return s * charge;
+        },
+        () => {
+            let s = 1;
+            if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+            return s * nearCharge;
+        },
+        () => {
+            return randomSphericVector(0, radius);
+        },
+        () => {
+            return velocity;
+        }
+    );
+
+    selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+    selection.source = "generated";
+    selection.list = newParticles;
+    guiSelection.open();
 }
 
 export function animate(time) {

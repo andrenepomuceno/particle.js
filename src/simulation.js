@@ -608,10 +608,6 @@ export function simulationUpdateParticleList(parameter, value, list) {
                 totalVelocityMean.normalize().multiplyScalar(newVelocityAbs - totalVelocityAbs);
 
                 list.forEach((particle, index) => {
-                    let len = particle.velocity.length();
-                    if (len == 0) {
-                        particle.velocity.set(1.0, 0.0, 0.0);
-                    }
                     particle.velocity.add(totalVelocityMean);
                 });
             }
@@ -636,7 +632,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
 
                 let dirVec = new Vector3(newDir.x, newDir.y, newDir.z);
                 dirVec.normalize();
-                dirVec.sub(totalVelocityMean).normalize().multiplyScalar(totalVelocityAbs);
+                dirVec.sub(totalVelocityMean).multiplyScalar(totalVelocityAbs);
 
                 list.forEach((particle, index) => {
                     particle.velocity.add(dirVec);

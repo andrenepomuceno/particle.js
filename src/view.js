@@ -39,13 +39,12 @@ let selection = new SelectionHelper();
 let stats = new Stats();
 const gui = new dat.GUI();
 //export const gui = new GUI();
-const guiInfo = gui.addFolder("Information");
-const guiSimulation = gui.addFolder("Simulation");
-const guiView = gui.addFolder("View");
-const guiParticle = gui.addFolder("Particle");
-const guiParameters = gui.addFolder("Parameters");
-const guiSelection = gui.addFolder("Selection");
-const guiCreate = gui.addFolder("Create");
+const guiInfo = gui.addFolder("Simulation Global Info");
+const guiControls = gui.addFolder("Controls (keyboard shortcuts)");
+const guiParticle = gui.addFolder("Particle Info (click on particle or enter ID)");
+const guiParameters = gui.addFolder("Simulation Parameters");
+const guiSelection = gui.addFolder("Selection Info (select with shift + click/drag)");
+const guiCreate = gui.addFolder("Create (Work in progress)");
 
 function setup(idx) {
     selectionReset();
@@ -72,7 +71,7 @@ function uploadCsv(callback) {
 }
 
 export let guiOptions = {
-    simulation: {
+    controls: {
         pauseResume: function () {
             pause = !pause;
         },
@@ -99,9 +98,7 @@ export let guiOptions = {
                 resetEditView();
                 updateInfoView();
             });
-        }
-    },
-    view: {
+        },
         hideAxis: function () {
             hideAxis = !hideAxis;
             graphics.showAxis(!hideAxis);
@@ -300,18 +297,17 @@ export function guiSetup() {
     guiParticle.add(guiOptions.particle, 'close').name('Close');
     //guiParticle.open();
 
-    guiSimulation.add(guiOptions.simulation, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiSimulation.add(guiOptions.simulation, 'step').name("Step [N]");
-    guiSimulation.add(guiOptions.simulation, 'reset').name("Reset [R]");
-    guiSimulation.add(guiOptions.simulation, 'next').name("Next [>]");
-    guiSimulation.add(guiOptions.simulation, 'previous').name("Previous [<]");
-    guiSimulation.add(guiOptions.simulation, 'snapshot').name("Export [P]");
-    guiSimulation.add(guiOptions.simulation, 'import').name("Import");
-
-    guiView.add(guiOptions.view, 'hideAxis').name("Hide/Show Axis [A]");
-    guiView.add(guiOptions.view, 'resetCamera').name("Reset Camera [C]");
-    guiView.add(guiOptions.view, 'xyCamera').name("XY Camera [V]");
-    guiView.add(guiOptions.view, 'colorMode').name("Color Mode [Q]");
+    guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
+    guiControls.add(guiOptions.controls, 'step').name("Step [N]");
+    guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
+    guiControls.add(guiOptions.controls, 'next').name("Next [>]");
+    guiControls.add(guiOptions.controls, 'previous').name("Previous [<]");
+    guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
+    guiControls.add(guiOptions.controls, 'import').name("Import");
+    guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
+    guiControls.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
+    guiControls.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
+    guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
 
     guiParameters.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("massConstant", val);
@@ -372,9 +368,9 @@ export function guiSetup() {
     guiSelection.add(guiOptions.selection, 'center').name("center").listen().onFinishChange((val) => {
         selectionUpdate("center", val);
     });
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone");
     guiSelection.add(guiOptions.selection, 'export').name("Export");
     guiSelection.add(guiOptions.selection, 'import').name("Import");
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone");
     guiSelection.add(guiOptions.selection, 'clear').name("Clear");
     guiSelection.add(guiOptions.selection, 'delete').name("Delete");
 
@@ -399,19 +395,19 @@ document.addEventListener("keydown", (event) => {
     let key = event.key;
     switch (key) {
         case ' ':
-            guiOptions.simulation.pauseResume();
+            guiOptions.controls.pauseResume();
             break;
 
         case 'c':
-            guiOptions.view.resetCamera();
+            guiOptions.controls.resetCamera();
             break;
 
         case 'r':
-            guiOptions.simulation.reset();
+            guiOptions.controls.reset();
             break;
 
         case 'p':
-            guiOptions.simulation.snapshot();
+            guiOptions.controls.snapshot();
             break;
 
         case 'P':
@@ -419,27 +415,27 @@ document.addEventListener("keydown", (event) => {
             break;
 
         case 'a':
-            guiOptions.view.hideAxis();
+            guiOptions.controls.hideAxis();
             break;
 
         case 'v':
-            guiOptions.view.xyCamera();
+            guiOptions.controls.xyCamera();
             break;
 
         case 'n':
-            guiOptions.simulation.step();
+            guiOptions.controls.step();
             break;
 
         case 'q':
-            guiOptions.view.colorMode();
+            guiOptions.controls.colorMode();
             break;
 
         case '>':
-            guiOptions.simulation.next();
+            guiOptions.controls.next();
             break;
 
         case '<':
-            guiOptions.simulation.previous();
+            guiOptions.controls.previous();
             break;
 
         case 'f':

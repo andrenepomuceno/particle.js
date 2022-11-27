@@ -10,7 +10,7 @@ if (ENV?.production === true) {
 
 if (WebGL.isWebGLAvailable()) {
     guiSetup();
-    guiOptions.simulation.reset();
+    guiOptions.controls.reset();
     animate();
 } else {
     const warning = WebGL.getWebGLErrorMessage();

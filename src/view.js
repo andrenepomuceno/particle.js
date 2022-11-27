@@ -1,4 +1,4 @@
-import { Box2, Vector2, Vector3 } from 'three';
+import { Box2, Color, Vector2, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
 import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
@@ -118,7 +118,10 @@ export let guiOptions = {
             setColorMode(colorMode);
         },
         placeHint: function () {
-            alert("Press 'Z' to place a particle selection on the mouse/pointer position.\nFirst, select particles with SHIFT + CLICK/DRAG, then press 'Z' to make clones!");
+            alert(
+                "Press 'Z' to place a particle selection on the mouse/pointer position.\n" +
+                "First, select particles with SHIFT + CLICK/DRAG, then press 'Z' to make clones!"
+            );
         },
         wip: function () {
             alert("Work in progress!");
@@ -126,6 +129,14 @@ export let guiOptions = {
         home: function () {
             simulationIdx = 0;
             setup(simulationIdx);
+        },
+        mouseHint: () => {
+            alert(
+                "LEFT BUTTON: select particle/camera rotation (3D mode only)\n" +
+                "MIDDLE BUTTON/SCROLL: zoom.\n" +
+                "RIGHT BUTTON: move camera position.\n" +
+                "SHIFT+LEFT CLICK/DRAG: mass selection."
+            );
         }
     },
     info: {
@@ -138,6 +149,7 @@ export let guiOptions = {
         radius: "",
         charge: "",
         cameraDistance: "",
+        mode: "",
     },
     particle: {
         obj: undefined,
@@ -148,7 +160,7 @@ export let guiOptions = {
         position: "",
         velocityDir: "",
         velocityAbs: "",
-        color: "",
+        color: "#000000",
         field: {
             direction: "",
             amplitude: "",
@@ -261,19 +273,21 @@ export function guiSetup() {
     });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mass').name('Mass').listen().onFinishChange((val) => {
+    guiInfo.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
     });
-    guiInfo.add(guiOptions.info, 'charge').name('Charge').listen().onFinishChange((val) => {
+    guiInfo.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("charge", val);
     });;
-    guiInfo.add(guiOptions.info, 'energy').name('Energy').listen();
+    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfo.add(guiOptions.info, 'collisions').name('Collisions').listen();
     //guiInfo.add(guiOptions.info, 'radius').name('Radius').listen();
     guiInfo.add(guiOptions.info, 'cameraDistance').name('Camera Distance').listen();
+    guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
     guiInfo.open();
 
-    guiControls.add(guiOptions.controls, 'placeHint').name("Insert selection [Z]");
+    guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
+    guiControls.add(guiOptions.controls, 'placeHint').name("Insert selection [Z] (click for more...)");
     guiControls.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
     guiControls.add(guiOptions.controls, 'step').name("Step [N]");
     guiControls.add(guiOptions.controls, 'reset').name("Reset [R]");
@@ -312,7 +326,7 @@ export function guiSetup() {
     guiParticle.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
     });
-    guiParticle.add(guiOptions.particle, 'color').name('Color').listen();
+    guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
     guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
@@ -522,6 +536,7 @@ function updateInfoView(now) {
     guiOptions.info.radius = r.toExponential(2);
     guiOptions.info.charge = totalCharge.toExponential(2);
     guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
+    guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
 }
 
 function updateParticleView() {
@@ -541,7 +556,7 @@ function updateParticleView() {
         if (particle.mesh) {
             color = particle.mesh.material.color;
         }
-        particleView.color = arrayToString(color.toArray(), 2);
+        particleView.color = "#" + color.getHexString();//arrayToString(color.toArray(), 2);
 
         //dynamic info
         let position = [];

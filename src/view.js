@@ -291,7 +291,7 @@ let guiOptions = {
             generateParticles();
         },
         clear: () => {
-
+            guiGenerate.close();
         },
         default: () => {
             let params = guiOptions.generator;
@@ -564,8 +564,9 @@ function generateSetup() {
     });
     guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
 
-    guiGenerate.add(guiOptions.generator, "generate").name("Generate").listen();
-    guiGenerate.add(guiOptions.generator, "default").name("Default Values").listen();
+    guiGenerate.add(guiOptions.generator, "generate").name("Generate");
+    guiGenerate.add(guiOptions.generator, "default").name("Default Values");
+    guiGenerate.add(guiOptions.generator, "clear").name("Close");
 }
 
 export function guiSetup() {

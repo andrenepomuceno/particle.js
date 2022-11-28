@@ -125,8 +125,9 @@ let guiOptions = {
         },
         placeHint: function () {
             alert(
-                "Press 'Z' to place a particle selection on the mouse/pointer position.\n" +
-                "First, select particles with SHIFT + CLICK + DRAG, then press 'Z' to make clones!"
+                'Press "Z" to place a particle selection on the mouse/pointer position.\n' +
+                'First, select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!\n' +
+                'If you want to make clones, press "Clone" on the selection folder.'
             );
         },
         wip: function () {
@@ -564,7 +565,7 @@ function generateSetup() {
     });
     guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
 
-    guiGenerate.add(guiOptions.generator, "generate").name("Generate");
+    guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
     guiGenerate.add(guiOptions.generator, "default").name("Default Values");
     guiGenerate.add(guiOptions.generator, "clear").name("Close");
 }
@@ -675,10 +676,16 @@ function onKeydown(event) {
                 if (simulation.mode2D) {
                     center.z = 0;
                 }
+
                 if (selection.source == SourceType.generated) {
                     generateParticles();
                 }
-                simulationCreateParticles(selection.list, center);
+
+                if (selection.source == SourceType.simulation) {
+                    simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
+                } else {
+                    simulationCreateParticles(selection.list, center);
+                }
             }
             break;
 
@@ -688,6 +695,10 @@ function onKeydown(event) {
 
         case 's':
             guiOptions.controls.sandbox();
+            break;
+
+        case 'g':
+            guiOptions.generator.generate();
             break;
 
         default:

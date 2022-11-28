@@ -511,12 +511,6 @@ export function simulationDelete(list) {
 export function simulationUpdateParticleList(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
-    let ratio = parseFloat(value);
-    if (isNaN(ratio)) {
-        alert("Invalid value.");
-        return;
-    }
-
     let totalMass = simulation.totalMass.toExponential(1);
     let totalCharge = simulation.totalCharge.toExponential(1);
     if (list == undefined) {
@@ -525,11 +519,16 @@ export function simulationUpdateParticleList(parameter, value, list) {
         let stats = calcListStatistics(list);
         totalMass = stats.totalMass.toExponential(1);
         totalCharge = stats.totalCharge.toExponential(1);
-    }    
+    }
 
     switch (parameter) {
         case "mass":
             {
+                let ratio = parseFloat(value);
+                if (isNaN(ratio)) {
+                    alert("Invalid value.");
+                    return;
+                }
                 if (ratio.toExponential(1) == totalMass) return;
                 if (ratio > 1e6) {
                     alert("Value is too big.");
@@ -545,6 +544,11 @@ export function simulationUpdateParticleList(parameter, value, list) {
 
         case "charge":
             {
+                let ratio = parseFloat(value);
+                if (isNaN(ratio)) {
+                    alert("Invalid value.");
+                    return;
+                }
                 if (ratio.toExponential(1) == totalCharge) return;
                 if (ratio >= 1e6) {
                     alert("Value is too big.");
@@ -562,7 +566,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
             {
                 let center = decodeVector3(value);
                 if (center == undefined) {
-                    alert("Invalid value.");
+                    alert("Invalid center position");
                     return;
                 }
                 let centerVector = new Vector3(center.x, center.y, center.z);

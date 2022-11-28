@@ -510,7 +510,7 @@ function selectionSetup() {
     guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
     guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [DEL]");
 
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone");
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelection.add(guiOptions.selection, 'clear').name("Clear");
 }
 
@@ -699,6 +699,10 @@ function onKeydown(event) {
 
         case 'g':
             guiOptions.generator.generate();
+            break;
+        
+        case 'x':
+            guiOptions.selection.clone();
             break;
 
         default:

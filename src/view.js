@@ -44,7 +44,7 @@ const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)");
-const guiSelection = gui.addFolder("SELECTION (shift + click + drag)");
+const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
 
@@ -334,7 +334,10 @@ function infoSetup() {
     guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
-        if (p == undefined) return;
+        if (p == undefined) {
+            alert("Invalid coordinates");
+            return;
+        }
         graphics.camera.position.set(p.x, p.y, p.z);
     });
     guiInfo.open();
@@ -514,7 +517,7 @@ function selectionSetup() {
 
 function generateSetup() {
     guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
-        guiOptions.generator.Quantity = Math.round(parseFloat(val));
+        guiOptions.generator.quantity = Math.round(parseFloat(val));
     });
     guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
         guiOptions.generator.radius = parseFloat(val);

@@ -700,7 +700,7 @@ function onKeydown(event) {
         case 'g':
             guiOptions.generator.generate();
             break;
-        
+
         case 'x':
             guiOptions.selection.clone();
             break;
@@ -712,8 +712,17 @@ function onKeydown(event) {
     }
 }
 
+let mouseVelocity = new Vector2();
+let lastMouseMove = Date.now();
 function onPointerMove(event) {
-    mousePosition = mouseToScreenCoord(event);
+    let pos = mouseToScreenCoord(event);
+
+    let now = Date.now();
+    let dt = now - lastMouseMove;
+    lastMouseMove = now;
+    mouseVelocity.set(pos.x - mousePosition.x, pos.y - mousePosition.y).divideScalar(dt/1e3);
+
+    mousePosition.set(pos.x, pos.y);
     if (selection.started) {
         selection.update(event);
     }

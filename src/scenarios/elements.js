@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createCloud0, createNuclei0, atom0, createCloud3 } from './helpers.js';
+import { createNuclei0, atom0, createCloud3 } from './helpers.js';
 
 export const elements = [
     h2,
@@ -56,7 +56,7 @@ function atom(physics, n, center = new Vector3()) {
     //console.log(v);
 
     let ne = 1 * n;
-    atom0(
+    atom0(physics.particleList,
         n, ne,
         m, q, nq,
         r0, r1, r2,
@@ -79,9 +79,9 @@ function h2(simulation) {
     let x = 2 * r0 * 0.8;
     let v = 16;
 
-    createNuclei0(1, m, q, nq, r0, 0, new Vector3(-x, 0, 0));
-    createNuclei0(1, m, q, nq, r0, 0, new Vector3(x, 0, 0));
-    createCloud3(8, m, -q, 0, r1, r2, v);
+    createNuclei0(physics.particleList, 1, m, q, nq, r0, 0, new Vector3(-x, 0, 0));
+    createNuclei0(physics.particleList, 1, m, q, nq, r0, 0, new Vector3(x, 0, 0));
+    createCloud3(physics.particleList, 8, m, -q, 0, r1, r2, v);
 }
 
 function water(simulation) {

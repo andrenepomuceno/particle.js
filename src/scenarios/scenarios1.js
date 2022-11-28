@@ -436,12 +436,12 @@ function simulationStrong2(simulation) {
     let y = x;
     let vx = 2;
     let vy = vx;
-    createNuclei0(
+    createNuclei0(physics.particleList, 
         x0,
         new Vector3(-x, y, 0),
         new Vector3(vx, -vy, 0)
     );
-    createNuclei0(
+    createNuclei0(physics.particleList, 
         x0,
         new Vector3(-x, -y, 0),
         new Vector3(vx, vy, 0)
@@ -484,7 +484,7 @@ function simulationStrong1(simulation) {
     let m0 = 1;
     let q0 = -3;
 
-    createNuclei0(x0);
+    createNuclei0(physics.particleList, x0);
     createParticle2(m0, q0, 0,
         new Vector3(0, r1, 0),
         new Vector3(v1, 0, 0));

@@ -39,8 +39,8 @@ export function createParticlesList(list, n, massCallback, chargeCallback, nearC
     }
 }
 
-export function createNuclei0(n = 1, m = 1, q = 1, nq = 1, r = 128, v = 0, center = new Vector3()) {
-    createParticles(
+export function createNuclei0(particleList, n = 1, m = 1, q = 1, nq = 1, r = 128, v = 0, center = new Vector3()) {
+    createParticlesList(particleList,
         n,
         () => { return 1836 * m; },
         () => { return q; },
@@ -57,7 +57,7 @@ export function createNuclei0(n = 1, m = 1, q = 1, nq = 1, r = 128, v = 0, cente
         },
     );
 
-    createParticles(
+    createParticlesList(particleList,
         n,
         () => { return 1839 * m; },
         () => { return 0; },
@@ -76,66 +76,8 @@ export function createNuclei0(n = 1, m = 1, q = 1, nq = 1, r = 128, v = 0, cente
     );
 }
 
-export function createCloud0(n, m, q, nq, r0, r1, v, center = new Vector3()) {
-    createParticles(n,
-        () => { return m; },
-        () => { return q; },
-        () => { return nq; },
-        (i, n) => {
-            return randomSphericVector(r0, r1).add(center);
-        },
-        (i, n, x) => {
-            return randomVector(v);
-        }
-    )
-}
-
-export function createCloud1(n, m, q, nq, r0, r1, v, center = new Vector3()) {
-    let gap = (r1 - r0) / n;
-    for (let idx = 0; idx < n; ++idx) {
-        createParticles(2,
-            () => { return m; },
-            () => { return q; },
-            () => { return nq; },
-            (i, n) => {
-                return randomSphericVector(r0 + gap * idx, r0 + gap * (idx + 1)).add(center);
-            },
-            (i, n, x) => {
-                let dc = center.clone().sub(x);
-                dc.normalize();
-                dc.applyAxisAngle({ x: 0, y: 0, z: 1 }, Math.PI / 2);
-                dc.multiplyScalar(random(-v, v));
-                return dc;
-            }
-        )
-    }
-}
-
-export function createCloud2(n, m, q, nq, r0, r1, v, center = new Vector3()) {
-    let gap = (r1 - r0) / n;
-    for (let idx = 0; idx < n; ++idx) {
-        let r2 = r0 + gap * idx;
-        createParticles(1,
-            () => { return m; },
-            () => { return q; },
-            () => { return nq; },
-            () => {
-                return randomSphericVector(r2, r2).add(center);
-            },
-            (i_, n_, x) => {
-                let dc = center.clone().sub(x);
-                dc.normalize();
-                dc.applyAxisAngle({ x: 0, y: 0, z: 1 }, Math.PI / 2);
-                let v2 = v * Math.sqrt(Math.abs(n * q) / r2);
-                dc.multiplyScalar(v2);
-                return dc;
-            }
-        )
-    }
-}
-
-export function createCloud3(n, m, q, nq, r0, r1, v, center = new Vector3()) {
-    createParticles(n,
+export function createCloud3(particleList, n, m, q, nq, r0, r1, v, center = new Vector3()) {
+    createParticlesList(particleList, n,
         () => { return m; },
         () => { return q; },
         () => { return nq; },
@@ -156,19 +98,19 @@ export function createCloud3(n, m, q, nq, r0, r1, v, center = new Vector3()) {
     )
 }
 
-export function atom0(n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, r2 = 4 * r1, v = 0, center = new Vector3()) {
-    createNuclei0(n1, m, q, nq, r0, 0, center);
-    createCloud3(n2, m, -q, 0, r1, r2, v, center);
+export function atom0(particleList, n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 100, r1 = r0, r2 = 4 * r1, v = 0, center = new Vector3()) {
+    createNuclei0(particleList, n1, m, q, nq, r0, 0, center);
+    createCloud3(particleList, n2, m, -q, 0, r1, r2, v, center);
 }
 
-export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0, v2 = new Vector3()) {
+export function createNuclei(particleList, n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0, v2 = new Vector3()) {
     let typeList = [
         { m: 0.5, q: -1, nq: -1 },
         { m: 3, q: 2 / 3, nq: 1 },
         { m: 6, q: -1 / 3, nq: 1 },
     ];
 
-    createParticles(2 * n,
+    createParticlesList(particleList, 2 * n,
         (i) => {
             return m * typeList[1].m;
         },
@@ -185,7 +127,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
             return v2;
         }
     );
-    createParticles(1 * n,
+    createParticlesList(particleList, 1 * n,
         (i) => {
             return m * typeList[2].m;
         },
@@ -203,7 +145,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
         }
     );
 
-    createParticles(electrons,
+    createParticlesList(particleList, electrons,
         (i) => {
             return m * typeList[0].m;
         },
@@ -221,7 +163,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
         }
     );
 
-    createParticles(1 * neutrons,
+    createParticlesList(particleList, 1 * neutrons,
         (i) => {
             return m * typeList[1].m;
         },
@@ -239,7 +181,7 @@ export function createNuclei(n, m, q, nq, r0, r1, v, center, electrons = 0, neut
         }
     );
 
-    createParticles(2 * neutrons,
+    createParticlesList(particleList, 2 * neutrons,
         (i) => {
             return m * typeList[2].m;
         },

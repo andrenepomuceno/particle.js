@@ -1,4 +1,4 @@
-import { createParticleList, randomSphericVector, randomVector } from './helpers';
+import { createParticlesList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const nearForce1 = [
@@ -62,7 +62,7 @@ function cloud2(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*if (random(0, 1) <= massThreshold) {
                 return 0.0;
@@ -115,7 +115,7 @@ function cloud1(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -168,7 +168,7 @@ function cloud0(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -221,7 +221,7 @@ function triforce2(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -275,7 +275,7 @@ function triforce1(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -328,7 +328,7 @@ function triforce0(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -381,7 +381,7 @@ function charge_nearCharge_point0(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             /*let v = random(0, 1);
             if (v > massThreshold) {
@@ -433,7 +433,7 @@ function GPU_point14(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m * random(0, 3, true);
         },
@@ -475,7 +475,7 @@ function GPU_point13(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m * random(0, 3, true);
         },
@@ -517,7 +517,7 @@ function GPU_point12(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m * random(0, 3, true);
         },
@@ -559,7 +559,7 @@ function GPU_point11(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m * random(1, 1024);
         },
@@ -601,7 +601,7 @@ function GPU_point10(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m * random(0, 1024, true);
         },
@@ -643,7 +643,7 @@ function GPU_blob9_posNQ(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -685,7 +685,7 @@ function GPU_blob8_posNQ_rng(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -727,7 +727,7 @@ function GPU_point7(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -769,7 +769,7 @@ function GPU_point6(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -811,7 +811,7 @@ function GPU_point5(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -853,7 +853,7 @@ function GPU_point4(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -895,7 +895,7 @@ function GPU_point3(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },
@@ -937,7 +937,7 @@ function GPU_point2(simulation) {
     let v = 0;
     let n = graphics.maxParticles;
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;// * random(1, 1, true);
         },

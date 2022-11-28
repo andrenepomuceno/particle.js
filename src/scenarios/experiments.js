@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticleList, randomSphericVector, randomVector, createNuclei } from './helpers';
+import { createParticleList, randomSphericVector, randomVector, createNuclei, createParticlesList } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
 export const experiments = [
@@ -98,7 +98,7 @@ function hexagon3d(simulation) {
                 new Vector3(0, depth * r3 / 2 * Math.sin(theta), 0)
             );
             //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
-            createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
+            createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, center, 0, 0);
         }, r2, grid);
 
     shuffleArray(simulation.particleList);
@@ -169,7 +169,7 @@ function hexagon3(simulation) {
         ).add(new Vector3(0, width / 2 * Math.sin(theta), 0));
         //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
-        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, an);
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, center, 0, an);
     }, r2, grid);
 
     /*w = Math.round(Math.sqrt(n / (6 * an)));
@@ -183,7 +183,7 @@ function hexagon3(simulation) {
         let center = new Vector3(x, y, z).applyAxisAngle(
             new Vector3(0, 0, 1), theta
         );
-        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, center, 0, 0);
         ++aux;
     }, width, grid);*/
 
@@ -195,7 +195,7 @@ function hexagon3(simulation) {
         let x0 = -2e4 - spacing * i * physics.nearChargeRange;
         let v0 = 2.5e2;
         let ne = random(1, 4, true);
-        createParticles(physics.particleList, ne,
+        createParticlesList(physics.particleList, ne,
             () => { return 0.5 * m; },
             () => { return -1 * q; },
             () => {
@@ -249,8 +249,8 @@ function hexagon2(simulation) {
     let v2 = new Vector3(2, 0, 0);
     hexagonGenerator((vertex) => {
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
-        createNuclei(an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y, 0).sub(c), an, an, new Vector3().add(v2));
-        createNuclei(an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y, 0).add(c), an, an, new Vector3().sub(v2));
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y, 0).sub(c), an, an, new Vector3().add(v2));
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y, 0).add(c), an, an, new Vector3().sub(v2));
     }, r2, grid);
 
     shuffleArray(simulation.particleList);
@@ -300,7 +300,7 @@ function hexagon1(simulation) {
             new Vector3(0, 0, 1), theta
         ).add(new Vector3(0, width / 2 * Math.sin(theta), 0));
         //let v2 = new Vector3(0, (vertex.x+1e4)/1e3, 0);
-        createNuclei(an, m, q, s * nq, r0, r1, v, center, 0, 0);
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, center, 0, 0);
     }, r2, grid);
 
     shuffleArray(simulation.particleList);
@@ -361,7 +361,7 @@ function hexagon0(simulation) {
 
     hexagonGenerator((vertex) => {
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
-        createNuclei(an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y), an, an);
+        createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, new Vector3(vertex.x, vertex.y), an, an);
     }, r2, grid);
 
     shuffleArray(simulation.particleList);
@@ -405,7 +405,7 @@ function density2(simulation) {
     ];
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             let len = typeList.length - 1;
             idx = random(0, len, true);
@@ -470,7 +470,7 @@ function density(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             idx = random(0, typeList.length - 1, true);
             return m * typeList[idx][0];
@@ -536,7 +536,7 @@ function magnecticForce(simulation) {
     let y3 = -200;
     let v3 = new Vector3(0, 1, 0);
 
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;
         },
@@ -553,7 +553,7 @@ function magnecticForce(simulation) {
             return new Vector3(0, 0, 0);
         }
     );
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;
         },
@@ -610,7 +610,7 @@ function experiment9(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             idx = random(0, typeList.length - 1, true);
@@ -671,7 +671,7 @@ function donut(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             idx = random(0, typeList.length - 1, true);
@@ -732,7 +732,7 @@ function terrarium(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             idx = random(0, typeList.length - 1, true);
@@ -792,7 +792,7 @@ function twinsCollision(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             idx = random(0, typeList.length - 1, true);
@@ -852,7 +852,7 @@ function experiment5(simulation) {
     ]
 
     let idx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             idx = random(0, typeList.length - 1, true);
@@ -912,7 +912,7 @@ function wildParticles(simulation) {
     ]
 
     let typeIdx = undefined;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             //idx = i % (typeList.length);
             typeIdx = random(0, typeList.length - 1, true);
@@ -975,7 +975,7 @@ function easterEgg(simulation) {
     ]
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             let idx = i % (list.length);
             idx = random(0, list.length - 1, true);
@@ -1027,7 +1027,7 @@ function experiment2(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             let val = [0, 1e-3, 1, 4, 9];
             return m * val[random(0, val.length - 1, true)];
@@ -1087,7 +1087,7 @@ function experiment1(simulation) {
     let n = Math.min(graphics.maxParticles, 80 * 80);
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             let val = [0, 1e-2, 1, 4, 9];
             return m * val[random(0, val.length - 1, true)];
@@ -1145,7 +1145,7 @@ function experiment0(simulation) {
     let n = graphics.maxParticles;
 
     const massThreshold = 0.2;
-    createParticles(physics.particleList, n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             let val = [0, 1, 4, 9];
             return m * val[random(0, val.length - 1, true)];

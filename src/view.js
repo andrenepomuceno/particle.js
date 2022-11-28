@@ -20,8 +20,7 @@ import {
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
-import { createParticles, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
-//import GUI from 'lil-gui';
+import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -40,7 +39,6 @@ let selection = new SelectionHelper();
 
 let stats = new Stats();
 const gui = new dat.GUI();
-//const gui = new GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)");

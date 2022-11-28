@@ -10,7 +10,6 @@ if (ENV?.production === true) {
 
 if (ENV?.version) {
     let dom = document.getElementById("info");
-    console.log(dom);
     dom.innerHTML = dom.innerHTML.replace("loading...", ENV?.version);
 }
 

@@ -52,37 +52,28 @@ function log(msg) {
 
 function setup(idx) {
     log("setup " + idx);
-    selectionReset();
-    resetParticleView();
+    guiSelectionClose();
+    guiParticleClose();
     simulationSetup(idx);
-    resetEditView();
-    updateInfoView();
+    guiParametersRefresh();
+    guiInfoRefresh();
     guiOptions.generator.default();
 }
 
-function uploadCsv(callback) {
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = ".csv";
-    input.onchange = e => {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        reader.readAsText(file, 'UTF-8');
-        reader.onload = readerEvent => {
-            let content = readerEvent.target.result;
-            callback(file.name, content);
-        }
-    }
-    input.click();
-}
-
-function cameraTargetSet(pos) {
-    graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
-    graphics.controls.target.set(pos.x, pos.y, pos.z);
-    graphics.controls.update();
-}
-
 let guiOptions = {
+    info: {
+        name: "",
+        particles: "",
+        energy: "",
+        time: "",
+        collisions: 0,
+        mass: "",
+        radius: "",
+        charge: "",
+        cameraDistance: "",
+        mode: "",
+        cameraPosition: "",
+    },
     controls: {
         pauseResume: function () {
             pause = !pause;
@@ -105,10 +96,10 @@ let guiOptions = {
         },
         import: function () {
             uploadCsv((name, content) => {
-                resetParticleView();
+                guiParticleClose();
                 simulationImportCSV(name, content);
-                resetEditView();
-                updateInfoView();
+                guiInfoRefresh();
+                guiParametersRefresh();
             });
         },
         hideAxis: function () {
@@ -116,11 +107,11 @@ let guiOptions = {
             graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
-            resetParticleView(false);
+            guiParticleClose(false);
             graphics.controls.reset();
         },
         xyCamera: function () {
-            resetParticleView(false);
+            guiParticleClose(false);
             cameraTargetSet(new Vector3());
         },
         colorMode: function () {
@@ -167,19 +158,6 @@ let guiOptions = {
             }
         },
     },
-    info: {
-        name: "",
-        particles: "",
-        energy: "",
-        time: "",
-        collisions: 0,
-        mass: "",
-        radius: "",
-        charge: "",
-        cameraDistance: "",
-        mode: "",
-        cameraPosition: "",
-    },
     particle: {
         obj: undefined,
         id: "",
@@ -206,29 +184,13 @@ let guiOptions = {
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
         close: function () {
-            resetParticleView();
+            guiParticleClose();
         },
         reset: () => {
             simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);
         },
         delete: () => {
 
-        },
-    },
-    parameters: {
-        massConstant: "",
-        chargeConstant: "",
-        nearChargeConstant: "",
-        nearChargeRange: "",
-        boundaryDamping: "",
-        boundaryDistance: "",
-        minDistance2: "",
-        forceConstant: "",
-        maxParticles: "",
-        radius: "",
-        radiusRange: "",
-        close: () => {
-            guiParameters.close();
         },
     },
     selection: {
@@ -254,7 +216,7 @@ let guiOptions = {
             selection.updateView();
         },
         clear: () => {
-            selectionReset();
+            guiSelectionClose();
         },
         delete: () => {
             if (selection.list == undefined || selection.list.length == 0) return;
@@ -263,7 +225,7 @@ let guiOptions = {
                 return;
             }
             simulationDelete(selection.list);
-            selectionReset();
+            guiSelectionClose();
         }
     },
     generator: {
@@ -321,6 +283,22 @@ let guiOptions = {
             params.radius = "1";
             params.quantity = "1";
             params.pattern = "circle";
+        },
+    },
+    parameters: {
+        massConstant: "",
+        chargeConstant: "",
+        nearChargeConstant: "",
+        nearChargeRange: "",
+        boundaryDamping: "",
+        boundaryDistance: "",
+        minDistance2: "",
+        forceConstant: "",
+        maxParticles: "",
+        radius: "",
+        radiusRange: "",
+        close: () => {
+            guiParameters.close();
         },
     },
 }
@@ -583,8 +561,8 @@ function generateSetup() {
 }
 
 export function guiSetup() {
-    window.onresize = onResize;
-    document.addEventListener("keydown", onKeydown);
+    window.onresize = onWindowResize;
+    document.addEventListener("keydown", onKeyDown);
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
@@ -606,12 +584,12 @@ export function guiSetup() {
     setup();
 }
 
-function onResize() {
+function onWindowResize() {
     log("window.onresize");
     graphics.onWindowResize(window);
 }
 
-function onKeydown(event) {
+function onKeyDown(event) {
     if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();
@@ -745,7 +723,7 @@ function onPointerUp(event) {
     }
 }
 
-function updateInfoView(now) {
+function guiInfoRefresh(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
     guiOptions.info.name = name;
     guiOptions.info.particles = n + " / " + graphics.maxParticles;
@@ -765,7 +743,7 @@ function updateInfoView(now) {
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
 }
 
-function updateParticleView() {
+function guiParticleRefresh() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
 
@@ -808,7 +786,7 @@ function updateParticleView() {
     }
 }
 
-function resetParticleView(clear = true) {
+function guiParticleClose(clear = true) {
     followParticle = false;
     if (clear) {
         let particleView = guiOptions.particle;
@@ -828,7 +806,7 @@ function resetParticleView(clear = true) {
     }
 }
 
-function resetEditView() {
+function guiParametersRefresh() {
     let edit = guiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(2);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
@@ -843,8 +821,8 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
-function selectionReset() {
-    selection.clear();
+function guiSelectionClose(clear = true) {
+    if (clear) selection.clear();
     guiSelection.close();
 }
 
@@ -977,6 +955,28 @@ function generateParticles() {
     guiSelection.open();
 }
 
+function uploadCsv(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".csv";
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
+}
+
+function cameraTargetSet(pos) {
+    graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
+    graphics.controls.target.set(pos.x, pos.y, pos.z);
+    graphics.controls.update();
+}
+
 export function animate(time) {
     requestAnimationFrame(animate);
 
@@ -1002,8 +1002,8 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        updateParticleView();
-        updateInfoView(time);
+        guiParticleRefresh();
+        guiInfoRefresh(time);
         selection.updateView();
 
         if (updateField) {

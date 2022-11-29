@@ -120,9 +120,9 @@ void main() {
                     force += -nuclearChargeConstant * nq1 * nq2 * x;
                 #else
                     float x = distance1/nuclearChargeRange;
-                    const float r = 1.0/8.0, log2 = log(2.0);
+                    //const float r = 1.0/8.0, log2 = log(2.0);
                     //x = pow(x, -log2 / log(r));
-                    x = -exp(-log2 * x / r);
+                    //x = -exp(-log2 * x / r);
                     x = sin(2.0 * PI * x);
                     force += nuclearChargeConstant * nq1 * nq2 * x;
                 #endif

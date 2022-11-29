@@ -345,13 +345,13 @@ function infoSetup() {
     guiInfo.open();
 
     const guiInfoMore = guiInfo.addFolder("[+] More");
+    guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
     });
     guiInfoMore.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("charge", val);
     });
-    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 }
 
@@ -385,9 +385,17 @@ function controlsSetup() {
 function particleSetup() {
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
         let obj = simulationFindParticle(parseInt(val));
-        if (obj) {
-            guiOptions.particle.obj = obj;
+        if (obj == undefined) {
+            if (simulation.physics.particleList == undefined ||
+                simulation.physics.particleList.length == 0) {
+                alert("There's no particle in the simulation!");
+            } else {
+                alert("Particle not found!\n" +
+                    "Hint: the first one is " + simulation.physics.particleList[0].id);
+            }
+            return;
         }
+        guiOptions.particle.obj = obj;
     });
     guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();

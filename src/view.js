@@ -259,6 +259,7 @@ let guiOptions = {
         pattern: "circle",
         fixed: false,
         generate: () => {
+            guiGenerate.open();
             particleGenerator();
         },
         clear: () => {
@@ -404,7 +405,7 @@ function guiParticleSetup() {
     guiParticleProperties.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
     });
-    guiParticleProperties.open();
+    //guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
     guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
@@ -419,7 +420,7 @@ function guiParticleSetup() {
     guiParticleVariables.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
     });
-    guiParticleVariables.open();
+    //guiParticleVariables.open();
 
     const guiParticleActions = guiParticle.addFolder("[+] Actions");
     guiParticleActions.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
@@ -570,7 +571,7 @@ function guiParametersSetup() {
     guiParametersConsts.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
         simulationUpdatePhysics("minDistance2", val);
     });
-    guiParametersConsts.open();
+    //guiParametersConsts.open();
 
     const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
@@ -579,7 +580,7 @@ function guiParametersSetup() {
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDamping", val);
     });
-    guiParametersBoundary.open();
+    //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] Visualization");
     guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {

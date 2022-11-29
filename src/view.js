@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon } from './helpers.js';
+import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -748,8 +748,6 @@ function guiParticleRefresh() {
     let particle = particleView.obj;
 
     if (particle) {
-        if (useGPU) graphics.readbackParticleData();
-
         //static info
         particleView.id = particle.id;
         particleView.mass = particle.mass.toExponential(3);
@@ -832,10 +830,8 @@ function selectionUpdate(param, val) {
 }
 
 function snapshot() {
-    let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
-    let finalName = name + "_" + timestamp;
-    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    let finalName = exportFilename(name)
     log("snapshot " + finalName);
 
     graphics.update();
@@ -1002,8 +998,9 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        guiParticleRefresh();
+        if (useGPU && guiOptions.particle.obj != undefined) graphics.readbackParticleData();
         guiInfoRefresh(time);
+        guiParticleRefresh();
         selection.guiRefresh();
         guiParametersRefresh();
 

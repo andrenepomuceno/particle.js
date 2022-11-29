@@ -324,3 +324,10 @@ export function decodeVector3(value) {
     };
     return vec;
 }
+
+export function exportFilename(prefix = "particles") {
+    let timestamp = new Date().toISOString();
+    let finalName = prefix + "_" + timestamp;
+    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    return finalName;
+}

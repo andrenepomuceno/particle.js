@@ -1,4 +1,4 @@
-import { arrayToString, cameraToWorldCoord, downloadFile, mouseToScreenCoord } from "./helpers";
+import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "./helpers";
 import { calcListStatistics, ParticleType } from "./physics";
 const { Image } = require('image-js');
 import { simulation, simulationExportCsv } from "./simulation";
@@ -129,10 +129,7 @@ export class SelectionHelper {
             alert("Please select particles first!");
             return;
         }
-        let timestamp = new Date().toISOString();
-        let name = simulation.state()[0];
-        let finalName = "selection_" + name + "_" + timestamp;
-        finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+        let finalName = exportFilename("selection_" + this.source);
         if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
         downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
     }

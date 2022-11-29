@@ -76,6 +76,12 @@ function uploadCsv(callback) {
     input.click();
 }
 
+function cameraTargetSet(pos) {
+    graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
+    graphics.controls.target.set(pos.x, pos.y, pos.z);
+    graphics.controls.update();
+}
+
 let guiOptions = {
     controls: {
         pauseResume: function () {
@@ -115,9 +121,7 @@ let guiOptions = {
         },
         xyCamera: function () {
             resetParticleView(false);
-            graphics.camera.position.set(0, 0, graphics.cameraDistance);
-            graphics.controls.target.set(0, 0, 0);
-            graphics.controls.update();
+            cameraTargetSet(new Vector3());
         },
         colorMode: function () {
             (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
@@ -197,9 +201,7 @@ let guiOptions = {
         lookAt: function () {
             let x = guiOptions.particle.obj.position;
 
-            graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
-            graphics.controls.target.set(x.x, x.y, x.z);
-            graphics.controls.update();
+
 
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
@@ -333,10 +335,12 @@ function infoSetup() {
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
         if (p == undefined) {
-            alert("Invalid coordinates");
+            alert("Invalid coordinates!");
             return;
         }
         graphics.camera.position.set(p.x, p.y, p.z);
+        graphics.controls.target.set(p.x, p.y, 0);
+        graphics.controls.update();
     });
     guiInfo.open();
 
@@ -973,10 +977,7 @@ export function animate(time) {
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;
-
-        graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
-        graphics.controls.target.set(x.x, x.y, x.z);
-        graphics.controls.update();
+        cameraTargetSet(x);
     }
 
     if (!pause || nextFrame) {

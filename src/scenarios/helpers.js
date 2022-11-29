@@ -31,11 +31,11 @@ export function createParticleList(particleList, mass = 1, charge = 0, nearCharg
     return p;
 }
 
-export function createParticlesList(list, n, massCallback, chargeCallback, nearChargeCallback, positionCallback, velocityCallback) {
+export function createParticlesList(list, n, massCallback, chargeCallback, nearChargeCallback, positionCallback, velocityCallback, fixed = false) {
     for (let i = 0; i < n; ++i) {
         let m = massCallback(i, n);
         let x = positionCallback(i, n);
-        let p = createParticleList(list, m, chargeCallback(i, n), nearChargeCallback(i, n), x, velocityCallback(i, n, x));
+        let p = createParticleList(list, m, chargeCallback(i, n), nearChargeCallback(i, n), x, velocityCallback(i, n, x), fixed);
     }
 }
 

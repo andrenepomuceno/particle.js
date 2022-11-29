@@ -157,6 +157,9 @@ let guiOptions = {
                 stats.domElement.style.visibility = "visible";
             }
         },
+        close: () => {
+            guiControls.close();
+        },
     },
     particle: {
         obj: undefined,
@@ -231,58 +234,62 @@ let guiOptions = {
     generator: {
         mass: "1",
         randomMass: false,
-        enableZeroMass: true,
-        quantizedMass: false,
+        enableZeroMass: false,
+        quantizedMass: true,
 
         charge: "1",
         randomCharge: false,
         chargeRandomSignal: true,
-        enableZeroCharge: true,
+        enableZeroCharge: false,
         quantizedCharge: true,
 
         nearCharge: "1",
         randomNearCharge: false,
-        enableZeroNearCharge: false,
         nearChargeRandomSignal: true,
+        enableZeroNearCharge: false,
         quantizedNearCharge: true,
 
-        velocity: "0,0,0",
-        randomVelocity: false,
+        velocity: "1,0,0",
+        randomVelocity: true,
 
-        radius: "1e3",
-        quantity: "8",
+        radius: "1",
+        quantity: "1",
         pattern: "circle",
+        fixed: false,
         generate: () => {
-            generateParticles();
+            particleGenerator();
         },
         clear: () => {
             guiGenerate.close();
         },
         default: () => {
-            let params = guiOptions.generator;
-            params.mass = "1";
-            params.randomMass = false;
-            params.enableZeroMass = false;
-            params.quantizedMass = true;
+            let clean = {
+                mass: "1",
+                randomMass: false,
+                enableZeroMass: false,
+                quantizedMass: true,
 
-            params.charge = "1";
-            params.randomCharge = false;
-            params.chargeRandomSignal = true;
-            params.enableZeroCharge = false;
-            params.quantizedCharge = true;
+                charge: "1",
+                randomCharge: false,
+                chargeRandomSignal: true,
+                enableZeroCharge: false,
+                quantizedCharge: true,
 
-            params.nearCharge = "1";
-            params.randomNearCharge = false;
-            params.nearChargeRandomSignal = true;
-            params.enableZeroNearCharge = false;
-            params.quantizedNearCharge = true;
+                nearCharge: "1",
+                randomNearCharge: false,
+                nearChargeRandomSignal: true,
+                enableZeroNearCharge: false,
+                quantizedNearCharge: true,
 
-            params.velocity = "1,0,0";
-            params.randomVelocity = true;
+                velocity: "1,0,0",
+                randomVelocity: true,
 
-            params.radius = "1";
-            params.quantity = "1";
-            params.pattern = "circle";
+                radius: "1",
+                quantity: "1",
+                pattern: "circle",
+                fixed: false,
+            };
+            Object.assign(guiOptions.generator, clean);
         },
     },
     parameters: {
@@ -303,7 +310,7 @@ let guiOptions = {
     },
 }
 
-function infoSetup() {
+function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
         simulation.name = val;
     });
@@ -333,34 +340,35 @@ function infoSetup() {
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 }
 
-function controlsSetup() {
+function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
     guiControls.add(guiOptions.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
-    const guiControlsExecution = guiControls.addFolder("[+] Simulation Controls");
-    guiControlsExecution.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiControlsExecution.add(guiOptions.controls, 'step').name("Step [N] (when paused)");
-    guiControlsExecution.add(guiOptions.controls, 'reset').name("Reset [R]");
-    guiControlsExecution.add(guiOptions.controls, 'next').name("Next simulation [PAGEDOWN]");
-    guiControlsExecution.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
-    guiControlsExecution.add(guiOptions.controls, 'home').name("First simulation [HOME]");
-    guiControlsExecution.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
+    const guiControlsSimulation = guiControls.addFolder("[+] Simulation Controls");
+    guiControlsSimulation.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
+    guiControlsSimulation.add(guiOptions.controls, 'step').name("Step [N] (if paused)");
+    guiControlsSimulation.add(guiOptions.controls, 'reset').name("Reset [R]");
+    guiControlsSimulation.add(guiOptions.controls, 'next').name("Next simulation [PAGEDOWN]");
+    guiControlsSimulation.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
+    guiControlsSimulation.add(guiOptions.controls, 'home').name("First simulation [HOME]");
+    guiControlsSimulation.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
 
     const guiControlsCamera = guiControls.addFolder("[+] Camera Controls");
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
 
-    const guiControlsView = guiControls.addFolder("[+] More Options");
+    const guiControlsView = guiControls.addFolder("[+] Miscellaneous");
     guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
     guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
     guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
 
-    guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
-    guiControls.add(guiOptions.controls, 'import').name("Import");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All Particles [DEL]");
+    guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
+    guiControls.add(guiOptions.controls, 'import').name("Import simulation");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all Particles [DEL]");
+    guiControls.add(guiOptions.controls, 'close').name("Close");
 }
 
-function particleSetup() {
+function guiParticleSetup() {
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
         let obj = simulationFindParticle(parseInt(val));
         if (obj == undefined) {
@@ -409,10 +417,102 @@ function particleSetup() {
     guiParticleActions.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticleActions.add(guiOptions.particle, 'lookAt').name('Look At');
     guiParticleActions.add(guiOptions.particle, 'reset').name('Reset Attributes');
-    guiParticle.add(guiOptions.particle, 'close').name('Clear');
+    guiParticle.add(guiOptions.particle, 'close').name('Close');
 }
 
-function parametersSetup() {
+function guiSelectionSetup() {
+    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
+    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
+
+    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
+    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("mass", val);
+    });
+    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("charge", val);
+    });
+    guiSelectionProperties.add(guiOptions.selection, 'nearCharge').name("Near Charge (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("nearCharge", val);
+    });
+
+    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
+    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
+        selectionListUpdate("velocityAbs", val);
+    });
+    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
+        selectionListUpdate("velocityDir", val);
+    });
+    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
+        selectionListUpdate("center", val);
+    });
+
+    const guiSelectionActions = guiSelection.addFolder("[+] Actions");
+    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
+    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
+    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
+
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
+    guiSelection.add(guiOptions.selection, 'clear').name("Close");
+}
+
+function guiGenerateSetup() {
+    guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
+        guiOptions.generator.quantity = Math.round(parseFloat(val));
+    });
+    guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
+        guiOptions.generator.radius = parseFloat(val);
+    });
+    const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
+    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
+
+    const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
+    guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
+        guiOptions.generator.mass = parseFloat(val);
+    });
+    guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
+    guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
+    guiGenerateMass.add(guiOptions.generator, "quantizedMass").name("Quantize?").listen();
+    //guiGenerateMass.open();
+
+    const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
+    guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
+        guiOptions.generator.charge = parseFloat(val);
+    });
+    guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
+    //guiGenerateCharge.open();
+
+    const guiGenerateNearCharge = guiGenerate.addFolder("[+] Near Charge");
+    guiGenerateNearCharge.add(guiOptions.generator, "nearCharge").name("Near Charge").listen().onFinishChange((val) => {
+        guiOptions.generator.nearCharge = parseFloat(val);
+    });
+    guiGenerateNearCharge.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
+    guiGenerateNearCharge.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
+    guiGenerateNearCharge.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
+    guiGenerateNearCharge.add(guiOptions.generator, "quantizedNearCharge").name("Quantize?").listen();
+
+    const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
+    guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
+        let velocity = decodeVector3(val);
+        if (velocity == undefined) {
+            velocity = parseFloat(val);
+            if (!isNaN(velocity)) {
+                velocity = floatArrayToString([velocity, 0, 0], 2);
+            }
+        }
+        guiOptions.generator.velocity = velocity;
+    });
+    guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
+
+    guiGenerate.add(guiOptions.generator, "fixed").name("Fixed position?").listen();
+    guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
+    guiGenerate.add(guiOptions.generator, "default").name("Default Values");
+    guiGenerate.add(guiOptions.generator, "clear").name("Close");
+}
+
+function guiParametersSetup() {
     guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val == simulation.physics.particleList.length) {
@@ -469,97 +569,6 @@ function parametersSetup() {
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 }
 
-function selectionSetup() {
-    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
-    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
-
-    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
-    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("mass", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("charge", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'nearCharge').name("Near Charge (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("nearCharge", val);
-    });
-
-    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
-    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
-        selectionUpdate("velocityAbs", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
-        selectionUpdate("velocityDir", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
-        selectionUpdate("center", val);
-    });
-
-    const guiSelectionActions = guiSelection.addFolder("[+] Actions");
-    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
-    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
-
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
-    guiSelection.add(guiOptions.selection, 'clear').name("Clear");
-}
-
-function generateSetup() {
-    guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
-        guiOptions.generator.quantity = Math.round(parseFloat(val));
-    });
-    guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
-        guiOptions.generator.radius = parseFloat(val);
-    });
-    const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
-    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
-
-    const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
-    guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
-        guiOptions.generator.mass = parseFloat(val);
-    });
-    guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
-    guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
-    guiGenerateMass.add(guiOptions.generator, "quantizedMass").name("Quantize?").listen();
-    //guiGenerateMass.open();
-
-    const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
-    guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.charge = parseFloat(val);
-    });
-    guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
-    //guiGenerateCharge.open();
-
-    const guiGenerateNearCharge = guiGenerate.addFolder("[+] Near Charge");
-    guiGenerateNearCharge.add(guiOptions.generator, "nearCharge").name("Near Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.nearCharge = parseFloat(val);
-    });
-    guiGenerateNearCharge.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "quantizedNearCharge").name("Quantize?").listen();
-
-    const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
-    guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
-        let velocity = decodeVector3(val);
-        if (velocity == undefined) {
-            velocity = parseFloat(val);
-            if (!isNaN(velocity)) {
-                velocity = floatArrayToString([velocity, 0, 0], 2);
-            }
-        }
-        guiOptions.generator.velocity = velocity;
-    });
-    guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
-
-    guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
-    guiGenerate.add(guiOptions.generator, "default").name("Default Values");
-    guiGenerate.add(guiOptions.generator, "clear").name("Close");
-}
-
 export function guiSetup() {
     window.onresize = onWindowResize;
     document.addEventListener("keydown", onKeyDown);
@@ -574,12 +583,12 @@ export function guiSetup() {
     mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
-    infoSetup();
-    controlsSetup();
-    particleSetup();
-    parametersSetup();
-    selectionSetup();
-    generateSetup();
+    guiInfoSetup();
+    guiControlsSetup();
+    guiParticleSetup();
+    guiParametersSetup();
+    guiSelectionSetup();
+    guiGenerateSetup();
 
     setup();
 }
@@ -659,7 +668,7 @@ function onKeyDown(event) {
                 }
 
                 if (selection.source == SourceType.generated) {
-                    generateParticles();
+                    particleGenerator();
                 }
 
                 if (selection.source == SourceType.simulation) {
@@ -824,7 +833,7 @@ function guiSelectionClose(clear = true) {
     guiSelection.close();
 }
 
-function selectionUpdate(param, val) {
+function selectionListUpdate(param, val) {
     simulationUpdateParticleList(param, val, selection.list);
     selection.guiRefresh();
 }
@@ -842,7 +851,7 @@ function snapshot() {
 }
 
 let hexagonMap = new Map();
-function generateParticles() {
+function particleGenerator() {
     log("generateParticles");
 
     function generateMass() {
@@ -942,7 +951,8 @@ function generateParticles() {
         generateCharge,
         generateNearCharge,
         generatePosition,
-        generateVelocity
+        generateVelocity,
+        guiOptions.generator.fixed
     );
 
     selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);

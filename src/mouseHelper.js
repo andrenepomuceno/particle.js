@@ -19,6 +19,9 @@ export class MouseHelper {
         this.lastMove = now;
         this.velocity.set(pos.x - this.position.x, pos.y - this.position.y).divideScalar(dt / 1e3);
 
+        this.samples.push(this.velocity);
+        if (this.samples.length > this.taps) this.samples.shift();
+
         this.position.set(pos.x, pos.y);
     }
 
@@ -29,5 +32,13 @@ export class MouseHelper {
         domElement.addEventListener("mouseleave", () => {
             this.overGUI = false;
         });
+    }
+
+    avgVelocity() {
+        let sum = 0;
+        this.samples.forEach((val) => {
+            sum += val.length();
+        });
+        return sum/this.taps;
     }
 }

@@ -1,7 +1,7 @@
-import { Vector2, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon } from './helpers.js';
+import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -21,6 +21,7 @@ import {
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { MouseHelper } from './mouseHelper';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -29,8 +30,7 @@ let colorMode = "charge";
 let nextFrame = false;
 let pause = false;
 let followParticle = false;
-let mousePosition = new Vector2(1e5, 1e5);
-let mouseOverGUI = false;
+let mouseHelper = new MouseHelper();
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
@@ -146,7 +146,7 @@ let guiOptions = {
             );
         },
         deleteAll: () => {
-            if (confirm("Are you sure?")) {
+            if (confirm("Thiss will delete all particles.\nAre you sure?")) {
                 simulationDeleteAll();
             }
         },
@@ -329,7 +329,6 @@ function infoSetup() {
     });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
@@ -341,13 +340,14 @@ function infoSetup() {
     });
     guiInfo.open();
 
-    const guiInfoMore = guiInfo.addFolder("[+] More Info");
+    const guiInfoMore = guiInfo.addFolder("[+] More");
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
     });
     guiInfoMore.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("charge", val);
     });
+    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 }
 
@@ -375,7 +375,7 @@ function controlsSetup() {
 
     guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All Particles");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All Particles [DEL]");
 }
 
 function particleSetup() {
@@ -508,7 +508,7 @@ function selectionSetup() {
     const guiSelectionActions = guiSelection.addFolder("[+] Actions");
     guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
     guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [DEL]");
+    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
 
     guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelection.add(guiOptions.selection, 'clear').name("Clear");
@@ -571,26 +571,17 @@ function generateSetup() {
 }
 
 export function guiSetup() {
-    function mouseOver() {
-        mouseOverGUI = true;
-    }
-    function mouseLeave() {
-        mouseOverGUI = false;
-    }
-
-    document.getElementById("container").appendChild(stats.dom);
-    stats.domElement.addEventListener("mouseover", mouseOver);
-    stats.domElement.addEventListener("mouseleave", mouseLeave);
-    stats.domElement.style.visibility = "visible";
-
     window.onresize = onResize;
     document.addEventListener("keydown", onKeydown);
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
 
-    gui.domElement.addEventListener("mouseover", mouseOver);
-    gui.domElement.addEventListener("mouseleave", mouseLeave);
+    document.getElementById("container").appendChild(stats.dom);
+    mouseHelper.addListener(stats.domElement);
+    stats.domElement.style.visibility = "visible";
+
+    mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     infoSetup();
@@ -609,7 +600,7 @@ function onResize() {
 }
 
 function onKeydown(event) {
-    if (mouseOverGUI) return;
+    if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();
     switch (key) {
@@ -670,9 +661,9 @@ function onKeydown(event) {
             break;
 
         case 'z':
-            if (!mouseOverGUI && selection.list != undefined) {
+            if (!mouseHelper.overGUI && selection.list != undefined) {
                 if (selection.list.length == 0) return;
-                let center = cameraToWorldCoord(mousePosition, graphics.camera, 0);
+                let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
                 if (simulation.mode2D) {
                     center.z = 0;
                 }
@@ -690,7 +681,7 @@ function onKeydown(event) {
             break;
 
         case 'delete':
-            guiOptions.selection.delete();
+            guiOptions.controls.deleteAll();
             break;
 
         case 's':
@@ -705,6 +696,10 @@ function onKeydown(event) {
             guiOptions.selection.clone();
             break;
 
+        case 'backspace':
+            guiOptions.selection.delete();
+            break;
+
         default:
             log("key = " + key);
             break;
@@ -712,17 +707,8 @@ function onKeydown(event) {
     }
 }
 
-let mouseVelocity = new Vector2();
-let lastMouseMove = Date.now();
 function onPointerMove(event) {
-    let pos = mouseToScreenCoord(event);
-
-    let now = Date.now();
-    let dt = now - lastMouseMove;
-    lastMouseMove = now;
-    mouseVelocity.set(pos.x - mousePosition.x, pos.y - mousePosition.y).divideScalar(dt/1e3);
-
-    mousePosition.set(pos.x, pos.y);
+    mouseHelper.move(event);
     if (selection.started) {
         selection.update(event);
     }
@@ -738,8 +724,8 @@ function onPointerDown(event) {
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
         selection.end(event);
-    } else if (event.button == 0 && !mouseOverGUI) {
-        let particle = graphics.raycast(mousePosition);
+    } else if (event.button == 0 && !mouseHelper.overGUI) {
+        let particle = graphics.raycast(mouseHelper.position);
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticle.open();

@@ -22,7 +22,7 @@ const float height = resolution.y;
 #define PROBE 1.0
 #define FIXED 2.0
 
-#define USE_DISTANCE1 1
+#define USE_DISTANCE1 0
 #define USE_BOX_BOUNDARY 0
 #define USE_HOOKS_LAW 0
 

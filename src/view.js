@@ -401,7 +401,7 @@ function guiParticleSetup() {
     guiParticleProperties.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
     });
-    guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('NuclearCharge').listen().onFinishChange((val) => {
+    guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "nuclearCharge", val);
     });
     //guiParticleProperties.open();

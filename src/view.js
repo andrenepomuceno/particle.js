@@ -213,7 +213,7 @@ let guiOptions = {
         },
         clone: () => {
             selection.clone();
-            selection.updateView();
+            selection.guiRefresh();
         },
         clear: () => {
             guiSelectionClose();
@@ -828,7 +828,7 @@ function guiSelectionClose(clear = true) {
 
 function selectionUpdate(param, val) {
     simulationUpdateParticleList(param, val, selection.list);
-    selection.updateView();
+    selection.guiRefresh();
 }
 
 function snapshot() {
@@ -1004,7 +1004,8 @@ export function animate(time) {
 
         guiParticleRefresh();
         guiInfoRefresh(time);
-        selection.updateView();
+        selection.guiRefresh();
+        guiParametersRefresh();
 
         if (updateField) {
             updateField = false;

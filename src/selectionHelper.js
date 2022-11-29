@@ -87,7 +87,7 @@ export class SelectionHelper {
         if (this.#readParticleData() > 0) {
             this.#snapshot();
             this.source = SourceType.simulation;
-            this.updateView();
+            this.guiRefresh();
             this.guiSelection.open();
         } else {
             this.clear();
@@ -141,7 +141,7 @@ export class SelectionHelper {
         this.importedData = imported;
         this.list = imported.physics.particleList;
         this.source = SourceType.imported + " from " + filename;
-        this.updateView();
+        this.guiRefresh();
     }
 
     clear() {
@@ -207,13 +207,11 @@ export class SelectionHelper {
         return this.list.length;
     }
 
-    updateView() {
+    guiRefresh() {
         //log("updateView");
-
-        this.stats = calcListStatistics(this.list);
-
         let particles = this.list.length;
         if (particles > 0) {
+            this.stats = calcListStatistics(this.list);
             let view = this.options;
             view.source = this.source;
             view.particles = particles;

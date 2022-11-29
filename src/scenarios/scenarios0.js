@@ -14,15 +14,7 @@ export const scenarios0 = [
     simulationSpheres,
 ];
 
-function randomVector(range) {
-    return new Vector3(
-        random(-range, range),
-        random(-range, range),
-        random(-range, range)
-    );
-}
-
-function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+function createParticle__(mass = 1, charge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;
@@ -32,12 +24,12 @@ function createParticle(mass = 1, charge = 0, position = new Vector3(), velocity
     particleList.push(p);
 }
 
-function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
+function createParticles__(particles, [m1, m2], [q1, q2], positionGenerator, center = new Vector3(), velocity = new Vector3()) {
     for (var i = 0; i < particles; ++i) {
         let [x, y, z] = positionGenerator();
         let position = new Vector3(x, y, z);
         position.add(center);
-        createParticle(
+        createParticle__(
             Math.round(random(m1, m2)),
             Math.round(random(q1, q2)),
             position,
@@ -47,37 +39,7 @@ function createParticles(particles, [m1, m2], [q1, q2], positionGenerator, cente
 }
 
 function createParticlesSphere(particles, r1, r2, massRange, chargeRange, center, velocity, mode = 0) {
-    createParticles(particles, massRange, chargeRange, (x, y, z) => randomSpheric(r1, r2, mode), center, velocity);
-}
-
-function simulationDev(simulation) {
-    let graphics = simulation.graphics;
-    let physics = simulation.physics;
-    particleList = physics.particleList;
-
-    graphics.cameraDistance = 1000;
-    graphics.cameraPhi = graphics.cameraTheta = 0;
-
-    physics.forceConstant = 1;
-    physics.massConstant = 1;
-    physics.chargeConstant = 1;
-
-    let x, y, z;
-
-    createParticle(1836, 1);
-
-    let v0 = 16;
-    let r0 = 1e3;
-    let n = 1e3;
-    for (let i = 0; i < n; ++i) {
-        [x, y, z] = randomSpheric(0, r0);
-        createParticle(
-            1,
-            -1,
-            new Vector3(x, y, z),
-            randomVector(v0)
-        );
-    }
+    createParticles__(particles, massRange, chargeRange, (x, y, z) => randomSpheric(r1, r2, mode), center, velocity);
 }
 
 function simulationAtom(simulation) {
@@ -102,20 +64,20 @@ function simulationAtom(simulation) {
     let vy = 6;
     let vx = 0;
 
-    createParticles(1, [1839, 1839], [0, 0], () => {
+    createParticles__(1, [1839, 1839], [0, 0], () => {
         let pos = randomSpheric(0, r);
         //return [pos[0], pos[1], pos[2]];
         return [r, 0, 0];
     }, new Vector3(), new Vector3(-vx, vy, 0));
 
-    createParticles(1, [1836, 1836], [1, 1], () => {
+    createParticles__(1, [1836, 1836], [1, 1], () => {
         let pos = randomSpheric(0, r);
         //return [pos[0], pos[1], pos[2]];
         return [-r, 0, 0];
     }, new Vector3(), new Vector3(vx, -vy, 0));
 
     let re = 1024;
-    createParticles(512, [1, 1], [-1, -1], () => {
+    createParticles__(512, [1, 1], [-1, -1], () => {
         let pos = randomSpheric(0, re);
         return [pos[0], pos[1], pos[2]];
         //return [r, 0, 0];

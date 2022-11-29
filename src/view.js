@@ -1,7 +1,7 @@
-import { Vector2, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import { Particle } from './physics.js';
-import { downloadFile, arrayToString, mouseToScreenCoord, cameraToWorldCoord, decodeVector3, random, floatArrayToString } from './helpers.js';
+import { ParticleType } from './physics.js';
+import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
     simulationSetup,
     simulationExportCsv,
@@ -17,10 +17,12 @@ import {
     simulationCreateParticles,
     simulationDelete,
     simulationDeleteAll,
+    simulationList,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
-import { createParticles, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { MouseHelper } from './mouseHelper';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -29,8 +31,7 @@ let colorMode = "charge";
 let nextFrame = false;
 let pause = false;
 let followParticle = false;
-let mousePosition = new Vector2(1e5, 1e5);
-let mouseOverGUI = false;
+let mouseHelper = new MouseHelper();
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
@@ -39,11 +40,10 @@ let selection = new SelectionHelper();
 
 let stats = new Stats();
 const gui = new dat.GUI();
-//export const gui = new GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)");
-const guiSelection = gui.addFolder("SELECTION (shift + click + drag)");
+const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
 
@@ -53,31 +53,29 @@ function log(msg) {
 
 function setup(idx) {
     log("setup " + idx);
-    selectionReset();
-    resetParticleView();
+    guiSelectionClose();
+    guiParticleClose();
     simulationSetup(idx);
-    resetEditView();
-    updateInfoView();
+    guiParametersRefresh();
+    guiInfoRefresh();
     guiOptions.generator.default();
 }
 
-function uploadCsv(callback) {
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = ".csv";
-    input.onchange = e => {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        reader.readAsText(file, 'UTF-8');
-        reader.onload = readerEvent => {
-            let content = readerEvent.target.result;
-            callback(file.name, content);
-        }
-    }
-    input.click();
-}
-
+let collapseList = [];
 let guiOptions = {
+    info: {
+        name: "",
+        particles: "",
+        energy: "",
+        time: "",
+        collisions: 0,
+        mass: "",
+        radius: "",
+        charge: "",
+        cameraDistance: "",
+        mode: "",
+        cameraPosition: "",
+    },
     controls: {
         pauseResume: function () {
             pause = !pause;
@@ -89,7 +87,8 @@ let guiOptions = {
             setup();
         },
         next: function () {
-            setup(++simulationIdx);
+            if (simulationIdx < simulationList.length - 1)
+                setup(++simulationIdx);
         },
         previous: function () {
             if (simulationIdx > 0)
@@ -100,10 +99,10 @@ let guiOptions = {
         },
         import: function () {
             uploadCsv((name, content) => {
-                resetParticleView();
+                guiParticleClose();
                 simulationImportCSV(name, content);
-                resetEditView();
-                updateInfoView();
+                guiInfoRefresh();
+                guiParametersRefresh();
             });
         },
         hideAxis: function () {
@@ -111,14 +110,12 @@ let guiOptions = {
             graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
-            resetParticleView(false);
+            followParticle = false;
             graphics.controls.reset();
         },
         xyCamera: function () {
-            resetParticleView(false);
-            graphics.camera.position.set(0, 0, graphics.cameraDistance);
-            graphics.controls.target.set(0, 0, 0);
-            graphics.controls.update();
+            followParticle = false;
+            cameraTargetSet(new Vector3());
         },
         colorMode: function () {
             (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
@@ -126,8 +123,9 @@ let guiOptions = {
         },
         placeHint: function () {
             alert(
-                "Press 'Z' to place a particle selection on the mouse/pointer position.\n" +
-                "First, select particles with SHIFT + CLICK + DRAG, then press 'Z' to make clones!"
+                'Press "Z" to place a particle selection on the mouse/pointer position.\n' +
+                'First, select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!\n' +
+                'If you want to make clones, press "Clone" on the selection folder.'
             );
         },
         wip: function () {
@@ -142,11 +140,12 @@ let guiOptions = {
                 "LEFT BUTTON: select particle/camera rotation (3D mode only)\n" +
                 "MIDDLE BUTTON/SCROLL: zoom in/out.\n" +
                 "RIGHT BUTTON: move camera position (pan).\n" +
-                "SHIFT+LEFT CLICK/DRAG: select a group of particles."
+                "SHIFT+LEFT CLICK/DRAG: select a group of particles.\n" +
+                "HINT: Keyboard commands do not work when mouse pointer is over the menus!"
             );
         },
         deleteAll: () => {
-            if (confirm("Are you sure?")) {
+            if (confirm("Thiss will delete all particles.\nAre you sure?")) {
                 simulationDeleteAll();
             }
         },
@@ -154,59 +153,45 @@ let guiOptions = {
             setup(-1);
         },
         hideOverlay: () => {
-            let visibility = stats.dom.style.visibility;
+            let visibility = stats.domElement.style.visibility;
             if (visibility == "visible") {
-                stats.dom.style.visibility = "hidden";
-                //gui.domElement.style.visibility = "hidden";
+                stats.domElement.style.visibility = "hidden";
             }
             else {
-                stats.dom.style.visibility = "visible";
-                //gui.domElement.style.visibility = "visible";
+                stats.domElement.style.visibility = "visible";
             }
         },
-    },
-    info: {
-        name: "",
-        particles: 0,
-        energy: "",
-        time: "",
-        collisions: 0,
-        mass: "",
-        radius: "",
-        charge: "",
-        cameraDistance: "",
-        mode: "",
-        cameraPosition: "",
+        close: () => {
+            guiControls.close();
+        },
+        collapseAll: () => {
+            collapseList.forEach((val) => {
+                val.close();
+            });
+        },
     },
     particle: {
         obj: undefined,
         id: "",
         mass: "",
         charge: "",
-        nearCharge: "",
+        nuclearCharge: "",
         position: "",
         velocityDir: "",
         velocityAbs: "",
         color: "#000000",
-        field: {
-            direction: "",
-            amplitude: "",
-        },
+        fixed: false,
         energy: "",
         follow: function () {
             followParticle = !followParticle;
         },
         lookAt: function () {
             let x = guiOptions.particle.obj.position;
-
-            graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
-            graphics.controls.target.set(x.x, x.y, x.z);
-            graphics.controls.update();
-
+            cameraTargetSet(x);
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
         close: function () {
-            resetParticleView();
+            guiParticleClose();
         },
         reset: () => {
             simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);
@@ -215,28 +200,12 @@ let guiOptions = {
 
         },
     },
-    parameters: {
-        massConstant: "",
-        chargeConstant: "",
-        nearChargeConstant: "",
-        nearChargeRange: "",
-        boundaryDamping: "",
-        boundaryDistance: "",
-        minDistance2: "",
-        forceConstant: "",
-        maxParticles: "",
-        radius: "",
-        radiusRange: "",
-        close: () => {
-            guiParameters.close();
-        },
-    },
     selection: {
         source: "",
         particles: 0,
         mass: "",
         charge: "",
-        nearCharge: "",
+        nuclearCharge: "",
         velocity: "",
         velocityDir: "",
         center: "",
@@ -251,10 +220,10 @@ let guiOptions = {
         },
         clone: () => {
             selection.clone();
-            selection.updateView();
+            selection.guiRefresh();
         },
         clear: () => {
-            selectionReset();
+            guiSelectionClose();
         },
         delete: () => {
             if (selection.list == undefined || selection.list.length == 0) return;
@@ -263,82 +232,110 @@ let guiOptions = {
                 return;
             }
             simulationDelete(selection.list);
-            selectionReset();
+            guiSelectionClose();
         }
     },
     generator: {
         mass: "1",
         randomMass: false,
-        enableZeroMass: true,
-        quantizedMass: false,
+        enableZeroMass: false,
+        quantizedMass: true,
 
         charge: "1",
         randomCharge: false,
         chargeRandomSignal: true,
-        enableZeroCharge: true,
+        enableZeroCharge: false,
         quantizedCharge: true,
 
-        nearCharge: "1",
-        randomNearCharge: false,
-        enableZeroNearCharge: false,
-        nearChargeRandomSignal: true,
-        quantizedNearCharge: true,
+        nuclearCharge: "1",
+        randomNuclearCharge: false,
+        nuclearChargeRandomSignal: true,
+        enableZeroNuclearCharge: false,
+        quantizedNuclearCharge: true,
 
-        velocity: "0,0,0",
-        randomVelocity: false,
+        velocity: "1,0,0",
+        randomVelocity: true,
 
-        radius: "1e3",
-        quantity: "8",
+        radius: "1",
+        quantity: "1",
+        pattern: "circle",
+        fixed: false,
         generate: () => {
-            generateParticles();
+            //guiGenerate.open();
+            particleGenerator();
         },
         clear: () => {
-
+            guiGenerate.close();
         },
         default: () => {
-            let params = guiOptions.generator;
-            params.mass = "1";
-            params.randomMass = false;
-            params.enableZeroMass = false;
-            params.quantizedMass = true;
+            let clean = {
+                mass: "1",
+                randomMass: false,
+                enableZeroMass: false,
+                quantizedMass: true,
 
-            params.charge = "1";
-            params.randomCharge = false;
-            params.chargeRandomSignal = true;
-            params.enableZeroCharge = false;
-            params.quantizedCharge = true;
+                charge: "1",
+                randomCharge: false,
+                chargeRandomSignal: true,
+                enableZeroCharge: false,
+                quantizedCharge: true,
 
-            params.nearCharge = "1";
-            params.randomNearCharge = false;
-            params.nearChargeRandomSignal = true;
-            params.enableZeroNearCharge = false;
-            params.quantizedNearCharge = true;
+                nuclearCharge: "1",
+                randomNuclearCharge: false,
+                nuclearChargeRandomSignal: true,
+                enableZeroNuclearCharge: false,
+                quantizedNuclearCharge: true,
 
-            params.velocity = "1,0,0";
-            params.randomVelocity = true;
+                velocity: "1,0,0",
+                randomVelocity: true,
 
-            params.radius = "1";
-            params.quantity = "1";
+                radius: "1",
+                quantity: "1",
+                pattern: "circle",
+                fixed: false,
+            };
+            Object.assign(guiOptions.generator, clean);
+        },
+    },
+    parameters: {
+        massConstant: "",
+        chargeConstant: "",
+        nuclearChargeConstant: "",
+        nuclearChargeRange: "",
+        boundaryDamping: "",
+        boundaryDistance: "",
+        minDistance2: "",
+        forceConstant: "",
+        maxParticles: "",
+        radius: "",
+        radiusRange: "",
+        close: () => {
+            guiParameters.close();
         },
     },
 }
 
-function infoSetup() {
+function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
         simulation.name = val;
     });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
-        if (p == undefined) return;
+        if (p == undefined) {
+            alert("Invalid coordinates!");
+            return;
+        }
         graphics.camera.position.set(p.x, p.y, p.z);
+        graphics.controls.target.set(p.x, p.y, 0);
+        graphics.controls.update();
     });
     guiInfo.open();
 
-    const guiInfoMore = guiInfo.addFolder("[+] More Info");
+    const guiInfoMore = guiInfo.addFolder("[+] More");
+    guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
     });
@@ -348,39 +345,51 @@ function infoSetup() {
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 }
 
-function controlsSetup() {
+function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
     guiControls.add(guiOptions.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
-    const guiControlsExecution = guiControls.addFolder("[+] Simulation Controls");
-    guiControlsExecution.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-    guiControlsExecution.add(guiOptions.controls, 'step').name("Step [N] (when paused)");
-    guiControlsExecution.add(guiOptions.controls, 'reset').name("Reset [R]");
-    guiControlsExecution.add(guiOptions.controls, 'next').name("Next simulation [PAGEDOWN]");
-    guiControlsExecution.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
-    guiControlsExecution.add(guiOptions.controls, 'home').name("First simulation [HOME]");
-    guiControlsExecution.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
+    const guiControlsSimulation = guiControls.addFolder("[+] Simulation Controls");
+    guiControlsSimulation.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
+    guiControlsSimulation.add(guiOptions.controls, 'step').name("Step [N] (if paused)");
+    guiControlsSimulation.add(guiOptions.controls, 'reset').name("Reset [R]");
+    guiControlsSimulation.add(guiOptions.controls, 'next').name("Next simulation [PAGEDOWN]");
+    guiControlsSimulation.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
+    guiControlsSimulation.add(guiOptions.controls, 'home').name("First simulation [HOME]");
+    guiControlsSimulation.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
 
     const guiControlsCamera = guiControls.addFolder("[+] Camera Controls");
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
 
-    const guiControlsView = guiControls.addFolder("[+] More Options");
-    guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
-    guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
-    guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
+    guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
+    guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+    guiControls.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
+    guiControls.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
+    guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
+    guiControls.add(guiOptions.controls, 'import').name("Import simulation");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
+    guiControls.add(guiOptions.controls, 'close').name("Close");
 
-    guiControls.add(guiOptions.controls, 'snapshot').name("Export [P]");
-    guiControls.add(guiOptions.controls, 'import').name("Import");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete All Particles");
+    collapseList.push(guiControls);
+    collapseList.push(guiControlsCamera);
+    collapseList.push(guiControlsSimulation);
 }
 
-function particleSetup() {
+function guiParticleSetup() {
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
         let obj = simulationFindParticle(parseInt(val));
-        if (obj) {
-            guiOptions.particle.obj = obj;
+        if (obj == undefined) {
+            if (simulation.physics.particleList == undefined ||
+                simulation.physics.particleList.length == 0) {
+                alert("There's no particle in the simulation!");
+            } else {
+                alert("Particle not found!\n" +
+                    "Hint: the first one is " + simulation.physics.particleList[0].id);
+            }
+            return;
         }
+        guiOptions.particle.obj = obj;
     });
     guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
@@ -392,12 +401,15 @@ function particleSetup() {
     guiParticleProperties.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
     });
-    guiParticleProperties.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
+    guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "nuclearCharge", val);
     });
-    guiParticleProperties.open();
+    //guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
+    guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "fixed", val);
+    });
     guiParticleVariables.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "position", val);
     });
@@ -407,19 +419,123 @@ function particleSetup() {
     guiParticleVariables.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
     });
-    guiParticleVariables.open();
-
-    /*guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();*/
+    //guiParticleVariables.open();
 
     const guiParticleActions = guiParticle.addFolder("[+] Actions");
     guiParticleActions.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticleActions.add(guiOptions.particle, 'lookAt').name('Look At');
     guiParticleActions.add(guiOptions.particle, 'reset').name('Reset Attributes');
-    guiParticle.add(guiOptions.particle, 'close').name('Clear');
+    guiParticle.add(guiOptions.particle, 'close').name('Close');
+
+    collapseList.push(guiParticle);
+    collapseList.push(guiParticleActions);
+    collapseList.push(guiParticleVariables);
+    collapseList.push(guiParticleProperties);
 }
 
-function parametersSetup() {
+function guiSelectionSetup() {
+    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
+    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
+
+    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
+    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("mass", val);
+    });
+    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("charge", val);
+    });
+    guiSelectionProperties.add(guiOptions.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("nuclearCharge", val);
+    });
+
+    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
+    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
+        selectionListUpdate("velocityAbs", val);
+    });
+    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
+        selectionListUpdate("velocityDir", val);
+    });
+    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
+        selectionListUpdate("center", val);
+    });
+
+    const guiSelectionActions = guiSelection.addFolder("[+] Actions");
+    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
+    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
+    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
+
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
+    guiSelection.add(guiOptions.selection, 'clear').name("Close");
+
+    collapseList.push(guiSelection);
+    collapseList.push(guiSelectionActions);
+    collapseList.push(guiSelectionProperties);
+    collapseList.push(guiSelectionVariables);
+}
+
+function guiGenerateSetup() {
+    guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
+        guiOptions.generator.quantity = Math.round(parseFloat(val));
+    });
+    guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
+        guiOptions.generator.radius = parseFloat(val);
+    });
+    const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
+    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
+
+    const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
+    guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
+        guiOptions.generator.mass = parseFloat(val);
+    });
+    guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
+    guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
+    guiGenerateMass.add(guiOptions.generator, "quantizedMass").name("Quantize?").listen();
+    //guiGenerateMass.open();
+
+    const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
+    guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
+        guiOptions.generator.charge = parseFloat(val);
+    });
+    guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
+    //guiGenerateCharge.open();
+
+    const guiGenerateNuclearCharge = guiGenerate.addFolder("[+] Nuclear Charge");
+    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearCharge").name("Nuclear Charge").listen().onFinishChange((val) => {
+        guiOptions.generator.nuclearCharge = parseFloat(val);
+    });
+    guiGenerateNuclearCharge.add(guiOptions.generator, "randomNuclearCharge").name("Randomize value?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearChargeRandomSignal").name("Randomize signal?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "quantizedNuclearCharge").name("Quantize?").listen();
+
+    const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
+    guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
+        let velocity = decodeVector3(val);
+        if (velocity == undefined) {
+            velocity = parseFloat(val);
+            if (!isNaN(velocity)) {
+                velocity = floatArrayToString([velocity, 0, 0], 2);
+            }
+        }
+        guiOptions.generator.velocity = velocity;
+    });
+    guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
+
+    guiGenerate.add(guiOptions.generator, "fixed").name("Fixed position?").listen();
+    guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
+    guiGenerate.add(guiOptions.generator, "default").name("Default Values");
+    guiGenerate.add(guiOptions.generator, "clear").name("Close");
+
+    collapseList.push(guiGenerate);
+    collapseList.push(guiGenerateCharge);
+    collapseList.push(guiGenerateMass);
+    collapseList.push(guiGenerateVelocity);
+}
+
+function guiParametersSetup() {
     guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val == simulation.physics.particleList.length) {
@@ -442,11 +558,11 @@ function parametersSetup() {
     guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("chargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeConstant", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("nuclearChargeConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nuclearChargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeRange", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("nuclearChargeRange").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nuclearChargeRange", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
@@ -454,7 +570,7 @@ function parametersSetup() {
     guiParametersConsts.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
         simulationUpdatePhysics("minDistance2", val);
     });
-    guiParametersConsts.open();
+    //guiParametersConsts.open();
 
     const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
@@ -463,7 +579,7 @@ function parametersSetup() {
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDamping", val);
     });
-    guiParametersBoundary.open();
+    //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] Visualization");
     guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {
@@ -474,135 +590,44 @@ function parametersSetup() {
     });
 
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
-}
 
-function selectionSetup() {
-    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
-    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
-
-    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
-    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("mass", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("charge", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'nearCharge').name("Near Charge (sum)").listen().onFinishChange((val) => {
-        selectionUpdate("nearCharge", val);
-    });
-
-    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
-    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
-        selectionUpdate("velocityAbs", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
-        selectionUpdate("velocityDir", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
-        selectionUpdate("center", val);
-    });
-
-    const guiSelectionActions = guiSelection.addFolder("[+] Actions");
-    guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone");
-    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
-    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [DEL]");
-
-    guiSelection.add(guiOptions.selection, 'clear').name("Clear");
-}
-
-function generateSetup() {
-    guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
-        guiOptions.generator.Quantity = Math.round(parseFloat(val));
-    });
-    guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
-        guiOptions.generator.radius = parseFloat(val);
-    });
-
-    const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
-    guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
-        guiOptions.generator.mass = parseFloat(val);
-    });
-    guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
-    guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
-    guiGenerateMass.add(guiOptions.generator, "quantizedMass").name("Quantize?").listen();
-    //guiGenerateMass.open();
-
-    const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
-    guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.charge = parseFloat(val);
-    });
-    guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
-    //guiGenerateCharge.open();
-
-    const guiGenerateNearCharge = guiGenerate.addFolder("[+] Near Charge");
-    guiGenerateNearCharge.add(guiOptions.generator, "nearCharge").name("Near Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.nearCharge = parseFloat(val);
-    });
-    guiGenerateNearCharge.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "quantizedNearCharge").name("Quantize?").listen();
-
-    const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
-    guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
-        let velocity = decodeVector3(val);
-        if (velocity == undefined) {
-            velocity = parseFloat(val);
-            if (!isNaN(velocity)) {
-                velocity = floatArrayToString([velocity, 0, 0], 2);
-            }
-        }
-        guiOptions.generator.velocity = velocity;
-    });
-    guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
-
-    guiGenerate.add(guiOptions.generator, "generate").name("Generate").listen();
-    guiGenerate.add(guiOptions.generator, "default").name("Default Values").listen();
+    collapseList.push(guiParameters);
+    collapseList.push(guiParametersBoundary);
+    collapseList.push(guiParametersConsts);
+    collapseList.push(guiParametersVisual);
 }
 
 export function guiSetup() {
-    function mouseOver() {
-        mouseOverGUI = true;
-    }
-    function mouseLeave() {
-        mouseOverGUI = false;
-    }
-
-    document.getElementById("container").appendChild(stats.dom);
-    stats.domElement.addEventListener("mouseover", mouseOver);
-    stats.domElement.addEventListener("mouseleave", mouseLeave);
-
-    window.onresize = onResize;
-    document.addEventListener("keydown", onKeydown);
+    window.onresize = onWindowResize;
+    document.addEventListener("keydown", onKeyDown);
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
 
-    gui.domElement.addEventListener("mouseover", mouseOver);
-    gui.domElement.addEventListener("mouseleave", mouseLeave);
+    document.getElementById("container").appendChild(stats.dom);
+    mouseHelper.addListener(stats.domElement);
+    stats.domElement.style.visibility = "visible";
+
+    mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
-    infoSetup();
-    controlsSetup();
-    particleSetup();
-    parametersSetup();
-    selectionSetup();
-    generateSetup();
+    guiInfoSetup();
+    guiControlsSetup();
+    guiParticleSetup();
+    guiParametersSetup();
+    guiSelectionSetup();
+    guiGenerateSetup();
 
     setup();
 }
 
-function onResize() {
+function onWindowResize() {
     log("window.onresize");
     graphics.onWindowResize(window);
 }
 
-function onKeydown(event) {
-    if (mouseOverGUI) return;
+function onKeyDown(event) {
+    if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();
     switch (key) {
@@ -663,25 +688,33 @@ function onKeydown(event) {
             break;
 
         case 'z':
-            if (!mouseOverGUI && selection.list != undefined) {
-                if (selection.list.length == 0) return;
-                let center = cameraToWorldCoord(mousePosition, graphics.camera, 0);
-                if (simulation.mode2D) {
-                    center.z = 0;
-                }
-                if (selection.source == SourceType.generated) {
-                    generateParticles();
-                }
-                simulationCreateParticles(selection.list, center);
+            if (!mouseHelper.overGUI && selection.list != undefined) {
+                selectionPlace();
             }
             break;
 
         case 'delete':
-            guiOptions.selection.delete();
+            guiOptions.controls.deleteAll();
             break;
 
         case 's':
             guiOptions.controls.sandbox();
+            break;
+
+        case 'g':
+            guiOptions.generator.generate();
+            break;
+
+        case 'x':
+            guiOptions.selection.clone();
+            break;
+
+        case 'backspace':
+            guiOptions.selection.delete();
+            break;
+
+        case 'm':
+            guiOptions.controls.collapseAll();
             break;
 
         default:
@@ -692,7 +725,7 @@ function onKeydown(event) {
 }
 
 function onPointerMove(event) {
-    mousePosition = mouseToScreenCoord(event);
+    mouseHelper.move(event);
     if (selection.started) {
         selection.update(event);
     }
@@ -708,8 +741,8 @@ function onPointerDown(event) {
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
         selection.end(event);
-    } else if (event.button == 0 && !mouseOverGUI) {
-        let particle = graphics.raycast(mousePosition);
+    } else if (event.button == 0 && !mouseHelper.overGUI) {
+        let particle = graphics.raycast(mouseHelper.position);
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticle.open();
@@ -717,10 +750,10 @@ function onPointerUp(event) {
     }
 }
 
-function updateInfoView(now) {
+function guiInfoRefresh(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
     guiOptions.info.name = name;
-    guiOptions.info.particles = n;
+    guiOptions.info.particles = n + " / " + graphics.maxParticles;
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
     guiOptions.info.energy = (e / n).toExponential(2) + " / " + Math.sqrt(e / m).toExponential(2);
@@ -737,18 +770,17 @@ function updateInfoView(now) {
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
 }
 
-function updateParticleView() {
+function guiParticleRefresh() {
     let particleView = guiOptions.particle;
     let particle = particleView.obj;
 
     if (particle) {
-        if (useGPU) graphics.readbackParticleData();
-
         //static info
         particleView.id = particle.id;
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
-        particleView.nearCharge = particle.nearCharge;
+        particleView.nuclearCharge = particle.nuclearCharge;
+        particleView.fixed = (particle.type == ParticleType.fixed);
 
         let color = particle.color;
         if (particle.mesh) {
@@ -765,22 +797,11 @@ function updateParticleView() {
         particleView.velocityDir = arrayToString(
             particle.velocity.clone().normalize().toArray(), 3);
         particleView.velocityAbs = particle.velocity.length().toExponential(3);
-
-        // field info
-        let probe = new Particle();
-        probe.charge = 1;
-        probe.mass = 1;
-        probe.nearCharge = 1;
-        probe.position = particle.position;
-        let field = simulation.fieldProbe(probe);
-        let fieldAmp = field.length();
-        particleView.field.amplitude = fieldAmp.toExponential(3);
-        particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
         particleView.energy = particle.energy().toExponential(3);
     }
 }
 
-function resetParticleView(clear = true) {
+function guiParticleClose(clear = true) {
     followParticle = false;
     if (clear) {
         let particleView = guiOptions.particle;
@@ -788,24 +809,23 @@ function resetParticleView(clear = true) {
         particleView.id = "";
         particleView.mass = "";
         particleView.charge = "";
-        particleView.nearCharge = "";
+        particleView.nuclearCharge = "";
         particleView.color = "";
         particleView.position = "";
         particleView.velocityDir = "";
         particleView.velocityAbs = "";
-        particleView.field.amplitude = "";
-        particleView.field.direction = "";
         particleView.energy = "";
-        guiParticle.close();
+        particleView.fixed = false;
     }
+    guiParticle.close();
 }
 
-function resetEditView() {
+function guiParametersRefresh() {
     let edit = guiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(2);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-    edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(2);
-    edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(2);
+    edit.nuclearChargeConstant = simulation.physics.nuclearChargeConstant.toExponential(2);
+    edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
     edit.minDistance2 = simulation.physics.minDistance2;
@@ -815,21 +835,37 @@ function resetEditView() {
     edit.maxParticles = graphics.maxParticles;
 }
 
-function selectionReset() {
-    selection.clear();
+function guiSelectionClose(clear = true) {
+    if (clear) selection.clear();
     guiSelection.close();
 }
 
-function selectionUpdate(param, val) {
+function selectionListUpdate(param, val) {
     simulationUpdateParticleList(param, val, selection.list);
-    selection.updateView();
+    selection.guiRefresh();
+}
+
+function selectionPlace() {
+    if (selection.list.length == 0) return;
+    let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
+    if (simulation.mode2D) {
+        center.z = 0;
+    }
+
+    if (selection.source == SourceType.generated) {
+        particleGenerator();
+    }
+
+    if (selection.source == SourceType.simulation) {
+        simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
+    } else {
+        simulationCreateParticles(selection.list, center);
+    }
 }
 
 function snapshot() {
-    let timestamp = new Date().toISOString();
     let name = simulation.state()[0];
-    let finalName = name + "_" + timestamp;
-    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    let finalName = exportFilename(name)
     log("snapshot " + finalName);
 
     graphics.update();
@@ -839,30 +875,9 @@ function snapshot() {
     downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
 }
 
-function generateParticles() {
+let hexagonMap = new Map();
+function particleGenerator() {
     log("generateParticles");
-    let newParticles = [];
-
-    let input = guiOptions.generator;
-    let mass = parseFloat(input.mass);
-    let charge = parseFloat(input.charge);
-    let nearCharge = parseFloat(input.nearCharge);
-    let radius = Math.abs(parseFloat(input.radius));
-    let quantity = Math.round(parseFloat(input.quantity));
-    if (isNaN(mass) || isNaN(charge) || isNaN(nearCharge) || isNaN(radius) || isNaN(quantity)) {
-        alert("Invalid parameters!");
-        return;
-    }
-    let velocity = decodeVector3(input.velocity);
-    if (velocity == undefined) {
-        velocity = parseFloat(input.velocity);
-        if (isNaN(velocity)) {
-            alert("Invalid velocity!");
-            return;
-        }
-        velocity = { x: velocity, y: 0, z: 0 };
-    }
-    velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
     function generateMass() {
         let m = mass;
@@ -882,40 +897,116 @@ function generateParticles() {
         return s * q;
     }
 
-    function generateNearCharge() {
+    function generateNuclearCharge() {
         let s = 1;
-        let nq = nearCharge;
-        if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomNearCharge) nq *= random(0, 1);
-        if (guiOptions.generator.quantizedNearCharge) nq = Math.round(nq);
-        if (!guiOptions.generator.enableZeroNearCharge && nq == 0) nq = nearCharge;
+        let nq = nuclearCharge;
+        if (guiOptions.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+        if (guiOptions.generator.randomNuclearCharge) nq *= random(0, 1);
+        if (guiOptions.generator.quantizedNuclearCharge) nq = Math.round(nq);
+        if (!guiOptions.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
         return s * nq;
     }
 
-    createParticlesList(newParticles, quantity,
-        () => {
-            return generateMass();
-        },
-        () => {
-            return generateCharge();
-        },
-        () => {
-            return generateNearCharge();
-        },
-        () => {
-            return randomSphericVector(0, radius);
-        },
-        () => {
-            let v = velocity;
-            if (guiOptions.generator.randomVelocity) v = randomVector(v.length());
-            return v;
+    function generatePosition() {
+        switch (input.pattern) {
+            case "circle":
+                return randomSphericVector(0, radius);
+
+            case "square":
+                return randomVector(radius);
+
+            case "hexagon":
+                {
+                    log(hexagonMap.size);
+                    if (hexagonMap.size == 0) {
+                        generateHexagon(0, 0, radius, hexagonMap);
+                        console.log(hexagonMap);
+                    }
+
+                    let idx = random(0, 256, true) % (hexagonMap.size);
+                    let pos = new Vector3();
+                    for (let [key, value] of hexagonMap) {
+                        if (idx-- == 0) {
+                            pos.set(value.x, value.y, 0);
+                            hexagonMap.delete(key);
+                            break;
+                        }
+                    }
+
+                    return pos;
+                }
+
+            default:
+                return new Vector3();
         }
+    }
+
+    function generateVelocity() {
+        let v = velocity;
+        if (guiOptions.generator.randomVelocity) v = randomVector(v.length());
+        return v;
+    }
+
+    let newParticles = [];
+
+    let input = guiOptions.generator;
+    let mass = parseFloat(input.mass);
+    let charge = parseFloat(input.charge);
+    let nuclearCharge = parseFloat(input.nuclearCharge);
+    let radius = Math.abs(parseFloat(input.radius));
+    let quantity = Math.round(parseFloat(input.quantity));
+    if (isNaN(mass) || isNaN(charge) || isNaN(nuclearCharge) || isNaN(radius) || isNaN(quantity)) {
+        alert("Invalid parameters!");
+        return;
+    }
+    let velocity = decodeVector3(input.velocity);
+    if (velocity == undefined) {
+        velocity = parseFloat(input.velocity);
+        if (isNaN(velocity)) {
+            alert("Invalid velocity!");
+            return;
+        }
+        velocity = { x: velocity, y: 0, z: 0 };
+    }
+    velocity = new Vector3(velocity.x, velocity.y, velocity.z);
+
+    //if (input.pattern == "hexagon") quantity *= 6;
+    console.log(guiOptions.generator.fixed);
+    createParticlesList(newParticles, quantity,
+        generateMass,
+        generateCharge,
+        generateNuclearCharge,
+        generatePosition,
+        generateVelocity,
+        guiOptions.generator.fixed
     );
 
     selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
     selection.source = SourceType.generated;
     selection.list = newParticles;
     guiSelection.open();
+}
+
+function uploadCsv(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".csv";
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
+}
+
+function cameraTargetSet(pos) {
+    graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
+    graphics.controls.target.set(pos.x, pos.y, pos.z);
+    graphics.controls.update();
 }
 
 export function animate(time) {
@@ -926,10 +1017,7 @@ export function animate(time) {
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;
-
-        graphics.camera.position.set(x.x, x.y, graphics.controls.getDistance());
-        graphics.controls.target.set(x.x, x.y, x.z);
-        graphics.controls.update();
+        cameraTargetSet(x);
     }
 
     if (!pause || nextFrame) {
@@ -946,9 +1034,11 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        updateParticleView();
-        updateInfoView(time);
-        selection.updateView();
+        if (useGPU && guiOptions.particle.obj != undefined) graphics.readbackParticleData();
+        guiInfoRefresh(time);
+        guiParticleRefresh();
+        selection.guiRefresh();
+        guiParametersRefresh();
 
         if (updateField) {
             updateField = false;

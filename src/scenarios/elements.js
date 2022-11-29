@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createCloud0, createNuclei0, atom0, createCloud3 } from './helpers.js';
+import { createNuclei0, atom0, createCloud3 } from './helpers.js';
 
 export const elements = [
     h2,
@@ -26,9 +26,9 @@ function defaultParameters(simulation, cameraDistance = 5000) {
 
     physics.forceConstant = 8;
     physics.massConstant = 1e-6;
-    physics.nearChargeConstant = -1;
-    physics.nearChargeRange = 200;
-    physics.chargeConstant = Math.abs(physics.nearChargeConstant) / 60;
+    physics.nuclearChargeConstant = -1;
+    physics.nuclearChargeRange = 200;
+    physics.chargeConstant = Math.abs(physics.nuclearChargeConstant) / 60;
 
     simulation.setParticleRadius(30, 10);
     simulation.physics.boundaryDistance = 1e5;
@@ -47,7 +47,7 @@ function atom(physics, n, center = new Vector3()) {
     let q = 100;
     let nq = 1;
 
-    let r0 = physics.nearChargeRange / 2;
+    let r0 = physics.nuclearChargeRange / 2;
     let r1 = 3 * r0;
     let r2 = 2 * r1 * n;
 
@@ -56,7 +56,7 @@ function atom(physics, n, center = new Vector3()) {
     //console.log(v);
 
     let ne = 1 * n;
-    atom0(
+    atom0(physics.particleList,
         n, ne,
         m, q, nq,
         r0, r1, r2,
@@ -73,15 +73,15 @@ function h2(simulation) {
     let m = 1 / 100;
     let q = 100;
     let nq = 1;
-    let r0 = physics.nearChargeRange / 2;
+    let r0 = physics.nuclearChargeRange / 2;
     let r1 = 4 * r0;
     let r2 = 2 * r1;
     let x = 2 * r0 * 0.8;
     let v = 16;
 
-    createNuclei0(1, m, q, nq, r0, 0, new Vector3(-x, 0, 0));
-    createNuclei0(1, m, q, nq, r0, 0, new Vector3(x, 0, 0));
-    createCloud3(8, m, -q, 0, r1, r2, v);
+    createNuclei0(physics.particleList, 1, m, q, nq, r0, 0, new Vector3(-x, 0, 0));
+    createNuclei0(physics.particleList, 1, m, q, nq, r0, 0, new Vector3(x, 0, 0));
+    createCloud3(physics.particleList, 8, m, -q, 0, r1, r2, v);
 }
 
 function water(simulation) {
@@ -89,9 +89,9 @@ function water(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 7000);
     //simulation.fieldCleanup();
-    // physics.nearChargeConstant = 60;
-    // physics.nearChargeRange = 512;
-    let x = physics.nearChargeRange * 1.5;
+    // physics.nuclearChargeConstant = 60;
+    // physics.nuclearChargeRange = 512;
+    let x = physics.nuclearChargeRange * 1.5;
     let y = x / 2;
     atom(physics, 1, new Vector3(-x, -y, 0));
     atom(physics, 8, new Vector3(0, y, 0));

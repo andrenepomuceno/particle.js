@@ -19,7 +19,7 @@ import { particleVertexShader, particleFragmentShader } from './shaders/particle
 import { sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
 
-const axisLineWidth = 100;
+const axisLineWidth = 1e3;
 const axisObject = [
     new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000),
     new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00),
@@ -226,9 +226,9 @@ export class GraphicsGPU {
         uniforms['minDistance2'] = { value: physics.minDistance2 };
         uniforms['massConstant'] = { value: physics.massConstant };
         uniforms['chargeConstant'] = { value: physics.chargeConstant };
-        uniforms['nearChargeConstant'] = { value: physics.nearChargeConstant };
-        uniforms['nearChargeRange'] = { value: physics.nearChargeRange };
-        uniforms['nearChargeRange2'] = { value: Math.pow(physics.nearChargeRange, 2) };
+        uniforms['nuclearChargeConstant'] = { value: physics.nuclearChargeConstant };
+        uniforms['nuclearChargeRange'] = { value: physics.nuclearChargeRange };
+        uniforms['nuclearChargeRange2'] = { value: Math.pow(physics.nuclearChargeRange, 2) };
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
@@ -257,7 +257,7 @@ export class GraphicsGPU {
             propsArray[offset4 + 0] = p.id;
             propsArray[offset4 + 1] = p.mass;
             propsArray[offset4 + 2] = p.charge;
-            propsArray[offset4 + 3] = p.nearCharge;
+            propsArray[offset4 + 3] = p.nuclearCharge;
 
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;

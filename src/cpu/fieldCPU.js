@@ -121,7 +121,7 @@ export class FieldCPU {
         let probe = new Particle();
         probe.mass = updateProbe.m;
         probe.charge = updateProbe.q;
-        probe.nearCharge = updateProbe.nq;
+        probe.nuclearCharge = updateProbe.nq;
         fieldVectorList.forEach((pos) => {
             probe.position = pos;
             let force = this.probe(probe);

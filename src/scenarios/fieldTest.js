@@ -9,11 +9,11 @@ export const fields = [
 
 let particleList = undefined;
 
-function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+function createParticle2(mass = 1, charge = 0, nuclearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;
-    p.nearCharge = nearCharge;
+    p.nuclearCharge = nuclearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
     if (fixed) p.type = ParticleType.fixed;
@@ -35,8 +35,8 @@ function defaultConfig(simulation, distance = 4.0e2) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 2e2;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 2e2;
 
     simulation.bidimensionalMode(true);
     simulation.setParticleRadius(10, 0);
@@ -50,7 +50,7 @@ function nearField(simulation) {
     simulation.fieldProbeConfig(0, 0, 5e2);
     simulation.fieldSetup("2d", grid);
 
-    let x = new Vector3(1.1 * physics.nearChargeRange, 0, 0);
+    let x = new Vector3(1.1 * physics.nuclearChargeRange, 0, 0);
     let v = new Vector3(0, 0, 0);
     let fixed = true;
     let q = 1;

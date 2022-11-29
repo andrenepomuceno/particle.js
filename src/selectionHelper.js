@@ -1,5 +1,4 @@
-import { Vector3 } from "three";
-import { arrayToString, cameraToWorldCoord, downloadFile, mouseToScreenCoord } from "./helpers";
+import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "./helpers";
 import { calcListStatistics, ParticleType } from "./physics";
 const { Image } = require('image-js');
 import { simulation, simulationExportCsv } from "./simulation";
@@ -88,7 +87,7 @@ export class SelectionHelper {
         if (this.#readParticleData() > 0) {
             this.#snapshot();
             this.source = SourceType.simulation;
-            this.updateView();
+            this.guiRefresh();
             this.guiSelection.open();
         } else {
             this.clear();
@@ -130,12 +129,16 @@ export class SelectionHelper {
             alert("Please select particles first!");
             return;
         }
-        let timestamp = new Date().toISOString();
-        let name = simulation.state()[0];
-        let finalName = "selection_" + name + "_" + timestamp;
-        finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+        let finalName = exportFilename("selection_" + this.source);
         if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
         downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
+    }
+
+    import(imported) {
+        this.importedData = imported;
+        this.list = imported.physics.particleList;
+        this.source = SourceType.imported + " from " + filename;
+        this.guiRefresh();
     }
 
     clear() {
@@ -149,7 +152,7 @@ export class SelectionHelper {
             view.particles = 0;
             view.mass = "";
             view.charge = "";
-            view.nearCharge = "";
+            view.nuclearCharge = "";
             view.velocity = "";
             view.velocityDir = "";
             view.center = "";
@@ -201,19 +204,17 @@ export class SelectionHelper {
         return this.list.length;
     }
 
-    updateView() {
+    guiRefresh() {
         //log("updateView");
-
-        this.stats = calcListStatistics(this.list);
-
         let particles = this.list.length;
         if (particles > 0) {
+            this.stats = calcListStatistics(this.list);
             let view = this.options;
             view.source = this.source;
             view.particles = particles;
             view.mass = this.stats.totalMass.toExponential(2);
             view.charge = this.stats.totalCharge.toExponential(2);
-            view.nearCharge = this.stats.totalNearCharge.toExponential(2);
+            view.nuclearCharge = this.stats.totalNuclearCharge.toExponential(2);
             view.velocity = this.stats.avgVelocity.length().toExponential(2);
             view.velocityDir = arrayToString(this.stats.avgVelocity.clone().normalize().toArray(), 2);
             let center = this.stats.center.toArray();

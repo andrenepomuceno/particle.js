@@ -132,22 +132,21 @@ function axialHexToPixel(q, r, size) {
     return [x, y];
 }
 
-export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
-    function generate(cx, cy, radius) {
-        let s = 1;
-        for (let i = 0; i < 6; ++i) {
-            let theta = (30 + 60 * i) * Math.PI / 180;
-            let x = radius * Math.cos(theta) + cx;
-            let y = radius * Math.sin(theta) + cy;
+export function generateHexagon(cx, cy, radius, map) {
+    for (let i = 0; i < 6; ++i) {
+        let theta = (30 + 60 * i) * Math.PI / 180;
+        let x = radius * Math.cos(theta) + cx;
+        let y = radius * Math.sin(theta) + cy;
 
-            let vertex = { x, y, i };
-            let tag = x.toExponential(2) + " " + y.toExponential(2);
-            if (!vertexMap.has(tag)) {
-                vertexMap.set(tag, vertex);
-            }
+        let vertex = { x, y, i };
+        let tag = x.toExponential(2) + " " + y.toExponential(2);
+        if (!map.has(tag)) {
+            map.set(tag, vertex);
         }
     }
+}
 
+export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
     let hexToPixel = (mode == "offset") ? offsetHexToPixel : axialHexToPixel;
 
     let vertexMap = new Map();
@@ -161,7 +160,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
     for (let i = -height / 2; i <= height / 2; ++i) {
         for (let j = -width / 2; j <= width / 2; ++j) {
             let [cx, cy] = hexToPixel(i, j, cellRadius);
-            generate(cx, cy, cellRadius);
+            generateHexagon(cx, cy, cellRadius, vertexMap);
         }
     }
 
@@ -227,9 +226,9 @@ export function generateParticleColor(p, absCharge) {
         l = 80;
     }
 
-    if (p.nearCharge > 0) {
+    if (p.nuclearCharge > 0) {
         //h += 10;
-    } else if (p.nearCharge < 0) {
+    } else if (p.nuclearCharge < 0) {
         h += 20;
     }
 
@@ -324,4 +323,11 @@ export function decodeVector3(value) {
         z: parseFloat(split[2])
     };
     return vec;
+}
+
+export function exportFilename(prefix = "particles") {
+    let timestamp = new Date().toISOString();
+    let finalName = prefix + "_" + timestamp;
+    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    return finalName;
 }

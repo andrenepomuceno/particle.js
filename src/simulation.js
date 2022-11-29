@@ -12,10 +12,10 @@ import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
 import { fields } from './scenarios/fieldTest.js';
 import { elements } from './scenarios/elements.js';
-import { nearForce } from './scenarios/nearForce.js';
+import { nuclearForce } from './scenarios/nuclearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
-import { nearForce1 } from './scenarios/nearForce1.js';
+import { nuclearForce1 } from './scenarios/nuclearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
@@ -29,7 +29,7 @@ function log(msg) {
     console.log("Simulation: " + msg)
 }
 
-let simulationList = [];
+export let simulationList = [];
 function addFolder(name, list) {
     list.forEach((value, index) => {
         list[index].folderName = name;
@@ -42,11 +42,11 @@ if (!ENV?.production) {
 }
 if (useGPU) {
     addFolder("experiments", experiments);
-    addFolder("nearForce1", nearForce1);
+    addFolder("nuclearForce1", nuclearForce1);
     addFolder("gpgpu", gpgpu);
 }
 addFolder("scenarios2", scenarios2);
-addFolder("nearForce", nearForce);
+addFolder("nuclearForce", nuclearForce);
 addFolder("fields", fields);
 addFolder("elements", elements);
 addFolder("scenarios1", scenarios1);
@@ -159,7 +159,7 @@ function parseCsv(filename, content) {
                 }
                 particle.mass = parseFloat(values[2]);
                 particle.charge = parseFloat(values[3]);
-                particle.nearCharge = parseFloat(values[4]);
+                particle.nuclearCharge = parseFloat(values[4]);
                 particle.position.x = parseFloat(values[5]);
                 particle.position.y = parseFloat(values[6]);
                 particle.position.z = parseFloat(values[7]);
@@ -193,8 +193,8 @@ function parseCsv(filename, content) {
                 imported.physics.forceConstant = parseFloat(values[3]);
                 imported.physics.massConstant = parseFloat(values[4]);
                 imported.physics.chargeConstant = parseFloat(values[5]);
-                imported.physics.nearChargeConstant = parseFloat(values[6]);
-                imported.physics.nearChargeRange = parseFloat(values[7]);
+                imported.physics.nuclearChargeConstant = parseFloat(values[6]);
+                imported.physics.nuclearChargeRange = parseFloat(values[7]);
                 imported.physics.boundaryDistance = parseFloat(values[8]);
                 imported.physics.boundaryDamping = parseFloat(values[9]);
                 imported.cycles = parseFloat(values[10]);
@@ -265,14 +265,11 @@ export function simulationImportSelectionCSV(selection, filename, content) {
     let imported = parseCsv(filename, content);
     if (imported == undefined) return;
 
-    if (imported.physics.nearChargeRange != physics.nearChargeRange) {
+    if (imported.physics.nuclearChargeRange != physics.nuclearChargeRange) {
         alert("Imported particle physics do not match!");
     }
 
-    selection.importedData = imported;
-    selection.list = imported.physics.particleList;
-    selection.source = SourceType.imported + " from " + filename;
-    selection.updateView();
+    selection.import(imported);
 }
 
 function normalizePosition(list) {
@@ -338,12 +335,12 @@ export function simulationUpdatePhysics(key, value) {
             physics.chargeConstant = parseFloat(value);
             break;
 
-        case "nearChargeConstant":
-            physics.nearChargeConstant = parseFloat(value);
+        case "nuclearChargeConstant":
+            physics.nuclearChargeConstant = parseFloat(value);
             break;
 
-        case "nearChargeRange":
-            physics.nearChargeRange = parseFloat(value);
+        case "nuclearChargeRange":
+            physics.nuclearChargeRange = parseFloat(value);
             break;
 
         case "boundaryDamping":
@@ -418,8 +415,8 @@ export function simulationUpdateParticle(particle, key, value) {
             particle.charge = parseFloat(value);
             break;
 
-        case "nearCharge":
-            particle.nearCharge = parseFloat(value);
+        case "nuclearCharge":
+            particle.nuclearCharge = parseFloat(value);
             break;
 
         case "position":
@@ -472,9 +469,14 @@ export function simulationUpdateParticle(particle, key, value) {
         case "reset":
             particle.mass = 0;
             particle.charge = 0;
-            particle.nearCharge = 0;
+            particle.nuclearCharge = 0;
             particle.velocity.set(0, 0, 0);
             particle.position.set(0, 0, 0);
+            break;
+
+        case "fixed":
+            if (value === true) particle.type = ParticleType.fixed;
+            else if (value === false) particle.type = ParticleType.default;
             break;
 
         default:
@@ -514,12 +516,6 @@ export function simulationDelete(list) {
 export function simulationUpdateParticleList(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
-    let ratio = parseFloat(value);
-    if (isNaN(ratio)) {
-        alert("Invalid value.");
-        return;
-    }
-
     let totalMass = simulation.totalMass.toExponential(1);
     let totalCharge = simulation.totalCharge.toExponential(1);
     if (list == undefined) {
@@ -528,11 +524,16 @@ export function simulationUpdateParticleList(parameter, value, list) {
         let stats = calcListStatistics(list);
         totalMass = stats.totalMass.toExponential(1);
         totalCharge = stats.totalCharge.toExponential(1);
-    }    
+    }
 
     switch (parameter) {
         case "mass":
             {
+                let ratio = parseFloat(value);
+                if (isNaN(ratio)) {
+                    alert("Invalid value.");
+                    return;
+                }
                 if (ratio.toExponential(1) == totalMass) return;
                 if (ratio > 1e6) {
                     alert("Value is too big.");
@@ -548,6 +549,11 @@ export function simulationUpdateParticleList(parameter, value, list) {
 
         case "charge":
             {
+                let ratio = parseFloat(value);
+                if (isNaN(ratio)) {
+                    alert("Invalid value.");
+                    return;
+                }
                 if (ratio.toExponential(1) == totalCharge) return;
                 if (ratio >= 1e6) {
                     alert("Value is too big.");
@@ -565,7 +571,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
             {
                 let center = decodeVector3(value);
                 if (center == undefined) {
-                    alert("Invalid value.");
+                    alert("Invalid center position");
                     return;
                 }
                 let centerVector = new Vector3(center.x, center.y, center.z);

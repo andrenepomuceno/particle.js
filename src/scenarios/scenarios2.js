@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticle, createParticles, randomSphericVector, randomVector } from './helpers';
+import { createParticleList, createParticlesList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
@@ -25,8 +25,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1 / 137;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e6;
@@ -40,7 +40,7 @@ function string(simulation) {
     simulation.setParticleRadius(50, 40);
     simulation.bidimensionalMode(true);
     
-    physics.nearChargeRange = 1e5;
+    physics.nuclearChargeRange = 1e5;
 
     let m = 1;
     let q = 1;
@@ -49,7 +49,7 @@ function string(simulation) {
     let v = 0;
     let n = Math.round(1024 / 3);
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 0.5 * m;
         },
@@ -61,14 +61,14 @@ function string(simulation) {
             //return 0;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 3 * m;
         },
@@ -79,14 +79,14 @@ function string(simulation) {
             return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 6 * m;
         },
@@ -97,10 +97,10 @@ function string(simulation) {
             return (random(0, 1, true)) ? (-3 * nq) : (3 * nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -117,13 +117,13 @@ function nucleiGrid(simulation) {
     let q = 3;
     let nq = 1;
     let grid = [13, 13, 1];
-    let r0 = physics.nearChargeRange * 0.05;
-    let r1 = physics.nearChargeRange * 0.63;
+    let r0 = physics.nuclearChargeRange * 0.05;
+    let r1 = physics.nuclearChargeRange * 0.63;
     let v = 0;
     let n = 1;
 
     function createNuclei(n, m, q, nq, r0, r1, v, center, neutron = false) {
-        createParticles(2 * n,
+        createParticlesList(physics.particleList, 2 * n,
             (i) => {
                 return 2.2 * m;
             },
@@ -134,13 +134,13 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
-        createParticles(1 * n,
+        createParticlesList(physics.particleList, 1 * n,
             (i) => {
                 return 4.7 * m;
             },
@@ -151,14 +151,14 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
 
-        createParticles(n,
+        createParticlesList(physics.particleList, n,
             (i) => {
                 return 0.511 * m;
             },
@@ -169,16 +169,16 @@ function nucleiGrid(simulation) {
                 return -nq;
             },
             (i) => {
-                return randomSphericVector(r0, r1).add(center);
+                return randomSphericVector(r0, r1).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(v);
+                return randomVector(v, simulation.mode2D);
             }
         );
 
         if (!neutron) return;
 
-        createParticles(1 * n,
+        createParticlesList(physics.particleList, 1 * n,
             (i) => {
                 return 2.2 * m;
             },
@@ -189,13 +189,13 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
-        createParticles(2 * n,
+        createParticlesList(physics.particleList, 2 * n,
             (i) => {
                 return 4.7 * m;
             },
@@ -206,10 +206,10 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center);
+                return randomSphericVector(0, r0).add(center, simulation.mode2D);
             },
             (i) => {
-                return randomVector(0);
+                return randomVector(0, simulation.mode2D);
             }
         );
     }
@@ -237,18 +237,18 @@ function shootedBarrier(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [59, 9, 1];
-    let r0 = physics.nearChargeRange * 1 / 100;
-    let r1 = physics.nearChargeRange * 0.63;
+    let r0 = physics.nuclearChargeRange * 1 / 100;
+    let r1 = physics.nuclearChargeRange * 0.63;
     let v = 0;
     let n = 2;
 
     for (let i = 0; i < 15; i++) {
-        createParticle(1, -q, nq, new Vector3(0, 1e4 + i * physics.nearChargeRange, 0), new Vector3(0, -100, 0));
+        createParticleList(physics.particleList, 1, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearChargeRange, 0), new Vector3(0, -100, 0));
     }
 
     let aux = 0;
     cubeGenerator((x, y, z) => {
-        createParticles(n,
+        createParticlesList(physics.particleList, n,
             (i) => {
                 return m;
             },
@@ -264,10 +264,10 @@ function shootedBarrier(simulation) {
                 }
             },
             (i) => {
-                return randomSphericVector(0, r0).add(new Vector3(x, y, z));
+                return randomSphericVector(0, r0).add(new Vector3(x, y, z), simulation.mode2D);
             },
             (i) => {
-                return randomVector(v);
+                return randomVector(v, simulation.mode2D);
             }
         );
         ++aux;
@@ -290,11 +290,11 @@ function standardModelBlob2(simulation) {
     let q = 20;
     let nq = 1;
     let grid = [23, 22, 1];
-    let r0 = physics.nearChargeRange * 4;
+    let r0 = physics.nuclearChargeRange * 4;
     let v = 0;
     let n = 1200 / 4;
 
-    /*createParticles(n,
+    /*createParticlesList(physics.particleList, n,
         (i) => {
             return 0;
         },
@@ -305,14 +305,14 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );*/
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 0.12e-1;
         },
@@ -323,14 +323,14 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 0.511e6 * m;
         },
@@ -342,14 +342,14 @@ function standardModelBlob2(simulation) {
             //return 0;
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 2.2e6 * m;
         },
@@ -360,14 +360,14 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 4.7e6 * m;
         },
@@ -378,10 +378,10 @@ function standardModelBlob2(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -401,11 +401,11 @@ function standardModelBlobSymetric(simulation) {
     let m = 1e-1;
     let q = 1;
     let nq = 1;
-    let r0 = physics.nearChargeRange * 3;
+    let r0 = physics.nuclearChargeRange * 3;
     let v = 5;
     let n = 300;
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 0.12 * m;
         },
@@ -416,14 +416,14 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 0.511e6 * m;
         },
@@ -434,14 +434,14 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 2.2e6 * m;
         },
@@ -452,14 +452,14 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 4.7e6 * m;
         },
@@ -470,10 +470,10 @@ function standardModelBlobSymetric(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }
@@ -496,11 +496,11 @@ function standardModelBlob0(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [23, 22, 1];
-    let r0 = physics.nearChargeRange * 3;
+    let r0 = physics.nuclearChargeRange * 3;
     let v = 0;
     let n = 300;
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return m;
         },
@@ -511,14 +511,14 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return me;
         },
@@ -529,14 +529,14 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 4 * me;
         },
@@ -547,14 +547,14 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 
-    createParticles(n,
+    createParticlesList(physics.particleList, n,
         (i) => {
             return 9 * me;
         },
@@ -565,10 +565,10 @@ function standardModelBlob0(simulation) {
             return (random(0, 1, true)) ? (-nq) : (nq);
         },
         (i) => {
-            return randomSphericVector(0, r0);
+            return randomSphericVector(0, r0, simulation.mode2D);
         },
         (i) => {
-            return randomVector(v);
+            return randomVector(v, simulation.mode2D);
         }
     );
 }

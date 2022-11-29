@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env production",
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env version='dev'"
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env version='dev'",
+    "madge": "madge --image graph.svg src"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,6 @@
     "three": "^0.143.0"
   },
   "devDependencies": {
-    "lil-gui": "^0.17.0",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.10.0"

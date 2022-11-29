@@ -29,7 +29,7 @@ function log(msg) {
     console.log("Simulation: " + msg)
 }
 
-let simulationList = [];
+export let simulationList = [];
 function addFolder(name, list) {
     list.forEach((value, index) => {
         list[index].folderName = name;

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import { Particle, ParticleType } from './physics.js';
+import { ParticleType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
     simulationSetup,
@@ -17,6 +17,7 @@ import {
     simulationCreateParticles,
     simulationDelete,
     simulationDeleteAll,
+    simulationList,
 } from './simulation.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
@@ -86,7 +87,8 @@ let guiOptions = {
             setup();
         },
         next: function () {
-            setup(++simulationIdx);
+            if (simulationIdx < simulationList.length - 1)
+                setup(++simulationIdx);
         },
         previous: function () {
             if (simulationIdx > 0)
@@ -259,7 +261,7 @@ let guiOptions = {
         pattern: "circle",
         fixed: false,
         generate: () => {
-            guiGenerate.open();
+            //guiGenerate.open();
             particleGenerator();
         },
         clear: () => {

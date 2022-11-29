@@ -60,6 +60,7 @@ function setup(idx) {
     guiOptions.generator.default();
 }
 
+let collapseList = [];
 let guiOptions = {
     info: {
         name: "",
@@ -137,7 +138,8 @@ let guiOptions = {
                 "LEFT BUTTON: select particle/camera rotation (3D mode only)\n" +
                 "MIDDLE BUTTON/SCROLL: zoom in/out.\n" +
                 "RIGHT BUTTON: move camera position (pan).\n" +
-                "SHIFT+LEFT CLICK/DRAG: select a group of particles."
+                "SHIFT+LEFT CLICK/DRAG: select a group of particles.\n" +
+                "HINT: Keyboard commands do not work when mouse pointer is over the menus!"
             );
         },
         deleteAll: () => {
@@ -159,6 +161,11 @@ let guiOptions = {
         },
         close: () => {
             guiControls.close();
+        },
+        collapseAll: () => {
+            collapseList.forEach((val) => {
+                val.close();
+            });
         },
     },
     particle: {
@@ -361,11 +368,17 @@ function guiControlsSetup() {
     guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
     guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
     guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
+    guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
 
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all Particles [DEL]");
     guiControls.add(guiOptions.controls, 'close').name("Close");
+
+    collapseList.push(guiControls);
+    collapseList.push(guiControlsCamera);
+    collapseList.push(guiControlsSimulation);
+    collapseList.push(guiControlsView);
 }
 
 function guiParticleSetup() {
@@ -418,6 +431,11 @@ function guiParticleSetup() {
     guiParticleActions.add(guiOptions.particle, 'lookAt').name('Look At');
     guiParticleActions.add(guiOptions.particle, 'reset').name('Reset Attributes');
     guiParticle.add(guiOptions.particle, 'close').name('Close');
+
+    collapseList.push(guiParticle);
+    collapseList.push(guiParticleActions);
+    collapseList.push(guiParticleVariables);
+    collapseList.push(guiParticleProperties);
 }
 
 function guiSelectionSetup() {
@@ -453,6 +471,11 @@ function guiSelectionSetup() {
 
     guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelection.add(guiOptions.selection, 'clear').name("Close");
+
+    collapseList.push(guiSelection);
+    collapseList.push(guiSelectionActions);
+    collapseList.push(guiSelectionProperties);
+    collapseList.push(guiSelectionVariables);
 }
 
 function guiGenerateSetup() {
@@ -510,6 +533,11 @@ function guiGenerateSetup() {
     guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
     guiGenerate.add(guiOptions.generator, "default").name("Default Values");
     guiGenerate.add(guiOptions.generator, "clear").name("Close");
+
+    collapseList.push(guiGenerate);
+    collapseList.push(guiGenerateCharge);
+    collapseList.push(guiGenerateMass);
+    collapseList.push(guiGenerateVelocity);
 }
 
 function guiParametersSetup() {
@@ -567,6 +595,11 @@ function guiParametersSetup() {
     });
 
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
+
+    collapseList.push(guiParameters);
+    collapseList.push(guiParametersBoundary);
+    collapseList.push(guiParametersConsts);
+    collapseList.push(guiParametersVisual);
 }
 
 export function guiSetup() {
@@ -697,6 +730,10 @@ function onKeyDown(event) {
 
         case 'backspace':
             guiOptions.selection.delete();
+            break;
+
+        case 'm':
+            guiOptions.controls.collapseAll();
             break;
 
         default:

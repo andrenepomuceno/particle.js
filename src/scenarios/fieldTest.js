@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { Particle, ParticleType } from '../physics'
 
 export const fields = [
-    nearField,
+    nuclearField,
     electromagneticField,
     gravityField,
 ];
@@ -42,7 +42,7 @@ function defaultConfig(simulation, distance = 4.0e2) {
     simulation.setParticleRadius(10, 0);
 }
 
-function nearField(simulation) {
+function nuclearField(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultConfig(simulation);

@@ -226,9 +226,9 @@ export function generateParticleColor(p, absCharge) {
         l = 80;
     }
 
-    if (p.nearCharge > 0) {
+    if (p.nuclearCharge > 0) {
         //h += 10;
-    } else if (p.nearCharge < 0) {
+    } else if (p.nuclearCharge < 0) {
         h += 20;
     }
 

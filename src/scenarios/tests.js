@@ -20,8 +20,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
@@ -39,7 +39,7 @@ function boundaryTest(simulation) {
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nearChargeConstant = 0;
+    physics.nuclearChargeConstant = 0;
 
     let n = 100;
     let m = 10;
@@ -77,7 +77,7 @@ function colisionTest(simulation) {
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nearChargeConstant = 0;
+    physics.nuclearChargeConstant = 0;
 
     let r = 10;
     physics.minDistance2 = Math.pow(2 * r, 2);
@@ -162,7 +162,7 @@ function colisionTest(simulation) {
     particleList.push(new Particle());
     particleList.at(-1).mass = m2;
     particleList.at(-1).charge = 0;
-    //particleList.at(-1).nearCharge = -1;
+    //particleList.at(-1).nuclearCharge = -1;
     particleList.at(-1).position.set(-3 * p1, -2 * p2, 0);
     particleList.at(-1).velocity.set(0, 0, 0);
     particleList.push(new Particle());
@@ -188,7 +188,7 @@ function colisionTest(simulation) {
         particleList.push(new Particle());
         particleList.at(-1).mass = 10 * m1;
         particleList.at(-1).charge = 0;
-        particleList.at(-1).nearCharge = -1;
+        particleList.at(-1).nuclearCharge = -1;
         particleList.at(-1).position.set(-3 * p1 - i, -2 * p2, 0);
         particleList.at(-1).velocity.set(0, 0, 0);
     }

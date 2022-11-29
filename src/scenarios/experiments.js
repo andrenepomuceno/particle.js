@@ -35,8 +35,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
@@ -54,8 +54,8 @@ function hexagon3d(simulation) {
     physics.boundaryDistance = 1e12;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 2;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 2;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1 / 60;
 
@@ -70,10 +70,10 @@ function hexagon3d(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.05 * physics.nearChargeRange;
-    let r1 = 0.618 * physics.nearChargeRange;
-    let r2 = 0.59 * physics.nearChargeRange;
-    let r3 = 0.69 * physics.nearChargeRange;
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.618 * physics.nuclearChargeRange;
+    let r2 = 0.59 * physics.nuclearChargeRange;
+    let r3 = 0.69 * physics.nuclearChargeRange;
     let an = 1;
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
     let grid = [6, 6];
@@ -106,11 +106,11 @@ function hexagon3d(simulation) {
     //m = 0;
     //nq = 0;
     for (let i = 0; i < 500; i++) {
-        let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
+        let x0 = -2e4 - 2.0 * i * physics.nuclearChargeRange;
         let v0 = 3e2;
         createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
-            new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
+            new Vector3(x0, 2.0 * physics.nuclearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
         createParticleList(physics.particleList,
@@ -120,7 +120,7 @@ function hexagon3d(simulation) {
         );
         createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
-            new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
+            new Vector3(x0, - 2.0 * physics.nuclearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
     }
@@ -136,8 +136,8 @@ function hexagon3(simulation) {
     physics.boundaryDistance = 1e12;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1 / 60;
 
@@ -152,9 +152,9 @@ function hexagon3(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.05 * physics.nearChargeRange;
-    let r1 = 0.618 * physics.nearChargeRange;
-    let r2 = 0.57 * physics.nearChargeRange;
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.618 * physics.nuclearChargeRange;
+    let r2 = 0.57 * physics.nuclearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (6 * an * 4)));
     let grid = [1.2 * w, w * 0.8, 1];
@@ -192,7 +192,7 @@ function hexagon3(simulation) {
     for (let i = 0; i < 500; i++) {
         let focus = 0.01;
         let spacing = 3;
-        let x0 = -2e4 - spacing * i * physics.nearChargeRange;
+        let x0 = -2e4 - spacing * i * physics.nuclearChargeRange;
         let v0 = 2.5e2;
         let ne = random(1, 4, true);
         createParticlesList(physics.particleList, ne,
@@ -203,7 +203,7 @@ function hexagon3(simulation) {
                 return (i % 2) ? (-nq) : (nq);
             },
             () => {
-                return randomSphericVector(0, focus * physics.nearChargeRange, simulation.mode2D).add(
+                return randomSphericVector(0, focus * physics.nuclearChargeRange, simulation.mode2D).add(
                     new Vector3(x0, 0, 0)
                 )
             },
@@ -222,8 +222,8 @@ function hexagon2(simulation) {
     physics.boundaryDistance = 1e5;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
 
@@ -238,9 +238,9 @@ function hexagon2(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.01 * physics.nearChargeRange;
-    let r1 = 0.618 * physics.nearChargeRange;
-    let r2 = 0.57 * physics.nearChargeRange;
+    let r0 = 0.01 * physics.nuclearChargeRange;
+    let r1 = 0.618 * physics.nuclearChargeRange;
+    let r2 = 0.57 * physics.nuclearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (7 * an * 8)));
     let grid = [w, w];
@@ -266,8 +266,8 @@ function hexagon1(simulation) {
     physics.boundaryDistance = 1e12;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1 / 60;
 
@@ -282,9 +282,9 @@ function hexagon1(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.05 * physics.nearChargeRange;
-    let r1 = 0.618 * physics.nearChargeRange;
-    let r2 = 0.57 * physics.nearChargeRange;
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.618 * physics.nuclearChargeRange;
+    let r2 = 0.57 * physics.nuclearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
     let grid = [5 / 3 * w, 3 / 5 * w];
@@ -306,11 +306,11 @@ function hexagon1(simulation) {
     shuffleArray(simulation.particleList);
 
     for (let i = 0; i < 500; i++) {
-        let x0 = -2e4 - 2.0 * i * physics.nearChargeRange;
+        let x0 = -2e4 - 2.0 * i * physics.nuclearChargeRange;
         let v0 = 2e2;
         createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
-            new Vector3(x0, 2.0 * physics.nearChargeRange, 0),
+            new Vector3(x0, 2.0 * physics.nuclearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
         createParticleList(physics.particleList,
@@ -320,7 +320,7 @@ function hexagon1(simulation) {
         );
         createParticleList(physics.particleList,
             0.5 * m, -1 * q, (i % 2) ? (nq) : (-nq),
-            new Vector3(x0, - 2.0 * physics.nearChargeRange, 0),
+            new Vector3(x0, - 2.0 * physics.nuclearChargeRange, 0),
             new Vector3(v0, 0, 0)
         );
     }
@@ -336,8 +336,8 @@ function hexagon0(simulation) {
     physics.boundaryDistance = 1e5;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
 
@@ -352,9 +352,9 @@ function hexagon0(simulation) {
     let q = 1;
     let nq = 1;
     let v = 0;
-    let r0 = 0.05 * physics.nearChargeRange;
-    let r1 = 0.618 * physics.nearChargeRange;
-    let r2 = 0.57 * physics.nearChargeRange;
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.618 * physics.nuclearChargeRange;
+    let r2 = 0.57 * physics.nuclearChargeRange;
     let an = 2;
     let w = Math.round(Math.sqrt(n / (7 * an * 4)));
     let grid = [w, w];
@@ -375,16 +375,16 @@ function density2(simulation) {
 
     let n = graphics.maxParticles;
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
 
     let density = 1;
     let area = n / density;
-    let r0 = Math.sqrt(physics.nearChargeRange * area);
+    let r0 = Math.sqrt(physics.nuclearChargeRange * area);
     console.log("r0 = " + r0);
-    console.log("r0/nearChargeRange = " + r0 / physics.nearChargeRange);
+    console.log("r0/nuclearChargeRange = " + r0 / physics.nuclearChargeRange);
 
     graphics.cameraDistance = r0;
 
@@ -444,8 +444,8 @@ function density(simulation) {
     physics.boundaryDamping = 0.9;
     physics.minDistance2 = Math.pow(0.5, 2);
 
-    physics.nearChargeRange = 2e2;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 2e2;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1 / 3;
 
@@ -459,7 +459,7 @@ function density(simulation) {
     let area = n / density;
     let r0 = Math.sqrt(area / (2 * Math.PI));
     console.log(r0);
-    console.log(r0 / physics.nearChargeRange);
+    console.log(r0 / physics.nuclearChargeRange);
 
     let typeList = [
         [0, 0, 1],
@@ -505,8 +505,8 @@ function magnecticForce(simulation) {
     simulation.setParticleRadius(10, 0);
     physics.boundaryDistance = 1e12;
 
-    physics.nearChargeRange = 0;
-    physics.nearChargeConstant = 0;
+    physics.nuclearChargeRange = 0;
+    physics.nuclearChargeConstant = 0;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(1e-6, 2);
@@ -583,8 +583,8 @@ function experiment9(simulation) {
     physics.boundaryDistance = 1e7;
     physics.boundaryDamping = 0.9;
 
-    physics.nearChargeRange = 5e2;
-    physics.nearChargeConstant = 10;
+    physics.nuclearChargeRange = 5e2;
+    physics.nuclearChargeConstant = 10;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e3;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -599,7 +599,7 @@ function experiment9(simulation) {
     let area = n / density;
     let r0 = Math.sqrt(area / (2 * Math.PI));
     console.log(r0);
-    console.log(r0 / physics.nearChargeRange);
+    console.log(r0 / physics.nuclearChargeRange);
 
     let typeList = [
         [0, 0, 1],
@@ -649,8 +649,8 @@ function donut(simulation) {
     physics.boundaryDistance = 1e5;
     physics.boundaryDamping = 0.9;
 
-    physics.nearChargeRange = 1e3;
-    physics.nearChargeConstant = 60;
+    physics.nuclearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 60;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e3;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -658,7 +658,7 @@ function donut(simulation) {
     let m = 1e3;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 4 * physics.nearChargeRange;
+    let r0 = 4 * physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -710,8 +710,8 @@ function terrarium(simulation) {
     physics.boundaryDistance = 1e6;
     physics.boundaryDamping = 0.95;
 
-    physics.nearChargeRange = 1e6;
-    physics.nearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e6;
+    physics.nuclearChargeConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -719,7 +719,7 @@ function terrarium(simulation) {
     let m = 1e3;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 1;//0.5 * physics.nearChargeRange;
+    let r0 = 1;//0.5 * physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -770,8 +770,8 @@ function twinsCollision(simulation) {
     physics.boundaryDistance = 2e4;
     physics.boundaryDamping = 0.95;
 
-    physics.nearChargeRange = 1e3;
-    physics.nearChargeConstant = 10;
+    physics.nuclearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 10;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -779,7 +779,7 @@ function twinsCollision(simulation) {
     let m = 1e3;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 1;//0.5 * physics.nearChargeRange;
+    let r0 = 1;//0.5 * physics.nuclearChargeRange;
     let v = 0;
     let n = 80 * 80; //maxParticles;
 
@@ -830,8 +830,8 @@ function experiment5(simulation) {
     physics.boundaryDistance = 5e4;
     physics.boundaryDamping = 0.9;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e4;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e4;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -839,7 +839,7 @@ function experiment5(simulation) {
     let m = 1e3;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 0.1 * physics.nearChargeRange;
+    let r0 = 0.1 * physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -890,8 +890,8 @@ function wildParticles(simulation) {
     physics.boundaryDistance = 5e5;
     physics.boundaryDamping = 0.9;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e4;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e4;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1e-2;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -899,7 +899,7 @@ function wildParticles(simulation) {
     let m = 1;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 0.01 * physics.nearChargeRange;
+    let r0 = 0.01 * physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -950,8 +950,8 @@ function easterEgg(simulation) {
     simulation.setParticleRadius(3e1, 1e1);
     simulation.physics.boundaryDistance = 2e9;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e3;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -959,7 +959,7 @@ function easterEgg(simulation) {
     let m = 1;
     let q = 1;
     let nq = 1;
-    let r0 = 0.01 * physics.nearChargeRange;
+    let r0 = 0.01 * physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -1012,8 +1012,8 @@ function experiment2(simulation) {
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e6;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -1022,7 +1022,7 @@ function experiment2(simulation) {
     let m = 1;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 1;//0.01*physics.nearChargeRange;
+    let r0 = 1;//0.01*physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -1050,11 +1050,11 @@ function experiment2(simulation) {
         },
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
-            let nearCharge = seq[i % 4];*/
+            let nuclearCharge = seq[i % 4];*/
 
-            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
-            //nearCharge *= random(1, 2, true);
-            return nearCharge;
+            let nuclearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nuclearCharge *= random(1, 2, true);
+            return nuclearCharge;
         },
         (i) => {
             return randomSphericVector(0, r0, simulation.mode2D);
@@ -1073,8 +1073,8 @@ function experiment1(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e8;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e6;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -1082,7 +1082,7 @@ function experiment1(simulation) {
     let m = 2;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 1;//0.01*physics.nearChargeRange;
+    let r0 = 1;//0.01*physics.nuclearChargeRange;
     let v = 0;
     let n = Math.min(graphics.maxParticles, 80 * 80);
 
@@ -1108,11 +1108,11 @@ function experiment1(simulation) {
         },
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
-            let nearCharge = seq[i % 4];*/
+            let nuclearCharge = seq[i % 4];*/
 
-            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
-            //nearCharge *= random(1, 2, true);
-            return nearCharge;
+            let nuclearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nuclearCharge *= random(1, 2, true);
+            return nuclearCharge;
         },
         (i) => {
             return randomSphericVector(0, r0, simulation.mode2D);
@@ -1131,8 +1131,8 @@ function experiment0(simulation) {
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e6;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(0.5, 2);
@@ -1140,7 +1140,7 @@ function experiment0(simulation) {
     let m = 1;
     let q = 1 / 3;
     let nq = 1;
-    let r0 = 1;//0.01*physics.nearChargeRange;
+    let r0 = 1;//0.01*physics.nuclearChargeRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -1166,11 +1166,11 @@ function experiment0(simulation) {
         },
         (i) => {
             /*let seq = [-nq, nq, nq, -nq];
-            let nearCharge = seq[i % 4];*/
+            let nuclearCharge = seq[i % 4];*/
 
-            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
-            //nearCharge *= random(1, 2, true);
-            return nearCharge;
+            let nuclearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            //nuclearCharge *= random(1, 2, true);
+            return nuclearCharge;
         },
         (i) => {
             return randomSphericVector(0, r0, simulation.mode2D);

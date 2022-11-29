@@ -175,7 +175,7 @@ let guiOptions = {
         id: "",
         mass: "",
         charge: "",
-        nearCharge: "",
+        nuclearCharge: "",
         position: "",
         velocityDir: "",
         velocityAbs: "",
@@ -205,7 +205,7 @@ let guiOptions = {
         particles: 0,
         mass: "",
         charge: "",
-        nearCharge: "",
+        nuclearCharge: "",
         velocity: "",
         velocityDir: "",
         center: "",
@@ -247,11 +247,11 @@ let guiOptions = {
         enableZeroCharge: false,
         quantizedCharge: true,
 
-        nearCharge: "1",
-        randomNearCharge: false,
-        nearChargeRandomSignal: true,
-        enableZeroNearCharge: false,
-        quantizedNearCharge: true,
+        nuclearCharge: "1",
+        randomNuclearCharge: false,
+        nuclearChargeRandomSignal: true,
+        enableZeroNuclearCharge: false,
+        quantizedNuclearCharge: true,
 
         velocity: "1,0,0",
         randomVelocity: true,
@@ -280,11 +280,11 @@ let guiOptions = {
                 enableZeroCharge: false,
                 quantizedCharge: true,
 
-                nearCharge: "1",
-                randomNearCharge: false,
-                nearChargeRandomSignal: true,
-                enableZeroNearCharge: false,
-                quantizedNearCharge: true,
+                nuclearCharge: "1",
+                randomNuclearCharge: false,
+                nuclearChargeRandomSignal: true,
+                enableZeroNuclearCharge: false,
+                quantizedNuclearCharge: true,
 
                 velocity: "1,0,0",
                 randomVelocity: true,
@@ -300,8 +300,8 @@ let guiOptions = {
     parameters: {
         massConstant: "",
         chargeConstant: "",
-        nearChargeConstant: "",
-        nearChargeRange: "",
+        nuclearChargeConstant: "",
+        nuclearChargeRange: "",
         boundaryDamping: "",
         boundaryDistance: "",
         minDistance2: "",
@@ -362,21 +362,18 @@ function guiControlsSetup() {
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
 
-    const guiControlsView = guiControls.addFolder("[+] Miscellaneous");
-    guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
-    guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
-    guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
-    guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
-
+    guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
+    guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+    guiControls.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
+    guiControls.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all Particles [DEL]");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);
     collapseList.push(guiControlsCamera);
     collapseList.push(guiControlsSimulation);
-    collapseList.push(guiControlsView);
 }
 
 function guiParticleSetup() {
@@ -404,8 +401,8 @@ function guiParticleSetup() {
     guiParticleProperties.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
     });
-    guiParticleProperties.add(guiOptions.particle, 'nearCharge').name('NearCharge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "nearCharge", val);
+    guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('NuclearCharge').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "nuclearCharge", val);
     });
     //guiParticleProperties.open();
 
@@ -447,8 +444,8 @@ function guiSelectionSetup() {
     guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
         selectionListUpdate("charge", val);
     });
-    guiSelectionProperties.add(guiOptions.selection, 'nearCharge').name("Near Charge (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("nearCharge", val);
+    guiSelectionProperties.add(guiOptions.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+        selectionListUpdate("nuclearCharge", val);
     });
 
     const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
@@ -505,14 +502,14 @@ function guiGenerateSetup() {
     guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
     //guiGenerateCharge.open();
 
-    const guiGenerateNearCharge = guiGenerate.addFolder("[+] Near Charge");
-    guiGenerateNearCharge.add(guiOptions.generator, "nearCharge").name("Near Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.nearCharge = parseFloat(val);
+    const guiGenerateNuclearCharge = guiGenerate.addFolder("[+] Nuclear Charge");
+    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearCharge").name("Nuclear Charge").listen().onFinishChange((val) => {
+        guiOptions.generator.nuclearCharge = parseFloat(val);
     });
-    guiGenerateNearCharge.add(guiOptions.generator, "randomNearCharge").name("Randomize value?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "nearChargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "enableZeroNearCharge").name("Allow zero?").listen();
-    guiGenerateNearCharge.add(guiOptions.generator, "quantizedNearCharge").name("Quantize?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "randomNuclearCharge").name("Randomize value?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearChargeRandomSignal").name("Randomize signal?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "quantizedNuclearCharge").name("Quantize?").listen();
 
     const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
     guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
@@ -561,11 +558,11 @@ function guiParametersSetup() {
     guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("chargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nearChargeConstant').name("nearChargeConstant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeConstant", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("nuclearChargeConstant").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nuclearChargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nearChargeRange').name("nearChargeRange").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nearChargeRange", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("nuclearChargeRange").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("nuclearChargeRange", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
@@ -782,7 +779,7 @@ function guiParticleRefresh() {
         particleView.id = particle.id;
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
-        particleView.nearCharge = particle.nearCharge;
+        particleView.nuclearCharge = particle.nuclearCharge;
         particleView.fixed = (particle.type == ParticleType.fixed);
 
         let color = particle.color;
@@ -812,7 +809,7 @@ function guiParticleClose(clear = true) {
         particleView.id = "";
         particleView.mass = "";
         particleView.charge = "";
-        particleView.nearCharge = "";
+        particleView.nuclearCharge = "";
         particleView.color = "";
         particleView.position = "";
         particleView.velocityDir = "";
@@ -827,8 +824,8 @@ function guiParametersRefresh() {
     let edit = guiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(2);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-    edit.nearChargeConstant = simulation.physics.nearChargeConstant.toExponential(2);
-    edit.nearChargeRange = simulation.physics.nearChargeRange.toExponential(2);
+    edit.nuclearChargeConstant = simulation.physics.nuclearChargeConstant.toExponential(2);
+    edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
     edit.minDistance2 = simulation.physics.minDistance2;
@@ -900,13 +897,13 @@ function particleGenerator() {
         return s * q;
     }
 
-    function generateNearCharge() {
+    function generateNuclearCharge() {
         let s = 1;
-        let nq = nearCharge;
-        if (guiOptions.generator.nearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomNearCharge) nq *= random(0, 1);
-        if (guiOptions.generator.quantizedNearCharge) nq = Math.round(nq);
-        if (!guiOptions.generator.enableZeroNearCharge && nq == 0) nq = nearCharge;
+        let nq = nuclearCharge;
+        if (guiOptions.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
+        if (guiOptions.generator.randomNuclearCharge) nq *= random(0, 1);
+        if (guiOptions.generator.quantizedNuclearCharge) nq = Math.round(nq);
+        if (!guiOptions.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
         return s * nq;
     }
 
@@ -955,10 +952,10 @@ function particleGenerator() {
     let input = guiOptions.generator;
     let mass = parseFloat(input.mass);
     let charge = parseFloat(input.charge);
-    let nearCharge = parseFloat(input.nearCharge);
+    let nuclearCharge = parseFloat(input.nuclearCharge);
     let radius = Math.abs(parseFloat(input.radius));
     let quantity = Math.round(parseFloat(input.quantity));
-    if (isNaN(mass) || isNaN(charge) || isNaN(nearCharge) || isNaN(radius) || isNaN(quantity)) {
+    if (isNaN(mass) || isNaN(charge) || isNaN(nuclearCharge) || isNaN(radius) || isNaN(quantity)) {
         alert("Invalid parameters!");
         return;
     }
@@ -978,7 +975,7 @@ function particleGenerator() {
     createParticlesList(newParticles, quantity,
         generateMass,
         generateCharge,
-        generateNearCharge,
+        generateNuclearCharge,
         generatePosition,
         generateVelocity,
         guiOptions.generator.fixed

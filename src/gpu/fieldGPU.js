@@ -131,7 +131,7 @@ export class FieldGPU {
         p.type = ParticleType.probe;
         p.mass = this.probeParam.m;
         p.charge = this.probeParam.q;
-        p.nearCharge = this.probeParam.nq;
+        p.nuclearCharge = this.probeParam.nq;
         p.position = position;
         p.radius = this.elementSize();
         this.particleList.push(p);

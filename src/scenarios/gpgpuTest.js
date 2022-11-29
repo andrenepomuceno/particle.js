@@ -23,8 +23,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nearChargeConstant = 1.0;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1.0;
+    physics.nuclearChargeRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e6;
@@ -38,7 +38,7 @@ function GPU_string(simulation) {
     simulation.setParticleRadius(1e4, 1e2);
     simulation.bidimensionalMode(true);
 
-    physics.nearChargeRange = 1e6;
+    physics.nuclearChargeRange = 1e6;
 
     let m = 1;
     let q = 1;
@@ -111,7 +111,7 @@ function GPU_string_m50(simulation) {
     simulation.setParticleRadius(1e4, 1e3);
     simulation.bidimensionalMode(true);
 
-    physics.nearChargeRange = 1e7;
+    physics.nuclearChargeRange = 1e7;
 
     let m = 50;
     let q = 1;
@@ -184,7 +184,7 @@ function GPU_string_m20(simulation) {
     simulation.setParticleRadius(1e4, 1e3);
     simulation.bidimensionalMode(true);
 
-    physics.nearChargeRange = 1e7;
+    physics.nuclearChargeRange = 1e7;
 
     let m = 20;
     let q = 1;
@@ -261,7 +261,7 @@ function GPU_blob1(simulation) {
     let m = 1;
     let q = 1;
     let nq = 1;
-    let r0 = physics.nearChargeRange * 4;
+    let r0 = physics.nuclearChargeRange * 4;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -275,9 +275,9 @@ function GPU_blob1(simulation) {
             return charge;
         },
         (i) => {
-            let nearCharge = (random(0, 1, true)) ? (-nq) : (nq);
-            nearCharge *= random(1, 3, true);
-            return nearCharge;
+            let nuclearCharge = (random(0, 1, true)) ? (-nq) : (nq);
+            nuclearCharge *= random(1, 3, true);
+            return nuclearCharge;
         },
         (i) => {
             return randomSphericVector(0, r0, simulation.mode2D);
@@ -300,8 +300,8 @@ function GPU_nucleiGrid(simulation) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nearChargeConstant = 1.0;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1.0;
+    physics.nuclearChargeRange = 1e3;
 
     let m = 5e-1 / 0.511;
     let q = 3.0;
@@ -309,8 +309,8 @@ function GPU_nucleiGrid(simulation) {
     let width = Math.round(Math.sqrt(graphics.maxParticles/6));
     if (width%2 === 0) width += 1;
     let grid = [width, Math.round(width * 9 / 16), 1];
-    let r0 = physics.nearChargeRange * 0.05;
-    let r1 = physics.nearChargeRange * 0.63;
+    let r0 = physics.nuclearChargeRange * 0.05;
+    let r1 = physics.nuclearChargeRange * 0.63;
     let v = 0;
     let n = 1;
 
@@ -433,13 +433,13 @@ function GPU_shootedBarrier(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [127, 9, 1];
-    let r0 = physics.nearChargeRange * 1 / 100;
-    let r1 = physics.nearChargeRange * 0.63;
+    let r0 = physics.nuclearChargeRange * 1 / 100;
+    let r1 = physics.nuclearChargeRange * 0.63;
     let v = 0;
     let n = 2;
 
     for (let i = 0; i < 15; i++) {
-        createParticleList(physics.particleList, 3, -q, nq, new Vector3(0, 1e4 + i * physics.nearChargeRange, 0), new Vector3(0, -100, 0));
+        createParticleList(physics.particleList, 3, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearChargeRange, 0), new Vector3(0, -100, 0));
     }
 
     let aux = 0;

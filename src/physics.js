@@ -17,8 +17,8 @@ export class Physics {
         this.forceConstant = 1.0;
         this.massConstant = 1.0;
         this.chargeConstant = 1.0;
-        this.nearChargeConstant = 1.0;
-        this.nearChargeRange = 1e3;
+        this.nuclearChargeConstant = 1.0;
+        this.nuclearChargeRange = 1e3;
 
         this.collisionCounter = 0;
 
@@ -48,10 +48,10 @@ export class Physics {
         force /= absDistance2;
 
         let absDistance = Math.sqrt(absDistance2);
-        if (absDistance <= this.nearChargeRange) {
-            let x = (2 * absDistance - this.nearChargeRange) / this.nearChargeRange; // [-1, 1]
+        if (absDistance <= this.nuclearChargeRange) {
+            let x = (2 * absDistance - this.nuclearChargeRange) / this.nuclearChargeRange; // [-1, 1]
             x = Math.sin(Math.PI * x);
-            let f = -this.nearChargeConstant * p1.nearCharge * p2.nearCharge * x;
+            let f = -this.nuclearChargeConstant * p1.nuclearCharge * p2.nuclearCharge * x;
             force += f;
         }
 
@@ -108,7 +108,7 @@ export class Physics {
     }
 
     header() {
-        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nearChargeConstant,nearChargeRange,boundaryDistance,boundaryDamping";
+        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nuclearChargeConstant,nuclearChargeRange,boundaryDistance,boundaryDamping";
     }
 
     csv() {
@@ -117,8 +117,8 @@ export class Physics {
             + this.forceConstant + ","
             + this.massConstant + ","
             + this.chargeConstant + ","
-            + this.nearChargeConstant + ","
-            + this.nearChargeRange + ","
+            + this.nuclearChargeConstant + ","
+            + this.nuclearChargeRange + ","
             + this.boundaryDistance + ","
             + this.boundaryDamping;
     }
@@ -138,7 +138,7 @@ export class Particle {
 
         this.mass = 0.0;
         this.charge = 0.0;
-        this.nearCharge = 0.0;
+        this.nuclearCharge = 0.0;
 
         this.position = new Vector3();
         this.velocity = new Vector3();
@@ -156,7 +156,7 @@ export class Particle {
         p.type = this.type;
         p.mass = this.mass;
         p.charge = this.charge;
-        p.nearCharge = this.nearCharge;
+        p.nuclearCharge = this.nuclearCharge;
         p.position = this.position.clone();
         p.velocity = this.velocity.clone();
         return p;
@@ -176,7 +176,7 @@ export class Particle {
             "ID:" + this.id +
             " M:" + this.mass +
             " Q:" + this.charge +
-            " Sq:" + this.nearCharge +
+            " Sq:" + this.nuclearCharge +
             " P:" + this.position.toArray() +
             " V:" + this.velocity.toArray() +
             " E:" + this.energy()
@@ -184,7 +184,7 @@ export class Particle {
     }
 
     header() {
-        return "id,type,mass,charge,nearCharge,x,y,z,vx,vy,vz,e,collisions";
+        return "id,type,mass,charge,nuclearCharge,x,y,z,vx,vy,vz,e,collisions";
     }
 
     csv() {
@@ -192,7 +192,7 @@ export class Particle {
             this.type + "," +
             this.mass + "," +
             this.charge + "," +
-            this.nearCharge + "," +
+            this.nuclearCharge + "," +
             this.position.toArray() + "," +
             this.velocity.toArray() + "," +
             this.energy() + "," +
@@ -207,7 +207,7 @@ export function calcListStatistics(list) {
     stats.avgVelocity = new Vector3();
     stats.totalMass = 0;
     stats.totalCharge = 0;
-    stats.totalNearCharge = 0;
+    stats.totalNuclearCharge = 0;
     stats.particles = list.length;
 
     list.forEach(p => {
@@ -216,7 +216,7 @@ export function calcListStatistics(list) {
         stats.avgVelocity.add(p.velocity);
         stats.totalMass += p.mass;
         stats.totalCharge += p.charge;
-        stats.totalNearCharge += p.nearCharge;
+        stats.totalNuclearCharge += p.nuclearCharge;
     });
 
     stats.center.divideScalar(list.length);

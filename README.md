@@ -7,7 +7,7 @@ A JavaScript 3D particle simulator using a simplified model of Physics.
 Try to simulate 3 forces on point-like particles:
 - Gravity
 - Electromagnetic
-- Near force (an analogy to the Strong Force)
+- Nuclear force (an analogy to the Strong Force)
 
 Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
 
@@ -36,12 +36,12 @@ npm run build
 Main considerations:
 - Each particle is a point (no volume) in space.
 - Particles have vectorial properties like position and velocity.
-- Particles have scalar properties like mass, charge and "near charge".
+- Particles have scalar properties like mass, charge and "nuclear charge".
 - Particles interact and collide with each other every simulation step.
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
-- Uses a fictional "Near Force", trying to imitate the Strong Force.
+- Uses a fictional "Nuclear Force", trying to imitate the Strong Force.
 
-For each particle $P_i$, with mass $m_i$, charge $q_i$ and near charge $n_i$, the resulting force acting on this particle is
+For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
 $$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)]$$
 where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and near fields:
 

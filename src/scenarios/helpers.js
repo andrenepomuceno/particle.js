@@ -19,11 +19,11 @@ export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
     return new Vector3(x, y, z);
 }
 
-export function createParticleList(particleList, mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+export function createParticleList(particleList, mass = 1, charge = 0, nuclearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;
-    p.nearCharge = nearCharge;
+    p.nuclearCharge = nuclearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
     if (fixed) p.type = ParticleType.fixed;
@@ -31,11 +31,11 @@ export function createParticleList(particleList, mass = 1, charge = 0, nearCharg
     return p;
 }
 
-export function createParticlesList(list, n, massCallback, chargeCallback, nearChargeCallback, positionCallback, velocityCallback, fixed = false) {
+export function createParticlesList(list, n, massCallback, chargeCallback, nuclearChargeCallback, positionCallback, velocityCallback, fixed = false) {
     for (let i = 0; i < n; ++i) {
         let m = massCallback(i, n);
         let x = positionCallback(i, n);
-        let p = createParticleList(list, m, chargeCallback(i, n), nearChargeCallback(i, n), x, velocityCallback(i, n, x), fixed);
+        let p = createParticleList(list, m, chargeCallback(i, n), nuclearChargeCallback(i, n), x, velocityCallback(i, n, x), fixed);
     }
 }
 

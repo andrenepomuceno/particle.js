@@ -29,20 +29,20 @@ function createParticles__(n, massFunc, chargeFunc, positionFunc, velocityFunc) 
     }
 }
 
-function createParticle2(mass = 1, charge = 0, nearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
+function createParticle2(mass = 1, charge = 0, nuclearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {
     let p = new Particle();
     p.mass = mass;
     p.charge = charge;
-    p.nearCharge = nearCharge;
+    p.nuclearCharge = nuclearCharge;
     p.position.add(position);
     p.velocity.add(velocity);
     if (fixed) p.type = ParticleType.fixed;
     particleList.push(p);
 }
 
-function createParticles2(n, massFunc, chargeFunc, nearChargeFunc, positionFunc, velocityFunc) {
+function createParticles2(n, massFunc, chargeFunc, nuclearChargeFunc, positionFunc, velocityFunc) {
     for (let i = 0; i < n; ++i) {
-        createParticle2(massFunc(i, n), chargeFunc(i, n), nearChargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
+        createParticle2(massFunc(i, n), chargeFunc(i, n), nuclearChargeFunc(i, n), positionFunc(i, n), velocityFunc(i, n));
     }
 }
 
@@ -58,10 +58,10 @@ function simulationNuclei4(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = -60;
-    physics.nearChargeRange = 256;
+    physics.nuclearChargeConstant = -60;
+    physics.nuclearChargeRange = 256;
 
-    let r = physics.nearChargeRange / 2;
+    let r = physics.nuclearChargeRange / 2;
     let v = 0;
     let q = 1e2;
     let nq = 1;
@@ -140,10 +140,10 @@ function simulationNuclei3(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = -60;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = -60;
+    physics.nuclearChargeRange = 1e3;
 
-    let r = physics.nearChargeRange / 2;
+    let r = physics.nuclearChargeRange / 2;
     let v = 0;
     let m = 1e2;
     let q = 1e2;
@@ -204,10 +204,10 @@ function simulationStrongCube0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 60;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 60;
+    physics.nuclearChargeRange = 1e3;
 
-    let r = physics.nearChargeRange / 2;
+    let r = physics.nuclearChargeRange / 2;
     let v = 0;
     let m = 1e2;
     let q = 64;
@@ -216,9 +216,9 @@ function simulationStrongCube0(simulation) {
 
     let grid = [2, 2, 2];
     let space = [
-        6 * physics.nearChargeRange,
-        6 * physics.nearChargeRange,
-        6 * physics.nearChargeRange
+        6 * physics.nuclearChargeRange,
+        6 * physics.nuclearChargeRange,
+        6 * physics.nuclearChargeRange
     ];
     n /= (grid[0] * grid[1] * grid[2]);
     for (let i = 0; i < grid[0]; ++i) {
@@ -272,10 +272,10 @@ function simulationStrongBlob0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1/137;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 2e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 2e3;
 
-    let r = physics.nearChargeRange;
+    let r = physics.nuclearChargeRange;
     let v = 0;
     let m = 1;
     let q = 50;
@@ -317,10 +317,10 @@ function simulationNuclei2(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 5e3;
-    physics.nearChargeConstant = 60;
-    physics.nearChargeRange = 1000;
+    physics.nuclearChargeConstant = 60;
+    physics.nuclearChargeRange = 1000;
     2
-    let x = physics.nearChargeRange / 2;
+    let x = physics.nuclearChargeRange / 2;
     let center = new Vector3(0, x, 0);
     let v = new Vector3(0, 0, 0);
     let m = 100;
@@ -350,13 +350,13 @@ function simulationNuclei1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 128;
 
     let m0 = 1;
     let q0 = 1;
     let nq0 = 1;
-    let x = physics.nearChargeRange / 2;
+    let x = physics.nuclearChargeRange / 2;
     createParticle2(m0, q0, nq0,
         new Vector3(x, 0, 0));
     createParticle2(m0, q0, nq0,
@@ -379,14 +379,14 @@ function simulationNuclei0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 64;
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = 64;
+    physics.nuclearChargeRange = 128;
 
     let m0 = 1;
     let m1 = 5;
     let q0 = 150;
     let nq0 = 1;
-    let x = physics.nearChargeRange / 3;
+    let x = physics.nuclearChargeRange / 3;
     let y = 500;
     let v = 7;
 
@@ -428,10 +428,10 @@ function simulationStrong2(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 10;
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = 10;
+    physics.nuclearChargeRange = 128;
 
-    let x0 = physics.nearChargeRange / 3;
+    let x0 = physics.nuclearChargeRange / 3;
     let x = 1000;
     let y = x;
     let vx = 2;
@@ -474,10 +474,10 @@ function simulationStrong1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = Math.pow(80, 2);
-    physics.nearChargeConstant = Math.pow(5, 2);
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = Math.pow(5, 2);
+    physics.nuclearChargeRange = 128;
 
-    let x0 = physics.nearChargeRange / 3;
+    let x0 = physics.nuclearChargeRange / 3;
     let r1 = 256;
     let v1 = 15;
 
@@ -501,10 +501,10 @@ function simulationStrong0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 128;
 
-    let x = physics.nearChargeRange / 3;
+    let x = physics.nuclearChargeRange / 3;
     let v = 0;
     let m = 1;
     let q = 1;
@@ -625,8 +625,8 @@ function simulationAtom1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1e2;
-    physics.nearChargeConstant = 1e2;
-    physics.nearChargeRange = 128;
+    physics.nuclearChargeConstant = 1e2;
+    physics.nuclearChargeRange = 128;
 
     let r0 = 64;
     let v0 = 1;

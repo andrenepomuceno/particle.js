@@ -18,8 +18,8 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nearChargeConstant = 1;
-    physics.nearChargeRange = 1e3;
+    physics.nuclearChargeConstant = 1;
+    physics.nuclearChargeRange = 1e3;
 
     physics.boundaryDistance = 1e5;
     physics.boundaryDamping = 0.9;

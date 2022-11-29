@@ -152,7 +152,7 @@ export class SelectionHelper {
             view.particles = 0;
             view.mass = "";
             view.charge = "";
-            view.nearCharge = "";
+            view.nuclearCharge = "";
             view.velocity = "";
             view.velocityDir = "";
             view.center = "";
@@ -214,7 +214,7 @@ export class SelectionHelper {
             view.particles = particles;
             view.mass = this.stats.totalMass.toExponential(2);
             view.charge = this.stats.totalCharge.toExponential(2);
-            view.nearCharge = this.stats.totalNearCharge.toExponential(2);
+            view.nuclearCharge = this.stats.totalNuclearCharge.toExponential(2);
             view.velocity = this.stats.avgVelocity.length().toExponential(2);
             view.velocityDir = arrayToString(this.stats.avgVelocity.clone().normalize().toArray(), 2);
             let center = this.stats.center.toArray();

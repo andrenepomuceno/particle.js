@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import { Particle } from './physics.js';
+import { Particle, ParticleType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
     simulationSetup,
@@ -178,19 +178,14 @@ let guiOptions = {
         velocityDir: "",
         velocityAbs: "",
         color: "#000000",
-        field: {
-            direction: "",
-            amplitude: "",
-        },
+        fixed: false,
         energy: "",
         follow: function () {
             followParticle = !followParticle;
         },
         lookAt: function () {
             let x = guiOptions.particle.obj.position;
-
-
-
+            cameraTargetSet(x);
             //graphics.controls.target.set(x.x, x.y, x.z);
         },
         close: function () {
@@ -412,6 +407,9 @@ function guiParticleSetup() {
     guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
+    guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "fixed", val);
+    });
     guiParticleVariables.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "position", val);
     });
@@ -422,9 +420,6 @@ function guiParticleSetup() {
         simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
     });
     guiParticleVariables.open();
-
-    /*guiParticle.add(guiOptions.particle.field, 'amplitude').name('Field Force').listen();
-    guiParticle.add(guiOptions.particle.field, 'direction').name('Field Dir.').listen();*/
 
     const guiParticleActions = guiParticle.addFolder("[+] Actions");
     guiParticleActions.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
@@ -694,21 +689,7 @@ function onKeyDown(event) {
 
         case 'z':
             if (!mouseHelper.overGUI && selection.list != undefined) {
-                if (selection.list.length == 0) return;
-                let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
-                if (simulation.mode2D) {
-                    center.z = 0;
-                }
-
-                if (selection.source == SourceType.generated) {
-                    particleGenerator();
-                }
-
-                if (selection.source == SourceType.simulation) {
-                    simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
-                } else {
-                    simulationCreateParticles(selection.list, center);
-                }
+                selectionPlace();
             }
             break;
 
@@ -799,6 +780,7 @@ function guiParticleRefresh() {
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
         particleView.nearCharge = particle.nearCharge;
+        particleView.fixed = (particle.type == ParticleType.fixed);
 
         let color = particle.color;
         if (particle.mesh) {
@@ -815,17 +797,6 @@ function guiParticleRefresh() {
         particleView.velocityDir = arrayToString(
             particle.velocity.clone().normalize().toArray(), 3);
         particleView.velocityAbs = particle.velocity.length().toExponential(3);
-
-        // field info
-        let probe = new Particle();
-        probe.charge = 1;
-        probe.mass = 1;
-        probe.nearCharge = 1;
-        probe.position = particle.position;
-        let field = simulation.fieldProbe(probe);
-        let fieldAmp = field.length();
-        particleView.field.amplitude = fieldAmp.toExponential(3);
-        particleView.field.direction = arrayToString(field.normalize().toArray(), 2);
         particleView.energy = particle.energy().toExponential(3);
     }
 }
@@ -843,10 +814,8 @@ function guiParticleClose(clear = true) {
         particleView.position = "";
         particleView.velocityDir = "";
         particleView.velocityAbs = "";
-        particleView.field.amplitude = "";
-        particleView.field.direction = "";
         particleView.energy = "";
-        guiParticle.close();
+        particleView.fixed = false;
     }
 }
 
@@ -873,6 +842,24 @@ function guiSelectionClose(clear = true) {
 function selectionListUpdate(param, val) {
     simulationUpdateParticleList(param, val, selection.list);
     selection.guiRefresh();
+}
+
+function selectionPlace() {
+    if (selection.list.length == 0) return;
+    let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
+    if (simulation.mode2D) {
+        center.z = 0;
+    }
+
+    if (selection.source == SourceType.generated) {
+        particleGenerator();
+    }
+
+    if (selection.source == SourceType.simulation) {
+        simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
+    } else {
+        simulationCreateParticles(selection.list, center);
+    }
 }
 
 function snapshot() {
@@ -983,6 +970,7 @@ function particleGenerator() {
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
     //if (input.pattern == "hexagon") quantity *= 6;
+    console.log(guiOptions.generator.fixed);
     createParticlesList(newParticles, quantity,
         generateMass,
         generateCharge,

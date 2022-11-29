@@ -474,6 +474,11 @@ export function simulationUpdateParticle(particle, key, value) {
             particle.position.set(0, 0, 0);
             break;
 
+        case "fixed":
+            if (value === true) particle.type = ParticleType.fixed;
+            else if (value === false) particle.type = ParticleType.default;
+            break;
+
         default:
             update = false;
             break;

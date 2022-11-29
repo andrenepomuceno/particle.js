@@ -153,6 +153,7 @@ export class Particle {
 
     clone() {
         let p = new Particle();
+        p.type = this.type;
         p.mass = this.mass;
         p.charge = this.charge;
         p.nearCharge = this.nearCharge;

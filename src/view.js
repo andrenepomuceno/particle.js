@@ -108,11 +108,11 @@ let guiOptions = {
             graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
-            guiParticleClose(false);
+            followParticle = false;
             graphics.controls.reset();
         },
         xyCamera: function () {
-            guiParticleClose(false);
+            followParticle = false;
             cameraTargetSet(new Vector3());
         },
         colorMode: function () {
@@ -818,6 +818,7 @@ function guiParticleClose(clear = true) {
         particleView.energy = "";
         particleView.fixed = false;
     }
+    guiParticle.close();
 }
 
 function guiParametersRefresh() {

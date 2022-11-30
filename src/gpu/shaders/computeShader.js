@@ -1,4 +1,46 @@
-export const computeVelocity = /* glsl */ `
+export function getComputeVelocity(nuclearForce = "default", useDistance1 = false, boxBoundary = false) {
+    let config = "";
+
+    if (useDistance1) {
+        config += "#define USE_DISTANCE1 1\n";
+    } else {
+        config += "#define USE_DISTANCE1 0\n";
+    }
+
+    if (boxBoundary) {
+        config += "#define USE_BOX_BOUNDARY 1\n";
+    } else {
+        config += "#define USE_BOX_BOUNDARY 0\n";
+    }
+
+    if (nuclearForce == "hooks") {
+        config += "#define USE_HOOKS_LAW 1\n";
+    } else {
+        config += "#define USE_HOOKS_LAW 0\n";
+    }
+
+    if (nuclearForce == "potential0") {
+        config += "#define USE_POTENTIAL0 1\n";
+    } else {
+        config += "#define USE_POTENTIAL0 0\n";
+    }
+    
+    if (nuclearForce == "potential1") {
+        config += "#define USE_POTENTIAL1 1\n";
+    } else {
+        config += "#define USE_POTENTIAL1 0\n";
+    }
+
+    if (nuclearForce == "potential2") {
+        config += "#define USE_POTENTIAL2 1\n";
+    } else {
+        config += "#define USE_POTENTIAL2 0\n";
+    }
+
+    return config + "\n" + computeVelocity;
+}
+
+const computeVelocity = /* glsl */ `
 #include <common>
 
 precision highp float;
@@ -21,10 +63,6 @@ const float height = resolution.y;
 #define DEFAULT 0.0
 #define PROBE 1.0
 #define FIXED 2.0
-
-#define USE_DISTANCE1 0
-#define USE_BOX_BOUNDARY 0
-#define USE_HOOKS_LAW 0
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -121,21 +159,19 @@ void main() {
                 #else
                     float x = distance1/nuclearChargeRange;
 
-                    #if 0
+                    #if USE_POTENTIAL0
                         const float r = 1.0/3.0, log2 = log(2.0);
                         x = pow(x, -log2 / log(r));
                         x = sin(2.0 * PI * x);
-                    #endif
-
-                    #if 0
+                    #elif USE_POTENTIAL1
                         const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
                         x *= r2;
                         x = -exp(-log2 * x / r1);
                         x = sin(2.0 * PI * x);
-                    #endif
-                    
-                    #if 1
+                    #elif USE_POTENTIAL2
                         x = sin(7.48956 * (1.0 - pow(0.16107, x)));
+                    #else
+                        x = sin(2.0 * PI * x);
                     #endif
 
                     force += nuclearChargeConstant * nq1 * nq2 * x;

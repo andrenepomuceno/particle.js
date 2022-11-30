@@ -14,7 +14,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 
-import { computeVelocity, computePosition } from './shaders/computeShader';
+import { computePosition, getComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
@@ -206,7 +206,7 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined) {
-            this.physics.velocityShader = computeVelocity;
+            this.physics.velocityShader = getComputeVelocity("potential2");
         }
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
         this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);

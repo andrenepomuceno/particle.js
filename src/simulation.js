@@ -99,17 +99,22 @@ export function simulationExportCsv(list) {
         list = physics.particleList;
     }
 
-    const csvVersion = "1.1";
+    const csvVersion = "1.2";
 
     if (useGPU) {
         graphics.readbackParticleData();
     }
 
-    let output = "";
-    output += "version," + physics.header();
-    output += ",cycles,targetX,targetY,targetZ,cameraX,cameraY,cameraZ,particleRadius,particleRadiusRange,mode2D";
+    let output = "version";
+    output += "," + physics.header();
+    output += ",cycles";
+    output += ",targetX,targetY,targetZ,cameraX,cameraY,cameraZ";
+    output += ",particleRadius,particleRadiusRange,mode2D";
+    output += ",nuclearPotential,useBoundaryBox,useDistance1";
     output += "\n";
-    output += csvVersion + "," + physics.csv();
+
+    output += csvVersion;
+    output += "," + physics.csv();
     output += "," + simulation.cycles;
     let target = graphics.controls.target;
     output += "," + target.x;
@@ -122,6 +127,9 @@ export function simulationExportCsv(list) {
     output += "," + simulation.particleRadius;
     output += "," + simulation.particleRadiusRange;
     output += "," + simulation.mode2D;
+    output += "," + physics.nuclearPotential;
+    output += "," + physics.useBoxBoundary;
+    output += "," + physics.useDistance1;
     output += "\n";
 
     output += list[0].header() + "\n";
@@ -213,8 +221,13 @@ function parseCsv(filename, content) {
                 imported.target = target;
                 imported.particleRadius = parseFloat(values[17]);
                 imported.particleRadiusRange = parseFloat(values[18]);
-                if (parseFloat(imported.version) >= 1.1)
+                let version = parseFloat(imported.version);
+                if (version >= 1.1)
                     imported.mode2D = (values[19] === "true");
+                if (version >= 1.2)
+                    imported.physics.nuclearPotential = values[20];
+                    imported.physics.useBoxBoundary = (values[21] === "true");
+                    imported.physics.useDistance1 = (values[22] === "true");
                 break;
 
             case 2:
@@ -396,7 +409,7 @@ export function simulationUpdatePhysics(key, value) {
             break;
     }
 
-    if (updateShader) {
+    if (updateShader && useGPU) {
         physics.velocityShader = getComputeVelocity(
             physics.nuclearPotential,
             physics.useDistance1,

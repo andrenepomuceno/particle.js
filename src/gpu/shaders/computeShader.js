@@ -1,3 +1,5 @@
+import { NuclearPotentialType } from "../../physics";
+
 export function getComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
     function define(define, value) {
         if (value) {
@@ -10,10 +12,10 @@ export function getComputeVelocity(nuclearPotential = "default", useDistance1 = 
     let config = "";
     config += define("USE_DISTANCE1", useDistance1);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
-    config += define("USE_HOOKS_LAW", nuclearPotential === "hooks");
-    config += define("USE_POTENTIAL0", nuclearPotential === "potential0");
-    config += define("USE_POTENTIAL1", nuclearPotential === "potential1");
-    config += define("USE_POTENTIAL2", nuclearPotential === "potential2");
+    config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
+    config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
+    config += define("USE_POTENTIAL1", nuclearPotential === NuclearPotentialType.potential_exp);
+    config += define("USE_POTENTIAL2", nuclearPotential === NuclearPotentialType.potential_powAX);
     let shader = config + computeVelocity;
     return shader;
 }
@@ -143,8 +145,7 @@ void main() {
                         x = sin(2.0 * PI * x);
                     #elif USE_POTENTIAL1
                         const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
-                        x *= r2;
-                        x = -exp(-log2 * x / r1);
+                        x = -exp(-log2 * x * r2 / r1);
                         x = sin(2.0 * PI * x);
                     #elif USE_POTENTIAL2
                         x = sin(7.48956 * (1.0 - pow(0.16107, x)));

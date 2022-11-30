@@ -1,5 +1,13 @@
 import { Vector3, Color } from 'three';
 
+export const NuclearPotentialType = {
+    default: "default",
+    hooksLaw: "hooks",
+    potential_powXR: "potential0",
+    potential_exp: "potential1",
+    potential_powAX: "potential2",
+}
+
 let particleId = 0;
 
 function log(msg) {
@@ -24,7 +32,7 @@ export class Physics {
 
         this.particleList = [];
 
-        this.nuclearPotential = "default";
+        this.nuclearPotential = NuclearPotentialType.default;
         this.useBoxBoundary = false;
         this.useDistance1 = false;
         this.velocityShader = undefined;

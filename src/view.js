@@ -1,6 +1,8 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import { ParticleType } from './physics.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+
+import { ParticleType, NuclearPotentialType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
     simulationSetup,
@@ -19,7 +21,6 @@ import {
     simulationDeleteAll,
     simulationList,
 } from './simulation.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
@@ -37,7 +38,6 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let updateField = false;
 let selection = new SelectionHelper();
-
 let stats = new Stats();
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
@@ -46,13 +46,6 @@ const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)
 const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
-const guiPotentialList = {
-    default: "default",
-    hooksLaw: "hooks",
-    potential_powXR: "potential0",
-    potential_exp: "potential1",
-    potential_powAX: "potential2",
-}
 
 function log(msg) {
     console.log("View: " + msg);
@@ -316,7 +309,7 @@ let guiOptions = {
         maxParticles: "",
         radius: "",
         radiusRange: "",
-        nuclearPotential: "default",
+        nuclearPotential: NuclearPotentialType.default,
         boxBoundary: false,
         distance1: false,
         close: () => {
@@ -600,7 +593,7 @@ function guiParametersSetup() {
     });
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
-    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', guiPotentialList).name("Nuclear Potential").listen().onFinishChange((val) => {
+    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', NuclearPotentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
         simulationUpdatePhysics("potential", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
@@ -857,13 +850,7 @@ function guiParametersRefresh() {
     edit.maxParticles = graphics.maxParticles;
     edit.boxBoundary = simulation.physics.useBoxBoundary;
     edit.distance1 = simulation.physics.useDistance1;
-    Object.keys(guiPotentialList).every(key => {
-        if (simulation.physics.nuclearPotential == key) {
-            edit.nuclearPotential = key;
-            return false;
-        }
-        return true;
-    });
+    edit.nuclearPotential = simulation.physics.nuclearPotential;
 }
 
 function guiSelectionClose(clear = true) {

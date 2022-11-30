@@ -22,8 +22,8 @@ export class Physics {
 
         this.collisionCounter = 0;
 
-        //particleId = 0;
         this.particleList = [];
+        this.velocityShader = undefined;
     }
 
     interact(p1, p2, probe = false) {

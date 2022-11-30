@@ -22,7 +22,7 @@ export class SimulationGPU {
         this.cleanup();
     }
 
-    setup(populateSimulationCallback, legacyMode = false) {
+    setup(populateSimulationCallback) {
         log("setup");
 
         this.graphics.cleanup();
@@ -34,14 +34,9 @@ export class SimulationGPU {
 
             this.graphics.cameraDefault();
 
-            if (legacyMode) {
-                log("Populating... (legacy)");
-                populateSimulationCallback(this.graphics, this.physics);
-            } else {
-                log("Populating...");
-                populateSimulationCallback(this);
-            }
-            log("Populating done");
+            log("Populating " + populateSimulationCallback.name + "...");
+            populateSimulationCallback(this);
+            log("Populating done.");
 
             this.graphics.cameraSetup();
         } else {
@@ -49,9 +44,6 @@ export class SimulationGPU {
         }
 
         this.drawParticles();
-        //fieldUpdate();
-
-        //this.graphics.compute();
     }
 
     cleanup() {
@@ -213,37 +205,37 @@ export class SimulationGPU {
 
     fieldProbeConfig(m = 0, q = 0, nq = 0) {
         log("fieldProbeConfig");
-    
+
         if (this.field) {
             this.field.probeConfig(m, q, nq);
         }
     }
-    
+
     fieldSetup(mode = "update", grid = 10, size = 1e3) {
         log("fieldSetup");
         log("mode = " + mode);
-    
+
         if (this.field)
             this.field.setup(mode, grid, size);
     }
-    
+
     fieldUpdate() {
         //log("fieldUpdate");
-    
+
         if (this.field)
             this.field.update();
     }
-    
+
     fieldCleanup() {
         log("fieldCleanup");
-    
+
         if (this.field)
             this.field.cleanup();
     }
-    
+
     fieldProbe(probe) {
         log("fieldProbe");
-    
+
         if (this.field)
             return this.field.probe(probe);
     }

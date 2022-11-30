@@ -261,7 +261,7 @@ let guiOptions = {
         pattern: "circle",
         fixed: false,
         generate: () => {
-            //guiGenerate.open();
+            guiGenerate.open();
             particleGenerator();
         },
         clear: () => {

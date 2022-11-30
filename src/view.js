@@ -46,6 +46,13 @@ const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)
 const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
+const guiPotentialList = {
+    default: "default",
+    hooksLaw: "hooks",
+    potential_powXR: "potential0",
+    potential_exp: "potential1",
+    potential_powAX: "potential2",
+}
 
 function log(msg) {
     console.log("View: " + msg);
@@ -593,18 +600,11 @@ function guiParametersSetup() {
     });
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
-    const potentialList = {
-        default: "default",
-        hooksLaw: "hooks",
-        potential_powXR: "potential0",
-        potential_exp: "potential1",
-        potential_powAX: "potential2",
-    }
-    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialList).name("Nuclear Potential").listen().onFinishChange((val) => {
+    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', guiPotentialList).name("Nuclear Potential").listen().onFinishChange((val) => {
         simulationUpdatePhysics("potential", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boxBaundary", val);
+        simulationUpdatePhysics("boxBoundary", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
         simulationUpdatePhysics("distance1", val);
@@ -855,6 +855,15 @@ function guiParametersRefresh() {
     edit.radius = simulation.particleRadius;
     edit.radiusRange = simulation.particleRadiusRange;
     edit.maxParticles = graphics.maxParticles;
+    edit.boxBoundary = simulation.physics.useBoxBoundary;
+    edit.distance1 = simulation.physics.useDistance1;
+    Object.keys(guiPotentialList).every(key => {
+        if (simulation.physics.nuclearPotential == key) {
+            edit.nuclearPotential = key;
+            return false;
+        }
+        return true;
+    });
 }
 
 function guiSelectionClose(clear = true) {

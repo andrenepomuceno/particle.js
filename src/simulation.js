@@ -323,7 +323,7 @@ export function simulationCreateParticles(particleList, center = new Vector3()) 
 export function simulationUpdatePhysics(key, value) {
     log("simulationUpdatePhysics key " + key + " val " + value);
 
-    if (value == undefined || value == "") return;
+    if (value == undefined || value === "") return;
 
     let updatePhysics = true;
     let updateShader = false;

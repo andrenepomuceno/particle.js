@@ -23,6 +23,10 @@ export class Physics {
         this.collisionCounter = 0;
 
         this.particleList = [];
+
+        this.nuclearPotential = "default";
+        this.useBoxBoundary = false;
+        this.useDistance1 = false;
         this.velocityShader = undefined;
     }
 

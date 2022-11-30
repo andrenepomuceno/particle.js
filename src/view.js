@@ -593,7 +593,7 @@ function guiParametersSetup() {
     });
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
-    let potentialList = {
+    const potentialList = {
         default: "default",
         hooksLaw: "hooks",
         potential_powXR: "potential0",
@@ -606,7 +606,7 @@ function guiParametersSetup() {
     guiParametersInteractions.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boxBaundary", val);
     });
-    guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential").listen().onFinishChange((val) => {
+    guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
         simulationUpdatePhysics("distance1", val);
     });
 
@@ -616,6 +616,7 @@ function guiParametersSetup() {
     collapseList.push(guiParametersBoundary);
     collapseList.push(guiParametersConsts);
     collapseList.push(guiParametersVisual);
+    collapseList.push(guiParametersInteractions);
 }
 
 export function guiSetup() {

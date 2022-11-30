@@ -19,6 +19,7 @@ import { nuclearForce1 } from './scenarios/nuclearForce1.js';
 import { experiments } from './scenarios/experiments.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
+import { getComputeVelocity } from './gpu/shaders/computeShader.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -325,6 +326,7 @@ export function simulationUpdatePhysics(key, value) {
     if (value == undefined || value == "") return;
 
     let updatePhysics = true;
+    let updateShader = false;
 
     switch (key) {
         case "massConstant":
@@ -371,13 +373,41 @@ export function simulationUpdatePhysics(key, value) {
             updatePhysics = false;
             break;
 
+        case "potential":
+            physics.nuclearPotential = value;
+            updatePhysics = false;
+            updateShader = true;
+            break;
+
+        case "boxBoundary":
+            physics.useBoxBoundary = value;
+            updatePhysics = false;
+            updateShader = true;
+            break;
+
+        case "distance1":
+            physics.useDistance1 = value;
+            updatePhysics = false;
+            updateShader = true;
+            break;
+
         default:
             updatePhysics = false;
             break;
     }
 
+    if (updateShader) {
+        physics.velocityShader = getComputeVelocity(
+            physics.nuclearPotential,
+            physics.useDistance1,
+            physics.useBoxBoundary
+        );
+        graphics.readbackParticleData();
+        graphics.drawParticles();
+    }
+
     if (updatePhysics && useGPU) {
-        simulation.graphics.fillPhysicsUniforms();
+        graphics.fillPhysicsUniforms();
     }
 }
 

@@ -26,7 +26,7 @@ const axisObject = [
     new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
 ];
 
-const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles)/16)*16;
+const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
@@ -163,7 +163,7 @@ export class GraphicsGPU {
         this.initialized = false;
 
         if (this.scene) {
-            for (let i = this.scene.children.length - 1; i >= 0 ; i--) {
+            for (let i = this.scene.children.length - 1; i >= 0; i--) {
                 let obj = this.scene.children[i];
                 if (obj.type == "ArrowHelper") continue;
                 this.scene.remove(obj);
@@ -185,7 +185,7 @@ export class GraphicsGPU {
 
     setMaxParticles(n) {
         log("setMaxParticles");
-        this.textureWidth = Math.round(Math.sqrt(n)/16)*16;
+        this.textureWidth = Math.round(Math.sqrt(n) / 16) * 16;
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
 
@@ -206,14 +206,18 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined) {
-            this.physics.velocityShader = getComputeVelocity();
+            this.physics.velocityShader = getComputeVelocity(
+                this.physics.nuclearPotential, 
+                this.physics.useDistance1, 
+                this.physics.useBoxBoundary);
         }
+        
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
         this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);
 
         gpuCompute.setVariableDependencies(this.velocityVariable, [this.velocityVariable, this.positionVariable]);
         gpuCompute.setVariableDependencies(this.positionVariable, [this.velocityVariable, this.positionVariable]);
-        
+
         this.fillPhysicsUniforms();
         this.velocityVariable.material.uniforms['textureProperties'] = { value: this.dtProperties };
 
@@ -296,7 +300,7 @@ export class GraphicsGPU {
     readbackParticleData() {
         log("readbackParticleData");
 
-        if (!this.initialized){
+        if (!this.initialized) {
             log("not initialized");
             return;
         }
@@ -305,7 +309,7 @@ export class GraphicsGPU {
         let particleVelocity = this.particleVelocity;
 
         let current = (this.renderTarget + 0) % 2;
-        
+
         let texture = this.positionVariable.renderTargets[current];
         this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particlePosition);
 

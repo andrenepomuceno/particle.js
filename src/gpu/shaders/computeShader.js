@@ -1,4 +1,4 @@
-export function getComputeVelocity(nuclearForce = "default", useDistance1 = false, boxBoundary = false) {
+export function getComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
     let config = "";
 
     if (useDistance1) {
@@ -13,31 +13,32 @@ export function getComputeVelocity(nuclearForce = "default", useDistance1 = fals
         config += "#define USE_BOX_BOUNDARY 0\n";
     }
 
-    if (nuclearForce == "hooks") {
+    if (nuclearPotential == "hooks") {
         config += "#define USE_HOOKS_LAW 1\n";
     } else {
         config += "#define USE_HOOKS_LAW 0\n";
     }
 
-    if (nuclearForce == "potential0") {
+    if (nuclearPotential == "potential0") {
         config += "#define USE_POTENTIAL0 1\n";
     } else {
         config += "#define USE_POTENTIAL0 0\n";
     }
-    
-    if (nuclearForce == "potential1") {
+
+    if (nuclearPotential == "potential1") {
         config += "#define USE_POTENTIAL1 1\n";
     } else {
         config += "#define USE_POTENTIAL1 0\n";
     }
 
-    if (nuclearForce == "potential2") {
+    if (nuclearPotential == "potential2") {
         config += "#define USE_POTENTIAL2 1\n";
     } else {
         config += "#define USE_POTENTIAL2 0\n";
     }
 
-    return config + "\n" + computeVelocity;
+    let shader = config + computeVelocity;
+    return shader;
 }
 
 const computeVelocity = /* glsl */ `

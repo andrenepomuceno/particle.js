@@ -1,42 +1,19 @@
 export function getComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
+    function define(define, value) {
+        if (value) {
+            return "#define " + define + " 1\n";
+        } else {
+            return "#define " + define + " 0\n";
+        }
+    }
+
     let config = "";
-
-    if (useDistance1) {
-        config += "#define USE_DISTANCE1 1\n";
-    } else {
-        config += "#define USE_DISTANCE1 0\n";
-    }
-
-    if (boxBoundary) {
-        config += "#define USE_BOX_BOUNDARY 1\n";
-    } else {
-        config += "#define USE_BOX_BOUNDARY 0\n";
-    }
-
-    if (nuclearPotential == "hooks") {
-        config += "#define USE_HOOKS_LAW 1\n";
-    } else {
-        config += "#define USE_HOOKS_LAW 0\n";
-    }
-
-    if (nuclearPotential == "potential0") {
-        config += "#define USE_POTENTIAL0 1\n";
-    } else {
-        config += "#define USE_POTENTIAL0 0\n";
-    }
-
-    if (nuclearPotential == "potential1") {
-        config += "#define USE_POTENTIAL1 1\n";
-    } else {
-        config += "#define USE_POTENTIAL1 0\n";
-    }
-
-    if (nuclearPotential == "potential2") {
-        config += "#define USE_POTENTIAL2 1\n";
-    } else {
-        config += "#define USE_POTENTIAL2 0\n";
-    }
-
+    config += define("USE_DISTANCE1", useDistance1);
+    config += define("USE_BOX_BOUNDARY", boxBoundary);
+    config += define("USE_HOOKS_LAW", nuclearPotential === "hooks");
+    config += define("USE_POTENTIAL0", nuclearPotential === "potential0");
+    config += define("USE_POTENTIAL1", nuclearPotential === "potential1");
+    config += define("USE_POTENTIAL2", nuclearPotential === "potential2");
     let shader = config + computeVelocity;
     return shader;
 }

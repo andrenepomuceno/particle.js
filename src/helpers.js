@@ -164,7 +164,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
         }
     }
 
-    console.log("hexagonGenerator vertex count: " + vertexMap.size);
+    //console.log("hexagonGenerator vertex count: " + vertexMap.size);
     vertexMap.forEach((vertex) => {
         callback(vertex, totalLen);
     });

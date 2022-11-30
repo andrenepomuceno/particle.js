@@ -206,7 +206,7 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined) {
-            this.physics.velocityShader = getComputeVelocity("potential2");
+            this.physics.velocityShader = getComputeVelocity();
         }
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
         this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);

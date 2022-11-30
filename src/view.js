@@ -309,6 +309,9 @@ let guiOptions = {
         maxParticles: "",
         radius: "",
         radiusRange: "",
+        nuclearPotential: "default",
+        boxBoundary: false,
+        distance1: false,
         close: () => {
             guiParameters.close();
         },
@@ -587,6 +590,24 @@ function guiParametersSetup() {
     });
     guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("particleRadiusRange").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radiusRange", val);
+    });
+
+    const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
+    let potentialList = {
+        default: "default",
+        hooksLaw: "hooks",
+        potential_powXR: "potential0",
+        potential_exp: "potential1",
+        potential_powAX: "potential2",
+    }
+    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialList).name("Nuclear Potential").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("potential", val);
+    });
+    guiParametersInteractions.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("boxBaundary", val);
+    });
+    guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("distance1", val);
     });
 
     guiParameters.add(guiOptions.parameters, 'close').name("Close");

@@ -148,7 +148,7 @@ void main() {
                         x = -exp(-log2 * x * r2 / r1);
                         x = sin(2.0 * PI * x);
                     #elif USE_POTENTIAL2
-                        x = sin(7.48956 * (1.0 - pow(0.16107, x)));
+                        x = sin(7.22423 * (1.0 - pow(0.13026, x)));
                     #else
                         x = sin(2.0 * PI * x);
                     #endif

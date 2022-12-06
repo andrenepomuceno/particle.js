@@ -314,7 +314,8 @@ export function simulationCreateParticles(particleList, center = new Vector3()) 
     if (particleList == undefined || particleList.length == 0) return;
 
     if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
-        alert("maxParticles exceeded!");
+        alert('maxParticles exceeded!\n' + 
+        'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.');
         return;
     }
 

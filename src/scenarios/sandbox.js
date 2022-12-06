@@ -44,9 +44,9 @@ function sandbox0(simulation) {
     gridHelper.geometry.translate(0, 0, z);
     graphics.scene.add(gridHelper);
 
-    let radius = physics.boundaryDistance;
+    /*let radius = physics.boundaryDistance;
     let gridPolar = new PolarGridHelper(radius, 8, divisions/2);
     gridPolar.geometry.rotateX( Math.PI / 2 );
     gridPolar.geometry.translate(0, 0, z);
-    graphics.scene.add(gridPolar);
+    graphics.scene.add(gridPolar);*/
 }

@@ -582,6 +582,9 @@ function guiParametersSetup() {
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDamping", val);
     });
+    guiParametersBoundary.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("boxBoundary", val);
+    });
     //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] Visualization");
@@ -595,9 +598,6 @@ function guiParametersSetup() {
     const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
     guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', NuclearPotentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
         simulationUpdatePhysics("potential", val);
-    });
-    guiParametersInteractions.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boxBoundary", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
         simulationUpdatePhysics("distance1", val);

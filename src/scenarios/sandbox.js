@@ -34,7 +34,7 @@ function sandbox0(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    graphics.setMaxParticles(10e3);
+    //graphics.setMaxParticles(10e3);
 
     let size = 2 * physics.boundaryDistance;
     let divisions = Math.round(size/10e3);

@@ -989,7 +989,6 @@ function particleGenerator() {
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
     //if (input.pattern == "hexagon") quantity *= 6;
-    console.log(guiOptions.generator.fixed);
     createParticlesList(newParticles, quantity,
         generateMass,
         generateCharge,

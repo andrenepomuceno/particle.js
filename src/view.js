@@ -35,7 +35,7 @@ let mouseHelper = new MouseHelper();
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
-let updateField = false;
+let autoRefresh = true;
 let selection = new SelectionHelper();
 let stats = new Stats();
 const gui = new dat.GUI();
@@ -98,6 +98,7 @@ let guiOptions = {
         cameraDistance: "",
         mode: "",
         cameraPosition: "",
+        autoRefresh: autoRefresh,
     },
     controls: {
         pauseResume: function () {
@@ -362,7 +363,7 @@ function guiInfoSetup() {
     });
     guiInfo.open();
 
-    const guiInfoMore = guiInfo.addFolder("[+] More");
+    const guiInfoMore = guiInfo.addFolder("[+] More Information...");
     guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
@@ -371,6 +372,9 @@ function guiInfoSetup() {
         simulationUpdateParticleList("charge", val);
     });
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
+    guiInfoMore.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
+        autoRefresh = val;
+    });
 }
 
 function guiControlsSetup() {
@@ -1053,16 +1057,16 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        if (ENV?.useGPU && guiOptions.particle.obj != undefined) graphics.readbackParticleData();
+        if (ENV?.useGPU) {
+            if (autoRefresh == true || guiOptions.particle.obj != undefined) {
+                graphics.readbackParticleData();
+            }
+        }
+
         guiInfoRefresh(time);
         guiParticleRefresh();
         selection.guiRefresh();
         guiParametersRefresh();
-
-        if (updateField) {
-            updateField = false;
-            simulation.fieldSetup("update");
-        }
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

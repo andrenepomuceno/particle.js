@@ -38,6 +38,7 @@ let lastAnimateTime = 0;
 let autoRefresh = true;
 let selection = new SelectionHelper();
 let stats = new Stats();
+let energyPanel = stats.addPanel(new Stats.Panel('E', '#ff8', '#221'));
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
@@ -56,6 +57,7 @@ function setup(idx) {
     guiParticleClose();
     simulationSetup(idx);
     guiParametersRefresh();
+    energyPanel.maxEnergy = 1000;
     guiInfoRefresh();
     guiOptions.generator.default();
 }
@@ -67,10 +69,12 @@ export function guiSetup() {
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
 
-    document.getElementById("container").appendChild(stats.dom);
+    //stats overlay
+    document.getElementById("container").appendChild(stats.domElement);
     mouseHelper.addListener(stats.domElement);
     stats.domElement.style.visibility = "visible";
 
+    //gui menu overlay
     mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
@@ -643,22 +647,34 @@ function guiParametersSetup() {
 
 function guiInfoRefresh(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+
     guiOptions.info.name = name;
     guiOptions.info.particles = n + " / " + graphics.maxParticles;
+
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
-    guiOptions.info.energy = (e / n).toExponential(2) + " / " + Math.sqrt(e / m).toExponential(2);
+
+    n = (n == 0)?(1):(n);
+    m = (m == 0)?(1):(m);
+    let avgEnergy = e / n;
+    let avgVelocity = Math.sqrt(e / m);
+    guiOptions.info.energy = avgEnergy.toExponential(2) + " / " + avgVelocity.toExponential(2);
+
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(2);
-    guiOptions.info.radius = r.toExponential(2);
     guiOptions.info.charge = totalCharge.toExponential(2);
-    guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
+    //guiOptions.info.radius = r.toExponential(2);
+    //guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
     let position = graphics.camera.position.toArray();
     position.forEach((val, idx) => {
         position[idx] = val.toExponential(1);
     });
     guiOptions.info.cameraPosition = position;
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
+    
+    let energy = avgVelocity;
+    if (energy > energyPanel.maxEnergy) energyPanel.maxEnergy = energy;
+    energyPanel.update(energy, energyPanel.maxEnergy);
 }
 
 function guiParticleRefresh() {

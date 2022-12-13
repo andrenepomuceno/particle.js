@@ -708,7 +708,7 @@ function terrarium(simulation) {
     defaultParameters(simulation, 1.4e6);
     simulation.setParticleRadius(5e3, 1e3);
     physics.boundaryDistance = 1e6;
-    physics.boundaryDamping = 0.95;
+    physics.boundaryDamping = 0.9;
 
     physics.nuclearChargeRange = 1e6;
     physics.nuclearChargeConstant = 1;

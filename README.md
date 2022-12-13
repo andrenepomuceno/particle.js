@@ -71,19 +71,19 @@ $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
 ### Collisions
 
-A collisions occurs when the distance between two particles is less than a minimal allowed distance.
+A collision occurs when the distance between two particles is less than a minimal allowed distance.
 
 In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
 
-$$m_1 v_1 + m_2 v_2 = m_1 u_1 + m_2 u_2$$
+$$m_1 \vec{v_1} + m_2 \vec{v_2} = m_1 \vec{u_1} + m_2 \vec{u_2}$$
 
-$$m_1 v_{1}^2 + m_2 v_{2}^2 = m_1 u_{1}^2 + m_2 u_{2}^2$$
+$$m_1 \vec{v_1}^2 + m_2 \vec{v_2}^2 = m_1 \vec{u_1}^2 + m_2 \vec{u_2}^2$$
 
 Where $u_i$ is the final velocity of $P_i$.
 
 So, the force exerted by a collision is (a lot of omitted calculus here...)
 
-$$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||} \vec{d_{21}} $$
+$$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
 
 
 ## Special Thanks

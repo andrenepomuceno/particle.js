@@ -39,6 +39,8 @@ export class SimulationGPU {
             log("Populating done.");
 
             this.graphics.cameraSetup();
+            this.bidimensionalMode();
+            this.setParticleRadius();
         } else {
             log("populateSimulationCallback is undefined, skipping...");
         }
@@ -192,11 +194,12 @@ export class SimulationGPU {
         fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
     }
 
-    bidimensionalMode(enable = true) {
+    bidimensionalMode(enable) {
         log("bidimensionalMode " + enable);
 
-        this.mode2D = enable;
-        if (enable) {
+        if (enable != undefined) this.mode2D = enable;
+
+        if (this.mode2D) {
             this.graphics.controls.enableRotate = false;
         } else {
             this.graphics.controls.enableRotate = true;

@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { createParticleList, randomSphericVector, randomVector, createNuclei, createParticlesList } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 
-export const experiments = [
+export const experiments0 = [
     hexagon3,
     //hexagon3d,
     hexagon1,

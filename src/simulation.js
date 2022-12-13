@@ -7,6 +7,7 @@ import { GraphicsCPU } from './cpu/graphicsCPU'
 import { FieldCPU } from './cpu/fieldCPU';
 import { Vector3 } from 'three';
 import { decodeVector3 } from './helpers.js';
+import { getComputeVelocity } from './gpu/shaders/computeShader.js';
 
 import { scenarios0 } from './scenarios/scenarios0.js';
 import { scenarios1 } from './scenarios/scenarios1.js';
@@ -16,10 +17,10 @@ import { nuclearForce } from './scenarios/nuclearForce.js';
 import { scenarios2 } from './scenarios/scenarios2.js';
 import { gpgpu } from './scenarios/gpgpuTest';
 import { nuclearForce1 } from './scenarios/nuclearForce1.js';
-import { experiments } from './scenarios/experiments.js';
+import { experiments0 } from './scenarios/experiments0.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
-import { getComputeVelocity } from './gpu/shaders/computeShader.js';
+import { experiments1 } from './scenarios/experiments1.js';
 
 export const useGPU = true;
 export let graphics = undefined;
@@ -38,11 +39,12 @@ function addFolder(name, list) {
     simulationList = simulationList.concat(list);
 }
 
-if (!ENV?.production) {
+/*if (!ENV?.production) {
     addFolder("dev", sandbox);
-}
+}*/
 if (useGPU) {
-    addFolder("experiments", experiments);
+    addFolder("experiments1", experiments1);
+    addFolder("experiments0", experiments0);
     addFolder("nuclearForce1", nuclearForce1);
     addFolder("gpgpu", gpgpu);
 }

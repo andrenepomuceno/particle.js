@@ -1,4 +1,4 @@
-import { GridHelper } from 'three';
+import { drawGrid } from './helpers';
 
 export const sandbox = [
     sandbox0,
@@ -25,15 +25,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
-}
-
-function drawGrid(simulation, divisions = 10) {
-    let size = 2 * simulation.physics.boundaryDistance;
-    let gridHelper = new GridHelper(size, divisions);
-    let z = -1;
-    gridHelper.geometry.rotateX(Math.PI / 2);
-    gridHelper.geometry.translate(0, 0, z);
-    simulation.graphics.scene.add(gridHelper);
 }
 
 function sandbox0(simulation) {

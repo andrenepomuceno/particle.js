@@ -4,8 +4,10 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
+    standardModel3,
+    standardModel2,
     standardModel1,
-    standardModel0,
+    plasmaBall,
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
@@ -31,32 +33,90 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function createParticles(simulation, typeList, n, r1 = 1, v1 = 0) {
+function createParticles(simulation, typeList, n, options) {
+    const defaultOptions = { r1: 1, v1: 0, randomQSignal: false, randomNQSignal: true };
+    options = { ...defaultOptions, ...options };
+
     for (let i = 0; i < n; ++i) {
         let p = new Particle();
         let type = random(0, typeList.length - 1, true);
 
         p.mass = typeList[type].m;
-        p.charge = typeList[type].q;
+
+        let q = typeList[type].q;
+        if (options.randomQSignal == true) q *= random(0, 1, true) ? (1) : (-1);
+        p.charge = q;
 
         let nq = typeList[type].nq;
-        nq *= random(0, 1, true) ? (1) : (-1);
+        if (options.randomNQSignal == true) nq *= random(0, 1, true) ? (1) : (-1);
         p.nuclearCharge = nq;
 
-        p.position = randomSphericVector(0, r1, simulation.mode2D);
-        p.velocity = randomVector(v1);
+        p.position = randomSphericVector(0, options.r1, simulation.mode2D);
+        p.velocity = randomVector(options.v1);
 
         simulation.physics.particleList.push(p);
     }
 }
 
-function drawGrid(simulation, divisions = 10) {
-    let size = 2 * simulation.physics.boundaryDistance;
-    let gridHelper = new GridHelper(size, divisions);
-    let z = -1;
-    gridHelper.geometry.rotateX(Math.PI / 2);
-    gridHelper.geometry.translate(0, 0, z);
-    simulation.graphics.scene.add(gridHelper);
+function standardModel3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.boundaryDistance = 1e8;
+
+    physics.nuclearChargeRange = 1e5;
+    graphics.cameraDistance = 3 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1;
+    physics.nuclearChargeConstant = 1;
+
+    let particleTypes = [
+        //{ m: 0, q: 0, nq: 1 },
+        { m: 0.511, q: -1, nq: 1 },
+        { m: 3, q: 2 / 3, nq: 1 },
+        { m: 6, q: -1 / 3, nq: 1 },
+    ]
+    createParticles(simulation, particleTypes, graphics.maxParticles, { 
+        randomQSignal: true, v1: 0, r1: 1 });
+    //drawGrid(simulation);
+}
+
+function standardModel2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.boundaryDistance = 1e8;
+
+    physics.nuclearChargeRange = 1e6;
+    graphics.cameraDistance = 3 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.nuclearChargeConstant = 1;
+
+    let particleTypes = [
+        //{ m: 0, q: 0, nq: 1 },
+        { m: 0.511, q: -1, nq: 1 },
+        { m: 3, q: 2 / 3, nq: 1 },
+        { m: 6, q: -1 / 3, nq: 1 },
+    ]
+    createParticles(simulation, particleTypes, graphics.maxParticles, { randomQSignal: true, v1: 1 });
+    //drawGrid(simulation);
 }
 
 function standardModel1(simulation) {
@@ -64,35 +124,36 @@ function standardModel1(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powXR;
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
-    physics.boundaryDistance = 1e5;
-    graphics.cameraDistance = physics.boundaryDistance;
+    physics.boundaryDistance = 1e7;
 
-    physics.nuclearChargeRange = 1e4;
+    physics.nuclearChargeRange = 1e6;
+    graphics.cameraDistance = 5 * physics.nuclearChargeRange;
     simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
-    physics.chargeConstant = 1 / 60;
+    physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
 
     let particleTypes = [
-        { m: 0.5, q: -1, nq: 1 },
+        { m: 0.511, q: -1, nq: 1 },
         { m: 3, q: 2 / 3, nq: 1 },
         { m: 6, q: -1 / 3, nq: 1 },
     ]
-    createParticles(simulation, particleTypes, graphics.maxParticles);
+    createParticles(simulation, particleTypes, graphics.maxParticles, { randomQSignal: false });
     //drawGrid(simulation);
 }
 
-function standardModel0(simulation) {
+function plasmaBall(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powXR;
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = false;
 
     physics.boundaryDistance = 1e5;

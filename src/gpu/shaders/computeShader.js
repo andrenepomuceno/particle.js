@@ -139,15 +139,15 @@ void main() {
                 #else
                     float x = distance1/nuclearChargeRange;
 
-                    #if USE_POTENTIAL0
+                    #if USE_POTENTIAL0 // "powXR"
                         const float r = 1.0/3.0, log2 = log(2.0);
                         x = pow(x, -log2 / log(r));
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL1
+                    #elif USE_POTENTIAL1 // "exp"
                         const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
                         x = -exp(-log2 * x * r2 / r1);
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL2
+                    #elif USE_POTENTIAL2 // "powAX"
                         x = sin(7.22423 * (1.0 - pow(0.13026, x)));
                     #else
                         x = sin(2.0 * PI * x);

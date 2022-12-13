@@ -28,7 +28,7 @@ import { MouseHelper } from './mouseHelper';
 let hideAxis = false;
 let simulationIdx = 0;
 let colorMode = "charge";
-
+let hideOverlay = false;
 let nextFrame = false;
 let pause = false;
 let followParticle = false;
@@ -153,12 +153,14 @@ let guiOptions = {
             setup(-1);
         },
         hideOverlay: () => {
-            let visibility = stats.domElement.style.visibility;
-            if (visibility == "visible") {
+            if (hideOverlay == false) {
                 stats.domElement.style.visibility = "hidden";
-            }
-            else {
+                gui.hide();
+                hideOverlay = true;
+            } else {
                 stats.domElement.style.visibility = "visible";
+                gui.show();
+                hideOverlay = false;
             }
         },
         close: () => {

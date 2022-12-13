@@ -1,6 +1,7 @@
 import { random, randomSpheric, randomDisc } from "../helpers";
 import { Particle, ParticleType } from "../physics"
 import { Vector3 } from 'three';
+import { GridHelper } from 'three';
 
 export function randomVector(range, mode2D = true, round = false) {
     let v = new Vector3(
@@ -200,3 +201,11 @@ export function createNuclei(particleList, n, m, q, nq, r0, r1, v, center, elect
     );
 }
 
+export function drawGrid(simulation, divisions = 10) {
+    let size = 2 * simulation.physics.boundaryDistance;
+    let gridHelper = new GridHelper(size, divisions);
+    let z = -1;
+    gridHelper.geometry.rotateX(Math.PI / 2);
+    gridHelper.geometry.translate(0, 0, z);
+    simulation.graphics.scene.add(gridHelper);
+}

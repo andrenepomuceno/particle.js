@@ -57,9 +57,11 @@ function setup(idx) {
     guiParticleClose();
     simulationSetup(idx);
     guiParametersRefresh();
-    energyPanel.maxEnergy = 1000;
     guiInfoRefresh();
     guiOptions.generator.default();
+
+    energyPanel.min = 0;
+    energyPanel.max = 0;
 }
 
 export function guiSetup() {
@@ -673,8 +675,8 @@ function guiInfoRefresh(now) {
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
     
     let energy = avgVelocity;
-    if (energy > energyPanel.maxEnergy) energyPanel.maxEnergy = energy;
-    energyPanel.update(energy, energyPanel.maxEnergy);
+    if (energy > energyPanel.max) energyPanel.max = energy;
+    energyPanel.update(energy, energyPanel.max);
 }
 
 function guiParticleRefresh() {

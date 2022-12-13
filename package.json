@@ -7,7 +7,9 @@
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env useGPU --env production",
     "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env useGPU --env version='dev'",
     "test2": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev'",
-    "madge": "madge --image graph.svg src"
+    "madge": "madge --image graph.svg src",
+    "madge1": "madge --include-npm --image graph.svg src",
+    "madge2": "madge --image graph.svg src -x 'scenarios/.*.js|cpu/.*.js'"
   },
   "repository": {
     "type": "git",

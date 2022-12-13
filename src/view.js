@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
+import Stats from './stats.js';
 
 import { ParticleType, NuclearPotentialType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';

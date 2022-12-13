@@ -134,7 +134,7 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -151,7 +151,7 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -189,7 +189,7 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -206,7 +206,7 @@ function nucleiGrid(simulation) {
                 return nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);

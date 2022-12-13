@@ -328,7 +328,7 @@ function GPU_nucleiGrid(simulation) {
                 return 3 * nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -345,7 +345,7 @@ function GPU_nucleiGrid(simulation) {
                 return 3 * nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -383,7 +383,7 @@ function GPU_nucleiGrid(simulation) {
                 return 3 * nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -400,7 +400,7 @@ function GPU_nucleiGrid(simulation) {
                 return 3 * nq;
             },
             (i) => {
-                return randomSphericVector(0, r0).add(center, simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(center);
             },
             (i) => {
                 return randomVector(0, simulation.mode2D);
@@ -460,7 +460,7 @@ function GPU_shootedBarrier(simulation) {
                 }
             },
             (i) => {
-                return randomSphericVector(0, r0).add(new Vector3(x, y, z), simulation.mode2D);
+                return randomSphericVector(0, r0, simulation.mode2D).add(new Vector3(x, y, z));
             },
             (i) => {
                 return randomVector(v, simulation.mode2D);

@@ -167,8 +167,8 @@ let guiOptions = {
             guiControls.close();
         },
         collapseAll: () => {
-            collapseList.forEach((val) => {
-                val.close();
+            collapseList.forEach((obj) => {
+                obj.close();
             });
         },
     },

@@ -39,7 +39,7 @@ Main considerations:
 - Particles have scalar properties like mass, charge and "nuclear charge".
 - Particles interact and collide with each other every simulation step.
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
-- Uses a fictional "Nuclear Force", trying to imitate the Strong Force.
+- Uses an approximate nuclear force, trying to imitate the Strong Force.
 
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
 $$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)]$$
@@ -69,4 +69,23 @@ And the position
 
 $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
-In the case of collisions, the conservation of momentum and energy are applied.
+### Collisions
+
+An collisions occurs when the distance between two particles is less than a minimal allowed distance.
+
+In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
+
+$$m_1 v_1 + m_2 v_2 = m_1 u_1 + m_2 u_2$$
+
+$$m_1 v_{1}^2 + m_2 v_{2}^2 = m_1 u_{1}^2 + m_2 u_{2}^2$$
+
+Where $u_i$ is the final velocity of $P_i$.
+
+So, the force exerted by a collision is (a lot of omitted calculus here...)
+
+$$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||} \vec{d_{21}} $$
+
+
+## Special Thanks
+
+Big thanks to [three.js](https://threejs.org/) guys who made this amazing WebGL library, making the entire process a lot easier and fun.

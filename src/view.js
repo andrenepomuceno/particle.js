@@ -5,22 +5,21 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { ParticleType, NuclearPotentialType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
 import {
+    graphics,
+    simulation,
     simulationSetup,
     simulationExportCsv,
-    graphics,
-    useGPU,
     simulationImportCSV,
-    simulation,
     simulationUpdatePhysics,
     simulationUpdateParticle,
     simulationFindParticle,
-    simulationUpdateParticleList as simulationUpdateParticleList,
+    simulationUpdateParticleList,
     simulationImportSelectionCSV,
     simulationCreateParticles,
     simulationDelete,
-    simulationDeleteAll,
-    simulationList,
+    simulationDeleteAll
 } from './simulation.js';
+import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
@@ -61,6 +60,30 @@ function setup(idx) {
     guiOptions.generator.default();
 }
 
+export function guiSetup() {
+    window.onresize = onWindowResize;
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener('pointermove', onPointerMove);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointerup", onPointerUp);
+
+    document.getElementById("container").appendChild(stats.dom);
+    mouseHelper.addListener(stats.domElement);
+    stats.domElement.style.visibility = "visible";
+
+    mouseHelper.addListener(gui.domElement);
+    gui.width = Math.max(0.2 * window.innerWidth, 320);
+
+    guiInfoSetup();
+    guiControlsSetup();
+    guiParticleSetup();
+    guiParametersSetup();
+    guiSelectionSetup();
+    guiGenerateSetup();
+
+    setup();
+}
+
 let collapseList = [];
 let guiOptions = {
     info: {
@@ -87,7 +110,7 @@ let guiOptions = {
             setup();
         },
         next: function () {
-            if (simulationIdx < simulationList.length - 1)
+            if (simulationIdx < scenariosList.length - 1)
                 setup(++simulationIdx);
         },
         previous: function () {
@@ -614,159 +637,6 @@ function guiParametersSetup() {
     collapseList.push(guiParametersInteractions);
 }
 
-export function guiSetup() {
-    window.onresize = onWindowResize;
-    document.addEventListener("keydown", onKeyDown);
-    window.addEventListener('pointermove', onPointerMove);
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("pointerup", onPointerUp);
-
-    document.getElementById("container").appendChild(stats.dom);
-    mouseHelper.addListener(stats.domElement);
-    stats.domElement.style.visibility = "visible";
-
-    mouseHelper.addListener(gui.domElement);
-    gui.width = Math.max(0.2 * window.innerWidth, 320);
-
-    guiInfoSetup();
-    guiControlsSetup();
-    guiParticleSetup();
-    guiParametersSetup();
-    guiSelectionSetup();
-    guiGenerateSetup();
-
-    setup();
-}
-
-function onWindowResize() {
-    log("window.onresize");
-    graphics.onWindowResize(window);
-}
-
-function onKeyDown(event) {
-    if (mouseHelper.overGUI) return;
-
-    let key = event.key.toLowerCase();
-    switch (key) {
-        case ' ':
-            guiOptions.controls.pauseResume();
-            break;
-
-        case 'c':
-            guiOptions.controls.resetCamera();
-            break;
-
-        case 'r':
-            guiOptions.controls.reset();
-            break;
-
-        case 'p':
-            guiOptions.controls.snapshot();
-            break;
-
-        case 'd':
-            console.log(simulationExportCsv());
-            break;
-
-        case 'a':
-            guiOptions.controls.hideAxis();
-            break;
-
-        case 'v':
-            guiOptions.controls.xyCamera();
-            break;
-
-        case 'n':
-            guiOptions.controls.step();
-            break;
-
-        case 'q':
-            guiOptions.controls.colorMode();
-            break;
-
-        case 'pagedown':
-            guiOptions.controls.next();
-            break;
-
-        case 'pageup':
-            guiOptions.controls.previous();
-            break;
-
-        case 'home':
-            guiOptions.controls.home();
-            break;
-
-        case 'f':
-            simulation.fieldSetup("update");
-            break;
-
-        case 'h':
-            guiOptions.controls.hideOverlay();
-            break;
-
-        case 'z':
-            if (!mouseHelper.overGUI && selection.list != undefined) {
-                selectionPlace();
-            }
-            break;
-
-        case 'delete':
-            guiOptions.controls.deleteAll();
-            break;
-
-        case 's':
-            guiOptions.controls.sandbox();
-            break;
-
-        case 'g':
-            guiOptions.generator.generate();
-            break;
-
-        case 'x':
-            guiOptions.selection.clone();
-            break;
-
-        case 'backspace':
-            guiOptions.selection.delete();
-            break;
-
-        case 'm':
-            guiOptions.controls.collapseAll();
-            break;
-
-        default:
-            log("key = " + key);
-            break;
-
-    }
-}
-
-function onPointerMove(event) {
-    mouseHelper.move(event);
-    if (selection.started) {
-        selection.update(event);
-    }
-}
-
-function onPointerDown(event) {
-    if (event.button == 0 && event.shiftKey) {
-        selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
-        selection.start(event);
-    }
-}
-
-function onPointerUp(event) {
-    if (event.button == 0 && selection.started) {
-        selection.end(event);
-    } else if (event.button == 0 && !mouseHelper.overGUI) {
-        let particle = graphics.raycast(mouseHelper.position);
-        if (particle) {
-            guiOptions.particle.obj = particle;
-            guiParticle.open();
-        }
-    }
-}
-
 function guiInfoRefresh(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
     guiOptions.info.name = name;
@@ -867,6 +737,7 @@ function selectionListUpdate(param, val) {
 
 function selectionPlace() {
     if (selection.list.length == 0) return;
+    
     let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
     if (simulation.mode2D) {
         center.z = 0;
@@ -1028,6 +899,135 @@ function cameraTargetSet(pos) {
     graphics.controls.update();
 }
 
+function onWindowResize() {
+    log("window.onresize");
+    graphics.onWindowResize(window);
+}
+
+function onKeyDown(event) {
+    if (mouseHelper.overGUI) return;
+
+    let key = event.key.toLowerCase();
+    switch (key) {
+        case ' ':
+            guiOptions.controls.pauseResume();
+            break;
+
+        case 'c':
+            guiOptions.controls.resetCamera();
+            break;
+
+        case 'r':
+            guiOptions.controls.reset();
+            break;
+
+        case 'p':
+            guiOptions.controls.snapshot();
+            break;
+
+        case 'd':
+            console.log(simulationExportCsv());
+            break;
+
+        case 'a':
+            guiOptions.controls.hideAxis();
+            break;
+
+        case 'v':
+            guiOptions.controls.xyCamera();
+            break;
+
+        case 'n':
+            guiOptions.controls.step();
+            break;
+
+        case 'q':
+            guiOptions.controls.colorMode();
+            break;
+
+        case 'pagedown':
+            guiOptions.controls.next();
+            break;
+
+        case 'pageup':
+            guiOptions.controls.previous();
+            break;
+
+        case 'home':
+            guiOptions.controls.home();
+            break;
+
+        case 'f':
+            simulation.fieldSetup("update");
+            break;
+
+        case 'h':
+            guiOptions.controls.hideOverlay();
+            break;
+
+        case 'z':
+            if (!mouseHelper.overGUI && selection.list != undefined) {
+                selectionPlace();
+            }
+            break;
+
+        case 'delete':
+            guiOptions.controls.deleteAll();
+            break;
+
+        case 's':
+            guiOptions.controls.sandbox();
+            break;
+
+        case 'g':
+            guiOptions.generator.generate();
+            break;
+
+        case 'x':
+            guiOptions.selection.clone();
+            break;
+
+        case 'backspace':
+            guiOptions.selection.delete();
+            break;
+
+        case 'm':
+            guiOptions.controls.collapseAll();
+            break;
+
+        default:
+            log("key = " + key);
+            break;
+
+    }
+}
+
+function onPointerMove(event) {
+    mouseHelper.move(event);
+    if (selection.started) {
+        selection.update(event);
+    }
+}
+
+function onPointerDown(event) {
+    if (event.button == 0 && event.shiftKey) {
+        selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+        selection.start(event);
+    }
+}
+
+function onPointerUp(event) {
+    if (event.button == 0 && selection.started) {
+        selection.end(event);
+    } else if (event.button == 0 && !mouseHelper.overGUI) {
+        let particle = graphics.raycast(mouseHelper.position);
+        if (particle) {
+            guiOptions.particle.obj = particle;
+            guiParticle.open();
+        }
+    }
+}
+
 export function animate(time) {
     requestAnimationFrame(animate);
 
@@ -1053,7 +1053,7 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        if (useGPU && guiOptions.particle.obj != undefined) graphics.readbackParticleData();
+        if (ENV?.useGPU && guiOptions.particle.obj != undefined) graphics.readbackParticleData();
         guiInfoRefresh(time);
         guiParticleRefresh();
         selection.guiRefresh();

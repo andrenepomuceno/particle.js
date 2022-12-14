@@ -337,6 +337,9 @@ let guiOptions = {
         },
     },
     advancedControls: {
+        dampKickFactor: "0.1",
+        randomVelocity: "1",
+        cleanupThreshold: "8",
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -352,10 +355,12 @@ let guiOptions = {
             simulation.drawParticles();
         },
         particleCleanup: () => {
-            simulationParticleAutoCleanup();
+            let thresh = parseFloat(guiOptions.advancedControls.cleanupThreshold);
+            if (isNaN(thresh)) return;
+            simulationParticleAutoCleanup(thresh);
         },
         dampVelocity: () => {
-            let factor = parseFloat(guiOptions.controls.dampKickFactor);
+            let factor = parseFloat(guiOptions.advancedControls.dampKickFactor);
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
                 p.velocity.multiplyScalar(1.0 - factor);
@@ -363,7 +368,7 @@ let guiOptions = {
             simulation.drawParticles();
         },
         kickVelocity: () => {
-            let factor = parseFloat(guiOptions.controls.dampKickFactor);
+            let factor = parseFloat(guiOptions.advancedControls.dampKickFactor);
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
                 p.velocity.multiplyScalar(1.0 + factor);
@@ -373,7 +378,7 @@ let guiOptions = {
         addRandomVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
-                let e = parseFloat(guiOptions.controls.randomVelocity);
+                let e = parseFloat(guiOptions.advancedControls.randomVelocity);
                 if (isNaN(e)) return;
                 p.velocity.add(randomVector(e, simulation.mode2D));
             });
@@ -381,9 +386,7 @@ let guiOptions = {
         },
         close: () => {
             guiAdvancedControls.close();
-        },
-        dampKickFactor: "0.1",
-        randomVelocity: "1",
+        },        
     },
 }
 
@@ -764,6 +767,7 @@ function guiParametersSetup() {
 function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [0]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
+
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
         let factor = parseFloat(val);
         if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
@@ -775,9 +779,12 @@ function guiAdvancedControlsSetup() {
     });
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [-]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [+]");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity");
+    
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity");
+    
     guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);

@@ -4,10 +4,11 @@
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
-    "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env useGPU --env production",
     "test": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env useGPU --env version='dev'",
-    "test2": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev'",
-    "madge": "madge --image graph.svg src",
+    "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev'",
+    "record": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env useGPU --env version='dev' --env record",
+    "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env useGPU --env production",
+    "madge0": "madge --image graph.svg src",
     "madge1": "madge --include-npm --image graph.svg src",
     "madge2": "madge --image graph.svg src -x 'scenarios/.*.js|cpu/.*.js'"
   },
@@ -22,12 +23,12 @@
   },
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
-    "canvas-capture": "^2.0.5",
     "dat.gui": "^0.7.9",
     "image-js": "^0.35.2",
     "three": "^0.143.0"
   },
   "devDependencies": {
+    "canvas-capture": "^2.0.5",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.10.0"

@@ -13,7 +13,10 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
-import { CanvasCapture } from 'canvas-capture';
+let CanvasCapture = null;
+if (ENV?.record) {
+    CanvasCapture = require('canvas-capture').CanvasCapture;
+}
 
 import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
@@ -147,7 +150,7 @@ export class GraphicsGPU {
     update() {
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
-        if (CanvasCapture.isRecording()) CanvasCapture.recordFrame();
+        if (ENV?.record && CanvasCapture.isRecording()) CanvasCapture.recordFrame();
     }
 
     onWindowResize(window) {
@@ -481,7 +484,14 @@ export class GraphicsGPU {
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
     }
 
-    startCapture(name) {
+    capture(name) {
+        if (ENV?.record != true) return;
+
+        if (CanvasCapture.isRecording()) {
+            CanvasCapture.stopRecord();
+            return;
+        }
+
         CanvasCapture.init(
             this.renderer.domElement,
             {
@@ -489,14 +499,11 @@ export class GraphicsGPU {
                 verbose: true
             },
         );
+        
         CanvasCapture.beginVideoRecord({
             format: CanvasCapture.WEBM,
             fps: 60,
             name: exportFilename(name),
         });
-    }
-
-    stopCapture() {
-        CanvasCapture.stopRecord();
     }
 }

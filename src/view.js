@@ -170,16 +170,6 @@ let guiOptions = {
                 obj.close();
             });
         },
-        isRecording: false,
-        capture: () => {
-            if (guiOptions.controls.isRecording == false) {
-                graphics.startCapture(simulation.name);
-                guiOptions.controls.isRecording = true;
-            } else {
-                graphics.stopCapture();
-                guiOptions.controls.isRecording = false;
-            }
-        }
     },
     particle: {
         obj: undefined,
@@ -505,7 +495,6 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
-    guiControls.add(guiOptions.controls, 'capture').name("Start/Stop Capture");
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
@@ -1283,6 +1272,10 @@ function onKeyDown(event) {
 
         case '.':
             guiOptions.advancedControls.particleCleanup();
+            break;
+
+        case '*':
+            graphics.capture(simulation.name);
             break;
 
         default:

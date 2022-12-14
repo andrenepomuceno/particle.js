@@ -468,7 +468,7 @@ function guiParticleSetup() {
     guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "nuclearCharge", val);
     });
-    //guiParticleProperties.open();
+    guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
     guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
@@ -1146,7 +1146,6 @@ function onPointerUp(event) {
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticle.open();
-            guiParticleProperties.open();
         }
     }
 }

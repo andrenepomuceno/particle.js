@@ -530,7 +530,7 @@ export function simulationDeleteParticleList(list) {
 }
 
 export function simulationUpdateParticleList(parameter, value, list) {
-    log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
+    log("simulationUpdateAll " + parameter + " " + value + " " + list);
 
     let totalMass = simulation.totalMass.toExponential(1);
     let totalCharge = simulation.totalCharge.toExponential(1);

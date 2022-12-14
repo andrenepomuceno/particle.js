@@ -3,7 +3,11 @@ import * as dat from 'dat.gui';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { ParticleType, NuclearPotentialType } from './physics.js';
-import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
+import {
+    downloadFile, arrayToString, cameraToWorldCoord,
+    decodeVector3, random, floatArrayToString,
+    generateHexagon, exportFilename
+} from './helpers.js';
 import {
     graphics,
     simulation,
@@ -22,7 +26,7 @@ import {
 } from './simulation.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
-import { createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { createParticle, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
 
 let hideAxis = false;
@@ -292,7 +296,7 @@ let guiOptions = {
         radius: "1",
         quantity: "1",
         pattern: "circle",
-        preset: "none",
+        preset: "default",
         fixed: false,
         generate: () => {
             guiGenerate.open();
@@ -523,8 +527,35 @@ function guiGenerateSetup() {
     });
     const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
-    const presetList = { none: "none", stdModel0: "stdModel0", randomClone: "randomClone" };
-    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset");
+    const presetList = { default: "default", stdModel0: "stdModel0", randomClone: "randomClone" };
+    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").onFinishChange((val) => {
+        console.log(val);
+        switch (val) {
+            case "stdModel0":
+            case "randomClone":
+                guiOptions.generator.mass = "1";
+                guiOptions.generator.randomMass = false;
+                guiOptions.generator.enableZeroMass = false;
+                guiOptions.generator.quantizedMass = false;
+
+                guiOptions.generator.charge = "1";
+                guiOptions.generator.randomCharge = false;
+                guiOptions.generator.chargeRandomSignal = false;
+                guiOptions.generator.enableZeroCharge = true;
+                guiOptions.generator.quantizedCharge = false;
+
+                guiOptions.generator.nuclearCharge = "1";
+                guiOptions.generator.randomNuclearCharge = false;
+                guiOptions.generator.nuclearChargeRandomSignal = true;
+                guiOptions.generator.enableZeroNuclearCharge = false;
+                guiOptions.generator.quantizedNuclearCharge = true;
+                break;
+
+            default:
+                guiOptions.generator.default();
+                break;
+        }
+    });
 
     const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
     guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
@@ -798,7 +829,8 @@ function particleGenerator() {
     log("generateParticles");
 
     function generateMass() {
-        let m = mass;
+        let m = presetList[presetIdx].m;
+        m *= mass;
         if (guiOptions.generator.randomMass) m *= random(0, 1);
         if (guiOptions.generator.quantizedMass) m = Math.round(m);
         if (!guiOptions.generator.enableZeroMass && m == 0) m = mass;
@@ -807,7 +839,8 @@ function particleGenerator() {
 
     function generateCharge() {
         let s = 1;
-        let q = charge;
+        let q = presetList[presetIdx].q;
+        q *= charge;
         if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
         if (guiOptions.generator.randomCharge) q *= random(0, 1);
         if (guiOptions.generator.quantizedCharge) q = Math.round(q);
@@ -817,7 +850,8 @@ function particleGenerator() {
 
     function generateNuclearCharge() {
         let s = 1;
-        let nq = nuclearCharge;
+        let nq = presetList[presetIdx].nq;
+        nq *= nuclearCharge;
         if (guiOptions.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
         if (guiOptions.generator.randomNuclearCharge) nq *= random(0, 1);
         if (guiOptions.generator.quantizedNuclearCharge) nq = Math.round(nq);
@@ -886,33 +920,53 @@ function particleGenerator() {
     }
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
-    let presetList = [
-        {m: 1, q: 1, nq: 1}
-    ];
+    let presetList = [];
+    let presetIdx = 0;
     switch (input.preset) {
         case "stdModel0":
             presetList = [
-                {m: 0.01, q: 0, nq: 1},
-                {m: 0.511, q: -1, nq: 1},
-                {m: 3, q: 1/3, nq: 1},
-                {m: 6, q: -2/3, nq: 1},
+                { m: 0.01, q: 0, nq: 1 },
+                { m: 0.511, q: -1, nq: 1 },
+                { m: 3, q: 1 / 3, nq: 1 },
+                { m: 6, q: -2 / 3, nq: 1 },
             ];
             break;
 
+        case "randomClone":
+            {
+                presetList = [];
+                for (let i = 0; i < quantity; ++i) {
+                    let idx = random(0, simulation.particleList.length - 1, true);
+                    let p = simulation.particleList[idx];
+                    presetList.push(
+                        { m: p.mass, q: p.charge, nq: p.nuclearCharge }
+                    );
+                }
+                console.log(presetList);
+            }
+            break;
+
         default:
+            presetList = [
+                { m: 1, q: 1, nq: 1 },
+            ];
             break;
     }
 
     let newParticles = [];
     //if (input.pattern == "hexagon") quantity *= 6;
-    createParticlesList(newParticles, quantity,
-        generateMass,
-        generateCharge,
-        generateNuclearCharge,
-        generatePosition,
-        generateVelocity,
-        guiOptions.generator.fixed
-    );
+    for (let i = 0; i < quantity; ++i) {
+        presetIdx = random(0, presetList.length - 1, true);
+        createParticle(
+            newParticles,
+            generateMass(),
+            generateCharge(),
+            generateNuclearCharge(),
+            generatePosition(),
+            generateVelocity(),
+            guiOptions.generator.fixed
+        );
+    }
 
     selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
     selection.source = SourceType.generated;

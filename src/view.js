@@ -338,8 +338,8 @@ let guiOptions = {
     },
     advancedControls: {
         dampKickFactor: "0.1",
-        randomVelocity: "1",
-        cleanupThreshold: "8",
+        randomVelocity: "10",
+        cleanupThreshold: "4",
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -384,9 +384,16 @@ let guiOptions = {
             });
             simulation.drawParticles();
         },
+        zeroPosition: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.position = randomVector(1, simulation.mode2D);
+            });
+            simulation.drawParticles();
+        },
         close: () => {
             guiAdvancedControls.close();
-        },        
+        },
     },
 }
 
@@ -779,12 +786,13 @@ function guiAdvancedControlsSetup() {
     });
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [-]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [+]");
-    
+
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
     guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity").listen();
 
     guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [.]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
+    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);
@@ -1211,7 +1219,7 @@ function onKeyDown(event) {
         case '0':
             guiOptions.advancedControls.zeroVelocity();
             break;
-        
+
         case '.':
             guiOptions.advancedControls.particleCleanup();
             break;

@@ -6,9 +6,9 @@ export const elements = [
     h2,
     hydrogen,
     helium,
-    lithium,
+    //lithium,
     carbon,
-    nitrogen,
+    //nitrogen,
     oxigen,
     water,
 ];

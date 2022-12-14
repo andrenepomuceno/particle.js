@@ -7,7 +7,7 @@ let particleList = undefined;
 export const scenarios0 = [
     simulation0,
     simulation1,
-    simulationAtom,
+    //simulationAtom,
     simulationCross,
     simulationGrid2D,
     simulationGrid3D,

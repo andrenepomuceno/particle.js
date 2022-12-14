@@ -5,12 +5,12 @@ import { cubeGenerator, random } from '../helpers';
 
 export const nuclearForce = [
     crystal,
-    randomBlob,
+    //randomBlob,
     molecule,
-    oppositChargeBall,
-    sameChargeBall,
-    oppositeCharge,
-    sameCharge,
+    //oppositChargeBall,
+    //sameChargeBall,
+    //oppositeCharge,
+    //sameCharge,
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

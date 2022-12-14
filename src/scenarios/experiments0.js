@@ -7,10 +7,10 @@ export const experiments0 = [
     //hexagon3d,
     hexagon1,
     hexagon2,
-    hexagon0,
+    //hexagon0,
     density2,
     density,
-    magnecticForce,
+    //magnecticForce,
     experiment9,
     donut,
     terrarium,
@@ -19,7 +19,7 @@ export const experiments0 = [
     wildParticles,
     easterEgg,
     experiment2,
-    experiment1,
+    //experiment1,
     experiment0,
 ];
 

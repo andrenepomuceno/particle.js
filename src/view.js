@@ -159,8 +159,10 @@ let guiOptions = {
         placeHint: function () {
             alert(
                 'Press "Z" to place a particle selection on the mouse/pointer position.\n' +
-                'First, select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!\n' +
-                'If you want to make clones, press "Clone" on the selection folder.'
+                'You can get particle selections from various sources:\n' +
+                '- Select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!\n' +
+                '- If you want to make clones, press "X" or the "Clone" button on the selection folder.\n' +
+                '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press "G" then "Z")\n'
             );
         },
         wip: function () {
@@ -270,7 +272,15 @@ let guiOptions = {
             }
             simulationDeleteParticleList(selection.list);
             guiSelectionClose();
-        }
+        },
+        lookAt: () => {
+            if (selection.list.length > 0) {
+
+            }
+        },
+        place: () => {
+            guiOptions.controls.placeHint();
+        },
     },
     generator: {
         mass: "1",
@@ -505,11 +515,13 @@ function guiSelectionSetup() {
     });
 
     const guiSelectionActions = guiSelection.addFolder("[+] Actions");
+    guiSelectionActions.add(guiOptions.selection, 'place').name("Place [Z]");
+    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
+    guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
+    guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
     guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
     guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
 
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelection.add(guiOptions.selection, 'clear').name("Close");
 
     collapseList.push(guiSelection);

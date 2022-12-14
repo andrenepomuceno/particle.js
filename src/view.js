@@ -361,6 +361,7 @@ let guiOptions = {
         nuclearPotential: NuclearPotentialType.default,
         boxBoundary: false,
         distance1: false,
+        enableBoundary: true,
         close: () => {
             guiParameters.close();
         },
@@ -668,6 +669,9 @@ function guiParametersSetup() {
     guiParametersBoundary.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boxBoundary", val);
     });
+    guiParametersBoundary.add(guiOptions.parameters, 'enableBoundary').name("enableBoundary").listen().onFinishChange((val) => {
+        simulationUpdatePhysics("enableBoundary", val);
+    });
     //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] Particle Visualization");
@@ -793,6 +797,7 @@ function guiParametersRefresh() {
     edit.boxBoundary = simulation.physics.useBoxBoundary;
     edit.distance1 = simulation.physics.useDistance1;
     edit.nuclearPotential = simulation.physics.nuclearPotential;
+    edit.enableBoundary = simulation.physics.enableBoundary;
 }
 
 function guiSelectionClose(clear = true) {
@@ -1133,6 +1138,7 @@ function onPointerUp(event) {
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticle.open();
+            guiParticleProperties.open();
         }
     }
 }

@@ -209,7 +209,8 @@ export class GraphicsGPU {
             this.physics.velocityShader = generateComputeVelocity(
                 this.physics.nuclearPotential, 
                 this.physics.useDistance1, 
-                this.physics.useBoxBoundary);
+                this.physics.useBoxBoundary,
+                this.physics.enableBoundary);
         }
         
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);

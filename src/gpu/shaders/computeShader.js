@@ -1,6 +1,6 @@
 import { NuclearPotentialType } from "../../physics";
 
-export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
+export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true) {
     function define(define, value) {
         if (value) {
             return "#define " + define + " 1\n";
@@ -10,6 +10,7 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
     }
 
     let config = "";
+    config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_DISTANCE1", useDistance1);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
     config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
@@ -167,22 +168,24 @@ void main() {
         } else {
             vel1 += rForce;
         }
-    
-        // check boundary colision
-        vec3 nextPos = pos1 + vel1;
-        #if !USE_BOX_BOUNDARY
-            if (length(nextPos) >= boundaryDistance) {
-                if (length(vel1) < boundaryDistance) {
-                    vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
-                } else {
-                    // particle will go out of boundaries
-                    vel1 = vec3(0.0);
+        
+        #if ENABLE_BOUNDARY
+            // check boundary colision
+            vec3 nextPos = pos1 + vel1;
+            #if !USE_BOX_BOUNDARY
+                if (length(nextPos) >= boundaryDistance) {
+                    if (length(vel1) < boundaryDistance) {
+                        vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
+                    } else {
+                        // particle will go out of boundaries
+                        vel1 = vec3(0.0);
+                    }
                 }
-            }
-        #else
-            if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
-            if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
-            if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
+            #else
+                if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
+                if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
+                if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
+            #endif
         #endif
     } else if (type1 == PROBE) {
         vel1 = rForce;

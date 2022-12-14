@@ -18,6 +18,7 @@ export class Physics {
         log("constructor");
 
         this.enableColision = true;
+        this.enableBoundary = true;
         this.minDistance2 = Math.pow(0.5, 2);
         this.boundaryDistance = 1e12;
         this.boundaryDamping = 0.99;//1.0;

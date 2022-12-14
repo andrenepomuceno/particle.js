@@ -191,8 +191,8 @@ function parseCsv(filename, content) {
                     imported.mode2D = (values[19] === "true");
                 if (version >= 1.2)
                     imported.physics.nuclearPotential = values[20];
-                    imported.physics.useBoxBoundary = (values[21] === "true");
-                    imported.physics.useDistance1 = (values[22] === "true");
+                imported.physics.useBoxBoundary = (values[21] === "true");
+                imported.physics.useDistance1 = (values[22] === "true");
                 break;
 
             case 2:
@@ -279,8 +279,8 @@ export function simulationCreateParticleList(particleList, center = new Vector3(
     if (particleList == undefined || particleList.length == 0) return;
 
     if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
-        alert('maxParticles exceeded!\n' + 
-        'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.');
+        alert('maxParticles exceeded!\n' +
+            'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.');
         return;
     }
 
@@ -370,6 +370,12 @@ export function simulationUpdatePhysics(key, value) {
             updateShader = true;
             break;
 
+        case "enableBoundary":
+            physics.enableBoundary = value;
+            updatePhysics = false;
+            updateShader = true;
+            break;
+
         default:
             updatePhysics = false;
             break;
@@ -379,7 +385,8 @@ export function simulationUpdatePhysics(key, value) {
         physics.velocityShader = generateComputeVelocity(
             physics.nuclearPotential,
             physics.useDistance1,
-            physics.useBoxBoundary
+            physics.useBoxBoundary,
+            physics.enableBoundary
         );
         graphics.readbackParticleData();
         graphics.drawParticles();

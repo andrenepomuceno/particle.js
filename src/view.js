@@ -15,10 +15,8 @@ import {
     simulationExportCsv,
     simulationImportCSV,
     simulationUpdatePhysics,
-
     simulationFindParticle,
     simulationUpdateParticle,
-
     simulationCreateParticleList,
     simulationUpdateParticleList,
     simulationImportParticleList,
@@ -27,9 +25,8 @@ import {
 } from './simulation.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
-import { createParticle, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { createParticle, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -172,6 +169,16 @@ let guiOptions = {
             collapseList.forEach((obj) => {
                 obj.close();
             });
+        },
+        isRecording: false,
+        capture: () => {
+            if (guiOptions.controls.isRecording == false) {
+                graphics.startCapture(simulation.name);
+                guiOptions.controls.isRecording = true;
+            } else {
+                graphics.stopCapture();
+                guiOptions.controls.isRecording = false;
+            }
         }
     },
     particle: {
@@ -395,7 +402,7 @@ let guiOptions = {
         close: () => {
             guiAdvancedControls.close();
         },
-    },
+    }
 }
 
 function setup(idx) {
@@ -498,6 +505,7 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
+    guiControls.add(guiOptions.controls, 'capture').name("Start/Stop Capture");
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
 

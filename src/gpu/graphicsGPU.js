@@ -13,10 +13,11 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
+import { CanvasCapture } from 'canvas-capture';
 
 import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
-import { sphericalToCartesian } from '../helpers';
+import { exportFilename, sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
 
 const axisLineWidth = 1e3;
@@ -146,6 +147,7 @@ export class GraphicsGPU {
     update() {
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
+        if (CanvasCapture.isRecording()) CanvasCapture.recordFrame();
     }
 
     onWindowResize(window) {
@@ -207,12 +209,12 @@ export class GraphicsGPU {
 
         if (this.physics.velocityShader == undefined) {
             this.physics.velocityShader = generateComputeVelocity(
-                this.physics.nuclearPotential, 
-                this.physics.useDistance1, 
+                this.physics.nuclearPotential,
+                this.physics.useDistance1,
                 this.physics.useBoxBoundary,
                 this.physics.enableBoundary);
         }
-        
+
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
         this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);
 
@@ -477,5 +479,24 @@ export class GraphicsGPU {
 
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+    }
+
+    startCapture(name) {
+        CanvasCapture.init(
+            this.renderer.domElement,
+            {
+                showRecDot: true,
+                verbose: true
+            },
+        );
+        CanvasCapture.beginVideoRecord({
+            format: CanvasCapture.WEBM,
+            fps: 60,
+            name: exportFilename(name),
+        });
+    }
+
+    stopCapture() {
+        CanvasCapture.stopRecord();
     }
 }

@@ -612,10 +612,20 @@ function guiGenerateSetup() {
     });
     const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
-    const presetList = { default: "default", stdModel0: "stdModel0", randomClone: "randomClone" };
+    const presetList = {
+        default: "default",
+        stdModel0: "stdModel0",
+        randomClone: "randomClone",
+        eBeam: "eBeam",
+    };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").onFinishChange((val) => {
         console.log(val);
         switch (val) {
+            case "eBeam":
+                guiOptions.generator.velocity = "1e3,0,0";
+                guiOptions.generator.randomVelocity = false;
+                guiOptions.generator.quantity = "32";
+
             case "stdModel0":
             case "randomClone":
                 guiOptions.generator.mass = "1";
@@ -673,13 +683,17 @@ function guiGenerateSetup() {
     const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
     guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
         let velocity = decodeVector3(val);
-        if (velocity == undefined) {
-            velocity = parseFloat(val);
-            if (!isNaN(velocity)) {
-                velocity = floatArrayToString([velocity, 0, 0], 2);
-            }
+        if (velocity != undefined) {
+            guiOptions.generator.velocity = floatArrayToString([velocity.x, velocity.y, velocity.z], 2);
+            return;
         }
-        guiOptions.generator.velocity = velocity;
+
+        velocity = parseFloat(val);
+        if (isNaN(velocity)) {
+            alert("Invalid velocity.");
+            return;
+        }
+        guiOptions.generator.velocity = floatArrayToString([velocity, 0, 0], 2);
     });
     guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
 
@@ -1062,6 +1076,11 @@ function particleGenerator() {
             }
             break;
 
+        case "eBeam":
+            presetList = [
+                { m: 0.511, q: -1, nq: 1 },
+            ];
+            break;
         default:
             presetList = [
                 { m: 1, q: 1, nq: 1 },

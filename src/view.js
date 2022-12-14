@@ -53,48 +53,10 @@ const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)
 const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
+const guiAdvancedControls = gui.addFolder("ADVANCED CONTROLS");
 
 function log(msg) {
     console.log("View: " + msg);
-}
-
-function setup(idx) {
-    log("setup " + idx);
-    guiSelectionClose();
-    guiParticleClose();
-    simulationSetup(idx);
-    guiParametersRefresh();
-    guiInfoRefresh();
-    guiOptions.generator.default();
-
-    energyPanel.min = 0;
-    energyPanel.max = 0;
-}
-
-export function guiSetup() {
-    window.onresize = onWindowResize;
-    document.addEventListener("keydown", onKeyDown);
-    window.addEventListener('pointermove', onPointerMove);
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("pointerup", onPointerUp);
-
-    //stats overlay
-    document.getElementById("container").appendChild(stats.domElement);
-    mouseHelper.addListener(stats.domElement);
-    stats.domElement.style.visibility = "visible";
-
-    //gui menu overlay
-    mouseHelper.addListener(gui.domElement);
-    gui.width = Math.max(0.2 * window.innerWidth, 320);
-
-    guiInfoSetup();
-    guiControlsSetup();
-    guiParticleSetup();
-    guiParametersSetup();
-    guiSelectionSetup();
-    guiGenerateSetup();
-
-    setup();
 }
 
 let collapseList = [];
@@ -209,48 +171,7 @@ let guiOptions = {
             collapseList.forEach((obj) => {
                 obj.close();
             });
-        },
-        reverseVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
-                p.velocity.multiplyScalar(-1);
-            });
-            simulation.drawParticles();
-        },
-        zeroVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
-                p.velocity.set(0, 0, 0);
-            });
-            simulation.drawParticles();
-        },
-        particleCleanup: () => {
-            simulationParticleAutoCleanup();
-        },
-        dampVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
-                p.velocity.multiplyScalar(0.9);
-            });
-            simulation.drawParticles();
-        },
-        kickVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
-                p.velocity.multiplyScalar(1.1);
-            });
-            simulation.drawParticles();
-        },
-        randomVelocity: "1",
-        addRandomVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
-                let e = parseFloat(guiOptions.controls.randomVelocity);
-                if (isNaN(e)) return;
-                p.velocity.add(randomVector(e, simulation.mode2D));
-            });
-            simulation.drawParticles();
-        },
+        }
     },
     particle: {
         obj: undefined,
@@ -415,6 +336,95 @@ let guiOptions = {
             guiParameters.close();
         },
     },
+    advancedControls: {
+        reverseVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.multiplyScalar(-1);
+            });
+            simulation.drawParticles();
+        },
+        zeroVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.set(0, 0, 0);
+            });
+            simulation.drawParticles();
+        },
+        particleCleanup: () => {
+            simulationParticleAutoCleanup();
+        },
+        dampVelocity: () => {
+            let factor = parseFloat(guiOptions.controls.dampKickFactor);
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.multiplyScalar(1.0 - factor);
+            });
+            simulation.drawParticles();
+        },
+        kickVelocity: () => {
+            let factor = parseFloat(guiOptions.controls.dampKickFactor);
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.multiplyScalar(1.0 + factor);
+            });
+            simulation.drawParticles();
+        },
+        addRandomVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                let e = parseFloat(guiOptions.controls.randomVelocity);
+                if (isNaN(e)) return;
+                p.velocity.add(randomVector(e, simulation.mode2D));
+            });
+            simulation.drawParticles();
+        },
+        close: () => {
+            guiAdvancedControls.close();
+        },
+        dampKickFactor: "0.1",
+        randomVelocity: "1",
+    },
+}
+
+function setup(idx) {
+    log("setup " + idx);
+    guiSelectionClose();
+    guiParticleClose();
+    simulationSetup(idx);
+    guiParametersRefresh();
+    guiInfoRefresh();
+    guiOptions.generator.default();
+
+    energyPanel.min = 0;
+    energyPanel.max = 0;
+}
+
+export function guiSetup() {
+    window.onresize = onWindowResize;
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener('pointermove', onPointerMove);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointerup", onPointerUp);
+
+    //stats overlay
+    document.getElementById("container").appendChild(stats.domElement);
+    mouseHelper.addListener(stats.domElement);
+    stats.domElement.style.visibility = "visible";
+
+    //gui menu overlay
+    mouseHelper.addListener(gui.domElement);
+    gui.width = Math.max(0.2 * window.innerWidth, 320);
+
+    guiInfoSetup();
+    guiControlsSetup();
+    guiParticleSetup();
+    guiParametersSetup();
+    guiSelectionSetup();
+    guiGenerateSetup();
+    guiAdvancedControlsSetup();
+
+    setup();
 }
 
 function guiInfoSetup() {
@@ -477,20 +487,11 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
 
-    const guiControlsAdvanced = guiControls.addFolder("[+] Advanced Controls");
-    guiControlsAdvanced.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity [0]");
-    guiControlsAdvanced.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'dampVelocity').name("Damp Velocity [-]");
-    guiControlsAdvanced.add(guiOptions.controls, 'kickVelocity').name("Kick Velocity [+]");
-    guiControlsAdvanced.add(guiOptions.controls, 'randomVelocity').name("Random Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'addRandomVelocity').name("Add Random Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);
     collapseList.push(guiControlsCamera);
     collapseList.push(guiControlsSimulation);
-    collapseList.push(guiControlsAdvanced);
 }
 
 function guiParticleSetup() {
@@ -758,6 +759,28 @@ function guiParametersSetup() {
     collapseList.push(guiParametersConsts);
     collapseList.push(guiParametersVisual);
     collapseList.push(guiParametersInteractions);
+}
+
+function guiAdvancedControlsSetup() {
+    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [0]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
+        let factor = parseFloat(val);
+        if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
+            alert("Factor must be between 0.0 and 1.0.");
+            guiOptions.advancedControls.dampKickFactor = "0.1";
+            return;
+        }
+        guiOptions.advancedControls.dampKickFactor = factor.toString();
+    });
+    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [-]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [+]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
+
+    collapseList.push(guiAdvancedControls);
 }
 
 function guiInfoRefresh(now) {
@@ -1171,15 +1194,15 @@ function onKeyDown(event) {
             break;
 
         case '+':
-            guiOptions.controls.kickVelocity();
+            guiOptions.advancedControls.kickVelocity();
             break;
 
         case '-':
-            guiOptions.controls.dampVelocity();
+            guiOptions.advancedControls.dampVelocity();
             break;
 
         case '0':
-            guiOptions.controls.zeroVelocity();
+            guiOptions.advancedControls.zeroVelocity();
             break;
 
         default:

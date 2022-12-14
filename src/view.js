@@ -274,9 +274,15 @@ let guiOptions = {
             guiSelectionClose();
         },
         lookAt: () => {
-            if (selection.list.length > 0) {
+            if (selection.list.length == 0) return;
 
-            }
+            let center = new Vector3();
+            selection.list.forEach((particle) => {
+                center.add(particle.position);
+            });
+            center.divideScalar(selection.list.length);
+
+            cameraTargetSet(center);
         },
         place: () => {
             guiOptions.controls.placeHint();
@@ -516,12 +522,12 @@ function guiSelectionSetup() {
     });
 
     const guiSelectionActions = guiSelection.addFolder("[+] Actions");
-    guiSelectionActions.add(guiOptions.selection, 'place').name("Place [Z]");
     guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [BACKSPACE]");
     guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
     guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
     guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
+    guiSelectionActions.add(guiOptions.selection, 'place').name("Place [Z]");
 
     guiSelection.add(guiOptions.selection, 'clear').name("Close");
 

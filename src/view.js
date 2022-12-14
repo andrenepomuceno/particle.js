@@ -107,9 +107,9 @@ let guiOptions = {
         radius: "",
         charge: "",
         cameraDistance: "",
-        mode: "",
         cameraPosition: "",
         autoRefresh: autoRefresh,
+        mode2D: false,
     },
     controls: {
         pauseResume: function () {
@@ -380,7 +380,9 @@ function guiInfoSetup() {
     });
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mode').name('Mode').listen();
+    guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
+        simulation.bidimensionalMode(val);
+    });
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
         if (p == undefined) {
@@ -730,7 +732,7 @@ function guiInfoRefresh(now) {
         position[idx] = val.toExponential(1);
     });
     guiOptions.info.cameraPosition = position;
-    guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
+    guiOptions.info.mode2D = simulation.mode2D;
 
     let energy = avgVelocity;
     if (energy > energyPanel.max) energyPanel.max = energy;

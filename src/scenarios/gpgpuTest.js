@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createParticleList, createParticlesList, randomSphericVector, randomVector } from './helpers';
+import { createParticle, createParticlesList, randomSphericVector, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
 
 export const gpgpu = [
@@ -439,7 +439,7 @@ function GPU_shootedBarrier(simulation) {
     let n = 2;
 
     for (let i = 0; i < 15; i++) {
-        createParticleList(physics.particleList, 3, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearChargeRange, 0), new Vector3(0, -100, 0));
+        createParticle(physics.particleList, 3, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearChargeRange, 0), new Vector3(0, -100, 0));
     }
 
     let aux = 0;

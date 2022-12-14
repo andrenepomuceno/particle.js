@@ -47,6 +47,10 @@ a, button, input, select {
 	/* TODO Solve this in HTML */
 }
 
+.dg li.folder {
+	border-left: 10px solid rgba(141, 122, 122, 0.397) !important;
+}
+
 @media all and (max-width: 640px) {
 	.dg.main {
 		right: auto;

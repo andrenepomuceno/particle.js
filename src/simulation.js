@@ -7,7 +7,7 @@ import { GraphicsCPU } from './cpu/graphicsCPU'
 import { FieldCPU } from './cpu/fieldCPU';
 import { Vector3 } from 'three';
 import { decodeVector3 } from './helpers.js';
-import { getComputeVelocity } from './gpu/shaders/computeShader.js';
+import { generateComputeVelocity } from './gpu/shaders/computeShader.js';
 import { scenariosList } from './scenarios.js';
 
 const useGPU = ENV?.useGPU;
@@ -238,7 +238,7 @@ export function simulationImportCSV(filename, content) {
     simulation.cycles = imported.cycles;
 }
 
-export function simulationImportSelectionCSV(selection, filename, content) {
+export function simulationImportParticleList(selection, filename, content) {
     log("Importing selection " + filename);
 
     let imported = parseCsv(filename, content);
@@ -273,7 +273,7 @@ function normalizePosition(list) {
     return normalizedList;
 }
 
-export function simulationCreateParticles(particleList, center = new Vector3()) {
+export function simulationCreateParticleList(particleList, center = new Vector3()) {
     log("simulationCreateParticles " + particleList.length + " " + center.toArray());
 
     if (particleList == undefined || particleList.length == 0) return;
@@ -376,7 +376,7 @@ export function simulationUpdatePhysics(key, value) {
     }
 
     if (updateShader && useGPU) {
-        physics.velocityShader = getComputeVelocity(
+        physics.velocityShader = generateComputeVelocity(
             physics.nuclearPotential,
             physics.useDistance1,
             physics.useBoxBoundary
@@ -498,7 +498,7 @@ export function simulationUpdateParticle(particle, key, value) {
     }
 }
 
-export function simulationDelete(list) {
+export function simulationDeleteParticleList(list) {
     log("simulationDelete " + list.length);
 
     if (list == undefined) return;

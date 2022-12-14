@@ -14,7 +14,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 
-import { computePosition, getComputeVelocity } from './shaders/computeShader';
+import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
@@ -66,7 +66,7 @@ export class GraphicsGPU {
     }
 
     raycast(pointer) {
-        let threshold = 2 * Math.log(this.controls.getDistance());
+        let threshold = 2 * Math.log(10 + this.controls.getDistance());
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);
@@ -206,7 +206,7 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined) {
-            this.physics.velocityShader = getComputeVelocity(
+            this.physics.velocityShader = generateComputeVelocity(
                 this.physics.nuclearPotential, 
                 this.physics.useDistance1, 
                 this.physics.useBoxBoundary);

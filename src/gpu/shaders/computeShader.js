@@ -1,6 +1,6 @@
 import { NuclearPotentialType } from "../../physics";
 
-export function getComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
+export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false) {
     function define(define, value) {
         if (value) {
             return "#define " + define + " 1\n";

@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { random } from '../helpers.js'
 import { Particle, ParticleType } from '../physics.js'
-import { createParticleList, randomSphericVector, randomVector } from './helpers'
+import { createParticle, randomSphericVector, randomVector } from './helpers'
 
 let particleList = undefined;
 
@@ -578,7 +578,7 @@ function simulationMove0(simulation) {
     let v = 5;
     let m = 1e3;
     let q = 1;
-    createParticleList(physics.particleList, m, q, 0, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
+    createParticle(physics.particleList, m, q, 0, new Vector3(x, 0, 0), new Vector3(v, 0, 0));
 
     let r0 = 32;
     let v0 = 0;
@@ -662,7 +662,7 @@ function simulationAtom0(simulation) {
     physics.massConstant = 1e-2;
     physics.chargeConstant = 1;
 
-    createParticleList(physics.particleList, 1836, 1);
+    createParticle(physics.particleList, 1836, 1);
 
     let v0 = 1;
     let r0 = 1e3;

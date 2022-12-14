@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
-import Stats from './stats.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { ParticleType, NuclearPotentialType } from './physics.js';
 import { downloadFile, arrayToString, cameraToWorldCoord, decodeVector3, random, floatArrayToString, generateHexagon, exportFilename } from './helpers.js';
@@ -11,13 +11,14 @@ import {
     simulationExportCsv,
     simulationImportCSV,
     simulationUpdatePhysics,
-    simulationUpdateParticle,
+
     simulationFindParticle,
+    simulationUpdateParticle,
+
+    simulationCreateParticleList,
     simulationUpdateParticleList,
-    simulationImportSelectionCSV,
-    simulationCreateParticles,
-    simulationDelete,
-    simulationDeleteAll
+    simulationImportParticleList,
+    simulationDeleteParticleList,
 } from './simulation.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
@@ -247,7 +248,7 @@ let guiOptions = {
         import: () => {
             uploadCsv((name, content) => {
                 selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
-                simulationImportSelectionCSV(selection, name, content);
+                simulationImportParticleList(selection, name, content);
             });
         },
         clone: () => {
@@ -263,7 +264,7 @@ let guiOptions = {
                 alert('Selection source must be "simulation".\nSelect particles first.');
                 return;
             }
-            simulationDelete(selection.list);
+            simulationDeleteParticleList(selection.list);
             guiSelectionClose();
         }
     },
@@ -291,6 +292,7 @@ let guiOptions = {
         radius: "1",
         quantity: "1",
         pattern: "circle",
+        preset: "none",
         fixed: false,
         generate: () => {
             guiGenerate.open();
@@ -324,6 +326,7 @@ let guiOptions = {
                 radius: "1",
                 quantity: "1",
                 pattern: "circle",
+                preset: "none",
                 fixed: false,
             };
             Object.assign(guiOptions.generator, clean);
@@ -520,6 +523,8 @@ function guiGenerateSetup() {
     });
     const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
+    const presetList = { none: "none", stdModel0: "stdModel0", randomClone: "randomClone" };
+    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset");
 
     const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
     guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
@@ -656,8 +661,8 @@ function guiInfoRefresh(now) {
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
 
-    n = (n == 0)?(1):(n);
-    m = (m == 0)?(1):(m);
+    n = (n == 0) ? (1) : (n);
+    m = (m == 0) ? (1) : (m);
     let avgEnergy = e / n;
     let avgVelocity = Math.sqrt(e / m);
     guiOptions.info.energy = avgEnergy.toExponential(2) + " / " + avgVelocity.toExponential(2);
@@ -673,7 +678,7 @@ function guiInfoRefresh(now) {
     });
     guiOptions.info.cameraPosition = position;
     guiOptions.info.mode = simulation.mode2D ? "2D" : "3D";
-    
+
     let energy = avgVelocity;
     if (energy > energyPanel.max) energyPanel.max = energy;
     energyPanel.update(energy, energyPanel.max);
@@ -759,7 +764,7 @@ function selectionListUpdate(param, val) {
 
 function selectionPlace() {
     if (selection.list.length == 0) return;
-    
+
     let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
     if (simulation.mode2D) {
         center.z = 0;
@@ -772,7 +777,7 @@ function selectionPlace() {
     if (selection.source == SourceType.simulation) {
         simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
     } else {
-        simulationCreateParticles(selection.list, center);
+        simulationCreateParticleList(selection.list, center);
     }
 }
 
@@ -860,8 +865,6 @@ function particleGenerator() {
         return v;
     }
 
-    let newParticles = [];
-
     let input = guiOptions.generator;
     let mass = parseFloat(input.mass);
     let charge = parseFloat(input.charge);
@@ -883,6 +886,24 @@ function particleGenerator() {
     }
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
+    let presetList = [
+        {m: 1, q: 1, nq: 1}
+    ];
+    switch (input.preset) {
+        case "stdModel0":
+            presetList = [
+                {m: 0.01, q: 0, nq: 1},
+                {m: 0.511, q: -1, nq: 1},
+                {m: 3, q: 1/3, nq: 1},
+                {m: 6, q: -2/3, nq: 1},
+            ];
+            break;
+
+        default:
+            break;
+    }
+
+    let newParticles = [];
     //if (input.pattern == "hexagon") quantity *= 6;
     createParticlesList(newParticles, quantity,
         generateMass,

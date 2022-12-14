@@ -1,5 +1,5 @@
 import { CircleGeometry, LineBasicMaterial, Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
-import { createParticleList, randomSphericVector, randomVector, createNuclei } from './helpers';
+import { createParticle, randomSphericVector, randomVector, createNuclei } from './helpers';
 import { random, hexagonGenerator, shuffleArray } from '../helpers';
 import { Particle } from '../physics';
 
@@ -49,7 +49,7 @@ function boundaryTest(simulation) {
     let r0 = 1e3;
     ;
     for (let i = 0; i <= 90; i += 15) {
-        createParticleList(physics.particleList,
+        createParticle(physics.particleList,
             m, q * random(-5, 5, true), nq * random(-1, 1, true),
             new Vector3(r0, 0, 0).applyAxisAngle(
                 new Vector3(0, 0, 1),

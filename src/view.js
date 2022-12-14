@@ -646,7 +646,7 @@ function guiParametersSetup() {
     });
     //guiParametersConsts.open();
 
-    const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
+    const guiParametersBoundary = guiParameters.addFolder("[+] Simulation Boundary");
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDistance", val);
     });
@@ -658,7 +658,7 @@ function guiParametersSetup() {
     });
     //guiParametersBoundary.open();
 
-    const guiParametersVisual = guiParameters.addFolder("[+] Visualization");
+    const guiParametersVisual = guiParameters.addFolder("[+] Particle Visualization");
     guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radius", val);
     });

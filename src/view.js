@@ -227,6 +227,23 @@ let guiOptions = {
         particleCleanup: () => {
             simulationParticleAutoCleanup();
         },
+        dampVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.multiplyScalar(0.9);
+            });
+            simulation.drawParticles();
+        },
+        energy: "1",
+        addEnergy: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                let e = parseFloat(guiOptions.controls.energy);
+                if (isNaN(e)) return;
+                p.velocity.add(randomVector(e, simulation.mode2D));
+            });
+            simulation.drawParticles();
+        },
     },
     particle: {
         obj: undefined,
@@ -452,14 +469,20 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
-    guiControls.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
-    guiControls.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity");
-    guiControls.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
+
+    const guiControlsAdvanced = guiControls.addFolder("[+] Advanced Controls");
+    guiControlsAdvanced.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity");
+    guiControlsAdvanced.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
+    guiControlsAdvanced.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
+    guiControlsAdvanced.add(guiOptions.controls, 'dampVelocity').name("Damp Velocity");
+    guiControlsAdvanced.add(guiOptions.controls, 'addEnergy').name("Add Energy");
+    guiControlsAdvanced.add(guiOptions.controls, 'energy').name("Energy").listen();
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);
     collapseList.push(guiControlsCamera);
     collapseList.push(guiControlsSimulation);
+    collapseList.push(guiControlsAdvanced);
 }
 
 function guiParticleSetup() {

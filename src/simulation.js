@@ -529,7 +529,7 @@ export function simulationDeleteParticleList(list) {
     }
 }
 
-export function simulationParticleAutoCleanup(threshold = 8) {
+export function simulationParticleAutoCleanup(threshold = 4) {
     log("simulationParticleCleanup threshold = " + threshold);
 
     function getKey(p) {
@@ -557,7 +557,7 @@ export function simulationParticleAutoCleanup(threshold = 8) {
         let key = getKey(p);
         if (pMap.has(key)) {
             let c = pMap.get(key).count;
-            if (c < threshold) {
+            if (c <= threshold) {
                 deleteList.push(p);
             }
         }

@@ -781,10 +781,10 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [+]");
     
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity");
-    
+    guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity").listen();
+
     guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);

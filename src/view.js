@@ -310,7 +310,7 @@ let guiOptions = {
                 radius: "1",
                 quantity: "1",
                 pattern: "circle",
-                preset: "none",
+                preset: "default",
                 fixed: false,
             };
             Object.assign(guiOptions.generator, clean);
@@ -808,7 +808,7 @@ function guiParametersSetup() {
 }
 
 function guiAdvancedControlsSetup() {
-    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [0]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [Numpad 0]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
 
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
@@ -820,13 +820,13 @@ function guiAdvancedControlsSetup() {
         }
         guiOptions.advancedControls.dampKickFactor = factor.toString();
     });
-    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [-]");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [+]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [Numpad -]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [Numpad +]");
 
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
     guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity").listen();
 
-    guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [.]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [Numpad .]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
@@ -1074,7 +1074,8 @@ function particleGenerator() {
 
     let presetList = [];
     let presetIdx = 0;
-    switch (input.preset) {
+    let preset = input.preset;
+    switch (preset) {
         case "stdModel0":
             presetList = [
                 { m: 0.01, q: 0, nq: 1 },
@@ -1118,12 +1119,12 @@ function particleGenerator() {
             break;
     }
 
-    let newParticles = [];
+    let newParticleList = [];
     //if (input.pattern == "hexagon") quantity *= 6;
     for (let i = 0; i < quantity; ++i) {
         presetIdx = random(0, presetList.length - 1, true);
         createParticle(
-            newParticles,
+            newParticleList,
             generateMass(),
             generateCharge(),
             generateNuclearCharge(),
@@ -1135,7 +1136,7 @@ function particleGenerator() {
 
     selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
     selection.source = SourceType.generated;
-    selection.list = newParticles;
+    selection.list = newParticleList;
     guiSelection.open();
 }
 

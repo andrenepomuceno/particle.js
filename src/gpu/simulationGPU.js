@@ -93,7 +93,7 @@ export class SimulationGPU {
         this.physics.collisionCounter = collisions;
 
         return [
-            (this.folderName != undefined) ? (this.name + "_" + this.folderName) : (this.name),
+            this.name,
             particles,
             this.cycles,
             this.energy,

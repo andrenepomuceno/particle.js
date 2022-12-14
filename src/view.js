@@ -74,6 +74,7 @@ let guiOptions = {
         cameraPosition: "",
         autoRefresh: autoRefresh,
         mode2D: false,
+        folderName: "",
     },
     controls: {
         pauseResume: function () {
@@ -441,6 +442,7 @@ function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
         simulation.name = val;
     });
+    guiInfo.add(guiOptions.info, 'folderName').name('Folder').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
     guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
@@ -838,6 +840,7 @@ function guiInfoRefresh(now) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
 
     guiOptions.info.name = name;
+    guiOptions.info.folderName = simulation.folderName;
     guiOptions.info.particles = n + " / " + graphics.maxParticles;
 
     let realTime = new Date(totalTime).toISOString().substring(11, 19);

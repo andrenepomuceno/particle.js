@@ -234,11 +234,18 @@ let guiOptions = {
             });
             simulation.drawParticles();
         },
-        energy: "1",
-        addEnergy: () => {
+        kickVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
-                let e = parseFloat(guiOptions.controls.energy);
+                p.velocity.multiplyScalar(1.1);
+            });
+            simulation.drawParticles();
+        },
+        randomVelocity: "1",
+        addRandomVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                let e = parseFloat(guiOptions.controls.randomVelocity);
                 if (isNaN(e)) return;
                 p.velocity.add(randomVector(e, simulation.mode2D));
             });
@@ -471,12 +478,13 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
 
     const guiControlsAdvanced = guiControls.addFolder("[+] Advanced Controls");
-    guiControlsAdvanced.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
+    guiControlsAdvanced.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity [0]");
     guiControlsAdvanced.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'dampVelocity').name("Damp Velocity");
-    guiControlsAdvanced.add(guiOptions.controls, 'addEnergy').name("Add Energy");
-    guiControlsAdvanced.add(guiOptions.controls, 'energy').name("Energy").listen();
+    guiControlsAdvanced.add(guiOptions.controls, 'dampVelocity').name("Damp Velocity [-]");
+    guiControlsAdvanced.add(guiOptions.controls, 'kickVelocity').name("Kick Velocity [+]");
+    guiControlsAdvanced.add(guiOptions.controls, 'randomVelocity').name("Random Velocity");
+    guiControlsAdvanced.add(guiOptions.controls, 'addRandomVelocity').name("Add Random Velocity");
+    guiControlsAdvanced.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);
@@ -1160,6 +1168,18 @@ function onKeyDown(event) {
 
         case 'm':
             guiOptions.controls.collapseAll();
+            break;
+
+        case '+':
+            guiOptions.controls.kickVelocity();
+            break;
+
+        case '-':
+            guiOptions.controls.dampVelocity();
+            break;
+
+        case '0':
+            guiOptions.controls.zeroVelocity();
             break;
 
         default:

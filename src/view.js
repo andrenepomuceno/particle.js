@@ -610,40 +610,62 @@ function guiGenerateSetup() {
     guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
         guiOptions.generator.radius = parseFloat(val);
     });
-    const patternList = { circle: "circle", square: "square", hexagon: "hexagon" };
+
+    const patternList = {
+        circle: "circle",
+        square: "square",
+        hexagon: "hexagon"
+    };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
+
     const presetList = {
         default: "default",
         stdModel0: "stdModel0",
         randomClone: "randomClone",
         eBeam: "eBeam",
+        alphaBeam: "alphaBeam",
     };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").onFinishChange((val) => {
         console.log(val);
+
+        function defaultTemplate() {
+            guiOptions.generator.mass = "1";
+            guiOptions.generator.randomMass = false;
+            guiOptions.generator.enableZeroMass = false;
+            guiOptions.generator.quantizedMass = false;
+
+            guiOptions.generator.charge = "1";
+            guiOptions.generator.randomCharge = false;
+            guiOptions.generator.chargeRandomSignal = false;
+            guiOptions.generator.enableZeroCharge = true;
+            guiOptions.generator.quantizedCharge = false;
+
+            guiOptions.generator.nuclearCharge = "1";
+            guiOptions.generator.randomNuclearCharge = false;
+            guiOptions.generator.nuclearChargeRandomSignal = true;
+            guiOptions.generator.enableZeroNuclearCharge = false;
+            guiOptions.generator.quantizedNuclearCharge = true;
+        }
+
         switch (val) {
             case "eBeam":
-                guiOptions.generator.velocity = "1e3,0,0";
+                defaultTemplate();
+                guiOptions.generator.velocity = "1e2,0,0";
                 guiOptions.generator.randomVelocity = false;
                 guiOptions.generator.quantity = "32";
+                break;
+
+            case "alphaBeam":
+                defaultTemplate();
+                guiOptions.generator.velocity = "1e2,0,0";
+                guiOptions.generator.randomVelocity = false;
+                guiOptions.generator.quantity = "24";
+                guiOptions.generator.nuclearChargeRandomSignal = false;
+                break;
 
             case "stdModel0":
             case "randomClone":
-                guiOptions.generator.mass = "1";
-                guiOptions.generator.randomMass = false;
-                guiOptions.generator.enableZeroMass = false;
-                guiOptions.generator.quantizedMass = false;
-
-                guiOptions.generator.charge = "1";
-                guiOptions.generator.randomCharge = false;
-                guiOptions.generator.chargeRandomSignal = false;
-                guiOptions.generator.enableZeroCharge = true;
-                guiOptions.generator.quantizedCharge = false;
-
-                guiOptions.generator.nuclearCharge = "1";
-                guiOptions.generator.randomNuclearCharge = false;
-                guiOptions.generator.nuclearChargeRandomSignal = true;
-                guiOptions.generator.enableZeroNuclearCharge = false;
-                guiOptions.generator.quantizedNuclearCharge = true;
+                defaultTemplate();
                 break;
 
             default:
@@ -682,18 +704,18 @@ function guiGenerateSetup() {
 
     const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
     guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
+        const precision = 2;
         let velocity = decodeVector3(val);
         if (velocity != undefined) {
-            guiOptions.generator.velocity = floatArrayToString([velocity.x, velocity.y, velocity.z], 2);
+            guiOptions.generator.velocity = floatArrayToString([velocity.x, velocity.y, velocity.z], precision);
             return;
         }
-
         velocity = parseFloat(val);
         if (isNaN(velocity)) {
             alert("Invalid velocity.");
             return;
         }
-        guiOptions.generator.velocity = floatArrayToString([velocity, 0, 0], 2);
+        guiOptions.generator.velocity = floatArrayToString([velocity, 0, 0], precision);
     });
     guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
 
@@ -1081,6 +1103,14 @@ function particleGenerator() {
                 { m: 0.511, q: -1, nq: 1 },
             ];
             break;
+
+        case "alphaBeam":
+            presetList = [
+                { m: 3, q: 1 / 3, nq: 1 },
+                { m: 6, q: -2 / 3, nq: 1 },
+            ];
+            break;
+
         default:
             presetList = [
                 { m: 1, q: 1, nq: 1 },

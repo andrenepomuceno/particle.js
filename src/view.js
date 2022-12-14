@@ -23,11 +23,13 @@ import {
     simulationUpdateParticleList,
     simulationImportParticleList,
     simulationDeleteParticleList,
+    simulationParticleAutoCleanup,
 } from './simulation.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticle, createParticlesList, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -221,7 +223,10 @@ let guiOptions = {
                 p.velocity.set(0, 0, 0);
             });
             simulation.drawParticles();
-        }
+        },
+        particleCleanup: () => {
+            simulationParticleAutoCleanup();
+        },
     },
     particle: {
         obj: undefined,
@@ -449,6 +454,7 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
     guiControls.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
     guiControls.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity");
+    guiControls.add(guiOptions.controls, 'particleCleanup').name("Automatic Particle Cleanup");
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);

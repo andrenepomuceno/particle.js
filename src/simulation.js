@@ -529,6 +529,46 @@ export function simulationDeleteParticleList(list) {
     }
 }
 
+export function simulationParticleAutoCleanup(threshold = 8) {
+    log("simulationParticleCleanup threshold = " + threshold);
+
+    function getKey(p) {
+        let key = p.position.toArray();
+        key.forEach((val, idx) => {
+            key[idx] = Math.round(val / simulation.physics.nuclearChargeRange);
+        });
+        return key.toString();
+    }
+
+    graphics.readbackParticleData();
+
+    let pMap = new Map();
+    graphics.particleList.forEach((p) => {
+        let key = getKey(p);
+        if (pMap.has(key)) {
+            pMap.get(key).count++;
+        } else {
+            pMap.set(key, { count: 1 });
+        }
+    });
+
+    let deleteList = [];
+    graphics.particleList.forEach((p) => {
+        let key = getKey(p);
+        if (pMap.has(key)) {
+            let c = pMap.get(key).count;
+            if (c < threshold) {
+                deleteList.push(p);
+            }
+        }
+    });
+    simulationDeleteParticleList(deleteList);
+
+    /*pMap.forEach((value, key) => {
+        console.log(key + "," + value.count);
+    });*/
+}
+
 export function simulationUpdateParticleList(parameter, value, list) {
     log("simulationUpdateAll " + parameter + " " + value + " " + list);
 

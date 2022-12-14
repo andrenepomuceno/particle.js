@@ -208,6 +208,20 @@ let guiOptions = {
                 obj.close();
             });
         },
+        reverseVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.multiplyScalar(-1);
+            });
+            simulation.drawParticles();
+        },
+        zeroVelocity: () => {
+            graphics.readbackParticleData();
+            graphics.particleList.forEach((p) => {
+                p.velocity.set(0, 0, 0);
+            });
+            simulation.drawParticles();
+        }
     },
     particle: {
         obj: undefined,
@@ -420,12 +434,12 @@ function guiControlsSetup() {
     guiControlsSimulation.add(guiOptions.controls, 'next').name("Next simulation [PAGEDOWN]");
     guiControlsSimulation.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
     guiControlsSimulation.add(guiOptions.controls, 'home').name("First simulation [HOME]");
-    guiControlsSimulation.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
 
     const guiControlsCamera = guiControls.addFolder("[+] Camera Controls");
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
 
+    guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
     guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
     guiControls.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
@@ -433,6 +447,8 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
+    guiControls.add(guiOptions.controls, 'reverseVelocity').name("Reverse Velocity");
+    guiControls.add(guiOptions.controls, 'zeroVelocity').name("Zero Velocity");
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);

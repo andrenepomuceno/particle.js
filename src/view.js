@@ -616,7 +616,7 @@ function guiGenerateSetup() {
         square: "square",
         hexagon: "hexagon"
     };
-    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern");
+    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen();
 
     const presetList = {
         default: "default",
@@ -625,7 +625,7 @@ function guiGenerateSetup() {
         eBeam: "eBeam",
         alphaBeam: "alphaBeam",
     };
-    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").onFinishChange((val) => {
+    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         console.log(val);
 
         function defaultTemplate() {

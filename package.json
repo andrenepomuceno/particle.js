@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env useGPU --env production",
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=25e3 --env useGPU --env version='dev'",
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env useGPU --env version='dev'",
     "test2": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev'",
     "madge": "madge --image graph.svg src",
     "madge1": "madge --include-npm --image graph.svg src",

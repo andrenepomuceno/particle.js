@@ -41,8 +41,8 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let autoRefresh = true;
 let selection = new SelectionHelper();
-let stats = new Stats();
-let energyPanel = stats.addPanel(new Stats.Panel('E', '#ff8', '#221'));
+let statsPanel = new Stats();
+let energyPanel = statsPanel.addPanel(new Stats.Panel('E', '#ff8', '#221'));
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
@@ -153,11 +153,11 @@ let guiOptions = {
         },
         hideOverlay: () => {
             if (hideOverlay == false) {
-                stats.domElement.style.visibility = "hidden";
+                statsPanel.domElement.style.visibility = "hidden";
                 gui.hide();
                 hideOverlay = true;
             } else {
-                stats.domElement.style.visibility = "visible";
+                statsPanel.domElement.style.visibility = "visible";
                 gui.show();
                 hideOverlay = false;
             }
@@ -418,9 +418,9 @@ export function guiSetup() {
     document.addEventListener("pointerup", onPointerUp);
 
     //stats overlay
-    document.getElementById("container").appendChild(stats.domElement);
-    mouseHelper.addListener(stats.domElement);
-    stats.domElement.style.visibility = "visible";
+    document.getElementById("container").appendChild(statsPanel.domElement);
+    mouseHelper.addListener(statsPanel.domElement);
+    statsPanel.domElement.style.visibility = "visible";
 
     //gui menu overlay
     mouseHelper.addListener(gui.domElement);
@@ -1240,7 +1240,7 @@ export function animate(time) {
     requestAnimationFrame(animate);
 
     graphics.update();
-    stats.update();
+    statsPanel.update();
 
     if (followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;

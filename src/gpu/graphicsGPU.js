@@ -14,7 +14,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 let CanvasCapture = null;
-if (ENV?.record) {
+if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
 }
 

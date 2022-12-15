@@ -532,7 +532,7 @@ export function simulationDeleteParticleList(list) {
 export function simulationParticleAutoCleanup(threshold = 4) {
     log("simulationParticleCleanup threshold = " + threshold);
 
-    function getKey(p) {
+    function positionToKeyMap(p) {
         let key = p.position.toArray();
         key.forEach((val, idx) => {
             key[idx] = Math.round(val / simulation.physics.nuclearChargeRange);
@@ -544,7 +544,7 @@ export function simulationParticleAutoCleanup(threshold = 4) {
 
     let pMap = new Map();
     graphics.particleList.forEach((p) => {
-        let key = getKey(p);
+        let key = positionToKeyMap(p);
         if (pMap.has(key)) {
             pMap.get(key).count++;
         } else {
@@ -554,7 +554,7 @@ export function simulationParticleAutoCleanup(threshold = 4) {
 
     let deleteList = [];
     graphics.particleList.forEach((p) => {
-        let key = getKey(p);
+        let key = positionToKeyMap(p);
         if (pMap.has(key)) {
             let c = pMap.get(key).count;
             if (c <= threshold) {
@@ -564,9 +564,9 @@ export function simulationParticleAutoCleanup(threshold = 4) {
     });
     simulationDeleteParticleList(deleteList);
 
-    /*pMap.forEach((value, key) => {
+    pMap.forEach((value, key) => {
         console.log(key + "," + value.count);
-    });*/
+    });
 }
 
 export function simulationUpdateParticleList(parameter, value, list) {

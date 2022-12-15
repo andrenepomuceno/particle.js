@@ -37,7 +37,7 @@ function getCameraConstant(camera) {
 }
 
 function log(msg) {
-    console.log("Graphics (GPU): " + msg)
+    //console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {
@@ -442,23 +442,6 @@ export class GraphicsGPU {
             }
         }
         this.pointsGeometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-    }
-
-    #fillPointTypes() {
-        log("#fillPointTypes");
-
-        if (!this.particleList) {
-            log("particle list not loaded!");
-            return;
-        }
-
-        let type = [];
-        this.particleList.forEach((p, i) => {
-            type.push(p.type);
-        });
-
-
-        this.pointsGeometry.setAttribute('type', new Float32BufferAttribute(type, 1));
     }
 
     compute() {

@@ -355,7 +355,10 @@ let guiOptions = {
         },
         particleCleanup: () => {
             let thresh = parseFloat(guiOptions.advancedControls.cleanupThreshold);
-            if (isNaN(thresh)) return;
+            if (isNaN(thresh)) {
+                alert("Invalid threshold.");
+                return;
+            }
             simulationParticleAutoCleanup(thresh);
         },
         dampVelocity: () => {

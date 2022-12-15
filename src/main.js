@@ -8,7 +8,7 @@ if (ENV?.production === true) {
     gtag('config', 'G-STP92EN2LF');
 }
 
-if (ENV?.version) {
+if (ENV?.version != false) {
     let dom = document.getElementById("info");
     dom.innerHTML = dom.innerHTML.replace("loading...", ENV?.version);
 }

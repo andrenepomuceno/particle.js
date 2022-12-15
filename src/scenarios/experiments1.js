@@ -1,9 +1,11 @@
 import { GridHelper, PolarGridHelper, Vector3 } from 'three';
-import { randomSphericVector, randomVector } from './helpers';
+import { createNuclei, randomSphericVector, randomVector } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
+    hexagonalCrystal,
+    squareCrystal,
     standardModel3,
     standardModel2,
     standardModel1,
@@ -71,6 +73,97 @@ function createParticles(simulation, typeList, n, options) {
 
         simulation.physics.particleList.push(p);
     }
+}
+
+function hexagonalCrystal(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.nuclearChargeRange = 1e3;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 10 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.05 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.nuclearChargeConstant = 1;
+
+    const n = 2;
+    const m = 1;
+    const q = 1;
+    const nq = 1;
+    const v = 0;
+
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.5 * physics.nuclearChargeRange;
+    let r2 = 0.493 * physics.nuclearChargeRange;
+
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (28 * n)));
+    if (size % 2 == 0) size -= 1;
+    console.log(size);
+    const gridSize = [size, size, 1];
+    hexagonGenerator((vertex, totalLen) => {
+        let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+        let center = new Vector3(vertex.x, vertex.y, 0);
+        createNuclei(physics.particleList, n, m, q, s * nq, r0, r1, v, center, n, n);
+    }, r2, gridSize);
+    shuffleArray(physics.particleList);
+}
+
+function squareCrystal(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.nuclearChargeRange = 1e3;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 10 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.05 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.nuclearChargeConstant = 1;
+
+    const n = 2;
+    const m = 1;
+    const q = 1;
+    const nq = 1;
+    const v = 0;
+
+    const r0 = physics.nuclearChargeRange * 0.01;
+    const r1 = physics.nuclearChargeRange * 0.50;
+
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (8 * n)));
+    if (size % 2 == 0) size -= 1;
+    console.log(size);
+    const gridSize = [size, size, 1];
+    const gridWidth = r1 * gridSize[0];
+    let aux = 0;
+    cubeGenerator((x, y, z) => {
+        createNuclei(
+            physics.particleList,
+            n, m, q,
+            (aux % 2 == 0) ? (nq) : (-nq),
+            r0, r1, v,
+            new Vector3(x, y, z),
+            n, n
+        );
+        ++aux;
+    }, gridWidth, gridSize);
+    shuffleArray(physics.particleList);
 }
 
 function standardModel3(simulation) {

@@ -4,7 +4,7 @@ import { cubeGenerator, random } from '../helpers';
 
 export const scenarios2 = [
     //string,
-    nucleiGrid,
+    //nucleiGrid,
     //shootedBarrier,
     standardModelBlob2,
     //standardModelBlobSymetric,

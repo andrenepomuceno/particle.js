@@ -106,7 +106,7 @@ export function atom0(particleList, n1 = 1, n2 = 10, m = 1, q = 1, nq = 1, r0 = 
 
 export function createNuclei(particleList, n, m, q, nq, r0, r1, v, center, electrons = 0, neutrons = 0, v2 = new Vector3()) {
     let typeList = [
-        { m: 0.5, q: -1, nq: -1 },
+        { m: 0.511, q: -1, nq: -1 },
         { m: 3, q: 2 / 3, nq: 1 },
         { m: 6, q: -1 / 3, nq: 1 },
     ];

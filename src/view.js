@@ -1170,42 +1170,42 @@ function onWindowResize() {
     graphics.onWindowResize(window);
 }
 
-const keyMap = new Map();
+const keyboardMap = new Map();
 function keyMapSetup() {
-    keyMap.set(' ', guiOptions.controls.pauseResume);
-    keyMap.set('c', guiOptions.controls.resetCamera);
-    keyMap.set('r', guiOptions.controls.reset);
-    keyMap.set('p', guiOptions.controls.snapshot);
-    keyMap.set('d', () => console.log(simulationExportCsv()));
-    keyMap.set('a', guiOptions.controls.hideAxis);
-    keyMap.set('v', guiOptions.controls.xyCamera);
-    keyMap.set('n', guiOptions.controls.step);
-    keyMap.set('q', guiOptions.controls.colorMode);
-    keyMap.set('pagedown', guiOptions.controls.next);
-    keyMap.set('pageup', guiOptions.controls.previous);
-    keyMap.set('home', guiOptions.controls.home);
-    keyMap.set('f', () => simulation.fieldSetup("update"));
-    keyMap.set('h', guiOptions.controls.hideOverlay);
-    keyMap.set('z', selectionPlace);
-    keyMap.set('delete', guiOptions.controls.deleteAll);
-    keyMap.set('s', guiOptions.controls.sandbox);
-    keyMap.set('g', guiOptions.generator.generate);
-    keyMap.set('x', guiOptions.selection.clone);
-    keyMap.set('backspace', guiOptions.selection.delete);
-    keyMap.set('m', guiOptions.controls.collapseAll);
-    keyMap.set('+', guiOptions.advancedControls.kickVelocity);
-    keyMap.set('-', guiOptions.advancedControls.dampVelocity);
-    keyMap.set('0', guiOptions.advancedControls.zeroVelocity);
-    keyMap.set('.', guiOptions.advancedControls.particleCleanup);
-    keyMap.set('*', () => graphics.capture(simulation.name));
+    keyboardMap.set(' ', guiOptions.controls.pauseResume);
+    keyboardMap.set('c', guiOptions.controls.resetCamera);
+    keyboardMap.set('r', guiOptions.controls.reset);
+    keyboardMap.set('p', guiOptions.controls.snapshot);
+    keyboardMap.set('d', () => console.log(simulationExportCsv()));
+    keyboardMap.set('a', guiOptions.controls.hideAxis);
+    keyboardMap.set('v', guiOptions.controls.xyCamera);
+    keyboardMap.set('n', guiOptions.controls.step);
+    keyboardMap.set('q', guiOptions.controls.colorMode);
+    keyboardMap.set('pagedown', guiOptions.controls.next);
+    keyboardMap.set('pageup', guiOptions.controls.previous);
+    keyboardMap.set('home', guiOptions.controls.home);
+    keyboardMap.set('f', () => simulation.fieldSetup("update"));
+    keyboardMap.set('h', guiOptions.controls.hideOverlay);
+    keyboardMap.set('z', selectionPlace);
+    keyboardMap.set('delete', guiOptions.controls.deleteAll);
+    keyboardMap.set('s', guiOptions.controls.sandbox);
+    keyboardMap.set('g', guiOptions.generator.generate);
+    keyboardMap.set('x', guiOptions.selection.clone);
+    keyboardMap.set('backspace', guiOptions.selection.delete);
+    keyboardMap.set('m', guiOptions.controls.collapseAll);
+    keyboardMap.set('+', guiOptions.advancedControls.kickVelocity);
+    keyboardMap.set('-', guiOptions.advancedControls.dampVelocity);
+    keyboardMap.set('0', guiOptions.advancedControls.zeroVelocity);
+    keyboardMap.set('.', guiOptions.advancedControls.particleCleanup);
+    keyboardMap.set('*', () => graphics.capture(simulation.name));
 }
 
 function onKeyDown(event) {
     if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();
-    if (keyMap.has(key)) {
-        let callback = keyMap.get(key);
+    if (keyboardMap.has(key)) {
+        let callback = keyboardMap.get(key);
         return callback();
     }
 }

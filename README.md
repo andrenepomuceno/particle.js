@@ -55,7 +55,9 @@ where
 
 $\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
 
-and
+and $V(d)$ represents the nuclear potential, that can be any nuclear potential function like Yukawa, Reci, Lennard-Jones, Av18 potentials and so on...
+
+For this project, the default is
 
 $V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$.
 
@@ -71,7 +73,7 @@ $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
 ### Collisions
 
-A collision occurs when the distance between two particles is less than a minimal allowed distance.
+A collision occurs when the distance between two particles is less than a minimal allowed distance $d_min$.
 
 In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
 

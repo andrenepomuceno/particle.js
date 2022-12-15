@@ -813,7 +813,9 @@ function guiParametersSetup() {
 function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [Numpad 0]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
-
+    
+    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [Numpad -]");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [Numpad +]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
         let factor = parseFloat(val);
         if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
@@ -823,8 +825,6 @@ function guiAdvancedControlsSetup() {
         }
         guiOptions.advancedControls.dampKickFactor = factor.toString();
     });
-    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [Numpad -]");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [Numpad +]");
 
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
     guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity").listen();

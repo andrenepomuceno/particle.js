@@ -338,7 +338,7 @@ let guiOptions = {
     advancedControls: {
         dampKickFactor: "0.1",
         randomVelocity: "10",
-        cleanupThreshold: "4",
+        cleanupThreshold: "8",
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -538,9 +538,6 @@ function guiParticleSetup() {
     guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
-    guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "fixed", val);
-    });
     guiParticleVariables.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "position", val);
     });
@@ -549,6 +546,9 @@ function guiParticleSetup() {
     });
     guiParticleVariables.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
         simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
+    });
+    guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
+        simulationUpdateParticle(guiOptions.particle.obj, "fixed", val);
     });
     //guiParticleVariables.open();
 

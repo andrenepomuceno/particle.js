@@ -42,7 +42,7 @@ let lastAnimateTime = 0;
 let autoRefresh = true;
 let selection = new SelectionHelper();
 let statsPanel = new Stats();
-let energyPanel = statsPanel.addPanel(new Stats.Panel('E', '#ff8', '#221'));
+let energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
@@ -72,6 +72,7 @@ let guiOptions = {
         autoRefresh: autoRefresh,
         mode2D: false,
         folderName: "",
+        velocity: "",
     },
     controls: {
         pauseResume: function () {
@@ -461,6 +462,7 @@ function guiInfoSetup() {
 
     const guiInfoMore = guiInfo.addFolder("[+] More Information...");
     guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
+    guiInfoMore.add(guiOptions.info, 'velocity').name('Velocity (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
         simulationUpdateParticleList("mass", val);
     });
@@ -849,7 +851,8 @@ function guiInfoRefresh(now) {
     m = (m == 0) ? (1) : (m);
     let avgEnergy = e / n;
     let avgVelocity = Math.sqrt(e / m);
-    guiOptions.info.energy = avgEnergy.toExponential(2) + " / " + avgVelocity.toExponential(2);
+    guiOptions.info.energy = avgEnergy.toExponential(2);
+    guiOptions.info.velocity = avgVelocity.toExponential(2);
 
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(2);

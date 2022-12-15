@@ -1,5 +1,5 @@
-import { mouseToScreenCoord } from "./helpers";
-import { Vector2 } from "three";
+import { cameraToWorldCoord, mouseToScreenCoord } from "./helpers";
+import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from "three";
 
 export class MouseHelper {
     constructor() {
@@ -9,6 +9,9 @@ export class MouseHelper {
         this.overGUI = false;
         this.samples = [];
         this.taps = 10;
+
+        this.cursorMesh = undefined;
+        this.graphics = undefined;
     }
 
     move(event) {
@@ -23,6 +26,8 @@ export class MouseHelper {
         if (this.samples.length > this.taps) this.samples.shift();
 
         this.position.set(pos.x, pos.y);
+
+        this.updateCursor();
     }
 
     addListener(domElement) {
@@ -39,6 +44,31 @@ export class MouseHelper {
         this.samples.forEach((val) => {
             sum += val.length();
         });
-        return sum/this.taps;
+        return sum / this.taps;
+    }
+
+    showCursor(graphics, radius = 100, thickness = 10) {
+        this.hideCursor();
+
+        this.graphics = graphics;
+        this.cursorMesh = new Mesh(
+            new RingGeometry(radius - thickness, radius + thickness, 64),
+            new MeshBasicMaterial({ color: 0xfffffff })
+        );
+        graphics.scene.add(this.cursorMesh);
+    }
+
+    hideCursor() {
+        if (this.cursorMesh != undefined) {
+            this.graphics.scene.remove(this.cursorMesh);
+            this.cursorMesh = undefined;
+        }
+    }
+
+    updateCursor() {
+        if (this.cursorMesh == undefined) return;
+
+        let center = cameraToWorldCoord(this.position, this.graphics.camera, 0);
+        this.cursorMesh.position.set(center.x, center.y, 0);
     }
 }

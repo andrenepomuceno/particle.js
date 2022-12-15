@@ -171,6 +171,7 @@ let guiOptions = {
                 obj.close();
             });
         },
+        showCursor: true,
     },
     particle: {
         obj: undefined,
@@ -410,6 +411,10 @@ function setup(idx) {
 
     energyPanel.min = 0;
     energyPanel.max = 0;
+
+    if (guiOptions.controls.showCursor == true) {
+        mouseHelper.showCursor(graphics);
+    }
 }
 
 export function guiSetup() {
@@ -502,6 +507,15 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
     guiControls.add(guiOptions.controls, 'import').name("Import simulation");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
+    guiControls.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+        if (val == true) {
+            mouseHelper.showCursor(graphics);
+            guiOptions.controls.showCursor = true;
+        } else {
+            mouseHelper.hideCursor();
+            guiOptions.controls.showCursor = false;
+        }
+    });
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
@@ -1172,7 +1186,7 @@ function cameraTargetSet(pos) {
 }
 
 function onWindowResize() {
-    log("window.onresize");
+    log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
     graphics.onWindowResize(window);
 }
 

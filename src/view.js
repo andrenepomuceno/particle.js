@@ -409,6 +409,8 @@ function setup(idx) {
 }
 
 export function guiSetup() {
+    keyMapSetup();
+
     window.onresize = onWindowResize;
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener('pointermove', onPointerMove);
@@ -946,7 +948,8 @@ function selectionListUpdate(param, val) {
 }
 
 function selectionPlace() {
-    if (selection.list.length == 0) return;
+    if (mouseHelper.overGUI) return;
+    if (selection.list == undefined || selection.list.length == 0) return;
 
     let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
     if (simulation.mode2D) {
@@ -1167,121 +1170,43 @@ function onWindowResize() {
     graphics.onWindowResize(window);
 }
 
+const keyMap = new Map();
+function keyMapSetup() {
+    keyMap.set(' ', guiOptions.controls.pauseResume);
+    keyMap.set('c', guiOptions.controls.resetCamera);
+    keyMap.set('r', guiOptions.controls.reset);
+    keyMap.set('p', guiOptions.controls.snapshot);
+    keyMap.set('d', () => console.log(simulationExportCsv()));
+    keyMap.set('a', guiOptions.controls.hideAxis);
+    keyMap.set('v', guiOptions.controls.xyCamera);
+    keyMap.set('n', guiOptions.controls.step);
+    keyMap.set('q', guiOptions.controls.colorMode);
+    keyMap.set('pagedown', guiOptions.controls.next);
+    keyMap.set('pageup', guiOptions.controls.previous);
+    keyMap.set('home', guiOptions.controls.home);
+    keyMap.set('f', () => simulation.fieldSetup("update"));
+    keyMap.set('h', guiOptions.controls.hideOverlay);
+    keyMap.set('z', selectionPlace);
+    keyMap.set('delete', guiOptions.controls.deleteAll);
+    keyMap.set('s', guiOptions.controls.sandbox);
+    keyMap.set('g', guiOptions.generator.generate);
+    keyMap.set('x', guiOptions.selection.clone);
+    keyMap.set('backspace', guiOptions.selection.delete);
+    keyMap.set('m', guiOptions.controls.collapseAll);
+    keyMap.set('+', guiOptions.advancedControls.kickVelocity);
+    keyMap.set('-', guiOptions.advancedControls.dampVelocity);
+    keyMap.set('0', guiOptions.advancedControls.zeroVelocity);
+    keyMap.set('.', guiOptions.advancedControls.particleCleanup);
+    keyMap.set('*', () => graphics.capture(simulation.name));
+}
+
 function onKeyDown(event) {
     if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();
-    switch (key) {
-        case ' ':
-            guiOptions.controls.pauseResume();
-            break;
-
-        case 'c':
-            guiOptions.controls.resetCamera();
-            break;
-
-        case 'r':
-            guiOptions.controls.reset();
-            break;
-
-        case 'p':
-            guiOptions.controls.snapshot();
-            break;
-
-        case 'd':
-            console.log(simulationExportCsv());
-            break;
-
-        case 'a':
-            guiOptions.controls.hideAxis();
-            break;
-
-        case 'v':
-            guiOptions.controls.xyCamera();
-            break;
-
-        case 'n':
-            guiOptions.controls.step();
-            break;
-
-        case 'q':
-            guiOptions.controls.colorMode();
-            break;
-
-        case 'pagedown':
-            guiOptions.controls.next();
-            break;
-
-        case 'pageup':
-            guiOptions.controls.previous();
-            break;
-
-        case 'home':
-            guiOptions.controls.home();
-            break;
-
-        case 'f':
-            simulation.fieldSetup("update");
-            break;
-
-        case 'h':
-            guiOptions.controls.hideOverlay();
-            break;
-
-        case 'z':
-            if (!mouseHelper.overGUI && selection.list != undefined) {
-                selectionPlace();
-            }
-            break;
-
-        case 'delete':
-            guiOptions.controls.deleteAll();
-            break;
-
-        case 's':
-            guiOptions.controls.sandbox();
-            break;
-
-        case 'g':
-            guiOptions.generator.generate();
-            break;
-
-        case 'x':
-            guiOptions.selection.clone();
-            break;
-
-        case 'backspace':
-            guiOptions.selection.delete();
-            break;
-
-        case 'm':
-            guiOptions.controls.collapseAll();
-            break;
-
-        case '+':
-            guiOptions.advancedControls.kickVelocity();
-            break;
-
-        case '-':
-            guiOptions.advancedControls.dampVelocity();
-            break;
-
-        case '0':
-            guiOptions.advancedControls.zeroVelocity();
-            break;
-
-        case '.':
-            guiOptions.advancedControls.particleCleanup();
-            break;
-
-        case '*':
-            graphics.capture(simulation.name);
-            break;
-
-        default:
-            log("key = " + key);
-            break;
-
+    if (keyMap.has(key)) {
+        let callback = keyMap.get(key);
+        return callback();
     }
 }
 

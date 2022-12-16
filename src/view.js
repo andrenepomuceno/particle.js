@@ -447,7 +447,7 @@ export function guiSetup() {
     guiParticleSetup();
     guiParametersSetup();
     guiSelectionSetup();
-    guiGenerateSetup();
+    guiGeneratorSetup();
     guiAdvancedControlsSetup();
 
     setup();
@@ -635,7 +635,7 @@ function guiSelectionSetup() {
     collapseList.push(guiSelectionVariables);
 }
 
-function guiGenerateSetup() {
+function guiGeneratorSetup() {
     guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
         guiOptions.generator.quantity = Math.round(parseFloat(val));
     });
@@ -680,7 +680,7 @@ function guiGenerateSetup() {
         }
 
         let v = 10 * parseFloat(guiOptions.info.velocity);
-        if (isNaN(v)) v = 1e2;
+        if (isNaN(v) || v < 1e2) v = 1e2;
         switch (val) {
             case "eBeam":
                 defaultTemplate();

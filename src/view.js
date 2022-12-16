@@ -487,7 +487,7 @@ function guiControlsSetup() {
     guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
     guiControls.add(guiOptions.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
-    const guiControlsSimulation = guiControls.addFolder("[+] Simulation Controls");
+    const guiControlsSimulation = guiControls.addFolder("[+] Simulation");
     guiControlsSimulation.add(guiOptions.controls, 'pauseResume').name("Pause/Resume [SPACE]");
     guiControlsSimulation.add(guiOptions.controls, 'step').name("Step [N] (if paused)");
     guiControlsSimulation.add(guiOptions.controls, 'reset').name("Reset [R]");
@@ -495,19 +495,16 @@ function guiControlsSetup() {
     guiControlsSimulation.add(guiOptions.controls, 'previous').name("Previous simulation [PAGEUP]");
     guiControlsSimulation.add(guiOptions.controls, 'home').name("First simulation [HOME]");
 
-    const guiControlsCamera = guiControls.addFolder("[+] Camera Controls");
+    const guiControlsCamera = guiControls.addFolder("[+] Camera");
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
 
-    guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
-    guiControls.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
-    guiControls.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
-    guiControls.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
-    guiControls.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
-    guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
-    guiControls.add(guiOptions.controls, 'import').name("Import simulation");
-    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
-    guiControls.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+    const guiControlsView = guiControls.addFolder("[+] View");
+    guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
+    guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
+    guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
+    guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
+    guiControlsView.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
         if (val == true) {
             mouseHelper.showCursor(graphics);
             guiOptions.controls.showCursor = true;
@@ -517,11 +514,17 @@ function guiControlsSetup() {
         }
     });
 
+    guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
+    guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
+    guiControls.add(guiOptions.controls, 'import').name("Import simulation");
+    guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
+
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
     collapseList.push(guiControls);
     collapseList.push(guiControlsCamera);
     collapseList.push(guiControlsSimulation);
+    collapseList.push(guiControlsView);
 }
 
 function guiParticleSetup() {
@@ -766,7 +769,7 @@ function guiParametersSetup() {
         setup();
     });
 
-    const guiParametersConsts = guiParameters.addFolder("[+] Physics Constants");
+    const guiParametersConsts = guiParameters.addFolder("[+] Constants");
     guiParametersConsts.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("massConstant", val);
     });
@@ -787,7 +790,7 @@ function guiParametersSetup() {
     });
     //guiParametersConsts.open();
 
-    const guiParametersBoundary = guiParameters.addFolder("[+] Simulation Boundary");
+    const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDistance", val);
     });
@@ -802,7 +805,7 @@ function guiParametersSetup() {
     });
     //guiParametersBoundary.open();
 
-    const guiParametersVisual = guiParameters.addFolder("[+] Particle Visualization");
+    const guiParametersVisual = guiParameters.addFolder("[+] View");
     guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radius", val);
     });
@@ -810,7 +813,7 @@ function guiParametersSetup() {
         simulationUpdatePhysics("radiusRange", val);
     });
 
-    const guiParametersInteractions = guiParameters.addFolder("[+] Particle Interactions");
+    const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
     guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', NuclearPotentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
         simulationUpdatePhysics("potential", val);
     });
@@ -830,7 +833,7 @@ function guiParametersSetup() {
 function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [Numpad 0]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
-    
+
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [Numpad -]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [Numpad +]");
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {

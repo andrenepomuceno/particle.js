@@ -52,7 +52,7 @@ export class MouseHelper {
 
         this.graphics = graphics;
         this.cursorMesh = new Mesh(
-            new RingGeometry(radius - thickness, radius + thickness, 64),
+            new RingGeometry(radius - thickness/2, radius + thickness/2, 32),
             new MeshBasicMaterial({ color: 0xfffffff })
         );
         graphics.scene.add(this.cursorMesh);
@@ -68,7 +68,7 @@ export class MouseHelper {
     updateCursor() {
         if (this.cursorMesh == undefined) return;
 
-        let center = cameraToWorldCoord(this.position, this.graphics.camera, 0);
-        this.cursorMesh.position.set(center.x, center.y, 0);
+        let center = cameraToWorldCoord(this.position, this.graphics.camera, 1);
+        this.cursorMesh.position.set(center.x, center.y, center.z);
     }
 }

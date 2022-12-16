@@ -400,6 +400,13 @@ let guiOptions = {
     }
 }
 
+function showCursor() {
+    guiOptions.controls.showCursor = true;
+    let radius = Math.max(2 * (simulation.particleRadius + simulation.particleRadiusRange), 100);
+    let thick = Math.max(0.1 * radius, 10);
+    mouseHelper.showCursor(graphics, radius, thick);
+}
+
 function setup(idx) {
     log("setup " + idx);
     guiSelectionClose();
@@ -413,7 +420,7 @@ function setup(idx) {
     energyPanel.max = 0;
 
     if (guiOptions.controls.showCursor == true) {
-        mouseHelper.showCursor(graphics);
+        showCursor();
     }
 }
 
@@ -421,7 +428,7 @@ export function guiSetup() {
     keyMapSetup();
 
     window.onresize = onWindowResize;
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
@@ -481,6 +488,9 @@ function guiInfoSetup() {
     guiInfoMore.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
         autoRefresh = val;
     });
+
+    collapseList.push(guiInfo);
+    collapseList.push(guiInfoMore);
 }
 
 function guiControlsSetup() {
@@ -506,8 +516,7 @@ function guiControlsSetup() {
     guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
     guiControlsView.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
         if (val == true) {
-            mouseHelper.showCursor(graphics);
-            guiOptions.controls.showCursor = true;
+            showCursor();
         } else {
             mouseHelper.hideCursor();
             guiOptions.controls.showCursor = false;
@@ -670,17 +679,19 @@ function guiGenerateSetup() {
             guiOptions.generator.quantizedNuclearCharge = true;
         }
 
+        let v = 10 * parseFloat(guiOptions.info.velocity);
+        if (isNaN(v)) v = 1e2;
         switch (val) {
             case "eBeam":
                 defaultTemplate();
-                guiOptions.generator.velocity = "1e2,0,0";
+                guiOptions.generator.velocity = v + ",0,0";
                 guiOptions.generator.randomVelocity = false;
                 guiOptions.generator.quantity = "32";
                 break;
 
             case "alphaBeam":
                 defaultTemplate();
-                guiOptions.generator.velocity = "1e2,0,0";
+                guiOptions.generator.velocity = v + ",0,0";
                 guiOptions.generator.randomVelocity = false;
                 guiOptions.generator.quantity = "24";
                 guiOptions.generator.nuclearChargeRandomSignal = false;
@@ -1223,7 +1234,7 @@ function keyMapSetup() {
     keyboardMap.set('*', () => graphics.capture(simulation.name));
 }
 
-function onKeyDown(event) {
+function onKeyUp(event) {
     if (mouseHelper.overGUI) return;
 
     let key = event.key.toLowerCase();

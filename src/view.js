@@ -383,14 +383,14 @@ let guiOptions = {
             graphics.particleList.forEach((p) => {
                 let e = parseFloat(guiOptions.advancedControls.randomVelocity);
                 if (isNaN(e)) return;
-                p.velocity.add(randomVector(e, simulation.mode2D));
+                p.velocity.add(randomSphericVector(0, e, simulation.mode2D));
             });
             simulation.drawParticles();
         },
         zeroPosition: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
-                p.position = randomVector(1, simulation.mode2D);
+                p.position = randomSphericVector(0, 1, simulation.mode2D);
             });
             simulation.drawParticles();
         },
@@ -402,7 +402,7 @@ let guiOptions = {
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
-    let radius = Math.max(2 * (simulation.particleRadius + simulation.particleRadiusRange), 100);
+    let radius = Math.max(2 * simulation.particleRadius, 100);
     let thick = Math.max(0.1 * radius, 10);
     mouseHelper.showCursor(graphics, radius, thick);
 }
@@ -1084,7 +1084,7 @@ function particleGenerator() {
 
     function generateVelocity() {
         let v = velocity;
-        if (guiOptions.generator.randomVelocity) v = randomVector(v.length());
+        if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
         return v;
     }
 

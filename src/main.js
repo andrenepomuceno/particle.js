@@ -1,4 +1,5 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
+import { random } from './helpers';
 import { animate, guiSetup } from './view';
 
 if (ENV?.production === true) {

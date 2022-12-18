@@ -4,6 +4,7 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
+    superNucleus,
     hexagonalCrystal,
     squareCrystal,
     standardModel3,
@@ -38,9 +39,9 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 function createParticles(simulation, typeList, n, options) {
     const defaultOptions = {
         r1: 1, v1: 0,
-        q: 1, randomQSignal: false, randomQThresh: 0.5,
+        m: 1, randomM: false, roundM: false,
+        q: 1, randomQSignal: false, randomQThresh: 0.5, randomQ: false, roundQ: false,
         nq: 1, randomNQSignal: true,
-        m: 1, randomM: false, roundM: false
     };
     options = { ...defaultOptions, ...options };
 
@@ -56,10 +57,9 @@ function createParticles(simulation, typeList, n, options) {
 
         let q = options.q;
         q *= typeList[type].q;
-        if (options.randomQSignal == true) {
-            let x = random(0, 1);
-            if (x >= options.randomQThresh) q *= -1;
-        }
+        if ((options.randomQSignal == true) && (random(0, 1) >= options.randomQThresh)) q *= -1;
+        if (options.randomQ == true) q *= random(0, 1);
+        if (options.roundQ == true) q = Math.round(q);
         p.charge = q;
 
         let nq = typeList[type].nq;
@@ -69,10 +69,48 @@ function createParticles(simulation, typeList, n, options) {
         p.nuclearCharge = nq;
 
         p.position = randomSphericVector(0, options.r1, simulation.mode2D);
-        p.velocity = randomVector(options.v1);
+        p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
 
         simulation.physics.particleList.push(p);
     }
+}
+
+function superNucleus(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = false;
+
+    physics.nuclearChargeRange = 1e6;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 0.6 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.001 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1/137;
+    physics.nuclearChargeConstant = 1;
+    physics.minDistance2 = Math.pow(0.1, 2);
+
+    let particleTypes = [
+        //{ m: 0.001, q: 0, nq: 1 },
+        { m: 0.511, q: -1, nq: 1/2 },
+        { m: 3, q: 2 / 3, nq: 1 },
+        { m: 6, q: -1 / 3, nq: 1 },
+        //{ m: 256, q: 32, nq: 1}
+        //{ m: 1, q: 1, nq: 1}
+    ]
+    createParticles(simulation, particleTypes, graphics.maxParticles, {
+        v1: 1.0, r1: 1.0,//2.0 * physics.nuclearChargeRange
+        m: 2, //randomM: true, roundM: true,
+        randomQSignal: true, //randomQThresh: 0.8,
+        //randomQ: true, roundQ: true, 
+    });
+    //drawGrid(simulation);
 }
 
 function hexagonalCrystal(simulation) {

@@ -4,9 +4,9 @@
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env useGPU --env version='dev'",
-    "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev'",
-    "record": "webpack serve --config webpack-dev.config.js --env maxParticles=50e3 --env useGPU --env version='record' --env record",
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env useGPU --env version='dev mode'",
+    "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env useGPU --env version='dev mode'",
+    "record": "webpack serve --config webpack-dev.config.js --env maxParticles=50e3 --env useGPU --env version='record mode' --env record",
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env useGPU --env production",
     "madge0": "madge --image graph.svg src",
     "madge1": "madge --include-npm --image graph.svg src",

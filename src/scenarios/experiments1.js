@@ -4,7 +4,8 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
-    superNucleus,
+    //superNucleus,
+    superNucleus3D,
     hexagonalCrystal,
     squareCrystal,
     standardModel3,
@@ -81,6 +82,45 @@ function superNucleus(simulation) {
     defaultParameters(simulation);
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.nuclearChargeRange = 1e6;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 0.6 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.001 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-9;
+    physics.chargeConstant = 1;
+    physics.nuclearChargeConstant = 1;
+    physics.minDistance2 = Math.pow(1/8, 2);
+
+    let particleTypes = [
+        { m: 28, q: 0, nq: 1 },
+        { m: 0.511e6, q: -1, nq: 1 },
+        { m: 3e6, q: 2 / 3, nq: 1 },
+        { m: 6e6, q: -1 / 3, nq: 1 },
+        //{ m: 256, q: 32, nq: 1}
+        //{ m: 1, q: 1, nq: 1}
+    ]
+    createParticles(simulation, particleTypes, graphics.maxParticles, {
+        r1: 1.0,//2.0 * physics.nuclearChargeRange
+        v1: 1.0,
+        m: 0.001/particleTypes[0].m, //randomM: true, roundM: true,
+        randomQSignal: true, //randomQThresh: 0.8,
+        //randomQ: true, roundQ: true, 
+    });
+    //drawGrid(simulation);
+}
+
+function superNucleus3D(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = false;
 
     physics.nuclearChargeRange = 1e6;
@@ -92,23 +132,20 @@ function superNucleus(simulation) {
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-6;
-    physics.chargeConstant = 1/137;
+    physics.chargeConstant = 1e-2;
     physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(0.1, 2);
+    physics.minDistance2 = Math.pow(1/10, 2);
 
     let particleTypes = [
-        //{ m: 0.001, q: 0, nq: 1 },
-        { m: 0.511, q: -1, nq: 1/2 },
-        { m: 3, q: 2 / 3, nq: 1 },
-        { m: 6, q: -1 / 3, nq: 1 },
-        //{ m: 256, q: 32, nq: 1}
-        //{ m: 1, q: 1, nq: 1}
+        { m: 256, q: 16, nq: 1}
     ]
     createParticles(simulation, particleTypes, graphics.maxParticles, {
-        v1: 1.0, r1: 1.0,//2.0 * physics.nuclearChargeRange
-        m: 2, //randomM: true, roundM: true,
+        r1: 1.0,//2.0 * physics.nuclearChargeRange
+        v1: 1.0,
+        //m: 1.0,
+        randomM: true, roundM: true,
         randomQSignal: true, //randomQThresh: 0.8,
-        //randomQ: true, roundQ: true, 
+        randomQ: true, roundQ: true, 
     });
     //drawGrid(simulation);
 }

@@ -22,7 +22,7 @@ import {
     simulationImportParticleList,
     simulationDeleteParticleList,
     simulationParticleAutoCleanup,
-} from './simulation.js';
+} from './core.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticle, randomSphericVector, randomVector } from './scenarios/helpers.js';

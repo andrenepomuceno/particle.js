@@ -1,7 +1,7 @@
 import { calcListStatistics, Particle, ParticleType, Physics } from './physics.js';
-import { SimulationGPU } from './gpu/simulationGPU';
-import { GraphicsGPU } from './gpu/graphicsGPU'
-import { FieldGPU } from './gpu/fieldGPU';
+import { SimulationGPU } from './gpu/simulation';
+import { GraphicsGPU } from './gpu/graphics'
+import { FieldGPU } from './gpu/field';
 import { Vector3 } from 'three';
 import { decodeVector3 } from './helpers.js';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.js';

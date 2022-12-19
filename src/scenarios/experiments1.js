@@ -4,7 +4,7 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
-    //superNucleus,
+    superNucleus,
     superNucleus3D,
     hexagonalCrystal,
     squareCrystal,

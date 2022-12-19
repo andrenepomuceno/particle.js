@@ -82,6 +82,7 @@ export class SelectionHelper {
             y: event.clientY
         };
         this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.ruler = this.p1.clone().sub(this.p0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
         if (this.#readParticleData() > 0) {

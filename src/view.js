@@ -340,6 +340,7 @@ let guiOptions = {
         dampKickFactor: "0.1",
         randomVelocity: "10",
         cleanupThreshold: "8",
+        ruler: "",
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -864,6 +865,7 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'ruler').name("Selection Ruler").listen();
 
     collapseList.push(guiAdvancedControls);
 }
@@ -1261,6 +1263,7 @@ function onPointerDown(event) {
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
         selection.end(event);
+        guiOptions.advancedControls.ruler = "len: " + selection.ruler.length().toExponential(3) + " x: " + selection.ruler.x.toExponential(3) + " y: " + selection.ruler.y.toExponential(3);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
         let particle = graphics.raycast(mouseHelper.position);
         if (particle) {

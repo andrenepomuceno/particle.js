@@ -281,7 +281,6 @@ export function simulationCreateParticleList(particleList, center = new Vector3(
     });
 
     simulation.drawParticles();
-
 }
 
 export function simulationUpdatePhysics(key, value) {
@@ -680,17 +679,12 @@ export function simulationUpdateParticleList(parameter, value, list) {
             return;
     }
 
-
-    {
-        simulation.drawParticles();
-    }
+    simulation.drawParticles();
 }
 
 export function simulationDeleteAll() {
     log("simulationDeleteAll");
 
     simulation.particleList = [];
-    {
-        simulation.drawParticles();
-    }
+    simulation.drawParticles();
 }

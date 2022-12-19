@@ -2,15 +2,11 @@ import { calcListStatistics, Particle, ParticleType, Physics } from './physics.j
 import { SimulationGPU } from './gpu/simulationGPU';
 import { GraphicsGPU } from './gpu/graphicsGPU'
 import { FieldGPU } from './gpu/fieldGPU';
-import { SimulationCPU } from './cpu/simulationCPU';
-import { GraphicsCPU } from './cpu/graphicsCPU'
-import { FieldCPU } from './cpu/fieldCPU';
 import { Vector3 } from 'three';
 import { decodeVector3 } from './helpers.js';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.js';
 import { scenariosList } from './scenarios.js';
 
-const useGPU = ENV?.useGPU;
 export let graphics = undefined;
 export let simulation = undefined;
 let physics = undefined;
@@ -25,15 +21,9 @@ log("simulations loaded: " + scenariosList.length);
 function internalSetup(physics_) {
     physics = (physics_ || new Physics());
 
-    if (useGPU) {
-        graphics = (graphics || new GraphicsGPU());
-        simulation = new SimulationGPU(graphics, physics);
-        simulation.field = new FieldGPU(graphics, physics);
-    } else {
-        graphics = (graphics || new GraphicsCPU());
-        simulation = new SimulationCPU(graphics, physics);
-        simulation.field = new FieldCPU(graphics, physics);
-    }
+    graphics = (graphics || new GraphicsGPU());
+    simulation = new SimulationGPU(graphics, physics);
+    simulation.field = new FieldGPU(graphics, physics);
 }
 
 export function simulationSetup(idx) {
@@ -66,9 +56,7 @@ export function simulationExportCsv(list) {
 
     const csvVersion = "1.2";
 
-    if (useGPU) {
-        graphics.readbackParticleData();
-    }
+    graphics.readbackParticleData();
 
     let output = "version";
     output += "," + physics.header();
@@ -284,9 +272,7 @@ export function simulationCreateParticleList(particleList, center = new Vector3(
         return;
     }
 
-    if (useGPU) {
-        graphics.readbackParticleData();
-    }
+    graphics.readbackParticleData();
 
     let normalizedList = normalizePosition(particleList);
     normalizedList.forEach((p, index) => {
@@ -294,9 +280,8 @@ export function simulationCreateParticleList(particleList, center = new Vector3(
         graphics.particleList.push(p);
     });
 
-    if (useGPU) {
-        simulation.drawParticles();
-    }
+    simulation.drawParticles();
+
 }
 
 export function simulationUpdatePhysics(key, value) {
@@ -381,7 +366,7 @@ export function simulationUpdatePhysics(key, value) {
             break;
     }
 
-    if (updateShader && useGPU) {
+    if (updateShader) {
         physics.velocityShader = generateComputeVelocity(
             physics.nuclearPotential,
             physics.useDistance1,
@@ -392,7 +377,7 @@ export function simulationUpdatePhysics(key, value) {
         graphics.drawParticles();
     }
 
-    if (updatePhysics && useGPU) {
+    if (updatePhysics) {
         graphics.fillPhysicsUniforms();
     }
 }
@@ -418,9 +403,8 @@ export function simulationUpdateParticle(particle, key, value) {
 
     let update = true;
 
-    if (useGPU) {
-        graphics.readbackParticleData();
-    }
+    graphics.readbackParticleData();
+
 
     switch (key) {
         case "mass":
@@ -500,7 +484,7 @@ export function simulationUpdateParticle(particle, key, value) {
             break;
     }
 
-    if (update && useGPU) {
+    if (update) {
         simulation.drawParticles();
     }
 }
@@ -510,9 +494,7 @@ export function simulationDeleteParticleList(list) {
 
     if (list == undefined) return;
 
-    if (useGPU) {
-        graphics.readbackParticleData();
-    }
+    graphics.readbackParticleData();
 
     list.forEach((ref) => {
         simulation.particleList.every((src, srcIdx) => {
@@ -524,9 +506,7 @@ export function simulationDeleteParticleList(list) {
         });
     });
 
-    if (useGPU) {
-        simulation.drawParticles();
-    }
+    simulation.drawParticles();
 }
 
 export function simulationParticleAutoCleanup(threshold = 4) {
@@ -596,7 +576,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     return;
                 }
 
-                if (useGPU) graphics.readbackParticleData();
+                graphics.readbackParticleData();
                 list.forEach((p) => {
                     p.mass *= ratio;
                 });
@@ -616,7 +596,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     return;
                 }
 
-                if (useGPU) graphics.readbackParticleData();
+                graphics.readbackParticleData();
                 list.forEach((p) => {
                     p.charge *= ratio;
                 });
@@ -636,7 +616,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     return;
                 }
 
-                if (useGPU) graphics.readbackParticleData();
+                graphics.readbackParticleData();
                 let tmpList = normalizePosition(list);
                 list.forEach((particle, index) => {
                     tmpList[index].position.add(centerVector);
@@ -653,7 +633,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     return;
                 }
 
-                if (useGPU) graphics.readbackParticleData();
+                graphics.readbackParticleData();
                 let totalVelocityMean = new Vector3();
                 list.forEach((particle, index) => {
                     totalVelocityMean.add(particle.velocity);
@@ -676,7 +656,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     return;
                 }
 
-                if (useGPU) graphics.readbackParticleData();
+                graphics.readbackParticleData();
                 let totalVelocityMean = new Vector3();
                 list.forEach((particle, index) => {
                     totalVelocityMean.add(particle.velocity);
@@ -701,7 +681,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
     }
 
 
-    if (useGPU) {
+    {
         simulation.drawParticles();
     }
 }
@@ -710,7 +690,7 @@ export function simulationDeleteAll() {
     log("simulationDeleteAll");
 
     simulation.particleList = [];
-    if (useGPU) {
+    {
         simulation.drawParticles();
     }
 }

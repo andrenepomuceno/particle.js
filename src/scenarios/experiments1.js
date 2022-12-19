@@ -4,7 +4,7 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
-    superNucleus,
+    classical,
     superNucleus3D,
     hexagonalCrystal,
     squareCrystal,
@@ -76,7 +76,7 @@ function createParticles(simulation, typeList, n, options) {
     }
 }
 
-function superNucleus(simulation) {
+function classical(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -84,32 +84,33 @@ function superNucleus(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearChargeRange = 1e3;
     physics.boundaryDistance = 50 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 0.6 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.001 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 4 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
-    physics.massConstant = 1e-9;
+    physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(1/8, 2);
 
     let particleTypes = [
-        { m: 28, q: 0, nq: 1 },
+        //{ m: 28, q: 0, nq: 1 },
         { m: 0.511e6, q: -1, nq: 1 },
-        { m: 3e6, q: 2 / 3, nq: 1 },
-        { m: 6e6, q: -1 / 3, nq: 1 },
+        { m: 938.272e6, q: 1, nq: 1 },
+        { m: 939.565e6, q: 0, nq: 1 },
         //{ m: 256, q: 32, nq: 1}
         //{ m: 1, q: 1, nq: 1}
     ]
     createParticles(simulation, particleTypes, graphics.maxParticles, {
-        r1: 1.0,//2.0 * physics.nuclearChargeRange
+        r1: 2.0 * physics.nuclearChargeRange,
         v1: 1.0,
-        m: 0.001/particleTypes[0].m, //randomM: true, roundM: true,
-        randomQSignal: true, //randomQThresh: 0.8,
+        m: 1e-6,
+        //randomM: true, roundM: true,
+        //randomQSignal: true, //randomQThresh: 0.8,
         //randomQ: true, roundQ: true, 
     });
     //drawGrid(simulation);

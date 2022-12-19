@@ -403,8 +403,8 @@ let guiOptions = {
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
-    let radius = Math.max(2 * simulation.particleRadius, 100);
-    let thick = Math.max(0.1 * radius, 10);
+    let radius = Math.max(2 * simulation.particleRadius, 10);
+    let thick = Math.max(0.1 * radius, 1);
     mouseHelper.showCursor(graphics, radius, thick);
 }
 
@@ -1298,10 +1298,8 @@ export function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        if (ENV?.useGPU) {
-            if (autoRefresh == true || guiOptions.particle.obj != undefined) {
-                graphics.readbackParticleData();
-            }
+        if (autoRefresh == true || guiOptions.particle.obj != undefined) {
+            graphics.readbackParticleData();
         }
 
         guiInfoRefresh(time);

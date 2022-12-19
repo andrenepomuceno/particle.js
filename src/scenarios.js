@@ -23,12 +23,10 @@ function addFolder(name, list) {
     addFolder("dev", sandbox);
 }*/
 
-if (ENV?.useGPU) {
-    addFolder("experiments1", experiments1);
-    addFolder("experiments0", experiments0);
-    addFolder("nuclearForce1", nuclearForce1);
-    addFolder("gpgpu", gpgpu);
-}
+addFolder("experiments1", experiments1);
+addFolder("experiments0", experiments0);
+addFolder("nuclearForce1", nuclearForce1);
+addFolder("gpgpu", gpgpu);
 addFolder("scenarios2", scenarios2);
 addFolder("nuclearForce", nuclearForce);
 addFolder("fields", fields);

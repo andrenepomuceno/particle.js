@@ -39,16 +39,31 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
 function createParticles(simulation, typeList, n, options) {
     const defaultOptions = {
-        r1: 1, v1: 0,
-        m: 1, randomM: false, roundM: false,
-        q: 1, randomQSignal: false, randomQThresh: 0.5, randomQ: false, roundQ: false,
-        nq: 1, randomNQSignal: true,
+        randomSequence: true,
+
+        m: 1,
+        randomM: false,
+        roundM: false,
+
+        q: 1,
+        randomQSignal: false, randomQThresh: 0.5,
+        randomQ: false,
+        roundQ: false,
+
+        nq: 1,
+        randomNQSignal: true,
+
+        r0: 0,
+        r1: 1, 
+        center: new Vector3(),
+        v1: 0,
     };
     options = { ...defaultOptions, ...options };
 
     for (let i = 0; i < n; ++i) {
         let p = new Particle();
         let type = random(0, typeList.length - 1, true);
+        if (options.randomSequence == false) type = i % typeList.length;
 
         let m = options.m;
         m *= typeList[type].m;
@@ -63,13 +78,16 @@ function createParticles(simulation, typeList, n, options) {
         if (options.roundQ == true) q = Math.round(q);
         p.charge = q;
 
-        let nq = typeList[type].nq;
+        let nq = options.nq;
+        nq *= typeList[type].nq;
         if (options.randomNQSignal == true) {
             if (random(0, 1, true) == 1) nq *= -1;
         }
         p.nuclearCharge = nq;
 
-        p.position = randomSphericVector(0, options.r1, simulation.mode2D);
+        p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
+        p.position.add(options.center);
+
         p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
 
         simulation.physics.particleList.push(p);
@@ -97,23 +115,50 @@ function classical(simulation) {
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(1/8, 2);
 
-    let particleTypes = [
-        //{ m: 28, q: 0, nq: 1 },
-        { m: 0.511e6, q: -1, nq: 1 },
+    let nucleusTypes = [
         { m: 938.272e6, q: 1, nq: 1 },
         { m: 939.565e6, q: 0, nq: 1 },
-        //{ m: 256, q: 32, nq: 1}
-        //{ m: 1, q: 1, nq: 1}
-    ]
-    createParticles(simulation, particleTypes, graphics.maxParticles, {
-        r1: 2.0 * physics.nuclearChargeRange,
-        v1: 1.0,
-        m: 1e-6,
-        //randomM: true, roundM: true,
-        //randomQSignal: true, //randomQThresh: 0.8,
-        //randomQ: true, roundQ: true, 
-    });
-    //drawGrid(simulation);
+    ];
+
+    let cloudTypes = [
+        { m: 0.511e6, q: -1, nq: -1 },
+    ];
+
+    const n = 12;
+    const m = 1e-6;
+    const q = 1;
+    const nq = 1;
+    const v = 0;
+
+    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r1 = 0.5 * physics.nuclearChargeRange;
+    let r2 = 0.493 * physics.nuclearChargeRange;
+
+    function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
+        let options = {
+            m, q, nq,
+            r0: 0, r1: r0,
+            randomSequence: false,
+            randomNQSignal: false,
+            v1: velocity,
+            center
+        };
+        createParticles(simulation, nucleusList, 2*n, options);
+
+        options = {...options, r0, r1};
+        createParticles(simulation, cloudList, n, options);
+    }
+
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (28 * n)));
+    if (size % 2 == 0) size -= 1;
+    console.log(size);
+    const gridSize = [size, size, 1];
+    hexagonGenerator((vertex, totalLen) => {
+        let s = ((vertex.i % 2 == 0) ? (1) : (-1));
+        let center = new Vector3(vertex.x, vertex.y, 0);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, s * nq, r0, r1, center, v);
+    }, r2, gridSize);
+    shuffleArray(physics.particleList);
 }
 
 function superNucleus3D(simulation) {

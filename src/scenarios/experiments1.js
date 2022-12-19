@@ -113,19 +113,19 @@ function classical(simulation) {
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(1/8, 2);
+    physics.minDistance2 = Math.pow(0.1 * simulation.particleRadius, 2);
 
     let nucleusTypes = [
-        { m: 938.272e6, q: 1, nq: 1 },
-        { m: 939.565e6, q: 0, nq: 1 },
+        { m: 938.272, q: 1, nq: 1 },
+        { m: 939.565, q: 0, nq: 1 },
     ];
 
     let cloudTypes = [
-        { m: 0.511e6, q: -1, nq: -1 },
+        { m: 0.511, q: -1, nq: -1 },
     ];
 
     const n = 12;
-    const m = 1e-6;
+    const m = 1;
     const q = 1;
     const nq = 1;
     const v = 0;

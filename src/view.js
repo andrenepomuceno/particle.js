@@ -323,7 +323,7 @@ let guiOptions = {
         nuclearChargeRange: "",
         boundaryDamping: "",
         boundaryDistance: "",
-        minDistance2: "",
+        minDistance: "",
         forceConstant: "",
         maxParticles: "",
         radius: "",
@@ -766,7 +766,7 @@ function guiGeneratorSetup() {
 }
 
 function guiParametersSetup() {
-    guiParameters.add(guiOptions.parameters, 'maxParticles').name("maxParticles").listen().onFinishChange((val) => {
+    guiParameters.add(guiOptions.parameters, 'maxParticles').name("Max Particles").listen().onFinishChange((val) => {
         val = parseFloat(val);
         if (val == simulation.physics.particleList.length) {
             return;
@@ -782,46 +782,51 @@ function guiParametersSetup() {
     });
 
     const guiParametersConsts = guiParameters.addFolder("[+] Constants");
-    guiParametersConsts.add(guiOptions.parameters, 'massConstant').name("massConstant").listen().onFinishChange((val) => {
+    guiParametersConsts.add(guiOptions.parameters, 'massConstant').name("Gravitational Constant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("massConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("chargeConstant").listen().onFinishChange((val) => {
+    guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("Electric Constant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("chargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("nuclearChargeConstant").listen().onFinishChange((val) => {
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("Nuclear Force Constant").listen().onFinishChange((val) => {
         simulationUpdatePhysics("nuclearChargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("nuclearChargeRange").listen().onFinishChange((val) => {
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("Nuclear Force Range").listen().onFinishChange((val) => {
         simulationUpdatePhysics("nuclearChargeRange", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("forceConstant").listen().onFinishChange((val) => {
+    guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("Force Multiplier").listen().onFinishChange((val) => {
         simulationUpdatePhysics("forceConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'minDistance2').name("minDistance2").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("minDistance2", val);
+    guiParametersConsts.add(guiOptions.parameters, 'minDistance').name("Minimum Distance").listen().onFinishChange((val) => {
+        let d = parseFloat(val);
+        if (isNaN(d)) {
+            alert("Invalid value.");
+            return;
+        }
+        simulationUpdatePhysics("minDistance2", Math.pow(d, 2));
     });
     //guiParametersConsts.open();
 
     const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
-    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("boundaryDistance").listen().onFinishChange((val) => {
+    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("Boundary Distance").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDistance", val);
     });
-    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("boundaryDamping").listen().onFinishChange((val) => {
+    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("Boundary Damping Factor").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boundaryDamping", val);
     });
     guiParametersBoundary.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
         simulationUpdatePhysics("boxBoundary", val);
     });
-    guiParametersBoundary.add(guiOptions.parameters, 'enableBoundary').name("enableBoundary").listen().onFinishChange((val) => {
+    guiParametersBoundary.add(guiOptions.parameters, 'enableBoundary').name("Enable Boundary").listen().onFinishChange((val) => {
         simulationUpdatePhysics("enableBoundary", val);
     });
     //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] View");
-    guiParametersVisual.add(guiOptions.parameters, 'radius').name("particleRadius").listen().onFinishChange((val) => {
+    guiParametersVisual.add(guiOptions.parameters, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radius", val);
     });
-    guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("particleRadiusRange").listen().onFinishChange((val) => {
+    guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
         simulationUpdatePhysics("radiusRange", val);
     });
 
@@ -962,7 +967,7 @@ function guiParametersRefresh() {
     edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance2 = simulation.physics.minDistance2;
+    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
     edit.forceConstant = simulation.physics.forceConstant;
     edit.radius = simulation.particleRadius;
     edit.radiusRange = simulation.particleRadiusRange;

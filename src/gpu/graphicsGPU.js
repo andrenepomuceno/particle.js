@@ -37,7 +37,7 @@ function getCameraConstant(camera) {
 }
 
 function log(msg) {
-    //console.log("Graphics (GPU): " + msg);
+    console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {
@@ -70,7 +70,7 @@ export class GraphicsGPU {
     }
 
     raycast(pointer) {
-        let threshold = 2 * Math.log(10 + this.controls.getDistance());
+        let threshold = Math.max(10 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);
@@ -482,7 +482,7 @@ export class GraphicsGPU {
                 verbose: true
             },
         );
-        
+
         CanvasCapture.beginVideoRecord({
             format: CanvasCapture.WEBM,
             fps: 60,

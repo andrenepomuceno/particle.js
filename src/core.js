@@ -549,7 +549,7 @@ export function simulationParticleAutoCleanup(threshold = 4) {
 }
 
 export function simulationUpdateParticleList(parameter, value, list) {
-    log("simulationUpdateAll " + parameter + " " + value + " " + list);
+    log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
 
     let totalMass = simulation.totalMass.toExponential(1);
     let totalCharge = simulation.totalCharge.toExponential(1);
@@ -672,6 +672,13 @@ export function simulationUpdateParticleList(parameter, value, list) {
                     particle.velocity.add(dirVec);
                 });
             }
+            break;
+        
+        case "fixed":
+            list.forEach(particle => {
+                if (value == true) particle.type = ParticleType.fixed;
+                else particle.type = ParticleType.default;
+            });
             break;
 
         default:

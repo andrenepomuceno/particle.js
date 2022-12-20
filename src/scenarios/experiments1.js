@@ -105,17 +105,17 @@ function electronProtonNeutron(simulation) {
     physics.nuclearChargeRange = 1e3;
     physics.boundaryDistance = 50 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.5;
-    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10.0 * physics.nuclearChargeRange;
     simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
-    physics.chargeConstant = 1;
+    physics.chargeConstant = 1e-2;
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
 
-    const n = 6;
+    const n = 3;
     const m = 1;
     const q = 1;
     const nq = 1;
@@ -130,7 +130,7 @@ function electronProtonNeutron(simulation) {
         { m: 1.00866491588, q: 0, nq: 1 },
     ];
     let cloudTypes = [
-        { m: 5.48579909065e-4, q: -1, nq: -1e-3 },
+        { m: 5.48579909065e-4, q: -1, nq: 1/137 },
     ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
@@ -148,7 +148,7 @@ function electronProtonNeutron(simulation) {
         createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (8 * n)));
     if (size % 2 == 0) size -= 1;
     console.log(size);
     const gridSize = [size, size, 1];

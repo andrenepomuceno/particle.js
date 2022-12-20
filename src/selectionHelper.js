@@ -190,7 +190,7 @@ export class SelectionHelper {
         let [top, bottom] = this.#topBottom(this.p0, this.p1);
 
         this.graphics.particleList.forEach(p => {
-            if (p.type != ParticleType.default) return;
+            if (p.type != ParticleType.default && p.type != ParticleType.fixed) return;
             let pos = p.position;
             if (
                 pos.x >= top.x &&
@@ -223,6 +223,7 @@ export class SelectionHelper {
                 center[i] = v.toExponential(2);
             })
             view.center = center;
+            view.fixedPosition = (this.stats.fixed > 0);
         }
     }
 }

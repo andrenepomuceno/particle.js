@@ -12,7 +12,7 @@ export const nuclearForce1 = [
     //GPU_point14,
     GPU_point13,
     GPU_point12,
-    GPU_point11,
+    //GPU_point11,
     GPU_point10,
     GPU_blob9_posNQ,
     //GPU_blob8_posNQ_rng,

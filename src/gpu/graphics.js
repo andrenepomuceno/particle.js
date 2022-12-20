@@ -23,13 +23,6 @@ import { particleVertexShader, particleFragmentShader } from './shaders/particle
 import { exportFilename, sphericalToCartesian } from '../helpers';
 import { ParticleType } from '../physics';
 
-const axisLineWidth = 1e3;
-const axisObject = [
-    new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000),
-    new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00),
-    new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff)
-];
-
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function getCameraConstant(camera) {
@@ -64,6 +57,7 @@ export class GraphicsGPU {
         this.raycaster = new Raycaster();
         this.raycaster.params.Points.threshold = 1;
 
+        this.axisObject = undefined;
         this.showAxis();
 
         log("constructor done");
@@ -115,8 +109,14 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true) {
-        axisObject.forEach(key => {
+    showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
+        if (this.axisObject == undefined) this.axisObject = [
+            new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
+            new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
+            new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
+        ];
+
+        this.axisObject.forEach(key => {
             show ? this.scene.add(key) : this.scene.remove(key);
         });
     }
@@ -476,6 +476,7 @@ export class GraphicsGPU {
         }
 
         CanvasCapture.init(
+            //document.domElement,
             this.renderer.domElement,
             {
                 showRecDot: true,

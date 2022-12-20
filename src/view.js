@@ -212,6 +212,7 @@ let guiOptions = {
         velocity: "",
         velocityDir: "",
         center: "",
+        fixedPosition: false,
         export: () => {
             selection.export();
         },
@@ -619,9 +620,13 @@ function guiSelectionSetup() {
     guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
         selectionListUpdate("center", val);
     });
+    guiSelectionVariables.add(guiOptions.selection, 'fixedPosition').name("Fixed Position").listen().onFinishChange((val) => {
+        selectionListUpdate("fixed", val);
+        guiOptions.selection.fixedPosition = val;
+    });
 
     const guiSelectionActions = guiSelection.addFolder("[+] Actions");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete"); // [BACKSPACE]
+    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
     guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
     guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
@@ -848,11 +853,11 @@ function guiParametersSetup() {
 }
 
 function guiAdvancedControlsSetup() {
-    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity"); // [Numpad 0]
+    guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
 
-    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity"); // [Numpad -]
-    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity"); // [Numpad +]
+    guiAdvancedControls.add(guiOptions.advancedControls, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
+    guiAdvancedControls.add(guiOptions.advancedControls, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
     guiAdvancedControls.add(guiOptions.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
         let factor = parseFloat(val);
         if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
@@ -866,7 +871,7 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
     guiAdvancedControls.add(guiOptions.advancedControls, 'randomVelocity').name("Random Velocity").listen();
 
-    guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup"); // [Numpad .]
+    guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
@@ -1217,7 +1222,6 @@ function keyMapSetup() {
     keyboardMap.set('c', guiOptions.controls.resetCamera);
     keyboardMap.set('r', guiOptions.controls.reset);
     keyboardMap.set('p', guiOptions.controls.snapshot);
-    keyboardMap.set('d', () => console.log(simulationExportCsv()));
     keyboardMap.set('a', guiOptions.controls.hideAxis);
     keyboardMap.set('v', guiOptions.controls.xyCamera);
     keyboardMap.set('n', guiOptions.controls.step);
@@ -1232,13 +1236,14 @@ function keyMapSetup() {
     keyboardMap.set('s', guiOptions.controls.sandbox);
     keyboardMap.set('g', guiOptions.generator.generate);
     keyboardMap.set('x', guiOptions.selection.clone);
-    //keyboardMap.set('backspace', guiOptions.selection.delete);
+    keyboardMap.set('d', guiOptions.selection.delete);
     keyboardMap.set('m', guiOptions.controls.collapseAll);
-    /*keyboardMap.set('+', guiOptions.advancedControls.kickVelocity);
-    keyboardMap.set('-', guiOptions.advancedControls.dampVelocity);
-    keyboardMap.set('0', guiOptions.advancedControls.zeroVelocity);
-    keyboardMap.set('.', guiOptions.advancedControls.particleCleanup);*/
+    keyboardMap.set('b', guiOptions.advancedControls.zeroVelocity);
+    keyboardMap.set('t', guiOptions.advancedControls.dampVelocity);
+    keyboardMap.set('y', guiOptions.advancedControls.kickVelocity);
+    keyboardMap.set('u', guiOptions.advancedControls.particleCleanup);
     keyboardMap.set('*', () => graphics.capture(simulation.name));
+    keyboardMap.set('~', () => console.log(simulationExportCsv()));
 }
 
 function onKeyUp(event) {

@@ -141,9 +141,11 @@ export function calcListStatistics(list) {
     stats.totalCharge = 0;
     stats.totalNuclearCharge = 0;
     stats.particles = list.length;
+    stats.fixed = 0;
 
     list.forEach(p => {
-        if (p.type != ParticleType.default) return;
+        if (p.type == ParticleType.fixed) stats.fixed++;
+        if (p.type != ParticleType.default && p.type != ParticleType.fixed) return;
         stats.center.add(p.position);
         stats.avgVelocity.add(p.velocity);
         stats.totalMass += p.mass;

@@ -21,7 +21,7 @@ if (ENV?.record === true) {
 import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { exportFilename, sphericalToCartesian } from '../helpers';
-import { ParticleType } from '../physics';
+import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 

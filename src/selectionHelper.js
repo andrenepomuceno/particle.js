@@ -1,7 +1,8 @@
 import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "./helpers";
-import { calcListStatistics, ParticleType } from "./physics";
+import { calcListStatistics } from "./physics";
+import { ParticleType } from "./particle";
 const { Image } = require('image-js');
-import { simulation, simulationExportCsv } from "./core";
+import { simulationExportCsv } from "./core";
 
 function log(msg) {
     console.log("SelectionHelper: " + msg);

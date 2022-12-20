@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { Particle, ParticleType } from '../physics'
+import { Particle, ParticleType } from '../particle';
 
 export const fields = [
     nuclearField,

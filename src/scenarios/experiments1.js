@@ -1,7 +1,8 @@
-import { GridHelper, PolarGridHelper, Vector3 } from 'three';
-import { createNuclei, randomSphericVector, randomVector } from './helpers';
+import { Vector3 } from 'three';
+import { createNuclei, randomSphericVector } from './helpers';
 import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
-import { NuclearPotentialType, Particle } from '../physics';
+import { NuclearPotentialType } from '../physics';
+import { Particle } from '../particle';
 
 export const experiments1 = [
     electronProtonNeutron,

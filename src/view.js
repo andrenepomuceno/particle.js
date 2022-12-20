@@ -2,7 +2,8 @@ import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
-import { ParticleType, NuclearPotentialType } from './physics.js';
+import { NuclearPotentialType } from './physics.js';
+import { ParticleType } from './particle.js';
 import {
     downloadFile, arrayToString, cameraToWorldCoord,
     decodeVector3, random, floatArrayToString,

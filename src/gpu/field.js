@@ -1,7 +1,6 @@
 import { Vector3 } from 'three';
-import { Particle } from '../physics.js'
 import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
-import { ParticleType } from '../physics'
+import { Particle, ParticleType } from '../particle.js';
 
 function log(msg) {
     console.log("FieldGPU: " + msg);

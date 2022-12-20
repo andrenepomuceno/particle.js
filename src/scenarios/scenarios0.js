@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { random, randomSpheric } from '../helpers.js'
-import { Particle, ParticleType } from '../physics.js'
+import { Particle, ParticleType } from '../particle';
 
 let particleList = undefined;
 

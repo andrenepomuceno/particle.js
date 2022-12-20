@@ -1,4 +1,4 @@
-import { ParticleType } from "./physics";
+import { ParticleType } from './particle.js';
 import { MathUtils, Vector3 } from "three";
 
 export function random(a, b, round = false) {

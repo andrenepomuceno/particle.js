@@ -1,5 +1,5 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
-import { calcListStatistics, ParticleType } from '../physics';
+import { ParticleType } from '../particle.js';
 
 function log(msg) {
     console.log("SimulationGPU: " + msg);

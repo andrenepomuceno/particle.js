@@ -1,7 +1,7 @@
-import { CircleGeometry, LineBasicMaterial, Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
-import { createParticle, randomSphericVector, randomVector, createNuclei } from './helpers';
-import { random, hexagonGenerator, shuffleArray } from '../helpers';
-import { Particle } from '../physics';
+import { Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
+import { createParticle } from './helpers';
+import { random, } from '../helpers';
+import { Particle } from '../particle';
 
 export const tests = [
     boundaryTest,
@@ -184,7 +184,7 @@ function colisionTest(simulation) {
     particleList.at(-1).charge = -1;
     particleList.at(-1).position.set(2 * p1, -2 * p2, 0);
     particleList.at(-1).velocity.set(-v, 0, 0);
-    for (let i = 0; i <= 500; i += 2*r+1) {
+    for (let i = 0; i <= 500; i += 2 * r + 1) {
         particleList.push(new Particle());
         particleList.at(-1).mass = 10 * m1;
         particleList.at(-1).charge = 0;
@@ -198,5 +198,5 @@ function colisionTest(simulation) {
     particleList.at(-1).position.set(3 * p1, -2 * p2, 0);
     particleList.at(-1).velocity.set(0, 0, 0);
 
-    
+
 }

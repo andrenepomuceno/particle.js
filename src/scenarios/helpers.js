@@ -2,6 +2,7 @@ import { random, randomSpheric, randomDisc } from "../helpers";
 import { Vector3 } from 'three';
 import { GridHelper } from 'three';
 import { Particle, ParticleType } from '../particle';
+import { randomSphericVector } from "../helpers";
 
 export function randomVector(range, mode2D = true, round = false) {
     let v = new Vector3(
@@ -11,13 +12,6 @@ export function randomVector(range, mode2D = true, round = false) {
     );
     if (mode2D) v.z = 0;
     return v;
-}
-
-export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
-    let x, y, z = 0;
-    if (mode2D) [x, y, z] = randomDisc(r1, r2, mode);
-    else[x, y, z] = randomSpheric(r1, r2, mode);
-    return new Vector3(x, y, z);
 }
 
 export function createParticle(list, mass = 1, charge = 0, nuclearCharge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {

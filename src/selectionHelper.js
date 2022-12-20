@@ -91,6 +91,7 @@ export class SelectionHelper {
             this.source = SourceType.simulation;
             this.guiRefresh();
             this.guiSelection.open();
+            this.guiSelection.guiSelectionProperties.open();
         } else {
             this.clear();
             this.guiSelection.close();

@@ -1,5 +1,13 @@
 import { ParticleType } from './particle.js';
 import { MathUtils, Vector3 } from "three";
+import { Particle } from './particle.js';
+
+export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
+    let x, y, z = 0;
+    if (mode2D) [x, y, z] = randomDisc(r1, r2, mode);
+    else[x, y, z] = randomSpheric(r1, r2, mode);
+    return new Vector3(x, y, z);
+}
 
 export function random(a, b, round = false) {
     let r = Math.random();
@@ -330,4 +338,67 @@ export function exportFilename(prefix = "particles") {
     let finalName = prefix + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
     return finalName;
+}
+
+export function createParticles(simulation, typeList, n, options) {
+    const defaultOptions = {
+        randomSequence: true,
+
+        m: 1,
+        randomMSignal: false, randomMThresh: 0.5,
+        randomM: false,
+        roundM: false,
+        allowZeroM: false,
+
+        q: 1,
+        randomQSignal: false, randomQThresh: 0.5,
+        randomQ: false,
+        roundQ: false,
+        allowZeroQ: true,
+
+        nq: 1,
+        randomNQSignal: true,
+
+        r0: 0,
+        r1: 1, 
+        center: new Vector3(),
+        v1: 0,
+    };
+    options = { ...defaultOptions, ...options };
+
+    for (let i = 0; i < n; ++i) {
+        let p = new Particle();
+        let type = random(0, typeList.length - 1, true);
+        if (options.randomSequence == false) type = i % typeList.length;
+
+        let m = options.m;
+        m *= typeList[type].m;
+        if ((options.randomMSignal == true) && (random(0, 1) >= options.randomMThresh)) m *= -1;
+        if (options.randomM == true) m *= random(0, 1);
+        if (options.roundM == true) m = Math.round(m);
+        if (options.allowZeroM == false && m == 0) m = options.m * typeList[type].m;
+        p.mass = m;
+
+        let q = options.q;
+        q *= typeList[type].q;
+        if ((options.randomQSignal == true) && (random(0, 1) >= options.randomQThresh)) q *= -1;
+        if (options.randomQ == true) q *= random(0, 1);
+        if (options.roundQ == true) q = Math.round(q);
+        if (options.allowZeroQ == false && q == 0) q = options.q * typeList[type].q;
+        p.charge = q;
+
+        let nq = options.nq;
+        nq *= typeList[type].nq;
+        if (options.randomNQSignal == true) {
+            if (random(0, 1, true) == 1) nq *= -1;
+        }
+        p.nuclearCharge = nq;
+
+        p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
+        p.position.add(options.center);
+
+        p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+
+        simulation.physics.particleList.push(p);
+    }
 }

@@ -676,6 +676,7 @@ export function simulationUpdateParticleList(parameter, value, list) {
             break;
         
         case "fixed":
+            graphics.readbackParticleData();
             list.forEach(particle => {
                 if (value == true) particle.type = ParticleType.fixed;
                 else particle.type = ParticleType.default;

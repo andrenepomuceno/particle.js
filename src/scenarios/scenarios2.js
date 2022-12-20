@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
-import { createParticle, createParticlesList, randomSphericVector, randomVector } from './helpers';
+import { createParticle, createParticlesList, randomVector } from './helpers';
 import { cubeGenerator, random } from '../helpers';
+import { randomSphericVector } from '../helpers';
 
 export const scenarios2 = [
     //string,

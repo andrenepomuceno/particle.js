@@ -1,5 +1,6 @@
-import { createParticlesList, randomSphericVector, randomVector } from './helpers';
-import { cubeGenerator, random } from '../helpers';
+import { createParticlesList, randomVector } from './helpers';
+import { random } from '../helpers';
+import { randomSphericVector } from '../helpers';
 
 export const nuclearForce1 = [
     cloud2,

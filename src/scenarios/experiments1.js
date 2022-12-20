@@ -1,8 +1,8 @@
 import { Vector3 } from 'three';
-import { createNuclei, randomSphericVector } from './helpers';
-import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
+import { createNuclei } from './helpers';
+import { hexagonGenerator, shuffleArray, cubeGenerator } from '../helpers';
 import { NuclearPotentialType } from '../physics';
-import { Particle } from '../particle';
+import { createParticles } from '../helpers';
 
 export const experiments1 = [
     electronProtonNeutron,
@@ -38,63 +38,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function createParticles(simulation, typeList, n, options) {
-    const defaultOptions = {
-        randomSequence: true,
-
-        m: 1,
-        randomM: false,
-        roundM: false,
-
-        q: 1,
-        randomQSignal: false, randomQThresh: 0.5,
-        randomQ: false,
-        roundQ: false,
-
-        nq: 1,
-        randomNQSignal: true,
-
-        r0: 0,
-        r1: 1, 
-        center: new Vector3(),
-        v1: 0,
-    };
-    options = { ...defaultOptions, ...options };
-
-    for (let i = 0; i < n; ++i) {
-        let p = new Particle();
-        let type = random(0, typeList.length - 1, true);
-        if (options.randomSequence == false) type = i % typeList.length;
-
-        let m = options.m;
-        m *= typeList[type].m;
-        if (options.randomM == true) m *= random(0, 1);
-        if (options.roundM == true) m = Math.round(m);
-        p.mass = m;
-
-        let q = options.q;
-        q *= typeList[type].q;
-        if ((options.randomQSignal == true) && (random(0, 1) >= options.randomQThresh)) q *= -1;
-        if (options.randomQ == true) q *= random(0, 1);
-        if (options.roundQ == true) q = Math.round(q);
-        p.charge = q;
-
-        let nq = options.nq;
-        nq *= typeList[type].nq;
-        if (options.randomNQSignal == true) {
-            if (random(0, 1, true) == 1) nq *= -1;
-        }
-        p.nuclearCharge = nq;
-
-        p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
-        p.position.add(options.center);
-
-        p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
-
-        simulation.physics.particleList.push(p);
-    }
-}
-
 function electronProtonNeutron(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
@@ -118,8 +61,16 @@ function electronProtonNeutron(simulation) {
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
 
+    let nucleusTypes = [
+        { m: 1.007276466583, q: 1, nq: 1 },
+        { m: 1.00866491588, q: 0, nq: 1 },
+    ];
+    let cloudTypes = [
+        { m: 5.48579909065e-4, q: -1, nq: -1/137 },
+    ];
+
     const n = 6;
-    const m = 1;
+    const m = 1e-2/cloudTypes[0].m;
     const q = 1;
     const nq = 1;
     const v = 1.0;
@@ -129,14 +80,6 @@ function electronProtonNeutron(simulation) {
     let r2 = 0.493 * physics.nuclearChargeRange;
     let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
     console.log("size = " + size);
-
-    let nucleusTypes = [
-        { m: 1.007276466583, q: 1, nq: 1 },
-        { m: 1.00866491588, q: 0, nq: 1 },
-    ];
-    let cloudTypes = [
-        { m: 5.48579909065e-4, q: -1, nq: -1/137 },
-    ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
         let options = {

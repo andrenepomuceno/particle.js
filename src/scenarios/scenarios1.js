@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
 import { random } from '../helpers.js'
 import { Particle, ParticleType } from '../particle';
-import { createParticle, randomSphericVector, randomVector } from './helpers'
+import { createParticle, randomVector } from './helpers'
+import { randomSphericVector } from '../helpers';
 
 let particleList = undefined;
 

@@ -26,9 +26,10 @@ import {
 } from './core.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
-import { createParticle, randomSphericVector, randomVector } from './scenarios/helpers.js';
+import { createParticle, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
 import { Keyboard } from './keyboard.js';
+import { randomSphericVector } from './helpers.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -609,6 +610,7 @@ function guiSelectionSetup() {
     guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
 
     const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
+    guiSelection.guiSelectionProperties = guiSelectionProperties;
     guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
         selectionListUpdate("mass", val);
     });
@@ -903,6 +905,8 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
     guiAdvancedControls.add(guiOptions.advancedControls, 'ruler').name("Selection Ruler").listen();
+
+    const guiField = guiAdvancedControls.addFolder("Field");
 
     collapseList.push(guiAdvancedControls);
 }

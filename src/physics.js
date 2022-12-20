@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { ParticleType } from './particle';
 
 export const NuclearPotentialType = {
     default: "default",

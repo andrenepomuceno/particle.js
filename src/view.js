@@ -658,13 +658,48 @@ function guiGeneratorSetup() {
         guiOptions.generator.radius = parseFloat(val);
     });
 
+    function defaultTemplate() {
+        guiOptions.generator.mass = "1";
+        guiOptions.generator.randomMass = false;
+        guiOptions.generator.enableZeroMass = false;
+        guiOptions.generator.roundMass = false;
+
+        guiOptions.generator.charge = "1";
+        guiOptions.generator.randomCharge = false;
+        guiOptions.generator.chargeRandomSignal = false;
+        guiOptions.generator.enableZeroCharge = true;
+        guiOptions.generator.roundCharge = false;
+
+        guiOptions.generator.nuclearCharge = "1";
+        guiOptions.generator.randomNuclearCharge = false;
+        guiOptions.generator.nuclearChargeRandomSignal = true;
+        guiOptions.generator.enableZeroNuclearCharge = false;
+        guiOptions.generator.roundNuclearCharge = true;
+    }
+
+    function beamTemplate(v) {
+        guiOptions.generator.velocity = v + ",0,0";
+        guiOptions.generator.randomVelocity = false;
+    }
+
     const patternList = {
         circle: "circle",
         square: "square",
         hexagon: "hexagon",
         beam: "beam",
     };
-    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen();
+    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
+        switch (val) {
+            case "beam":
+                let v = 10 * parseFloat(guiOptions.info.velocity);
+                if (isNaN(v) || v < 1e2) v = 1e2;
+                beamTemplate(v);
+                break;
+
+            default:
+                break;
+        }
+    });
 
     const presetList = {
         default: "default",
@@ -677,39 +712,18 @@ function guiGeneratorSetup() {
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         console.log(val);
 
-        function defaultTemplate() {
-            guiOptions.generator.mass = "1";
-            guiOptions.generator.randomMass = false;
-            guiOptions.generator.enableZeroMass = false;
-            guiOptions.generator.roundMass = false;
-
-            guiOptions.generator.charge = "1";
-            guiOptions.generator.randomCharge = false;
-            guiOptions.generator.chargeRandomSignal = false;
-            guiOptions.generator.enableZeroCharge = true;
-            guiOptions.generator.roundCharge = false;
-
-            guiOptions.generator.nuclearCharge = "1";
-            guiOptions.generator.randomNuclearCharge = false;
-            guiOptions.generator.nuclearChargeRandomSignal = true;
-            guiOptions.generator.enableZeroNuclearCharge = false;
-            guiOptions.generator.roundNuclearCharge = true;
-        }
-
         let v = 10 * parseFloat(guiOptions.info.velocity);
         if (isNaN(v) || v < 1e2) v = 1e2;
         switch (val) {
             case "eBeam":
                 defaultTemplate();
-                guiOptions.generator.velocity = v + ",0,0";
-                guiOptions.generator.randomVelocity = false;
+                beamTemplate(v);
                 guiOptions.generator.quantity = "32";
                 break;
 
             case "alphaBeam":
                 defaultTemplate();
-                guiOptions.generator.velocity = v + ",0,0";
-                guiOptions.generator.randomVelocity = false;
+                beamTemplate(v);
                 guiOptions.generator.quantity = "24";
                 guiOptions.generator.nuclearChargeRandomSignal = false;
                 break;
@@ -1108,7 +1122,14 @@ function particleGenerator() {
 
     function generateVelocity() {
         let v = velocity;
-        if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
+        switch (input.pattern) {
+            case "beam":
+                break;
+
+            default:
+                if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
+                break;
+        }
         return v;
     }
 
@@ -1143,6 +1164,14 @@ function particleGenerator() {
                 { m: 0.511, q: -1, nq: 1 },
                 { m: 3, q: 1 / 3, nq: 1 },
                 { m: 6, q: -2 / 3, nq: 1 },
+            ];
+            break;
+
+        case "epnModel":
+            presetList = [
+                { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
+                { m: 1.007276466583, q: 1, nq: 1 },
+                { m: 1.00866491588, q: 0, nq: 1 },
             ];
             break;
 

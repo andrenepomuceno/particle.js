@@ -23,7 +23,7 @@ export class Keyboard {
         this.onKeyDownMap.set('home', { callback: this.guiOptions.controls.home });
         this.onKeyDownMap.set('f', { callback: () => this.simulation.fieldSetup("update") });
         this.onKeyDownMap.set('h', { callback: this.guiOptions.controls.hideOverlay });
-        this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.selectionPlace });
+        this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.place });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });
         this.onKeyDownMap.set('s', { callback: this.guiOptions.controls.sandbox });
         this.onKeyDownMap.set('g', { callback: this.guiOptions.generator.generate });

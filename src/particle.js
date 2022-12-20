@@ -52,6 +52,7 @@ export class Particle {
     print() {
         console.log(
             "ID:" + this.id +
+            " TYPE:" + this.type +
             " M:" + this.mass +
             " Q:" + this.charge +
             " Sq:" + this.nuclearCharge +

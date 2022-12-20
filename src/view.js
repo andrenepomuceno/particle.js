@@ -27,6 +27,7 @@ import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
 import { createParticle, randomSphericVector, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
+import { Keyboard } from './keyboard.js';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -35,14 +36,14 @@ let hideOverlay = false;
 let nextFrame = false;
 let pause = false;
 let followParticle = false;
-let mouseHelper = new MouseHelper();
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 let autoRefresh = true;
-let selection = new SelectionHelper();
+
 let statsPanel = new Stats();
 let energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
+
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
@@ -170,6 +171,9 @@ let guiOptions = {
             collapseList.forEach((obj) => {
                 obj.close();
             });
+        },
+        place: () => {
+            selectionPlace();
         },
         showCursor: true,
     },
@@ -402,6 +406,10 @@ let guiOptions = {
     }
 }
 
+const mouseHelper = new MouseHelper();
+let selection = new SelectionHelper();
+const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
+
 function showCursor() {
     guiOptions.controls.showCursor = true;
     let radius = Math.max(2 * simulation.particleRadius, 10);
@@ -427,10 +435,10 @@ function setup(idx) {
 }
 
 export function guiSetup() {
-    keyMapSetup();
-
     window.onresize = onWindowResize;
-    document.addEventListener("keyup", onKeyUp);
+    document.addEventListener("keydown", e => keyboard.onKeyDown(keyboard, e));
+    document.addEventListener("keyup", e => keyboard.onKeyUp(keyboard, e));
+
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("pointerup", onPointerUp);
@@ -652,7 +660,8 @@ function guiGeneratorSetup() {
     const patternList = {
         circle: "circle",
         square: "square",
-        hexagon: "hexagon"
+        hexagon: "hexagon",
+        beam: "beam",
     };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen();
 
@@ -662,6 +671,7 @@ function guiGeneratorSetup() {
         randomClone: "randomClone",
         eBeam: "eBeam",
         alphaBeam: "alphaBeam",
+        epnModel: "epnModel",
     };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         console.log(val);
@@ -703,6 +713,7 @@ function guiGeneratorSetup() {
                 guiOptions.generator.nuclearChargeRandomSignal = false;
                 break;
 
+            case "epnModel":
             case "stdModel0":
             case "randomClone":
                 defaultTemplate();
@@ -1214,46 +1225,6 @@ function cameraTargetSet(pos) {
 function onWindowResize() {
     log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
     graphics.onWindowResize(window);
-}
-
-const keyboardMap = new Map();
-function keyMapSetup() {
-    keyboardMap.set(' ', guiOptions.controls.pauseResume);
-    keyboardMap.set('c', guiOptions.controls.resetCamera);
-    keyboardMap.set('r', guiOptions.controls.reset);
-    keyboardMap.set('p', guiOptions.controls.snapshot);
-    keyboardMap.set('a', guiOptions.controls.hideAxis);
-    keyboardMap.set('v', guiOptions.controls.xyCamera);
-    keyboardMap.set('n', guiOptions.controls.step);
-    keyboardMap.set('q', guiOptions.controls.colorMode);
-    keyboardMap.set('pagedown', guiOptions.controls.next);
-    keyboardMap.set('pageup', guiOptions.controls.previous);
-    keyboardMap.set('home', guiOptions.controls.home);
-    keyboardMap.set('f', () => simulation.fieldSetup("update"));
-    keyboardMap.set('h', guiOptions.controls.hideOverlay);
-    keyboardMap.set('z', selectionPlace);
-    keyboardMap.set('delete', guiOptions.controls.deleteAll);
-    keyboardMap.set('s', guiOptions.controls.sandbox);
-    keyboardMap.set('g', guiOptions.generator.generate);
-    keyboardMap.set('x', guiOptions.selection.clone);
-    keyboardMap.set('d', guiOptions.selection.delete);
-    keyboardMap.set('m', guiOptions.controls.collapseAll);
-    keyboardMap.set('b', guiOptions.advancedControls.zeroVelocity);
-    keyboardMap.set('t', guiOptions.advancedControls.dampVelocity);
-    keyboardMap.set('y', guiOptions.advancedControls.kickVelocity);
-    keyboardMap.set('u', guiOptions.advancedControls.particleCleanup);
-    keyboardMap.set('*', () => graphics.capture(simulation.name));
-    keyboardMap.set('~', () => console.log(simulationExportCsv()));
-}
-
-function onKeyUp(event) {
-    if (mouseHelper.overGUI) return;
-
-    let key = event.key.toLowerCase();
-    if (keyboardMap.has(key)) {
-        let callback = keyboardMap.get(key);
-        return callback();
-    }
 }
 
 function onPointerMove(event) {

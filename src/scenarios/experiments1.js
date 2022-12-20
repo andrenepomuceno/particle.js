@@ -100,14 +100,16 @@ function electronProtonNeutron(simulation) {
     defaultParameters(simulation);
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.useBoxBoundary = true;
+    physics.useDistance1 = true;
     simulation.mode2D = true;
 
     physics.nuclearChargeRange = 1e3;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
-    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 100 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
     graphics.cameraDistance = 10.0 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
-    simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
+    simulation.particleRadius = 0.03 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
@@ -115,8 +117,8 @@ function electronProtonNeutron(simulation) {
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
 
-    const n = 3;
-    const m = 1;
+    const n = 6;
+    const m = 10;
     const q = 1;
     const nq = 1;
     const v = 1.0;
@@ -124,13 +126,15 @@ function electronProtonNeutron(simulation) {
     let r0 = 0.1 * physics.nuclearChargeRange;
     let r1 = 0.5 * physics.nuclearChargeRange;
     let r2 = 0.493 * physics.nuclearChargeRange;
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
+    console.log("size = " + size);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },
         { m: 1.00866491588, q: 0, nq: 1 },
     ];
     let cloudTypes = [
-        { m: 5.48579909065e-4, q: -1, nq: 1/137 },
+        { m: 5.48579909065e-4, q: -1, nq: -1/137 },
     ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
@@ -148,7 +152,6 @@ function electronProtonNeutron(simulation) {
         createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    let size = Math.round(Math.sqrt(graphics.maxParticles / (8 * n)));
     if (size % 2 == 0) size -= 1;
     console.log(size);
     const gridSize = [size, size, 1];

@@ -4,7 +4,7 @@ import { random, hexagonGenerator, shuffleArray, cubeGenerator } from '../helper
 import { NuclearPotentialType, Particle } from '../physics';
 
 export const experiments1 = [
-    classical,
+    electronProtonNeutron,
     superNucleus3D,
     hexagonalCrystal,
     squareCrystal,
@@ -94,7 +94,7 @@ function createParticles(simulation, typeList, n, options) {
     }
 }
 
-function classical(simulation) {
+function electronProtonNeutron(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -104,35 +104,34 @@ function classical(simulation) {
 
     physics.nuclearChargeRange = 1e3;
     physics.boundaryDistance = 50 * physics.nuclearChargeRange;
-    physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 4 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.5;
+    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
     simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
-    physics.massConstant = 1e-6;
+    physics.forceConstant = 1;
+    physics.massConstant = 1e-9;
     physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(0.1 * simulation.particleRadius, 2);
+    physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
 
-    let nucleusTypes = [
-        { m: 938.272, q: 1, nq: 1 },
-        { m: 939.565, q: 0, nq: 1 },
-    ];
-
-    let cloudTypes = [
-        { m: 0.511, q: -1, nq: -1 },
-    ];
-
-    const n = 12;
+    const n = 6;
     const m = 1;
     const q = 1;
     const nq = 1;
-    const v = 0;
+    const v = 1.0;
 
-    let r0 = 0.05 * physics.nuclearChargeRange;
+    let r0 = 0.1 * physics.nuclearChargeRange;
     let r1 = 0.5 * physics.nuclearChargeRange;
     let r2 = 0.493 * physics.nuclearChargeRange;
+
+    let nucleusTypes = [
+        { m: 1.007276466583, q: 1, nq: 1 },
+        { m: 1.00866491588, q: 0, nq: 1 },
+    ];
+    let cloudTypes = [
+        { m: 5.48579909065e-4, q: -1, nq: -1e-3 },
+    ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
         let options = {
@@ -143,13 +142,13 @@ function classical(simulation) {
             v1: velocity,
             center
         };
-        createParticles(simulation, nucleusList, 2*n, options);
+        createParticles(simulation, nucleusList, n * nucleusList.length, options);
 
         options = {...options, r0, r1};
-        createParticles(simulation, cloudList, n, options);
+        createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    let size = Math.round(Math.sqrt(graphics.maxParticles / (28 * n)));
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
     if (size % 2 == 0) size -= 1;
     console.log(size);
     const gridSize = [size, size, 1];

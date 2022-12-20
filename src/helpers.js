@@ -139,7 +139,7 @@ export function generateHexagon(cx, cy, radius, map) {
         let y = radius * Math.sin(theta) + cy;
 
         let vertex = { x, y, i };
-        let tag = x.toExponential(2) + " " + y.toExponential(2);
+        let tag = x.toFixed(3) + " " + y.toFixed(3);
         if (!map.has(tag)) {
             map.set(tag, vertex);
         }

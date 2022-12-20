@@ -145,7 +145,7 @@ let guiOptions = {
             );
         },
         deleteAll: () => {
-            if (confirm("Thiss will delete all particles.\nAre you sure?")) {
+            if (confirm("This will delete all particles.\nAre you sure?")) {
                 simulationDeleteAll();
             }
         },
@@ -204,7 +204,7 @@ let guiOptions = {
         },
     },
     selection: {
-        source: "",
+        source: "None",
         particles: 0,
         mass: "",
         charge: "",
@@ -256,19 +256,19 @@ let guiOptions = {
         mass: "1",
         randomMass: false,
         enableZeroMass: false,
-        quantizedMass: true,
+        roundMass: true,
 
         charge: "1",
         randomCharge: false,
         chargeRandomSignal: true,
         enableZeroCharge: false,
-        quantizedCharge: true,
+        roundCharge: true,
 
         nuclearCharge: "1",
         randomNuclearCharge: false,
         nuclearChargeRandomSignal: true,
         enableZeroNuclearCharge: false,
-        quantizedNuclearCharge: true,
+        roundNuclearCharge: true,
 
         velocity: "1,0,0",
         randomVelocity: true,
@@ -290,19 +290,19 @@ let guiOptions = {
                 mass: "1",
                 randomMass: false,
                 enableZeroMass: false,
-                quantizedMass: true,
+                roundMass: true,
 
                 charge: "1",
                 randomCharge: false,
                 chargeRandomSignal: true,
                 enableZeroCharge: false,
-                quantizedCharge: true,
+                roundCharge: true,
 
                 nuclearCharge: "1",
                 randomNuclearCharge: false,
                 nuclearChargeRandomSignal: true,
                 enableZeroNuclearCharge: false,
-                quantizedNuclearCharge: true,
+                roundNuclearCharge: true,
 
                 velocity: "1,0,0",
                 randomVelocity: true,
@@ -665,19 +665,19 @@ function guiGeneratorSetup() {
             guiOptions.generator.mass = "1";
             guiOptions.generator.randomMass = false;
             guiOptions.generator.enableZeroMass = false;
-            guiOptions.generator.quantizedMass = false;
+            guiOptions.generator.roundMass = false;
 
             guiOptions.generator.charge = "1";
             guiOptions.generator.randomCharge = false;
             guiOptions.generator.chargeRandomSignal = false;
             guiOptions.generator.enableZeroCharge = true;
-            guiOptions.generator.quantizedCharge = false;
+            guiOptions.generator.roundCharge = false;
 
             guiOptions.generator.nuclearCharge = "1";
             guiOptions.generator.randomNuclearCharge = false;
             guiOptions.generator.nuclearChargeRandomSignal = true;
             guiOptions.generator.enableZeroNuclearCharge = false;
-            guiOptions.generator.quantizedNuclearCharge = true;
+            guiOptions.generator.roundNuclearCharge = true;
         }
 
         let v = 10 * parseFloat(guiOptions.info.velocity);
@@ -715,7 +715,7 @@ function guiGeneratorSetup() {
     });
     guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
     guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
-    guiGenerateMass.add(guiOptions.generator, "quantizedMass").name("Quantize?").listen();
+    guiGenerateMass.add(guiOptions.generator, "roundMass").name("Round?").listen();
     //guiGenerateMass.open();
 
     const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
@@ -725,7 +725,7 @@ function guiGeneratorSetup() {
     guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
     guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
     guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "quantizedCharge").name("Quantize?").listen();
+    guiGenerateCharge.add(guiOptions.generator, "roundCharge").name("Round?").listen();
     //guiGenerateCharge.open();
 
     const guiGenerateNuclearCharge = guiGenerate.addFolder("[+] Nuclear Charge");
@@ -735,7 +735,7 @@ function guiGeneratorSetup() {
     guiGenerateNuclearCharge.add(guiOptions.generator, "randomNuclearCharge").name("Randomize value?").listen();
     guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearChargeRandomSignal").name("Randomize signal?").listen();
     guiGenerateNuclearCharge.add(guiOptions.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
-    guiGenerateNuclearCharge.add(guiOptions.generator, "quantizedNuclearCharge").name("Quantize?").listen();
+    guiGenerateNuclearCharge.add(guiOptions.generator, "roundNuclearCharge").name("Round?").listen();
 
     const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
     guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
@@ -1028,7 +1028,7 @@ function particleGenerator() {
         let m = presetList[presetIdx].m;
         m *= mass;
         if (guiOptions.generator.randomMass) m *= random(0, 1);
-        if (guiOptions.generator.quantizedMass) m = Math.round(m);
+        if (guiOptions.generator.roundMass) m = Math.round(m);
         if (!guiOptions.generator.enableZeroMass && m == 0) m = mass;
         return m;
     }
@@ -1039,7 +1039,7 @@ function particleGenerator() {
         q *= charge;
         if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
         if (guiOptions.generator.randomCharge) q *= random(0, 1);
-        if (guiOptions.generator.quantizedCharge) q = Math.round(q);
+        if (guiOptions.generator.roundCharge) q = Math.round(q);
         if (!guiOptions.generator.enableZeroCharge && q == 0) q = charge;
         return s * q;
     }
@@ -1050,7 +1050,7 @@ function particleGenerator() {
         nq *= nuclearCharge;
         if (guiOptions.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
         if (guiOptions.generator.randomNuclearCharge) nq *= random(0, 1);
-        if (guiOptions.generator.quantizedNuclearCharge) nq = Math.round(nq);
+        if (guiOptions.generator.roundNuclearCharge) nq = Math.round(nq);
         if (!guiOptions.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
         return s * nq;
     }

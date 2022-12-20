@@ -119,7 +119,7 @@ function electronProtonNeutron(simulation) {
     physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
 
     const n = 6;
-    const m = 10;
+    const m = 1;
     const q = 1;
     const nq = 1;
     const v = 1.0;

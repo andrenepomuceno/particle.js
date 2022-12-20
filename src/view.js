@@ -694,6 +694,7 @@ function guiGeneratorSetup() {
                 let v = 10 * parseFloat(guiOptions.info.velocity);
                 if (isNaN(v) || v < 1e2) v = 1e2;
                 beamTemplate(v);
+                guiOptions.generator.quantity = 16;
                 break;
 
             default:

@@ -1,4 +1,5 @@
-import { Vector3, ArrowHelper } from "three";
+import { Vector3, ArrowHelper, Mesh, RingGeometry, MeshBasicMaterial, PlaneGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
+import { simulation } from "./core.js";
 import { mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
 
 const arrowWidth = 1e3;
@@ -13,6 +14,7 @@ export class Ruler {
         this.p0 = undefined;
         this.p1 = undefined;
         this.ruler = undefined;
+        this.mode = 'box';
     }
 
     start(graphics, event) {
@@ -32,6 +34,29 @@ export class Ruler {
         this.arrow.setLength(1);
         this.graphics.scene.add(this.arrow);
 
+        switch (this.mode) {
+            case 'box':
+            default:
+                this.selection = new LineSegments(
+                    new WireframeGeometry(
+                        new BoxGeometry(
+                            arrowWidth, arrowWidth, simulation.particleRadius
+                        )
+                    ),
+                );
+                break;
+
+            case 'circle':
+                this.selection = new LineSegments(
+                    new WireframeGeometry(
+                        new RingGeometry(arrowWidth * (1 - arrowHeadLen) / 2, arrowWidth * (1 + arrowHeadLen) / 2, 32)
+                    ),
+                );
+                break;
+        }
+
+        this.graphics.scene.add(this.selection);
+
         this.started = true;
     }
 
@@ -46,6 +71,12 @@ export class Ruler {
 
         this.arrow.setDirection(dir);
         this.arrow.setLength(len);
+
+        let center = diff.clone().multiplyScalar(0.5).add(this.p0);
+        this.selection.position.set(center.x, center.y, center.z);
+        let max = Math.max(diff.x, diff.y);
+        this.selection.scale.x = max / arrowWidth;
+        this.selection.scale.y = max / arrowWidth;
     }
 
     finish(event) {
@@ -56,9 +87,14 @@ export class Ruler {
         this.arrow.dispose();
         this.arrow = undefined;
 
+        this.graphics.scene.remove(this.selection);
+        this.selection = undefined;
+
         this.controls.ruler =
             "d: " + this.ruler.length().toExponential(3) +
             " x: " + this.ruler.x.toExponential(3) +
             " y: " + this.ruler.y.toExponential(3);
+
+        this.started = false;
     }
 }

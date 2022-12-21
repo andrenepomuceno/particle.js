@@ -218,6 +218,7 @@ let guiOptions = {
         },
     },
     selection: {
+        pattern: 'box',
         source: "None",
         particles: 0,
         mass: "",
@@ -692,6 +693,22 @@ function guiParticleRefresh() {
 }
 
 function guiSelectionSetup() {
+    const patternList = {
+        box: 'box',
+        circle: 'circle',
+    };
+    guiSelection.add(guiOptions.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
+        switch (val) {
+            case 'box':
+            default:
+                ruler.mode = 'box';
+                break;
+
+            case 'circle':
+                ruler.mode = 'circle';
+                break
+        }
+    });
     guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
     guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
 
@@ -1386,7 +1403,7 @@ function onPointerDown(event) {
 
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
-        selection.end(event);
+        selection.end(event, ruler.mode);
         ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
         let particle = graphics.raycast(mouseHelper.position);

@@ -29,9 +29,6 @@ export class SelectionHelper {
         this.mouse0 = undefined;
         this.mouse1 = undefined;
         this.list = [];
-        this.element = document.createElement('div');
-        this.element.classList.add('selectBox');
-        this.element.style.pointerEvents = 'none';
         this.startPoint = {};
         this.source = SourceType.none;
         this.importedData = {};
@@ -52,12 +49,6 @@ export class SelectionHelper {
 
         this.startPoint.x = event.clientX;
         this.startPoint.y = event.clientY;
-
-        this.graphics.renderer.domElement.parentElement.appendChild(this.element);
-        this.element.style.left = event.clientX + 'px';
-        this.element.style.top = event.clientY + 'px';
-        this.element.style.width = '0px';
-        this.element.style.height = '0px';
     }
 
     update(event) {
@@ -68,14 +59,9 @@ export class SelectionHelper {
         pointBottomRight.y = Math.max(this.startPoint.y, event.clientY);
         pointTopLeft.x = Math.min(this.startPoint.x, event.clientX);
         pointTopLeft.y = Math.min(this.startPoint.y, event.clientY);
-
-        this.element.style.left = pointTopLeft.x + 'px';
-        this.element.style.top = pointTopLeft.y + 'px';
-        this.element.style.width = pointBottomRight.x - pointTopLeft.x + 'px';
-        this.element.style.height = pointBottomRight.y - pointTopLeft.y + 'px';
     }
 
-    end(event) {
+    end(event, mode = 'box') {
         log("end");
 
         this.mouse1 = {
@@ -85,7 +71,7 @@ export class SelectionHelper {
         this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
-        if (this.#readParticleData() > 0) {
+        if (this.#readParticleData(mode) > 0) {
             this.#snapshot();
             this.source = SourceType.simulation;
             this.guiRefresh();
@@ -95,8 +81,6 @@ export class SelectionHelper {
             this.clear();
             this.guiSelection.close();
         }
-
-        this.element.parentElement.removeChild(this.element);
 
         this.graphics.controls.enabled = true;
         this.started = false;
@@ -181,25 +165,44 @@ export class SelectionHelper {
         return [topLeft, bottomRight];
     }
 
-    #readParticleData() {
+    #readParticleData(mode = 'box') {
         log("#readParticleData");
+        log("mode = " + mode);
 
         this.list = [];
 
         this.graphics.readbackParticleData();
 
         let [top, bottom] = this.#topBottom(this.p0, this.p1);
+        let diff = this.p1.clone().sub(this.p0);
+        let center = diff.clone().multiplyScalar(0.5).add(this.p0);
+        let max = Math.max(diff.x, diff.y);
+        let radius = max/2;
+        let r2 = Math.pow(radius, 2);
 
         this.graphics.particleList.forEach(p => {
             if (p.type != ParticleType.default && p.type != ParticleType.fixed) return;
             let pos = p.position;
-            if (
-                pos.x >= top.x &&
-                pos.x <= bottom.x &&
-                pos.y >= bottom.y &&
-                pos.y <= top.y
-            ) {
-                this.list.push(p);
+
+            switch (mode) {
+                case 'box':
+                default:
+                    if (
+                        pos.x >= top.x &&
+                        pos.x <= bottom.x &&
+                        pos.y >= bottom.y &&
+                        pos.y <= top.y
+                    ) {
+                        this.list.push(p);
+                    }
+                    break;
+
+                case 'circle':
+                    let x = Math.pow(pos.x - center.x, 2) + Math.pow(pos.y - center.y, 2);
+                    if (x < r2) {
+                        this.list.push(p);
+                    }
+                    break;
             }
         });
 

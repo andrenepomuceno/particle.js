@@ -54,6 +54,7 @@ const guiSelection = gui.addFolder("PARTICLE SELECTION");
 const guiGenerate = gui.addFolder("SELECTION GENERATOR");
 const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
 const guiAdvancedControls = gui.addFolder("ADVANCED CONTROLS");
+const guiField = gui.addFolder("FIELD CONTROLS");
 
 function log(msg) {
     console.log("View: " + msg);
@@ -405,7 +406,20 @@ let guiOptions = {
         close: () => {
             guiAdvancedControls.close();
         },
-    }
+    },
+    field: {
+        enabled: false,
+        m: '1',
+        q: '1',
+        nq: '1',
+        grid: '50',
+        fieldResize: () => {
+            simulation.field.resize();
+        },
+        close: () => {
+            guiField.close();
+        }
+    },
 }
 
 const mouseHelper = new MouseHelper();
@@ -423,10 +437,13 @@ function setup(idx) {
     log("setup " + idx);
     guiSelectionClose();
     guiParticleClose();
+
     simulationSetup(idx);
+
     guiParametersRefresh();
     guiInfoRefresh();
     guiOptions.generator.default();
+    guiFieldRefresh();
 
     energyPanel.min = 0;
     energyPanel.max = 0;
@@ -461,6 +478,7 @@ export function guiSetup() {
     guiSelectionSetup();
     guiGeneratorSetup();
     guiAdvancedControlsSetup();
+    guiFieldSetup();
 
     setup();
 }
@@ -503,6 +521,40 @@ function guiInfoSetup() {
 
     collapseList.push(guiInfo);
     collapseList.push(guiInfoMore);
+}
+
+function guiInfoRefresh(now) {
+    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+
+    guiOptions.info.name = name;
+    guiOptions.info.folderName = simulation.folderName;
+    guiOptions.info.particles = n + " / " + graphics.maxParticles;
+
+    let realTime = new Date(totalTime).toISOString().substring(11, 19);
+    guiOptions.info.time = realTime + " (" + t + ")";
+
+    n = (n == 0) ? (1) : (n);
+    m = (m == 0) ? (1) : (m);
+    let avgEnergy = e / n;
+    let avgVelocity = Math.sqrt(e / m);
+    guiOptions.info.energy = avgEnergy.toExponential(2);
+    guiOptions.info.velocity = avgVelocity.toExponential(2);
+
+    guiOptions.info.collisions = c;
+    guiOptions.info.mass = m.toExponential(2);
+    guiOptions.info.charge = totalCharge.toExponential(2);
+    //guiOptions.info.radius = r.toExponential(2);
+    //guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
+    let position = graphics.camera.position.toArray();
+    position.forEach((val, idx) => {
+        position[idx] = val.toExponential(1);
+    });
+    guiOptions.info.cameraPosition = position;
+    guiOptions.info.mode2D = simulation.mode2D;
+
+    let energy = avgVelocity;
+    if (energy > energyPanel.max) energyPanel.max = energy;
+    energyPanel.update(energy, energyPanel.max);
 }
 
 function guiControlsSetup() {
@@ -603,6 +655,37 @@ function guiParticleSetup() {
     collapseList.push(guiParticleActions);
     collapseList.push(guiParticleVariables);
     collapseList.push(guiParticleProperties);
+}
+
+function guiParticleRefresh() {
+    let particleView = guiOptions.particle;
+    let particle = particleView.obj;
+
+    if (particle) {
+        //static info
+        particleView.id = particle.id;
+        particleView.mass = particle.mass.toExponential(3);
+        particleView.charge = particle.charge.toExponential(3);
+        particleView.nuclearCharge = particle.nuclearCharge;
+        particleView.fixed = (particle.type == ParticleType.fixed);
+
+        let color = particle.color;
+        if (particle.mesh) {
+            color = particle.mesh.material.color;
+        }
+        particleView.color = "#" + color.getHexString();//arrayToString(color.toArray(), 2);
+
+        //dynamic info
+        let position = [];
+        particle.position.toArray().forEach(element => {
+            position.push(element.toExponential(3));
+        });
+        particleView.position = position;
+        particleView.velocityDir = arrayToString(
+            particle.velocity.clone().normalize().toArray(), 3);
+        particleView.velocityAbs = particle.velocity.length().toExponential(3);
+        particleView.energy = particle.energy().toExponential(3);
+    }
 }
 
 function guiSelectionSetup() {
@@ -881,6 +964,25 @@ function guiParametersSetup() {
     collapseList.push(guiParametersInteractions);
 }
 
+function guiParametersRefresh() {
+    let edit = guiOptions.parameters;
+    edit.massConstant = simulation.physics.massConstant.toExponential(2);
+    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
+    edit.nuclearChargeConstant = simulation.physics.nuclearChargeConstant.toExponential(2);
+    edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
+    edit.boundaryDamping = simulation.physics.boundaryDamping;
+    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
+    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
+    edit.forceConstant = simulation.physics.forceConstant;
+    edit.radius = simulation.particleRadius;
+    edit.radiusRange = simulation.particleRadiusRange;
+    edit.maxParticles = graphics.maxParticles;
+    edit.boxBoundary = simulation.physics.useBoxBoundary;
+    edit.distance1 = simulation.physics.useDistance1;
+    edit.nuclearPotential = simulation.physics.nuclearPotential;
+    edit.enableBoundary = simulation.physics.enableBoundary;
+}
+
 function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
@@ -903,77 +1005,86 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
     guiAdvancedControls.add(guiOptions.advancedControls, 'ruler').name("Selection Ruler").listen();
-
-    const guiField = guiAdvancedControls.addFolder("Field");
+    guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);
 }
 
-function guiInfoRefresh(now) {
-    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
-
-    guiOptions.info.name = name;
-    guiOptions.info.folderName = simulation.folderName;
-    guiOptions.info.particles = n + " / " + graphics.maxParticles;
-
-    let realTime = new Date(totalTime).toISOString().substring(11, 19);
-    guiOptions.info.time = realTime + " (" + t + ")";
-
-    n = (n == 0) ? (1) : (n);
-    m = (m == 0) ? (1) : (m);
-    let avgEnergy = e / n;
-    let avgVelocity = Math.sqrt(e / m);
-    guiOptions.info.energy = avgEnergy.toExponential(2);
-    guiOptions.info.velocity = avgVelocity.toExponential(2);
-
-    guiOptions.info.collisions = c;
-    guiOptions.info.mass = m.toExponential(2);
-    guiOptions.info.charge = totalCharge.toExponential(2);
-    //guiOptions.info.radius = r.toExponential(2);
-    //guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
-    let position = graphics.camera.position.toArray();
-    position.forEach((val, idx) => {
-        position[idx] = val.toExponential(1);
+function guiFieldSetup() {
+    guiField.add(guiOptions.field, 'enabled').name("Enabled").listen().onFinishChange(val => {
+        const f = simulation.field;
+        guiOptions.field.enabled = false;
+        if (val == false) {
+            f.cleanup();
+        } else {
+            let grid = Math.round(parseFloat(guiOptions.field.grid));
+            if (isNaN(grid)) {
+                alert("Invalid value.");
+                return;
+            }
+            if (!f.setup(f.mode, grid)) {
+                return;
+            }
+            simulation.drawParticles();
+            guiOptions.field.enabled = true;
+        }
     });
-    guiOptions.info.cameraPosition = position;
-    guiOptions.info.mode2D = simulation.mode2D;
-
-    let energy = avgVelocity;
-    if (energy > energyPanel.max) energyPanel.max = energy;
-    energyPanel.update(energy, energyPanel.max);
+    guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
+        /*const grid = parseFloat(val);
+        if (isNaN(grid)) {
+            alert("Invalid value.");
+            return;
+        }
+        const f = simulation.field;
+        f.cleanup();
+        f.setup(f.mode, grid);*/
+    });
+    guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
+        const f = simulation.field;
+        const m = parseFloat(val);
+        if (isNaN(m)) {
+            alert("Invalid value.");
+            return;
+        }
+        simulation.field.probeParam.m = m;
+        guiOptions.field.m = m.toExponential(2);
+        guiOptions.field.fieldResize();
+    });
+    guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
+        const f = simulation.field;
+        const q = parseFloat(val);
+        if (isNaN(q)) {
+            alert("Invalid value.");
+            return;
+        }
+        simulation.field.probeParam.q = q;
+        guiOptions.field.q = q.toExponential(2);
+        guiOptions.field.fieldResize();
+    });
+    guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
+        const f = simulation.field;
+        const nq = parseFloat(val);
+        if (isNaN(nq)) {
+            alert("Invalid value.");
+            return;
+        }
+        simulation.field.probeParam.nq = nq;
+        guiOptions.field.nq = nq.toExponential(2);
+        guiOptions.field.fieldResize();
+    });
+    guiField.add(guiOptions.field, 'fieldResize').name("Refresh [F]");
+    guiField.add(guiOptions.field, 'close').name("Close");
 }
 
-function guiParticleRefresh() {
-    let particleView = guiOptions.particle;
-    let particle = particleView.obj;
-
-    if (particle) {
-        //static info
-        particleView.id = particle.id;
-        particleView.mass = particle.mass.toExponential(3);
-        particleView.charge = particle.charge.toExponential(3);
-        particleView.nuclearCharge = particle.nuclearCharge;
-        particleView.fixed = (particle.type == ParticleType.fixed);
-
-        let color = particle.color;
-        if (particle.mesh) {
-            color = particle.mesh.material.color;
-        }
-        particleView.color = "#" + color.getHexString();//arrayToString(color.toArray(), 2);
-
-        //dynamic info
-        let position = [];
-        particle.position.toArray().forEach(element => {
-            position.push(element.toExponential(3));
-        });
-        particleView.position = position;
-        particleView.velocityDir = arrayToString(
-            particle.velocity.clone().normalize().toArray(), 3);
-        particleView.velocityAbs = particle.velocity.length().toExponential(3);
-        particleView.energy = particle.energy().toExponential(3);
-    }
+function guiFieldRefresh() {
+    let opt = guiOptions.field;
+    let field = simulation.field;
+    opt.enabled = field.enabled;
+    opt.m = field.probeParam.m.toExponential(2);
+    opt.q = field.probeParam.q.toExponential(2);
+    opt.nq = field.probeParam.nq.toExponential(2);
+    opt.grid = field.grid[0];
 }
 
 function guiParticleClose(clear = true) {
@@ -993,25 +1104,6 @@ function guiParticleClose(clear = true) {
         particleView.fixed = false;
     }
     guiParticle.close();
-}
-
-function guiParametersRefresh() {
-    let edit = guiOptions.parameters;
-    edit.massConstant = simulation.physics.massConstant.toExponential(2);
-    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-    edit.nuclearChargeConstant = simulation.physics.nuclearChargeConstant.toExponential(2);
-    edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
-    edit.boundaryDamping = simulation.physics.boundaryDamping;
-    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
-    edit.forceConstant = simulation.physics.forceConstant;
-    edit.radius = simulation.particleRadius;
-    edit.radiusRange = simulation.particleRadiusRange;
-    edit.maxParticles = graphics.maxParticles;
-    edit.boxBoundary = simulation.physics.useBoxBoundary;
-    edit.distance1 = simulation.physics.useDistance1;
-    edit.nuclearPotential = simulation.physics.nuclearPotential;
-    edit.enableBoundary = simulation.physics.enableBoundary;
 }
 
 function guiSelectionClose(clear = true) {
@@ -1042,7 +1134,7 @@ function selectionPlace() {
     } else {
         simulationCreateParticleList(selection.list, center);
     }
-}
+}1
 
 function snapshot() {
     let name = simulation.state()[0];

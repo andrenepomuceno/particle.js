@@ -18,7 +18,6 @@ export const experiments1 = [
 function defaultParameters(simulation, cameraDistance = 1e4) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    simulation.fieldCleanup();
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -49,28 +48,32 @@ function electronProtonNeutron(simulation) {
     simulation.mode2D = true;
 
     physics.nuclearChargeRange = 1e3;
-    physics.boundaryDistance = 100 * physics.nuclearChargeRange;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10.0 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.03 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 40.0 * physics.nuclearChargeRange;
+    graphics.cameraSetup();
+    simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
-    physics.chargeConstant = 1e-2;
+    physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(0.001 * physics.nuclearChargeRange, 2);
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+
+    simulation.field.probeConfig(0, 1e3, 0);
+    simulation.field.setup("2d", 100);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },
         { m: 1.00866491588, q: 0, nq: 1 },
     ];
     let cloudTypes = [
-        { m: 5.48579909065e-4, q: -1, nq: -1/137 },
+        { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
     ];
 
     const n = 6;
-    const m = 1e-2/cloudTypes[0].m;
+    const m = 1e-2 / cloudTypes[0].m;
     const q = 1;
     const nq = 1;
     const v = 1.0;
@@ -79,6 +82,7 @@ function electronProtonNeutron(simulation) {
     let r1 = 0.5 * physics.nuclearChargeRange;
     let r2 = 0.493 * physics.nuclearChargeRange;
     let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
+    if (size % 2 == 0) size -= 1;
     console.log("size = " + size);
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
@@ -92,13 +96,11 @@ function electronProtonNeutron(simulation) {
         };
         createParticles(simulation, nucleusList, n * nucleusList.length, options);
 
-        options = {...options, r0, r1};
+        options = { ...options, r0, r1 };
         createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    if (size % 2 == 0) size -= 1;
-    console.log(size);
-    const gridSize = [size, size, 1];
+    const gridSize = [1.3 * size, 0.7 * size];
     hexagonGenerator((vertex, totalLen) => {
         let s = ((vertex.i % 2 == 0) ? (1) : (-1));
         let center = new Vector3(vertex.x, vertex.y, 0);
@@ -126,10 +128,10 @@ function superNucleus3D(simulation) {
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e-2;
     physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(1/10, 2);
+    physics.minDistance2 = Math.pow(1 / 10, 2);
 
     let particleTypes = [
-        { m: 256, q: 16, nq: 1}
+        { m: 256, q: 16, nq: 1 }
     ]
     createParticles(simulation, particleTypes, graphics.maxParticles, {
         r1: 1.0,//2.0 * physics.nuclearChargeRange
@@ -137,7 +139,7 @@ function superNucleus3D(simulation) {
         //m: 1.0,
         randomM: true, roundM: true,
         randomQSignal: true, //randomQThresh: 0.8,
-        randomQ: true, roundQ: true, 
+        randomQ: true, roundQ: true,
     });
     //drawGrid(simulation);
 }

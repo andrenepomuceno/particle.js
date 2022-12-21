@@ -257,9 +257,6 @@ export class GraphicsGPU {
         let particles = this.particleList.length;
         let maxParticles = propsArray.length / 4;
 
-        console.log(particles);
-        console.log(maxParticles);
-
         if (particles > maxParticles) {
             alert("Error: Too many particles! " + particles + " > " + maxParticles);
             return;

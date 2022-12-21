@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { simulationDeleteParticleList } from '../core';
 import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { Particle, ParticleType } from '../particle.js';
 
@@ -7,52 +8,69 @@ function log(msg) {
 }
 
 export class FieldGPU {
-    constructor(graphics, physics) {
+    constructor(simulation) {
         log("constructor");
 
-        this.graphics = graphics;
-        this.physics = physics;
-        this.particleList = physics.particleList;
+        this.simulation = simulation;
+        this.graphics = simulation.graphics;
+        this.physics = simulation.physics;
+        this.particleList = this.physics.particleList;
 
-        this.grid = undefined;
+        this.grid = [50, 50, 1];
         this.size = undefined;
-        this.mode = undefined;
+        this.mode = '2d';
+        this.populateMode = undefined;
         this.probeParam = { m: 1, q: 1, nq: 1 };
         this.firstProbeIdx = undefined;
 
         this.objectList = [];
+
+        this.enabled = false;
     }
 
     setup(mode, gridPoints) {
         log("setup");
         log("mode = " + mode);
+        log("gridPoints = " + gridPoints);
 
-        if (mode == "2d") {
-            let [w, _] = viewSize(this.graphics);
-            this.size = w;
-            this.grid = [
-                gridPoints,
-                Math.round(gridPoints / this.graphics.camera.aspect),
-                1
-            ];
-        } else if (mode == "3d") {
-            let [w, h] = viewSize(this.graphics);
-            this.size = Math.min(w, h);
-            this.grid = [
-                gridPoints,
-                gridPoints,
-                gridPoints
-            ];
-        } else if (mode == "update") {
-            //return this.update();
-            return; // not suported
+        switch (mode) {
+            default:
+            case '2d':
+                {
+                    let [w, _] = viewSize(this.graphics);
+                    this.size = w;
+                    this.grid = [
+                        gridPoints,
+                        Math.round(gridPoints / this.graphics.camera.aspect),
+                        1
+                    ];
+                }
+                break;
+
+            case '3d':
+                {
+                    let [w, h] = viewSize(this.graphics);
+                    this.size = Math.min(w, h);
+                    this.grid = [
+                        gridPoints,
+                        gridPoints,
+                        gridPoints
+                    ];
+                }
+                break;
         }
 
         this.mode = mode;
         let center = this.graphics.controls.target.clone();
-        this.#populateField(center);
+        if (!this.#populateField(center)) {
+            console.log("setup failed");
+            return false;
+        }
+
+        this.enabled = true;
 
         console.log("setup done");
+        return true;
     }
 
     probeConfig(m = 1, q = 1, nq = 1) {
@@ -66,24 +84,15 @@ export class FieldGPU {
 
     update() {
         log("update");
+        this.simulation.drawParticles();
     }
 
     cleanup() {
         log("cleanup");
 
-        this.objectList.forEach(obj => {
-            this.particleList.pop(obj.particle);
-        })
-
+        simulationDeleteParticleList(this.objectList)
         this.objectList = [];
-
-        this.probeConfig();
-    }
-
-    probe(probeParticle) {
-        //log("probe");
-        // TODO
-        return new Vector3();
+        this.enabled = false;
     }
 
     elementSize() {
@@ -103,13 +112,15 @@ export class FieldGPU {
         if (this.particleList.length + probeCount > this.graphics.maxParticles) {
             log("error: too many probes: " + probeCount);
             log("free: " + (this.graphics.maxParticles - this.particleList.length));
-            return;
+            alert("Too many particles!");
+            return false;
         }
         console.log("probeCount = " + probeCount);
 
         this.firstProbeIdx = this.particleList.length - 1;
+        this.populateMode = mode;
 
-        switch (mode) {
+        switch (this.populateMode) {
             case "sphere":
                 sphereGenerator((x, y, z) => {
                     this.#createFieldElement(new Vector3(x, y, z).add(center));
@@ -123,6 +134,8 @@ export class FieldGPU {
                 }, this.size, this.grid);
                 break;
         }
+
+        return true;
     }
 
     #createFieldElement(position) {
@@ -134,7 +147,58 @@ export class FieldGPU {
         p.position = position;
         p.radius = this.elementSize();
         this.particleList.push(p);
+        this.objectList.push(p);
+    }
 
-        this.objectList.push({particle: p});
+    #updateFieldElement(idx, x, y, z) {
+        let particle = this.objectList[idx++];
+        particle.mass = this.probeParam.m;
+        particle.charge = this.probeParam.q;
+        particle.nuclearCharge = this.probeParam.nq;
+        particle.position.set(x, y, z);
+        particle.radius = this.elementSize();
+    }
+
+    resize() {
+        log("resize");
+
+        if (this.objectList.length == 0) return;
+
+        switch (this.mode) {
+            case '2d':
+                {
+                    let [w, _] = viewSize(this.graphics);
+                    this.size = w;
+                }
+                break;
+
+            case '3d':
+                {
+                    let [w, h] = viewSize(this.graphics);
+                    this.size = Math.min(w, h);
+                }
+                break;
+
+            default:
+                return;
+        }
+
+        let idx = 0;
+        switch (this.populateMode) {
+            case "sphere":
+                sphereGenerator((x, y, z) => {
+                    this.#updateFieldElement(idx++, x, y, z);
+                }, this.size, this.grid);
+                break;
+
+            case "cube":
+            default:
+                cubeGenerator((x, y, z) => {
+                    this.#updateFieldElement(idx++, x, y, z);
+                }, this.size, this.grid);
+                break;
+        }
+
+        this.update();
     }
 }

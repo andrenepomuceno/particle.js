@@ -24,7 +24,7 @@ function internalSetup(physics_) {
 
     graphics = (graphics || new GraphicsGPU());
     simulation = new SimulationGPU(graphics, physics);
-    simulation.field = new FieldGPU(graphics, physics);
+    simulation.field = new FieldGPU(simulation);
 }
 
 export function simulationSetup(idx) {

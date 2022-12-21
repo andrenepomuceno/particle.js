@@ -21,7 +21,7 @@ export class Keyboard {
         this.onKeyDownMap.set('pagedown', { callback: this.guiOptions.controls.next });
         this.onKeyDownMap.set('pageup', { callback: this.guiOptions.controls.previous });
         this.onKeyDownMap.set('home', { callback: this.guiOptions.controls.home });
-        this.onKeyDownMap.set('f', { callback: () => this.simulation.fieldSetup("update") });
+        this.onKeyDownMap.set('f', { callback: this.guiOptions.field.fieldResize });
         this.onKeyDownMap.set('h', { callback: this.guiOptions.controls.hideOverlay });
         this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.place });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });

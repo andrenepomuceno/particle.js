@@ -1070,27 +1070,34 @@ function guiFieldSetup() {
         fieldEnable(val);
     });
     guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
+        guiOptions.field.grid = simulation.field.grid[0];
         const grid = Math.round(parseFloat(val));
         if (isNaN(grid)) {
             alert("Invalid value.");
             return;
         }
-        guiOptions.field.grid = grid;
+        if (val == simulation.field.grid[0]) return;
         if (simulation.field.enabled == false || simulation.field.objectList.length == 0) return;
+        if (simulation.field.checkGridSize(val) == false) {
+            alert('Field is too big!');
+            return;
+        }
         simulationDeleteParticleList(simulation.field.objectList);
         simulation.field.cleanup();
         if (!fieldInit(grid)) {
             return;
         }
+        guiOptions.field.grid = grid;
     });
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
         const f = simulation.field;
         const m = parseFloat(val);
-        guiOptions.field.m = '0';
         if (isNaN(m)) {
             alert("Invalid value.");
+            guiOptions.field.m = '0';
             return;
         }
+        if (simulation.field.probeParam.m == m) return;
         simulation.field.probeParam.m = m;
         guiOptions.field.m = m.toExponential(2);
         guiOptions.field.fieldResize();
@@ -1098,11 +1105,12 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const q = parseFloat(val);
-        guiOptions.field.q = '0';
         if (isNaN(q)) {
             alert("Invalid value.");
+            guiOptions.field.q = '0';
             return;
         }
+        if (simulation.field.probeParam.q == q) return;
         simulation.field.probeParam.q = q;
         guiOptions.field.q = q.toExponential(2);
         guiOptions.field.fieldResize();
@@ -1110,11 +1118,12 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const nq = parseFloat(val);
-        guiOptions.field.nq = '0';
         if (isNaN(nq)) {
             alert("Invalid value.");
+            guiOptions.field.nq = '0';
             return;
         }
+        if (simulation.field.probeParam.nq == nq) return;
         simulation.field.probeParam.nq = nq;
         guiOptions.field.nq = nq.toExponential(2);
         guiOptions.field.fieldResize();

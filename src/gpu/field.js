@@ -27,20 +27,17 @@ export class FieldGPU {
         this.enabled = false;
     }
 
-    setup(mode, gridPoints, center) {
-        log("setup");
-        log("mode = " + mode);
-        log("gridPoints = " + gridPoints);
+    calcGridSize(gridPoints) {
+        let size;
+        let grid;
 
-        center.z -= 1.0;
-
-        switch (mode) {
+        switch (this.mode) {
             default:
             case '2d':
                 {
                     let [w, _] = viewSize(this.graphics);
-                    this.size = w;
-                    this.grid = [
+                    size = w;
+                    grid = [
                         gridPoints,
                         Math.round(gridPoints / this.graphics.camera.aspect),
                         1
@@ -51,8 +48,8 @@ export class FieldGPU {
             case '3d':
                 {
                     let [w, h] = viewSize(this.graphics);
-                    this.size = Math.min(w, h);
-                    this.grid = [
+                    size = Math.min(w, h);
+                    grid = [
                         gridPoints,
                         gridPoints,
                         gridPoints
@@ -61,7 +58,28 @@ export class FieldGPU {
                 break;
         }
 
+        console.log(size);
+        console.log(grid);
+
+        return {
+            size,
+            grid
+        }
+    }
+
+    setup(mode, grid, center) {
+        log("setup");
+        log("mode = " + mode);
+        log("gridPoints = " + grid);
+
         this.mode = mode;
+
+        center.z -= 1.0;
+
+        let ret = this.calcGridSize(grid);
+        this.size = ret.size;
+        this.grid = ret.grid;
+
         if (!this.#populateField(center)) {
             console.log("setup failed");
             return false;
@@ -98,18 +116,27 @@ export class FieldGPU {
         return len;
     }
 
+    checkGridSize(grid) {
+        let ret = this.calcGridSize(grid);
+        let probeCount = ret.grid[0] * ret.grid[1] * ret.grid[2];
+        console.log("probeCount = " + probeCount);
+        if (this.particleList.length + probeCount - this.objectList.length > this.graphics.maxParticles) {
+            return false;
+        }
+        return true;
+    }
+
     #populateField(center = new Vector3(), mode = "cube") {
         console.log("#populateField");
 
-        let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
-        if (this.particleList.length + probeCount > this.graphics.maxParticles) {
+        if (!this.checkGridSize(this.grid)) {
+            let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
             log("error: too many probes: " + probeCount);
             log("free: " + (this.graphics.maxParticles - this.particleList.length));
-            alert("Too many particles!\n" + 
-            "Free space needed: " + probeCount);
+            alert("Too many particles!\n" +
+                "Free space needed: " + probeCount);
             return false;
-        }
-        console.log("probeCount = " + probeCount);
+        }        
 
         this.firstProbeIdx = this.particleList.length - 1;
         this.populateMode = mode;

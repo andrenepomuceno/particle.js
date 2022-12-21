@@ -30,6 +30,7 @@ import { MouseHelper } from './mouseHelper';
 import { Keyboard } from './keyboard.js';
 import { randomSphericVector } from './helpers.js';
 import { exportCSV, uploadCsv } from './csv';
+import { Ruler } from './ruler';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -435,6 +436,7 @@ let guiOptions = {
 const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
 const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
+const ruler = new Ruler(graphics, guiOptions.advancedControls);
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
@@ -1371,6 +1373,7 @@ function onPointerMove(event) {
     mouseHelper.move(event);
     if (selection.started) {
         selection.update(event);
+        ruler.update(event);
     }
 }
 
@@ -1378,13 +1381,14 @@ function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
         selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
         selection.start(event);
+        ruler.start(graphics, event);
     }
 }
 
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
         selection.end(event);
-        guiOptions.advancedControls.ruler = "len: " + selection.ruler.length().toExponential(3) + " x: " + selection.ruler.x.toExponential(3) + " y: " + selection.ruler.y.toExponential(3);
+        ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
         let particle = graphics.raycast(mouseHelper.position);
         if (particle) {

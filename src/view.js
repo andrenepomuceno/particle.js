@@ -1092,9 +1092,9 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
         const f = simulation.field;
         const m = parseFloat(val);
+        guiOptions.field.m = simulation.field.probeParam.m.toExponential(2);
         if (isNaN(m)) {
             alert("Invalid value.");
-            guiOptions.field.m = '0';
             return;
         }
         if (simulation.field.probeParam.m == m) return;
@@ -1105,9 +1105,9 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const q = parseFloat(val);
+        guiOptions.field.q = simulation.field.probeParam.q.toExponential(2);
         if (isNaN(q)) {
             alert("Invalid value.");
-            guiOptions.field.q = '0';
             return;
         }
         if (simulation.field.probeParam.q == q) return;
@@ -1118,9 +1118,9 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const nq = parseFloat(val);
+        guiOptions.field.nq = simulation.field.probeParam.nq.toExponential(2);
         if (isNaN(nq)) {
             alert("Invalid value.");
-            guiOptions.field.nq = '0';
             return;
         }
         if (simulation.field.probeParam.nq == nq) return;

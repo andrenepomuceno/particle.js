@@ -131,10 +131,8 @@ export class FieldGPU {
 
         if (!this.checkGridSize(this.grid)) {
             let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
-            log("error: too many probes: " + probeCount);
-            log("free: " + (this.graphics.maxParticles - this.particleList.length));
-            alert("Too many particles!\n" +
-                "Free space needed: " + probeCount);
+            log("error: field is to big " + probeCount);
+            alert('Field is too big! ' + probeCount);
             return false;
         }        
 

@@ -163,3 +163,19 @@ export function parseCsv(simulation, filename, content) {
     log(imported.physics.particleList.length + " particles loaded!");
     return imported;
 }
+
+export function uploadCsv(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".csv";
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
+}

@@ -29,7 +29,7 @@ import { createParticle, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
 import { Keyboard } from './keyboard.js';
 import { randomSphericVector } from './helpers.js';
-import { exportCSV } from './csv';
+import { exportCSV, uploadCsv } from './csv';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -419,7 +419,10 @@ let guiOptions = {
         },
         close: () => {
             guiField.close();
-        }
+        },
+        enable: () => {
+            fieldEnable(guiOptions.field.enabled);
+        },
     },
 }
 
@@ -482,6 +485,8 @@ export function guiSetup() {
     guiFieldSetup();
 
     setup();
+
+    animate();
 }
 
 function guiInfoSetup() {
@@ -1021,23 +1026,27 @@ function fieldInit(grid) {
     return true;
 }
 
-function guiFieldSetup() {
-    guiField.add(guiOptions.field, 'enabled').name("Enabled").listen().onFinishChange(val => {
-        guiOptions.field.enabled = false;
-        if (val == false) {
-            simulationDeleteParticleList(simulation.field.objectList);
-            simulation.field.cleanup();
-        } else {
-            let grid = Math.round(parseFloat(guiOptions.field.grid));
-            if (isNaN(grid)) {
-                alert("Invalid value.");
-                return;
-            }
-            if (!fieldInit(grid)) {
-                return;
-            }
-            guiOptions.field.enabled = true;
+function fieldEnable(val) {
+    guiOptions.field.enabled = false;
+    if (val == false) {
+        simulationDeleteParticleList(simulation.field.objectList);
+        simulation.field.cleanup();
+    } else {
+        let grid = Math.round(parseFloat(guiOptions.field.grid));
+        if (isNaN(grid)) {
+            alert("Invalid grid value.");
+            return;
         }
+        if (!fieldInit(grid)) {
+            return;
+        }
+        guiOptions.field.enabled = true;
+    }
+}
+
+function guiFieldSetup() {
+    guiField.add(guiOptions.field, 'enabled').name("Enable").listen().onFinishChange(val => {
+        fieldEnable(val);
     });
     guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
         const grid = Math.round(parseFloat(val));
@@ -1345,22 +1354,6 @@ function particleGenerator() {
     guiSelection.open();
 }
 
-function uploadCsv(callback) {
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = ".csv";
-    input.onchange = e => {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        reader.readAsText(file, 'UTF-8');
-        reader.onload = readerEvent => {
-            let content = readerEvent.target.result;
-            callback(file.name, content);
-        }
-    }
-    input.click();
-}
-
 function cameraTargetSet(pos) {
     graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
     graphics.controls.target.set(pos.x, pos.y, pos.z);
@@ -1399,7 +1392,7 @@ function onPointerUp(event) {
     }
 }
 
-export function animate(time) {
+function animate(time) {
     requestAnimationFrame(animate);
 
     graphics.update();

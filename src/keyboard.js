@@ -5,7 +5,7 @@ export class Keyboard {
         this.mouseHelper = mouseHelper;
         this.guiOptions = guiOptions;
         this.simulation = simulation;
-        
+
         this.onKeyDownMap = new Map();
         this.onKeyUpMap = new Map();
         this.keyMapSetup();
@@ -24,7 +24,6 @@ export class Keyboard {
         this.onKeyDownMap.set('pagedown', { callback: this.guiOptions.controls.next });
         this.onKeyDownMap.set('pageup', { callback: this.guiOptions.controls.previous });
         this.onKeyDownMap.set('home', { callback: this.guiOptions.controls.home });
-        this.onKeyDownMap.set('f', { callback: this.guiOptions.field.fieldResize });
         this.onKeyDownMap.set('h', { callback: this.guiOptions.controls.hideOverlay });
         this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.place });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });
@@ -39,6 +38,14 @@ export class Keyboard {
         this.onKeyDownMap.set('u', { callback: this.guiOptions.advancedControls.particleCleanup });
         this.onKeyDownMap.set('*', { callback: () => this.simulation.graphics.capture(this.simulation.name) });
         this.onKeyDownMap.set('~', { callback: () => console.log(exportCSV(this.simulation)) });
+
+        this.onKeyDownMap.set('f', { callback: this.guiOptions.field.fieldResize });
+        /*this.onKeyDownMap.set('w', {
+            callback: () => {
+                this.guiOptions.field.enabled = !this.guiOptions.field.enabled;
+                this.guiOptions.field.enable();
+            }
+        });*/
     }
 
     onKeyDown(keyboard, event) {

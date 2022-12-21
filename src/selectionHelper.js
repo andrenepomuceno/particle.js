@@ -2,7 +2,7 @@ import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseT
 import { calcListStatistics } from "./physics";
 import { ParticleType } from "./particle";
 const { Image } = require('image-js');
-import { simulationExportCsv } from "./core";
+import { exportCSV } from "./csv";
 
 function log(msg) {
     console.log("SelectionHelper: " + msg);
@@ -134,7 +134,7 @@ export class SelectionHelper {
         }
         let finalName = exportFilename("selection_" + this.source);
         if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
-        downloadFile(simulationExportCsv(this.list), finalName + ".csv", "text/plain;charset=utf-8");
+        downloadFile(exportCSV(this.simulation, this.list), finalName + ".csv", "text/plain;charset=utf-8");
     }
 
     import(imported) {

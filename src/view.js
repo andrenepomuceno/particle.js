@@ -13,8 +13,6 @@ import {
     graphics,
     simulation,
     simulationSetup,
-    simulationExportCsv,
-    simulationImportCSV,
     simulationUpdatePhysics,
     simulationFindParticle,
     simulationUpdateParticle,
@@ -23,6 +21,7 @@ import {
     simulationImportParticleList,
     simulationDeleteParticleList,
     simulationParticleAutoCleanup,
+    simulationImportCSV,
 } from './core.js';
 import { scenariosList } from './scenarios.js';
 import { SelectionHelper, SourceType } from './selectionHelper.js';
@@ -30,6 +29,7 @@ import { createParticle, randomVector } from './scenarios/helpers.js';
 import { MouseHelper } from './mouseHelper';
 import { Keyboard } from './keyboard.js';
 import { randomSphericVector } from './helpers.js';
+import { exportCSV } from './csv';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -1146,7 +1146,7 @@ function selectionPlace() {
     } else {
         simulationCreateParticleList(selection.list, center);
     }
-}1
+} 1
 
 function snapshot() {
     let name = simulation.state()[0];
@@ -1157,7 +1157,7 @@ function snapshot() {
     graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
-    downloadFile(simulationExportCsv(), finalName + ".csv", "text/plain;charset=utf-8");
+    downloadFile(exportCSV(simulation), finalName + ".csv", "text/plain;charset=utf-8");
 }
 
 let hexagonMap = new Map();

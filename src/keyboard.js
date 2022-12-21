@@ -1,3 +1,5 @@
+import { exportCSV } from "./csv";
+
 export class Keyboard {
     constructor(mouseHelper, guiOptions, simulation) {
         this.mouseHelper = mouseHelper;
@@ -14,6 +16,7 @@ export class Keyboard {
         this.onKeyDownMap.set('c', { callback: this.guiOptions.controls.resetCamera });
         this.onKeyDownMap.set('r', { callback: this.guiOptions.controls.reset });
         this.onKeyDownMap.set('p', { callback: this.guiOptions.controls.snapshot });
+        this.onKeyDownMap.set('i', { callback: this.guiOptions.controls.import });
         this.onKeyDownMap.set('a', { callback: this.guiOptions.controls.hideAxis });
         this.onKeyDownMap.set('v', { callback: this.guiOptions.controls.xyCamera });
         this.onKeyDownMap.set('n', { callback: this.guiOptions.controls.step });
@@ -34,8 +37,8 @@ export class Keyboard {
         this.onKeyDownMap.set('t', { callback: this.guiOptions.advancedControls.dampVelocity });
         this.onKeyDownMap.set('y', { callback: this.guiOptions.advancedControls.kickVelocity });
         this.onKeyDownMap.set('u', { callback: this.guiOptions.advancedControls.particleCleanup });
-        this.onKeyDownMap.set('*', { callback: () => this.simulation.graphics.capture(simulation.name) });
-        this.onKeyDownMap.set('~', { callback: () => console.log(simulationExportCsv()) });
+        this.onKeyDownMap.set('*', { callback: () => this.simulation.graphics.capture(this.simulation.name) });
+        this.onKeyDownMap.set('~', { callback: () => console.log(exportCSV(this.simulation)) });
     }
 
     onKeyDown(keyboard, event) {

@@ -49,12 +49,12 @@ let energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
-const guiParticle = gui.addFolder("PARTICLE INFO (click on particle or enter ID)");
-const guiSelection = gui.addFolder("PARTICLE SELECTION");
-const guiGenerate = gui.addFolder("SELECTION GENERATOR");
-const guiParameters = gui.addFolder("SIMULATION PARAMETERS");
-const guiAdvancedControls = gui.addFolder("ADVANCED CONTROLS");
-const guiField = gui.addFolder("FIELD CONTROLS");
+const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
+const guiSelection = gui.addFolder("SELECTION");
+const guiGenerate = gui.addFolder("GENERATOR");
+const guiParameters = gui.addFolder("PARAMETERS");
+const guiAdvancedControls = gui.addFolder("ADVANCED");
+const guiField = gui.addFolder("FIELD");
 
 function log(msg) {
     console.log("View: " + msg);
@@ -485,7 +485,6 @@ export function guiSetup() {
     guiFieldSetup();
 
     setup();
-
     animate();
 }
 

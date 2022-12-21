@@ -178,6 +178,12 @@ let guiOptions = {
         place: () => {
             selectionPlace();
         },
+        record: () => {
+            graphics.capture(simulation.name);
+        },
+        debug: () => {
+            console.log(exportCSV(simulation));
+        },
         showCursor: true,
     },
     particle: {

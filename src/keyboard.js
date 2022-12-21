@@ -1,10 +1,7 @@
-import { exportCSV } from "./csv";
-
 export class Keyboard {
-    constructor(mouseHelper, guiOptions, simulation) {
+    constructor(mouseHelper, guiOptions) {
         this.mouseHelper = mouseHelper;
         this.guiOptions = guiOptions;
-        this.simulation = simulation;
 
         this.onKeyDownMap = new Map();
         this.onKeyUpMap = new Map();
@@ -28,24 +25,21 @@ export class Keyboard {
         this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.place });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });
         this.onKeyDownMap.set('s', { callback: this.guiOptions.controls.sandbox });
+        this.onKeyDownMap.set('m', { callback: this.guiOptions.controls.collapseAll });
+        this.onKeyDownMap.set('~', { callback: this.guiOptions.controls.debug });
+        this.onKeyDownMap.set('*', { callback: this.guiOptions.controls.record });
+
         this.onKeyDownMap.set('g', { callback: this.guiOptions.generator.generate });
+
         this.onKeyDownMap.set('x', { callback: this.guiOptions.selection.clone });
         this.onKeyDownMap.set('d', { callback: this.guiOptions.selection.delete });
-        this.onKeyDownMap.set('m', { callback: this.guiOptions.controls.collapseAll });
+        
         this.onKeyDownMap.set('b', { callback: this.guiOptions.advancedControls.zeroVelocity });
         this.onKeyDownMap.set('t', { callback: this.guiOptions.advancedControls.dampVelocity });
         this.onKeyDownMap.set('y', { callback: this.guiOptions.advancedControls.kickVelocity });
         this.onKeyDownMap.set('u', { callback: this.guiOptions.advancedControls.particleCleanup });
-        this.onKeyDownMap.set('*', { callback: () => this.simulation.graphics.capture(this.simulation.name) });
-        this.onKeyDownMap.set('~', { callback: () => console.log(exportCSV(this.simulation)) });
 
         this.onKeyDownMap.set('f', { callback: this.guiOptions.field.fieldResize });
-        /*this.onKeyDownMap.set('w', {
-            callback: () => {
-                this.guiOptions.field.enabled = !this.guiOptions.field.enabled;
-                this.guiOptions.field.enable();
-            }
-        });*/
     }
 
     onKeyDown(keyboard, event) {

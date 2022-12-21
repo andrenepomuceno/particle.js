@@ -189,6 +189,32 @@ export class GraphicsGPU {
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
 
+    capture(name) {
+        if (ENV?.record != true) return;
+
+        if (CanvasCapture.isRecording()) {
+            CanvasCapture.stopRecord();
+            return;
+        }
+
+        let element = this.renderer.domElement;//document.getElementById('container');
+        console.log(element);
+        CanvasCapture.init(
+            element,
+            {
+                showRecDot: true,
+                verbose: true
+            },
+        );
+
+        CanvasCapture.beginVideoRecord({
+            format: CanvasCapture.WEBM,
+            fps: 60,
+            name: exportFilename(name),
+        });
+    }
+
+    /* GPGPU Stuff */
     #initComputeRenderer() {
         log("#initComputeRenderer");
 
@@ -457,29 +483,5 @@ export class GraphicsGPU {
 
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
-    }
-
-    capture(name) {
-        if (ENV?.record != true) return;
-
-        if (CanvasCapture.isRecording()) {
-            CanvasCapture.stopRecord();
-            return;
-        }
-
-        CanvasCapture.init(
-            //document.domElement,
-            this.renderer.domElement,
-            {
-                showRecDot: true,
-                verbose: true
-            },
-        );
-
-        CanvasCapture.beginVideoRecord({
-            format: CanvasCapture.WEBM,
-            fps: 60,
-            name: exportFilename(name),
-        });
     }
 }

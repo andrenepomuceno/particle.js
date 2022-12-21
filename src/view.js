@@ -788,10 +788,10 @@ function guiGeneratorSetup() {
     }
 
     const patternList = {
-        circle: "circle",
-        square: "square",
-        hexagon: "hexagon",
-        beam: "beam",
+        Circle: "circle",
+        Square: "square",
+        Hexagon: "hexagon",
+        Beam: "beam",
     };
     guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
         switch (val) {
@@ -808,12 +808,12 @@ function guiGeneratorSetup() {
     });
 
     const presetList = {
-        default: "default",
-        stdModel0: "stdModel0",
-        randomClone: "randomClone",
-        eBeam: "eBeam",
-        alphaBeam: "alphaBeam",
-        epnModel: "epnModel",
+        'Default': "default",
+        'Random Clone': "randomClone",
+        'E Beam': "eBeam",
+        'Alpha Beam': "alphaBeam",
+        'Quark Model': "stdModel0",
+        'Proton/Neutron Model': "epnModel",
     };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         console.log(val);

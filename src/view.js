@@ -968,7 +968,14 @@ function guiParametersSetup() {
     });
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
-    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', NuclearPotentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
+    const potentialType = {
+        'Sin[x]': NuclearPotentialType.default,
+        'Hooks Law': NuclearPotentialType.hooksLaw,
+        'Sin[a (1 - b^x)]': NuclearPotentialType.potential_powAX,
+        'Sin[-Exp[-a x]]': NuclearPotentialType.potential_exp,
+        'Sin[a x^b]': NuclearPotentialType.potential_powXR,
+    }
+    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
         simulationUpdatePhysics("potential", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {

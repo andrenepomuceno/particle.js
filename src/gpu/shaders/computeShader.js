@@ -11,8 +11,10 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
 
     let config = "";
     config += define("ENABLE_BOUNDARY", enableBoundary);
-    config += define("USE_DISTANCE1", useDistance1);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
+
+    config += define("USE_DISTANCE1", useDistance1);
+
     config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
     config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
     config += define("USE_POTENTIAL1", nuclearPotential === NuclearPotentialType.potential_exp);

@@ -27,9 +27,11 @@ export class FieldGPU {
         this.enabled = false;
     }
 
-    calcGridSize(gridPoints) {
-        let size;
-        let grid;
+    calcGridSize(width) {
+        let size = 0;
+        let grid = undefined;
+
+        log("width = " + width);
 
         switch (this.mode) {
             default:
@@ -38,8 +40,8 @@ export class FieldGPU {
                     let [w, _] = viewSize(this.graphics);
                     size = w;
                     grid = [
-                        gridPoints,
-                        Math.round(gridPoints / this.graphics.camera.aspect),
+                        width,
+                        Math.round(width / this.graphics.camera.aspect),
                         1
                     ];
                 }
@@ -50,17 +52,13 @@ export class FieldGPU {
                     let [w, h] = viewSize(this.graphics);
                     size = Math.min(w, h);
                     grid = [
-                        gridPoints,
-                        gridPoints,
-                        gridPoints
+                        width,
+                        width,
+                        width
                     ];
                 }
                 break;
         }
-
-        console.log(size);
-        console.log(grid);
-
         return {
             size,
             grid
@@ -116,11 +114,15 @@ export class FieldGPU {
         return len;
     }
 
-    checkGridSize(grid) {
-        let ret = this.calcGridSize(grid);
+    checkGridSize(width) {
+        log('checkGridSize');
+        log('width = ' + width);
+        let ret = this.calcGridSize(width);
         let probeCount = ret.grid[0] * ret.grid[1] * ret.grid[2];
-        console.log("probeCount = " + probeCount);
-        if (this.particleList.length + probeCount - this.objectList.length > this.graphics.maxParticles) {
+        log("probeCount = " + probeCount);
+        let total = this.particleList.length - this.objectList.length + probeCount;
+        log("total = " + total);
+        if (total > this.graphics.maxParticles) {
             return false;
         }
         return true;
@@ -129,7 +131,7 @@ export class FieldGPU {
     #populateField(center = new Vector3(), mode = "cube") {
         console.log("#populateField");
 
-        if (!this.checkGridSize(this.grid)) {
+        if (!this.checkGridSize(this.grid[0])) {
             let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
             log("error: field is to big " + probeCount);
             alert('Field is too big! ' + probeCount);
@@ -187,25 +189,8 @@ export class FieldGPU {
         if (this.objectList.length == 0) return;
 
         center.z -= 1.0;
-
-        switch (this.mode) {
-            case '2d':
-                {
-                    let [w, _] = viewSize(this.graphics);
-                    this.size = w;
-                }
-                break;
-
-            case '3d':
-                {
-                    let [w, h] = viewSize(this.graphics);
-                    this.size = Math.min(w, h);
-                }
-                break;
-
-            default:
-                return;
-        }
+        let ret = this.calcGridSize(this.grid[0]);
+        this.size = ret.size;
 
         let idx = 0;
         switch (this.populateMode) {

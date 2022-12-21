@@ -293,7 +293,7 @@ export function viewSize(graphics) {
     var vFOV = MathUtils.degToRad(graphics.camera.fov);
     var height = 2 * Math.tan(vFOV / 2) * graphics.controls.getDistance();
     var width = height * graphics.camera.aspect;
-    return [width, height];
+    return [Math.round(width), Math.round(height)];
 }
 
 export function shuffleArray(array) {

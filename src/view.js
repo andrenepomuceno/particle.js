@@ -295,7 +295,7 @@ let guiOptions = {
         fixed: false,
         generate: () => {
             guiGenerate.open();
-            particleGenerator();
+            particleGenerator(guiOptions.generator);
         },
         clear: () => {
             guiGenerate.close();
@@ -437,13 +437,6 @@ const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
 const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
 const ruler = new Ruler(graphics, guiOptions.advancedControls);
-
-function showCursor() {
-    guiOptions.controls.showCursor = true;
-    let radius = Math.max(3 * simulation.particleRadius, 10);
-    let thick = Math.max(0.1 * radius, 1);
-    mouseHelper.showCursor(graphics, radius, thick);
-}
 
 function scenarioSetup(idx) {
     log("setup " + idx);
@@ -1157,7 +1150,7 @@ function selectionPlace() {
     }
 
     if (selection.source == SourceType.generated) {
-        particleGenerator();
+        particleGenerator(guiOptions.generator);
     }
 
     if (selection.source == SourceType.simulation) {
@@ -1180,7 +1173,7 @@ function snapshot() {
 }
 
 let hexagonMap = new Map();
-function particleGenerator() {
+function particleGenerator(input) {
     log("generateParticles");
 
     function generateMass() {
@@ -1261,7 +1254,6 @@ function particleGenerator() {
         return v;
     }
 
-    let input = guiOptions.generator;
     let mass = parseFloat(input.mass);
     let charge = parseFloat(input.charge);
     let nuclearCharge = parseFloat(input.nuclearCharge);
@@ -1367,6 +1359,13 @@ function cameraTargetSet(pos) {
 function onWindowResize() {
     log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
     graphics.onWindowResize(window);
+}
+
+function showCursor() {
+    guiOptions.controls.showCursor = true;
+    let radius = Math.max(3 * simulation.particleRadius, 10);
+    let thick = Math.max(0.1 * radius, 1);
+    mouseHelper.showCursor(graphics, radius, thick);
 }
 
 function onPointerMove(event) {

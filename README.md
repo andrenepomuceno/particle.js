@@ -2,6 +2,8 @@
 
 # particle.js
 
+[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
+
 ## About
 
 A JavaScript 3D particle simulator using a simplified model of Physics.

@@ -2,7 +2,7 @@
 
 # particle.js
 
-[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
+[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=v0.48.0)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
 
 ## About
 

@@ -1031,14 +1031,19 @@ function guiFieldSetup() {
         }
     });
     guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
-        /*const grid = parseFloat(val);
+        const grid = Math.round(parseFloat(val));
         if (isNaN(grid)) {
             alert("Invalid value.");
             return;
         }
+        guiOptions.field.grid = grid;
         const f = simulation.field;
+        if (f.enabled == false) return;
         f.cleanup();
-        f.setup(f.mode, grid);*/
+        if (f.setup(f.mode, grid) == false) {
+            return;
+        }
+        simulation.drawParticles();
     });
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
         const f = simulation.field;

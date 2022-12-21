@@ -30,7 +30,13 @@ npm run build
 - Can export and import simulations.
 - Adjustable parameters during runtime.
 - Vector field visualization.
-- Interactive simulation and particles. Almost everything is editable.
+- Interactive simulation and particles. Almost everything is editable!
+- Sandbox Mode
+- And much more...
+
+## Youtube Playlist
+
+[Click Here](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
 
 ## Mathematical Model
 Main considerations:
@@ -86,7 +92,6 @@ Where $u_i$ is the final velocity of $P_i$.
 So, the force exerted by a collision is (a lot of omitted calculus here...)
 
 $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
-
 
 ## Special Thanks
 

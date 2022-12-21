@@ -402,3 +402,7 @@ export function createParticles(simulation, typeList, n, options) {
         simulation.physics.particleList.push(p);
     }
 }
+
+export function getCameraConstant(camera) {
+    return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
+}

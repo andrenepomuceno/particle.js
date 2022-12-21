@@ -19,14 +19,10 @@ if (ENV?.record === true) {
 }
 import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
-import { exportFilename, sphericalToCartesian } from '../helpers';
+import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
-
-function getCameraConstant(camera) {
-    return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
-}
 
 function log(msg) {
     console.log("Graphics (GPU): " + msg);

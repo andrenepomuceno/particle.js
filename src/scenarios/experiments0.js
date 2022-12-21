@@ -64,7 +64,7 @@ function hexagon3d(simulation) {
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 10);
+    simulation.field.probeConfig(0, 0, 10);
     //simulation.fieldSetup("2d", 100);
 
     let m = 1;
@@ -146,7 +146,7 @@ function hexagon3(simulation) {
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 10);
+    simulation.field.probeConfig(0, 0, 10);
     //simulation.fieldSetup("2d", 100);
 
     let m = 1;
@@ -232,7 +232,7 @@ function hexagon2(simulation) {
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 10);
+    simulation.field.probeConfig(0, 0, 10);
     //simulation.fieldSetup("2d", 100);
 
     let m = 1;
@@ -276,7 +276,7 @@ function hexagon1(simulation) {
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 10);
+    simulation.field.probeConfig(0, 0, 10);
     //simulation.fieldSetup("2d", 100);
 
     let m = 1;
@@ -346,7 +346,7 @@ function hexagon0(simulation) {
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    simulation.fieldProbeConfig(0, 0, 10);
+    simulation.field.probeConfig(0, 0, 10);
     //simulation.fieldSetup("2d", 100);
 
     let m = 1;
@@ -512,7 +512,7 @@ function magnecticForce(simulation) {
     physics.chargeConstant = 1;
     physics.minDistance2 = Math.pow(1e-6, 2);
 
-    simulation.fieldProbeConfig(0, 50, 0);
+    simulation.field.probeConfig(0, 50, 0);
     simulation.fieldSetup("2d", 40);
 
     let m = 1e30;

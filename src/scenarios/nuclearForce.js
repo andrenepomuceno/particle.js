@@ -34,9 +34,9 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e5;
 
-    //simulation.fieldProbeConfig(0, 0, 100);
-    //simulation.fieldProbeConfig(1e10, 0, 0);
-    //simulation.fieldProbeConfig(0, 1e9, 0);
+    //simulation.field.probeConfig(0, 0, 100);
+    //simulation.field.probeConfig(1e10, 0, 0);
+    //simulation.field.probeConfig(0, 1e9, 0);
 
     if (mode2d) simulation.fieldSetup("2d", 70);
     if (!mode2d) simulation.fieldSetup("3d", 16);

@@ -206,14 +206,6 @@ export class SimulationGPU {
         }
     }
 
-    fieldProbeConfig(m = 0, q = 0, nq = 0) {
-        log("fieldProbeConfig");
-
-        if (this.field) {
-            this.field.probeConfig(m, q, nq);
-        }
-    }
-
     fieldSetup(mode = "update", grid = 10) {
         log("fieldSetup");
         log("mode = " + mode);

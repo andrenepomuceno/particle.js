@@ -675,9 +675,6 @@ function guiParticleRefresh() {
         particleView.fixed = (particle.type == ParticleType.fixed);
 
         let color = particle.color;
-        if (particle.mesh) {
-            color = particle.mesh.material.color;
-        }
         particleView.color = "#" + color.getHexString();//arrayToString(color.toArray(), 2);
 
         //dynamic info

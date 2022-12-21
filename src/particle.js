@@ -22,7 +22,6 @@ export class Particle {
         this.velocity = new Vector3();
 
         this.force = new Vector3();
-        this.mesh = undefined;
         this.color = undefined;
         this.radius = undefined;
         this.uv = [];
@@ -45,7 +44,6 @@ export class Particle {
     }
 
     setColor(color = 0xffffff) {
-        if (this.mesh) this.mesh.material.color.set(color);
         this.color = new Color(color);
     }
 

@@ -3,6 +3,7 @@ import { calcListStatistics } from "./physics";
 import { ParticleType } from "./particle";
 const { Image } = require('image-js');
 import { exportCSV } from "./csv";
+import { Vector3 } from "three";
 
 function log(msg) {
     console.log("SelectionHelper: " + msg);
@@ -94,6 +95,26 @@ export class SelectionHelper {
                 Image.load(dataBuffer).then((image) => {
                     let topLeft = this.mouse0;
                     let bottomRight = this.mouse1;
+                    switch (this.mode) {
+                        case 'circle':
+                            {
+                                let p0 = new Vector3(this.mouse0.x, this.mouse0.y, 0);
+                                let p1 = new Vector3(this.mouse1.x, this.mouse1.y, 0);
+                                let diff = p1.clone().sub(p0);
+                                let center = diff.clone().multiplyScalar(0.5).add(p0);
+                                let radius = diff.length() / 2;
+                                topLeft.x = center.x - radius;
+                                topLeft.y = center.y - radius;
+                                bottomRight.x = center.x + radius;
+                                bottomRight.y = center.y + radius;
+                            }
+                            break;
+
+                        case 'box':
+                        default:
+                            break;
+                    }
+                    
                     let width = bottomRight.x - topLeft.x;
                     let height = topLeft.y - bottomRight.y;
                     image.crop({
@@ -109,7 +130,7 @@ export class SelectionHelper {
         }, 'image/png', 1);
     }
 
-    export() {
+    export(simulation) {
         log("export");
         if (this.list == undefined || this.list.length == 0) {
             alert("Please select particles first!");
@@ -117,7 +138,7 @@ export class SelectionHelper {
         }
         let finalName = exportFilename("selection_" + this.source);
         if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
-        downloadFile(exportCSV(this.simulation, this.list), finalName + ".csv", "text/plain;charset=utf-8");
+        downloadFile(exportCSV(simulation, this.list), finalName + ".csv", "text/plain;charset=utf-8");
     }
 
     import(imported) {
@@ -177,7 +198,7 @@ export class SelectionHelper {
         let diff = this.p1.clone().sub(this.p0);
         let center = diff.clone().multiplyScalar(0.5).add(this.p0);
         let max = Math.max(diff.x, diff.y);
-        let radius = max/2;
+        let radius = max / 2;
         let r2 = Math.pow(radius, 2);
 
         this.graphics.particleList.forEach(p => {

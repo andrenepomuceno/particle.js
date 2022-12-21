@@ -229,7 +229,7 @@ let guiOptions = {
         center: "",
         fixedPosition: false,
         export: () => {
-            selection.export();
+            selection.export(simulation);
         },
         import: () => {
             uploadCsv((name, content) => {

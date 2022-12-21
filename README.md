@@ -19,6 +19,8 @@ Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
 
 To run the test server on `localhost:8080`
 ```
+git clone https://github.com/andrenepomuceno/particle.js.git
+cd particle.js
 npm install
 npm run test
 ````

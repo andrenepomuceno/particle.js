@@ -88,7 +88,7 @@ function water(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 7000);
-    //simulation.fieldCleanup();
+    //;
     // physics.nuclearChargeConstant = 60;
     // physics.nuclearChargeRange = 512;
     let x = physics.nuclearChargeRange * 1.5;

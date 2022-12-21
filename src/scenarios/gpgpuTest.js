@@ -254,7 +254,7 @@ function GPU_blob1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e4);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 25);
     simulation.physics.boundaryDistance = 1e6;
     simulation.bidimensionalMode(false);
@@ -293,7 +293,7 @@ function GPU_nucleiGrid(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 10);
     simulation.physics.boundaryDistance = 1e5;
     simulation.bidimensionalMode(true);
@@ -426,7 +426,7 @@ function GPU_shootedBarrier(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 30e3);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 10);
     simulation.bidimensionalMode(false);
 

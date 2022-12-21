@@ -27,7 +27,7 @@ export const experiments0 = [
 function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    simulation.fieldCleanup();
+    
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -947,7 +947,7 @@ function easterEgg(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e7);
-    simulation.fieldCleanup();
+    
     simulation.setParticleRadius(3e1, 1e1);
     simulation.physics.boundaryDistance = 2e9;
 
@@ -1009,7 +1009,7 @@ function experiment2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e7);
-    simulation.fieldCleanup();
+    
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 
@@ -1070,7 +1070,7 @@ function experiment1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    simulation.fieldCleanup();
+    
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e8;
 
@@ -1128,7 +1128,7 @@ function experiment0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    simulation.fieldCleanup();
+    
     simulation.setParticleRadius(2e1, 1e1);
     simulation.physics.boundaryDistance = 1e8;
 

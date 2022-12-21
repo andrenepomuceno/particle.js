@@ -47,7 +47,7 @@ function cloud2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(5e3, 1e3);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -100,7 +100,7 @@ function cloud1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e4);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 25);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -153,7 +153,7 @@ function cloud0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -206,7 +206,7 @@ function triforce2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -260,7 +260,7 @@ function triforce1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1e7);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -313,7 +313,7 @@ function triforce0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -366,7 +366,7 @@ function charge_nuclearCharge_point0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -419,7 +419,7 @@ function GPU_point14(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -461,7 +461,7 @@ function GPU_point13(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -503,7 +503,7 @@ function GPU_point12(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -545,7 +545,7 @@ function GPU_point11(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -587,7 +587,7 @@ function GPU_point10(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -629,7 +629,7 @@ function GPU_blob9_posNQ(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e7);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -671,7 +671,7 @@ function GPU_blob8_posNQ_rng(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.2e7);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -713,7 +713,7 @@ function GPU_point7(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -755,7 +755,7 @@ function GPU_point6(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -797,7 +797,7 @@ function GPU_point5(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -839,7 +839,7 @@ function GPU_point4(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -881,7 +881,7 @@ function GPU_point3(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
@@ -923,7 +923,7 @@ function GPU_point2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 1.7e6);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     

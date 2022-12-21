@@ -11,7 +11,7 @@ export const tests = [
 function defaultParameters(simulation, cameraDistance = 5000) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
-    simulation.fieldCleanup();
+    ;
 
     graphics.cameraDistance = cameraDistance;
     graphics.cameraPhi = graphics.cameraTheta = 0;

@@ -219,22 +219,8 @@ export class SimulationGPU {
         log("mode = " + mode);
 
         if (this.field) {
-            let center = graphics.controls.target.clone();
+            let center = this.graphics.controls.target.clone();
             this.field.setup(mode, grid, center);
         }
-    }
-
-    fieldCleanup() {
-        log("fieldCleanup");
-
-        if (this.field)
-            this.field.cleanup();
-    }
-
-    fieldProbe(probe) {
-        log("fieldProbe");
-
-        if (this.field)
-            return this.field.probe(probe);
     }
 }

@@ -46,7 +46,7 @@ function crystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 15e3);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 10);
 
     let m = 1 / 10;
@@ -90,7 +90,7 @@ function randomBlob(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    simulation.fieldCleanup();
+    ;
     simulation.setParticleRadius(50, 10);
 
     let m = 1 / 10;
@@ -136,7 +136,7 @@ function molecule(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 5e3);
-    //simulation.fieldCleanup();
+    //;
 
     let m = 1;
     let q = 32;
@@ -199,7 +199,7 @@ function oppositChargeBall(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 10e3);
-    simulation.fieldCleanup();
+    ;
 
     let m = 1;
     let q = 1;
@@ -234,7 +234,7 @@ function sameChargeBall(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
-    simulation.fieldCleanup();
+    ;
 
     let m = 1;
     let q = 0;

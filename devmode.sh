@@ -1,5 +1,7 @@
 #!/bin/sh
 
+killall webpack
+
 npm run madge0 &
 npm run madge1 &
 npm run madge2 &

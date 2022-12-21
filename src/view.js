@@ -969,7 +969,7 @@ function guiParametersSetup() {
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
     const potentialType = {
-        'Sin[x]': NuclearPotentialType.default,
+        'Sin[a x]': NuclearPotentialType.default,
         'Hooks Law': NuclearPotentialType.hooksLaw,
         'Sin[a (1 - b^x)]': NuclearPotentialType.potential_powAX,
         'Sin[-Exp[-a x]]': NuclearPotentialType.potential_exp,

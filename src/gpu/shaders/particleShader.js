@@ -29,7 +29,7 @@ void main() {
         vec3 vel = texture2D( textureVelocity, uv ).xyz;
         vVelocity = vel;
     }
-
+    
     vColor = vec4(color, 1.0);
 }
 `;

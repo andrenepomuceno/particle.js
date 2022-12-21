@@ -429,7 +429,7 @@ const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
-    let radius = Math.max(2 * simulation.particleRadius, 10);
+    let radius = Math.max(3 * simulation.particleRadius, 10);
     let thick = Math.max(0.1 * radius, 1);
     mouseHelper.showCursor(graphics, radius, thick);
 }
@@ -1091,6 +1091,8 @@ function guiFieldSetup() {
     });
     guiField.add(guiOptions.field, 'fieldResize').name("Refresh [F]");
     guiField.add(guiOptions.field, 'close').name("Close");
+
+    collapseList.push(guiField);
 }
 
 function guiFieldRefresh() {

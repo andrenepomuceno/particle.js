@@ -345,6 +345,7 @@ export function simulationParticleAutoCleanup(threshold = 4) {
 
     let pMap = new Map();
     graphics.particleList.forEach((p) => {
+        if (p.type != ParticleType.default) return;
         let key = positionToKeyMap(p);
         if (pMap.has(key)) {
             pMap.get(key).count++;
@@ -355,6 +356,7 @@ export function simulationParticleAutoCleanup(threshold = 4) {
 
     let deleteList = [];
     graphics.particleList.forEach((p) => {
+        if (p.type != ParticleType.default) return;
         let key = positionToKeyMap(p);
         if (pMap.has(key)) {
             let c = pMap.get(key).count;

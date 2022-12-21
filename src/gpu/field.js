@@ -27,10 +27,12 @@ export class FieldGPU {
         this.enabled = false;
     }
 
-    setup(mode, gridPoints) {
+    setup(mode, gridPoints, center) {
         log("setup");
         log("mode = " + mode);
         log("gridPoints = " + gridPoints);
+
+        center.z -= 1.0;
 
         switch (mode) {
             default:
@@ -60,7 +62,6 @@ export class FieldGPU {
         }
 
         this.mode = mode;
-        let center = this.graphics.controls.target.clone();
         if (!this.#populateField(center)) {
             console.log("setup failed");
             return false;
@@ -138,6 +139,7 @@ export class FieldGPU {
         p.charge = this.probeParam.q;
         p.nuclearCharge = this.probeParam.nq;
         p.position = position;
+
         p.radius = this.elementSize();
         this.particleList.push(p);
         this.objectList.push(p);
@@ -149,6 +151,7 @@ export class FieldGPU {
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
         particle.position.set(x, y, z).add(center);
+
         particle.radius = this.elementSize();
     }
 
@@ -157,6 +160,8 @@ export class FieldGPU {
         log("center: ", center);
 
         if (this.objectList.length == 0) return;
+
+        center.z -= 1.0;
 
         switch (this.mode) {
             case '2d':

@@ -126,7 +126,7 @@ float sdArrow(vec3 p) {
     return min(d1, d2);
 }
 
-vec3 velocityColor(vec3 vel) {
+vec4 velocityColor(vec3 vel) {
     const float velMax = 1e3;
     const float velFade = 1e-2;
     float saturation = 1.0;
@@ -138,7 +138,7 @@ vec3 velocityColor(vec3 vel) {
     } else if (velAbs < velFade) {
         value = velAbs/velFade;
     }
-    return hsv2rgb(vec3(velAbs, saturation, value));
+    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
 void main() {
@@ -150,9 +150,9 @@ void main() {
         vec3 dir = normalize(vVelocity);
         coordinates = mat3(dir.x, dir.y, 0, -dir.y, dir.x, 0, 0, 0, 1) * coordinates; // rotate
 
-        vec3 color = velocityColor(vVelocity);
+        vec4 color = velocityColor(vVelocity);
         float d = sdArrow(coordinates);
-        gl_FragColor = filled(d, linewidth, antialias, vec4(color, 1.0));
+        gl_FragColor = filled(d, linewidth, antialias, color);
     }
 }
 `;

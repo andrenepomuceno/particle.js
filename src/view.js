@@ -414,8 +414,7 @@ let guiOptions = {
         nq: '1',
         grid: '50',
         fieldResize: () => {
-            let center = graphics.camera.position.clone();
-            center.z = 0.0;
+            let center = graphics.controls.target.clone();
             simulation.field.resize(center);
         },
         close: () => {
@@ -591,7 +590,7 @@ function guiControlsSetup() {
 
     guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
-    guiControls.add(guiOptions.controls, 'import').name("Import simulation");
+    guiControls.add(guiOptions.controls, 'import').name("Import simulation [I]");
     guiControls.add(guiOptions.controls, 'deleteAll').name("Delete all particles [DEL]");
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
@@ -1013,23 +1012,30 @@ function guiAdvancedControlsSetup() {
     collapseList.push(guiAdvancedControls);
 }
 
+function fieldInit(grid) {
+    let center = graphics.controls.target.clone();
+    if (!simulation.field.setup(simulation.field.mode, grid, center)) {
+        return false;
+    }
+    simulation.drawParticles();
+    return true;
+}
+
 function guiFieldSetup() {
     guiField.add(guiOptions.field, 'enabled').name("Enabled").listen().onFinishChange(val => {
-        const f = simulation.field;
         guiOptions.field.enabled = false;
         if (val == false) {
-            simulationDeleteParticleList(f.objectList);
-            f.cleanup();
+            simulationDeleteParticleList(simulation.field.objectList);
+            simulation.field.cleanup();
         } else {
             let grid = Math.round(parseFloat(guiOptions.field.grid));
             if (isNaN(grid)) {
                 alert("Invalid value.");
                 return;
             }
-            if (!f.setup(f.mode, grid)) {
+            if (!fieldInit(grid)) {
                 return;
             }
-            simulation.drawParticles();
             guiOptions.field.enabled = true;
         }
     });
@@ -1040,14 +1046,12 @@ function guiFieldSetup() {
             return;
         }
         guiOptions.field.grid = grid;
-        const f = simulation.field;
-        if (f.enabled == false || f.objectList.length == 0) return;
-        simulationDeleteParticleList(f.objectList);
-        f.cleanup();
-        if (f.setup(f.mode, grid) == false) {
+        if (simulation.field.enabled == false || simulation.field.objectList.length == 0) return;
+        simulationDeleteParticleList(simulation.field.objectList);
+        simulation.field.cleanup();
+        if (!fieldInit(grid)) {
             return;
         }
-        simulation.drawParticles();
     });
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
         const f = simulation.field;

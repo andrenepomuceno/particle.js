@@ -214,12 +214,14 @@ export class SimulationGPU {
         }
     }
 
-    fieldSetup(mode = "update", grid = 10, size = 1e3) {
+    fieldSetup(mode = "update", grid = 10) {
         log("fieldSetup");
         log("mode = " + mode);
 
-        if (this.field)
-            this.field.setup(mode, grid, size);
+        if (this.field) {
+            let center = graphics.controls.target.clone();
+            this.field.setup(mode, grid, center);
+        }
     }
 
     fieldCleanup() {

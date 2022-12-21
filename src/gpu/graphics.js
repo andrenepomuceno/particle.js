@@ -17,7 +17,6 @@ let CanvasCapture = null;
 if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
 }
-
 import { computePosition, generateComputeVelocity } from './shaders/computeShader';
 import { particleVertexShader, particleFragmentShader } from './shaders/particleShader';
 import { exportFilename, sphericalToCartesian } from '../helpers';

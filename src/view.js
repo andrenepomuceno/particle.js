@@ -86,15 +86,15 @@ let guiOptions = {
             nextFrame = true;
         },
         reset: function () {
-            setup();
+            scenarioSetup();
         },
         next: function () {
             if (simulationIdx < scenariosList.length - 1)
-                setup(++simulationIdx);
+                scenarioSetup(++simulationIdx);
         },
         previous: function () {
             if (simulationIdx > 0)
-                setup(--simulationIdx);
+                scenarioSetup(--simulationIdx);
         },
         snapshot: function () {
             snapshot();
@@ -137,7 +137,7 @@ let guiOptions = {
         },
         home: function () {
             simulationIdx = 0;
-            setup(simulationIdx);
+            scenarioSetup(simulationIdx);
         },
         mouseHint: () => {
             alert(
@@ -154,7 +154,7 @@ let guiOptions = {
             }
         },
         sandbox: () => {
-            setup(-1);
+            scenarioSetup(-1);
         },
         hideOverlay: () => {
             if (hideOverlay == false) {
@@ -437,7 +437,7 @@ function showCursor() {
     mouseHelper.showCursor(graphics, radius, thick);
 }
 
-function setup(idx) {
+function scenarioSetup(idx) {
     log("setup " + idx);
     guiSelectionClose();
     guiParticleClose();
@@ -457,7 +457,7 @@ function setup(idx) {
     }
 }
 
-export function guiSetup() {
+export function viewSetup() {
     window.onresize = onWindowResize;
     document.addEventListener("keydown", e => keyboard.onKeyDown(keyboard, e));
     document.addEventListener("keyup", e => keyboard.onKeyUp(keyboard, e));
@@ -484,7 +484,7 @@ export function guiSetup() {
     guiAdvancedControlsSetup();
     guiFieldSetup();
 
-    setup();
+    scenarioSetup();
     animate();
 }
 
@@ -897,7 +897,7 @@ function guiParametersSetup() {
             return;
         }
         graphics.setMaxParticles(val);
-        setup();
+        scenarioSetup();
     });
 
     const guiParametersConsts = guiParameters.addFolder("[+] Constants");

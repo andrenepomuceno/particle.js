@@ -73,7 +73,7 @@ export class SelectionHelper {
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
         if (this.#readParticleData(mode) > 0) {
-            this.#snapshot();
+            this.#snapshot(mode);
             this.source = SourceType.simulation;
             this.guiRefresh();
             this.guiSelection.open();
@@ -87,7 +87,7 @@ export class SelectionHelper {
         this.started = false;
     }
 
-    #snapshot() {
+    #snapshot(mode) {
         log("#snapshot");
         this.graphics.update();
         this.graphics.renderer.domElement.toBlob((blob) => {
@@ -95,7 +95,9 @@ export class SelectionHelper {
                 Image.load(dataBuffer).then((image) => {
                     let topLeft = this.mouse0;
                     let bottomRight = this.mouse1;
-                    switch (this.mode) {
+                    let width = bottomRight.x - topLeft.x;
+                    let height = topLeft.y - bottomRight.y;
+                    switch (mode) {
                         case 'circle':
                             {
                                 let p0 = new Vector3(this.mouse0.x, this.mouse0.y, 0);
@@ -103,10 +105,13 @@ export class SelectionHelper {
                                 let diff = p1.clone().sub(p0);
                                 let center = diff.clone().multiplyScalar(0.5).add(p0);
                                 let radius = diff.length() / 2;
+
                                 topLeft.x = center.x - radius;
-                                topLeft.y = center.y - radius;
+                                topLeft.y = center.y + radius;
                                 bottomRight.x = center.x + radius;
-                                bottomRight.y = center.y + radius;
+                                bottomRight.y = center.y - radius;
+                                width = 2 * radius;
+                                height = 2 * radius;
                             }
                             break;
 
@@ -114,9 +119,7 @@ export class SelectionHelper {
                         default:
                             break;
                     }
-                    
-                    let width = bottomRight.x - topLeft.x;
-                    let height = topLeft.y - bottomRight.y;
+
                     image.crop({
                         x: topLeft.x,
                         y: bottomRight.y,

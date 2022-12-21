@@ -49,7 +49,7 @@ export class Ruler {
             case 'circle':
                 this.selection = new LineSegments(
                     new WireframeGeometry(
-                        new RingGeometry(arrowWidth * (1 - arrowHeadLen) / 2, arrowWidth * (1 + arrowHeadLen) / 2, 32)
+                        new RingGeometry(arrowWidth/2 - arrowWidth * arrowHeadLen, arrowWidth/2, 32)
                     ),
                 );
                 break;
@@ -84,7 +84,7 @@ export class Ruler {
 
             case 'circle':
                 {
-                    let max = Math.max(diff.x, diff.y);
+                    let max = Math.max(Math.abs(diff.x), Math.abs(diff.y));
                     this.selection.scale.x = max / arrowWidth;
                     this.selection.scale.y = max / arrowWidth;
                 }

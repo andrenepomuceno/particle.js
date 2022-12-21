@@ -222,13 +222,6 @@ export class SimulationGPU {
             this.field.setup(mode, grid, size);
     }
 
-    fieldUpdate() {
-        //log("fieldUpdate");
-
-        if (this.field)
-            this.field.update();
-    }
-
     fieldCleanup() {
         log("fieldCleanup");
 

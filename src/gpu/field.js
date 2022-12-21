@@ -1,5 +1,4 @@
 import { Vector3 } from 'three';
-import { simulationDeleteParticleList } from '../core';
 import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { Particle, ParticleType } from '../particle.js';
 
@@ -82,15 +81,8 @@ export class FieldGPU {
         }
     }
 
-    update() {
-        log("update");
-        this.simulation.drawParticles();
-    }
-
     cleanup() {
         log("cleanup");
-
-        simulationDeleteParticleList(this.objectList)
         this.objectList = [];
         this.enabled = false;
     }
@@ -201,6 +193,6 @@ export class FieldGPU {
                 break;
         }
 
-        this.update();
+        this.simulation.drawParticles();
     }
 }

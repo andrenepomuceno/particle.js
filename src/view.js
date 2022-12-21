@@ -1018,6 +1018,7 @@ function guiFieldSetup() {
         const f = simulation.field;
         guiOptions.field.enabled = false;
         if (val == false) {
+            simulationDeleteParticleList(f.objectList);
             f.cleanup();
         } else {
             let grid = Math.round(parseFloat(guiOptions.field.grid));
@@ -1040,7 +1041,8 @@ function guiFieldSetup() {
         }
         guiOptions.field.grid = grid;
         const f = simulation.field;
-        if (f.enabled == false) return;
+        if (f.enabled == false || f.objectList.length == 0) return;
+        simulationDeleteParticleList(f.objectList);
         f.cleanup();
         if (f.setup(f.mode, grid) == false) {
             return;

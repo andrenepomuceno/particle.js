@@ -8,9 +8,9 @@
     "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env version='dev mode'",
     "record": "webpack serve --config webpack-dev.config.js --env maxParticles=50e3 --env version='record mode' --env record",
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env production",
-    "madge0": "madge --image graph.svg src",
-    "madge1": "madge --include-npm --image graph.svg src",
-    "madge2": "madge --image graph.svg src -x 'scenarios/.*.js|cpu/.*.js'"
+    "madge0": "madge --image graph0.svg src",
+    "madge1": "madge --include-npm --image graph1.svg src",
+    "madge2": "madge --image graph2.svg src -x 'scenarios/.*.js|cpu/.*.js'"
   },
   "repository": {
     "type": "git",

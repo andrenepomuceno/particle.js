@@ -414,7 +414,9 @@ let guiOptions = {
         nq: '1',
         grid: '50',
         fieldResize: () => {
-            simulation.field.resize();
+            let center = graphics.camera.position.clone();
+            center.z = 0.0;
+            simulation.field.resize(center);
         },
         close: () => {
             guiField.close();
@@ -1048,6 +1050,7 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
         const f = simulation.field;
         const m = parseFloat(val);
+        guiOptions.field.m = '0';
         if (isNaN(m)) {
             alert("Invalid value.");
             return;
@@ -1059,6 +1062,7 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const q = parseFloat(val);
+        guiOptions.field.q = '0';
         if (isNaN(q)) {
             alert("Invalid value.");
             return;
@@ -1070,6 +1074,7 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
         const f = simulation.field;
         const nq = parseFloat(val);
+        guiOptions.field.nq = '0';
         if (isNaN(nq)) {
             alert("Invalid value.");
             return;

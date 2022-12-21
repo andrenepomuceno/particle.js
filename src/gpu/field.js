@@ -112,7 +112,8 @@ export class FieldGPU {
         if (this.particleList.length + probeCount > this.graphics.maxParticles) {
             log("error: too many probes: " + probeCount);
             log("free: " + (this.graphics.maxParticles - this.particleList.length));
-            alert("Too many particles!");
+            alert("Too many particles!\n" + 
+            "Free space needed: " + probeCount);
             return false;
         }
         console.log("probeCount = " + probeCount);
@@ -150,17 +151,18 @@ export class FieldGPU {
         this.objectList.push(p);
     }
 
-    #updateFieldElement(idx, x, y, z) {
+    #updateFieldElement(idx, x, y, z, center = new Vector3()) {
         let particle = this.objectList[idx++];
         particle.mass = this.probeParam.m;
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
-        particle.position.set(x, y, z);
+        particle.position.set(x, y, z).add(center);
         particle.radius = this.elementSize();
     }
 
-    resize() {
+    resize(center) {
         log("resize");
+        log("center: ", center);
 
         if (this.objectList.length == 0) return;
 
@@ -187,14 +189,14 @@ export class FieldGPU {
         switch (this.populateMode) {
             case "sphere":
                 sphereGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z);
+                    this.#updateFieldElement(idx++, x, y, z, center);
                 }, this.size, this.grid);
                 break;
 
             case "cube":
             default:
                 cubeGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z);
+                    this.#updateFieldElement(idx++, x, y, z, center);
                 }, this.size, this.grid);
                 break;
         }

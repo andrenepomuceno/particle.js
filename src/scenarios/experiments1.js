@@ -50,7 +50,7 @@ function electronProtonNeutron(simulation) {
     physics.nuclearChargeRange = 1e3;
     physics.boundaryDistance = 50 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 40.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
     graphics.cameraSetup();
     simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
@@ -62,7 +62,7 @@ function electronProtonNeutron(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    simulation.field.setup("2d", 100);
+    //simulation.field.setup("2d", 100);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },

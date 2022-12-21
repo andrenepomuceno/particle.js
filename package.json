@@ -25,12 +25,12 @@
   "dependencies": {
     "dat.gui": "^0.7.9",
     "image-js": "^0.35.2",
-    "three": "^0.143.0"
+    "three": "^0.147.0"
   },
   "devDependencies": {
     "canvas-capture": "^2.0.5",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.10.0"
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
   }
 }

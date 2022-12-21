@@ -6,7 +6,7 @@
 
 ## About
 
-A JavaScript 3D particle simulator using a simplified model of Physics.
+A JavaScript 3D n-body particle simulator using a simplified model of Physics.
 
 Try to simulate 3 forces on point-like particles:
 - Gravity

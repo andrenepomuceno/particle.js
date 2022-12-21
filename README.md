@@ -85,7 +85,7 @@ $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
 ### Collisions
 
-A collision occurs when the distance between two particles is less than a minimal allowed distance $d_min$.
+A collision occurs when the distance between two particles is less than a minimal allowed distance $d_{min}$.
 
 In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
 

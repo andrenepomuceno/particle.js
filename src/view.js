@@ -694,8 +694,8 @@ function guiParticleRefresh() {
 
 function guiSelectionSetup() {
     const patternList = {
-        box: 'box',
-        circle: 'circle',
+        Box: 'box',
+        Circle: 'circle',
     };
     guiSelection.add(guiOptions.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
         switch (val) {

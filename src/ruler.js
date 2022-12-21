@@ -74,9 +74,22 @@ export class Ruler {
 
         let center = diff.clone().multiplyScalar(0.5).add(this.p0);
         this.selection.position.set(center.x, center.y, center.z);
-        let max = Math.max(diff.x, diff.y);
-        this.selection.scale.x = max / arrowWidth;
-        this.selection.scale.y = max / arrowWidth;
+
+        switch (this.mode) {
+            case 'box':
+            default:
+                this.selection.scale.x = diff.x / arrowWidth;
+                this.selection.scale.y = diff.y / arrowWidth;
+                break;
+
+            case 'circle':
+                {
+                    let max = Math.max(diff.x, diff.y);
+                    this.selection.scale.x = max / arrowWidth;
+                    this.selection.scale.y = max / arrowWidth;
+                }
+                break;
+        }
     }
 
     finish(event) {

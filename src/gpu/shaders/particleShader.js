@@ -205,7 +205,7 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
 
 void mainImage()
 {
-    vec3 rayOrigin = vec3(0.0, 0.0, 3.5);
+    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     vec3 result = vec3(0.0);
@@ -217,16 +217,12 @@ void mainImage()
         for (int x = 0; x < sampleCount.x; x++)
         {
             vec2 uv = gl_PointCoord.xy + (vec2(float(x), float(y)) / vec2(sampleCount) - 0.5);
-            //uv = uv / resolution.xy;
-            //uv = (uv * 2.0) - 1.0;
-            //uv.x *= resolution.x / resolution.y;
             vec3 rayDirection = normalize(vec3(uv, 1.5));
             rayDirection = cameraTransform * rayDirection;
             float t = raycast(rayOrigin, rayDirection);
             vec3 color = vec3(0.0);
             if (t > 0.0)
             {
-                // same style that Inigo Quilez uses in his shaders
                 vec3 position = rayOrigin + rayDirection * t;
                 vec3 lightDirection = vec3(1.0);
                 vec3 n = normal(position);

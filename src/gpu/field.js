@@ -72,7 +72,7 @@ export class FieldGPU {
 
         this.mode = mode;
 
-        center.z -= 1.0;
+        center.z -= 10.0;
 
         let ret = this.calcGridSize(grid);
         this.size = ret.size;
@@ -188,7 +188,7 @@ export class FieldGPU {
 
         if (this.objectList.length == 0) return;
 
-        center.z -= 1.0;
+        center.z -= 10.0;
         let ret = this.calcGridSize(this.grid[0]);
         this.size = ret.size;
 

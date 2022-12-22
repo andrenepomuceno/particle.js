@@ -1069,7 +1069,7 @@ function fieldEnable(val) {
 }
 
 function guiFieldSetup() {
-    guiField.add(guiOptions.field, 'enabled').name("Enable").listen().onFinishChange(val => {
+    guiField.add(guiOptions.field, 'enabled').name("Enable [E]").listen().onFinishChange(val => {
         fieldEnable(val);
     });
     guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen();

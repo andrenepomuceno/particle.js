@@ -33,12 +33,18 @@ export class Keyboard {
 
         this.onKeyDownMap.set('x', { callback: this.guiOptions.selection.clone });
         this.onKeyDownMap.set('d', { callback: this.guiOptions.selection.delete });
-        
+
         this.onKeyDownMap.set('b', { callback: this.guiOptions.advancedControls.zeroVelocity });
         this.onKeyDownMap.set('t', { callback: this.guiOptions.advancedControls.dampVelocity });
         this.onKeyDownMap.set('y', { callback: this.guiOptions.advancedControls.kickVelocity });
         this.onKeyDownMap.set('u', { callback: this.guiOptions.advancedControls.particleCleanup });
 
+        this.onKeyDownMap.set('e', {
+            callback: () => {
+                this.guiOptions.field.enabled = !this.guiOptions.field.enabled;
+                this.guiOptions.field.enable();
+            }
+        });
         this.onKeyDownMap.set('f', { callback: this.guiOptions.field.fieldResize });
     }
 

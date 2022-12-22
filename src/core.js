@@ -4,7 +4,7 @@ import { GraphicsGPU } from './gpu/graphics'
 import { FieldGPU } from './gpu/field';
 import { Vector3 } from 'three';
 import { decodeVector3 } from './helpers.js';
-import { generateComputeVelocity } from './gpu/shaders/computeShader.js';
+import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { scenariosList } from './scenarios.js';
 import { ParticleType } from './particle.js';
 import { parseCsv } from './csv.js';

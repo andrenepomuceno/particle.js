@@ -207,10 +207,9 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
     return 0.0;
 }
 
-void arrow3d()
-{
+void arrow3d() {
     mat3 eyeTransform = lookAtMatrix(cameraPosition, vPos);
-    vec3 rayOrigin = 4.0 * vec3(0.0, 0.0, 1.0);
+    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
     rayOrigin = eyeTransform * rayOrigin;
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
@@ -279,4 +278,3 @@ void main() {
     }
 }
 `;
-

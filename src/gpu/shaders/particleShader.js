@@ -164,12 +164,12 @@ float sdf(vec3 position) {
     float angleZ = -asin(dir.z);
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
-    float baseRadius = 0.02; 
-    float tipRadius = 0.15;
-    float tipHeight = 0.4;
-    float cornerRadius = 0.02;
-    vec3 start = vec3(-0.7, 0.0, 0.0);
-    vec3 end = vec3(0.7, 0.0, 0.0);
+    float baseRadius = 0.15; 
+    float tipRadius = 2.0 * baseRadius;
+    float tipHeight = 0.7;
+    float cornerRadius = 0.05;
+    vec3 start = vec3(-1.0, 0.0, 0.0);
+    vec3 end = vec3(1.0, 0.0, 0.0);
     float d = arrow(position, start, end, baseRadius, tipRadius, tipHeight);
     d -= cornerRadius;
     return d;
@@ -205,12 +205,13 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
 
 void mainImage()
 {
-    vec3 rayOrigin = vec3(0.0, 0.0, 2);
+    vec3 rayOrigin = vec3(0.0, 0.0, 3.5);
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     vec3 result = vec3(0.0);
     const float quality = 1.0;
     ivec2 sampleCount = ivec2(quality, quality);
+    vec3 mainColor = velocityColor(vVelocity).xyz;
     for (int y = 0; y < sampleCount.y; y++)
     {
         for (int x = 0; x < sampleCount.x; x++)
@@ -227,13 +228,13 @@ void mainImage()
             {
                 // same style that Inigo Quilez uses in his shaders
                 vec3 position = rayOrigin + rayDirection * t;
-                vec3 lightDirection = vec3(0.57735);
+                vec3 lightDirection = vec3(1.0);
                 vec3 n = normal(position);
                 float diffuseAngle = max(dot(n, lightDirection), 0.0);
                 // diffuse
-                color = velocityColor(vVelocity).xyz * diffuseAngle; // arrow
+                color = mainColor * diffuseAngle; // arrow
                 // ambient
-                //color += vec3(1.0, 1.0, 1.0) * ((n.y + 1.0) * 0.5); // light
+                color += vec3(0.01) * ((n.y + 1.0) * 0.5); // light
             }
             // gamma
             color = sqrt(color);
@@ -241,7 +242,6 @@ void mainImage()
         }
     }
     result /= float(sampleCount.x * sampleCount.y);
-    //result = vec3(0.5);
     gl_FragColor = vec4(result, 1.0);
 }
 

@@ -325,6 +325,12 @@ export function decodeVector3(value) {
         console.log("error decoding position");
         return undefined;
     }
+    for (let i = 0; i < split.length; ++i) {
+        if (isNaN(parseFloat(split[i])) == true) {
+            console.log("error decoding position");
+            return undefined;
+        }
+    }
     let vec = {
         x: parseFloat(split[0]),
         y: parseFloat(split[1]),

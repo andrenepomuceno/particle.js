@@ -8,6 +8,7 @@ uniform float cameraConstant;
 
 varying vec4 vColor;
 flat varying float vType;
+flat varying vec3 vPos;
 flat varying vec3 vVelocity;
 
 #define UNDEFINED -1.0
@@ -28,6 +29,7 @@ void main() {
     if (vType == PROBE) {
         vec3 vel = texture2D( textureVelocity, uv ).xyz;
         vVelocity = vel;
+        vPos = pos;
     }
     
     vColor = vec4(color, 1.0);
@@ -46,6 +48,7 @@ const float antialias = 0.01;
 
 varying vec4 vColor;
 flat varying float vType;
+flat varying vec3 vPos;
 flat varying vec3 vVelocity;
 
 uniform vec2 resolution;
@@ -161,7 +164,7 @@ float sdf(vec3 position) {
     vec3 dir = normalize(vVelocity);
 
     float angle = atan(dir.y, dir.x);
-    position = rotate(position, vec3(0.0, 0.0, -1.0), angle);
+    position = rotate(position, vec3(0.0, 0.0, 1.0), angle);
     float angleZ = -asin(dir.z);
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
@@ -169,8 +172,8 @@ float sdf(vec3 position) {
     float tipRadius = 0.35;
     float tipHeight = 0.7;
     float cornerRadius = 0.05;
-    vec3 start = vec3(-1.0, 0.0, 0.0);
-    vec3 end = vec3(1.0, 0.0, 0.0);
+    vec3 start = vec3(1.0, 0.0, 0.0);
+    vec3 end = vec3(-1.0, 0.0, 0.0);
     float d = arrow(position, start, end, baseRadius, tipRadius, tipHeight);
     d -= cornerRadius;
     return d;
@@ -188,7 +191,7 @@ vec3 normal(vec3 position) {
 
 float raycast(vec3 rayOrigin, vec3 rayDirection) {
     int stepCount = 128 * 1;
-    float maximumDistance = 5.0;
+    float maximumDistance = 10.0;
     float t = 0.0;
     for (int i = 0; i < stepCount; i++) {
         if (t > maximumDistance) {
@@ -206,7 +209,9 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
 
 void arrow3d()
 {
-    vec3 rayOrigin = 4.0 * normalize(cameraPosition);
+    mat3 eyeTransform = lookAtMatrix(cameraPosition, vPos);
+    vec3 rayOrigin = 4.0 * vec3(0.0, 0.0, 1.0);
+    rayOrigin = eyeTransform * rayOrigin;
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     vec3 result = vec3(0.0);
@@ -225,7 +230,7 @@ void arrow3d()
             if (t > 0.0)
             {
                 vec3 position = rayOrigin + rayDirection * t;
-                vec3 lightDirection = vec3(0.57);
+                vec3 lightDirection = vec3(0.0, 0.0, -1.0);
                 vec3 n = normal(position);
                 float diffuseAngle = max(dot(n, lightDirection), 0.0);
                 // diffuse

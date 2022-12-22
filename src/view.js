@@ -78,6 +78,7 @@ let guiOptions = {
         mode2D: false,
         folderName: "",
         velocity: "",
+        cameraNormal: '',
     },
     controls: {
         pauseResume: function () {
@@ -118,7 +119,7 @@ let guiOptions = {
         },
         xyCamera: function () {
             followParticle = false;
-            cameraTargetSet(new Vector3());
+            cameraTargetSet(graphics.controls.target);
         },
         colorMode: function () {
             (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
@@ -497,9 +498,6 @@ function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'folderName').name('Folder').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
     guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
-        simulation.bidimensionalMode(val);
-    });
     guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
         let p = decodeVector3(val);
         if (p == undefined) {
@@ -510,9 +508,10 @@ function guiInfoSetup() {
         graphics.controls.target.set(p.x, p.y, 0);
         graphics.controls.update();
     });
+    guiInfo.add(guiOptions.info, 'cameraNormal').name('Normal').listen();
     guiInfo.open();
 
-    const guiInfoMore = guiInfo.addFolder("[+] More Information...");
+    const guiInfoMore = guiInfo.addFolder("[+] Statistics");
     guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'velocity').name('Velocity (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
@@ -522,7 +521,11 @@ function guiInfoSetup() {
         simulationUpdateParticleList("charge", val);
     });
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
-    guiInfoMore.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
+
+    guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
+        simulation.bidimensionalMode(val);
+    });
+    guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
         autoRefresh = val;
     });
 
@@ -550,13 +553,9 @@ function guiInfoRefresh(now) {
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(2);
     guiOptions.info.charge = totalCharge.toExponential(2);
-    //guiOptions.info.radius = r.toExponential(2);
-    //guiOptions.info.cameraDistance = graphics.controls.getDistance().toExponential(2);
-    let position = graphics.camera.position.toArray();
-    position.forEach((val, idx) => {
-        position[idx] = val.toExponential(1);
-    });
-    guiOptions.info.cameraPosition = position;
+    guiOptions.info.cameraPosition = floatArrayToString(graphics.camera.position.toArray(), 1);
+    let tmp = graphics.controls.target.clone().sub(graphics.camera.position).normalize().toArray();
+    guiOptions.info.cameraNormal = arrayToString(tmp, 1);
     guiOptions.info.mode2D = simulation.mode2D;
 
     let energy = avgVelocity;
@@ -652,14 +651,14 @@ function guiParticleSetup() {
     });
     //guiParticleVariables.open();
 
-    const guiParticleActions = guiParticle.addFolder("[+] Actions");
-    guiParticleActions.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
-    guiParticleActions.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticleActions.add(guiOptions.particle, 'reset').name('Reset Attributes');
+    //const guiParticleActions = guiParticle.addFolder("[+] Actions");
+    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
+    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
+    guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
     guiParticle.add(guiOptions.particle, 'close').name('Close');
 
     collapseList.push(guiParticle);
-    collapseList.push(guiParticleActions);
+    //collapseList.push(guiParticleActions);
     collapseList.push(guiParticleVariables);
     collapseList.push(guiParticleProperties);
 }

@@ -65,6 +65,15 @@ export class FieldGPU {
         }
     }
 
+    probeConfig(m = 1, q = 1, nq = 1) {
+        log("probeConfig");
+        this.probeParam = {
+            m: m,
+            q: q,
+            nq: nq
+        }
+    }
+
     setup(mode, grid, center = new Vector3()) {
         log("setup");
         log("mode = " + mode);
@@ -72,12 +81,11 @@ export class FieldGPU {
 
         this.mode = mode;
 
-        center.z -= 10.0;
-
         let ret = this.calcGridSize(grid);
         this.size = ret.size;
         this.grid = ret.grid;
 
+        center.z -= 5.0;
         if (!this.#populateField(center)) {
             console.log("setup failed");
             return false;
@@ -89,13 +97,33 @@ export class FieldGPU {
         return true;
     }
 
-    probeConfig(m = 1, q = 1, nq = 1) {
-        log("probeConfig");
-        this.probeParam = {
-            m: m,
-            q: q,
-            nq: nq
+    resize(center) {
+        log("resize");
+        log("center: ", center);
+
+        if (this.objectList.length == 0) return;
+
+        let ret = this.calcGridSize(this.grid[0]);
+        this.size = ret.size;
+        center.z -= 5.0;
+
+        let idx = 0;
+        switch (this.populateMode) {
+            case "sphere":
+                sphereGenerator((x, y, z) => {
+                    this.#updateFieldElement(idx++, x, y, z, center);
+                }, this.size, this.grid);
+                break;
+
+            case "cube":
+            default:
+                cubeGenerator((x, y, z) => {
+                    this.#updateFieldElement(idx++, x, y, z, center);
+                }, this.size, this.grid);
+                break;
         }
+
+        this.simulation.drawParticles();
     }
 
     cleanup() {
@@ -180,34 +208,5 @@ export class FieldGPU {
         particle.position.set(x, y, z).add(center);
 
         particle.radius = this.elementSize();
-    }
-
-    resize(center) {
-        log("resize");
-        log("center: ", center);
-
-        if (this.objectList.length == 0) return;
-
-        center.z -= 10.0;
-        let ret = this.calcGridSize(this.grid[0]);
-        this.size = ret.size;
-
-        let idx = 0;
-        switch (this.populateMode) {
-            case "sphere":
-                sphereGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z, center);
-                }, this.size, this.grid);
-                break;
-
-            case "cube":
-            default:
-                cubeGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z, center);
-                }, this.size, this.grid);
-                break;
-        }
-
-        this.simulation.drawParticles();
     }
 }

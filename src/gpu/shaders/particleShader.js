@@ -36,6 +36,20 @@ void main() {
 
 export const particleFragmentShader = /* glsl */ `
 
+#define UNDEFINED -1.0
+#define DEFAULT 0.0
+#define PROBE 1.0
+#define FIXED 2.0
+
+const float linewidth = 0.05;
+const float antialias = 0.01;
+
+varying vec4 vColor;
+flat varying float vType;
+flat varying vec3 vVelocity;
+
+uniform vec2 resolution;
+
 vec3 hsv2rgb(vec3 c)
 {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -104,19 +118,6 @@ float arrow(vec3 position, vec3 start, vec3 end, float baseRadius, float tipRadi
     return sqrt(min(min(min(dot(d1, d1), dot(d2, d2)), dot(d3, d3)), dot(d4, d4))) * sign(s);
 }
 
-#define UNDEFINED -1.0
-#define DEFAULT 0.0
-#define PROBE 1.0
-#define FIXED 2.0
-
-const float linewidth = 0.05;
-const float antialias = 0.01;
-
-varying vec4 vColor;
-flat varying float vType;
-flat varying vec3 vVelocity;
-uniform vec2 resolution;
-
 vec4 velocityColor(vec3 vel) {
     const float velMax = 1e3;
     const float velFade = 1e-2;
@@ -165,7 +166,7 @@ float sdf(vec3 position) {
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
     float baseRadius = 0.15; 
-    float tipRadius = 2.0 * baseRadius;
+    float tipRadius = 0.35;
     float tipHeight = 0.7;
     float cornerRadius = 0.05;
     vec3 start = vec3(-1.0, 0.0, 0.0);
@@ -203,9 +204,9 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
     return 0.0;
 }
 
-void mainImage()
+void arrow3d()
 {
-    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
+    vec3 rayOrigin = 4.0 * normalize(cameraPosition);
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     vec3 result = vec3(0.0);
@@ -224,7 +225,7 @@ void mainImage()
             if (t > 0.0)
             {
                 vec3 position = rayOrigin + rayDirection * t;
-                vec3 lightDirection = vec3(1.0);
+                vec3 lightDirection = vec3(0.57);
                 vec3 n = normal(position);
                 float diffuseAngle = max(dot(n, lightDirection), 0.0);
                 // diffuse
@@ -241,26 +242,34 @@ void mainImage()
     gl_FragColor = vec4(result, 1.0);
 }
 
+void sphere() {
+    float d = length(gl_PointCoord - vec2(0.5)) - (0.5 - linewidth);
+    gl_FragColor = filled(d, linewidth, antialias, vColor);
+}
+
+void arrow2d() {
+    vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
+    vec3 dir = normalize(vVelocity);
+
+    float angle = atan(dir.y, dir.x);
+    mat4 rotZ = rotationMatrix(vec3(0.0, 0.0, -1.0), angle);
+    float angleZ = -asin(dir.z);
+    mat4 rotY = rotationMatrix(vec3(0.0, 1.0, 0.0), angleZ);
+    coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
+
+    vec4 color = velocityColor(vVelocity);
+    float d = arrow(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
+    gl_FragColor = filled(d, linewidth, antialias, color);
+}
+
 void main() {
     if (vType != PROBE) {        
-        float d = length(gl_PointCoord - vec2(0.5)) - (0.5 - linewidth);
-        gl_FragColor = filled(d, linewidth, antialias, vColor);
+        sphere();
     } else {
         #if 0
-            vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
-            vec3 dir = normalize(vVelocity);
-
-            float angle = atan(dir.y, dir.x);
-            mat4 rotZ = rotationMatrix(vec3(0.0, 0.0, -1.0), angle);
-            float angleZ = -asin(dir.z);
-            mat4 rotY = rotationMatrix(vec3(0.0, 1.0, 0.0), angleZ);
-            coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
-
-            vec4 color = velocityColor(vVelocity);
-            float d = arrow(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
-            gl_FragColor = filled(d, linewidth, antialias, color);
+            arrow2d();
         #else
-            mainImage();
+            arrow3d();
         #endif
     }
 }

@@ -213,37 +213,31 @@ void arrow3d() {
     rayOrigin = eyeTransform * rayOrigin;
     vec3 targetPosition = vec3(0.0);
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
-    vec3 result = vec3(0.0);
-    const float quality = 1.0;
-    ivec2 sampleCount = ivec2(quality, quality);
     vec3 mainColor = velocityColor(vVelocity).xyz;
-    for (int y = 0; y < sampleCount.y; y++)
-    {
-        for (int x = 0; x < sampleCount.x; x++)
-        {
-            vec2 uv = gl_PointCoord.xy + (vec2(float(x), float(y)) / vec2(sampleCount) - 0.5);
-            vec3 rayDirection = normalize(vec3(uv, 1.5));
-            rayDirection = cameraTransform * rayDirection;
-            float t = raycast(rayOrigin, rayDirection);
-            vec3 color = vec3(0.0);
-            if (t > 0.0)
-            {
-                vec3 position = rayOrigin + rayDirection * t;
-                vec3 lightDirection = vec3(0.0, 0.0, -1.0);
-                vec3 n = normal(position);
-                float diffuseAngle = max(dot(n, lightDirection), 0.0);
-                // diffuse
-                color = mainColor * diffuseAngle; // arrow
-                // ambient
-                color += vec3(0.01) * ((n.y + 1.0) * 0.5); // light
-            }
-            // gamma
-            color = sqrt(color);
-            result += color;
-        }
+    
+    vec2 uv = gl_PointCoord.xy - vec2(0.5);
+    vec3 rayDirection = normalize(vec3(uv, 1.5));
+    rayDirection = cameraTransform * rayDirection;
+    float t = raycast(rayOrigin, rayDirection);
+    vec3 color = vec3(0.0);
+    if (t > 0.0) {
+        vec3 position = rayOrigin + rayDirection * t;
+        vec3 lightDirection = vec3(0.0, 0.0, -1.0);
+        vec3 n = normal(position);
+        float diffuseAngle = max(dot(n, lightDirection), 0.0);
+        // diffuse
+        color = mainColor * diffuseAngle; // arrow
+        // ambient
+        color += vec3(0.01) * ((n.y + 1.0) * 0.5); // light
+    } else {
+        gl_FragColor = vec4(0.0, 0.1, 0.0, 0.5);
+        return;
     }
-    result /= float(sampleCount.x * sampleCount.y);
-    gl_FragColor = vec4(result, 1.0);
+
+    // gamma
+    color = sqrt(color);
+
+    gl_FragColor = vec4(color, 1.0);
 }
 
 void sphere() {

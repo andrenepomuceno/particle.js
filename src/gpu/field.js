@@ -111,14 +111,14 @@ export class FieldGPU {
         switch (this.populateMode) {
             case "sphere":
                 sphereGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z, center);
+                    this.#updateFieldElement(this.objectList[idx++], x, y, z, center);
                 }, this.size, this.grid);
                 break;
 
             case "cube":
             default:
                 cubeGenerator((x, y, z) => {
-                    this.#updateFieldElement(idx++, x, y, z, center);
+                    this.#updateFieldElement(this.objectList[idx++], x, y, z, center);
                 }, this.size, this.grid);
                 break;
         }
@@ -134,12 +134,12 @@ export class FieldGPU {
 
     elementSize() {
         let spacing = this.size / this.grid[0];
-        let len = spacing / 2;
+        let radius = spacing / 2;
         if (this.grid[2] > 1) {
-            len /= 2;
+            radius /= 2;
         }
-        len *= 0.75;
-        return len;
+        radius *= 0.75;
+        return radius;
     }
 
     checkGridSize(width) {
@@ -200,13 +200,11 @@ export class FieldGPU {
         this.objectList.push(p);
     }
 
-    #updateFieldElement(idx, x, y, z, center = new Vector3()) {
-        let particle = this.objectList[idx++];
+    #updateFieldElement(particle, x, y, z, center = new Vector3()) {
         particle.mass = this.probeParam.m;
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
         particle.position.set(x, y, z).add(center);
-
         particle.radius = this.elementSize();
     }
 }

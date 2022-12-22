@@ -62,7 +62,7 @@ function electronProtonNeutron(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    simulation.field.setup("2d", 50);
+    //simulation.field.setup("2d", 40);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },

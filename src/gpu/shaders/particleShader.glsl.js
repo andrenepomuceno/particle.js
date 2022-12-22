@@ -160,7 +160,7 @@ vec3 rotate(vec3 v, vec3 axis, float angle) {
     return (m * vec4(v, 1.0)).xyz;
 }
 
-float sdf(vec3 position) {
+float myArrow(vec3 position) {
     vec3 dir = normalize(vVelocity);
 
     float angle = atan(dir.y, dir.x);
@@ -182,9 +182,9 @@ float sdf(vec3 position) {
 vec3 normal(vec3 position) {
     float epsilon = 0.001;
     vec3 gradient = vec3(
-        sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)),
-        sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)),
-        sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))
+        myArrow(position + vec3(epsilon, 0, 0)) - myArrow(position + vec3(-epsilon, 0, 0)),
+        myArrow(position + vec3(0, epsilon, 0)) - myArrow(position + vec3(0, -epsilon, 0)),
+        myArrow(position + vec3(0, 0, epsilon)) - myArrow(position + vec3(0, 0, -epsilon))
     );
     return normalize(gradient);
 }
@@ -198,7 +198,7 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
             break;
         }
         vec3 currentPosition = rayOrigin + rayDirection * t;
-        float d = sdf(currentPosition);
+        float d = myArrow(currentPosition);
         if (d < 0.0001) {
             return t;
         }

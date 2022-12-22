@@ -1,8 +1,6 @@
-![banner](img/hexagonalCrystal_2022_12_21T01_35_24.213Z.png)
-
 # particle.js
 
-[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=v0.48.0)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
+![banner](img/hexagonalCrystal_2022_12_21T01_35_24.213Z.png)
 
 ## About
 
@@ -16,6 +14,8 @@ Try to simulate 3 forces on point-like particles:
 Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
 
 ## Build
+
+[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=v0.48.0)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
 
 To run the test server on `localhost:8080`
 ```

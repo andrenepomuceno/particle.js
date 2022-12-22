@@ -24,13 +24,13 @@ import {
     simulationImportCSV,
 } from './core.js';
 import { scenariosList } from './scenarios.js';
-import { SelectionHelper, SourceType } from './selectionHelper.js';
+import { SelectionHelper, SourceType } from './components/selectionHelper.js';
 import { createParticle, randomVector } from './scenarios/helpers.js';
-import { MouseHelper } from './mouseHelper';
-import { Keyboard } from './keyboard.js';
+import { MouseHelper } from './components/mouseHelper';
+import { Keyboard } from './components/keyboard.js';
 import { randomSphericVector } from './helpers.js';
-import { exportCSV, uploadCsv } from './csv';
-import { Ruler } from './ruler';
+import { exportCSV, uploadCsv } from './components/csv';
+import { Ruler } from './components/ruler';
 
 let hideAxis = false;
 let simulationIdx = 0;
@@ -1041,35 +1041,8 @@ function guiAdvancedControlsSetup() {
     collapseList.push(guiAdvancedControls);
 }
 
-function fieldInit(grid) {
-    let center = graphics.controls.target.clone();
-    if (!simulation.field.setup(simulation.field.mode, grid, center)) {
-        return false;
-    }
-    simulation.drawParticles();
-    return true;
-}
-
-function fieldEnable(val) {
-    guiOptions.field.enabled = false;
-    if (val == false) {
-        simulationDeleteParticleList(simulation.field.objectList);
-        simulation.field.cleanup();
-    } else {
-        let grid = Math.round(parseFloat(guiOptions.field.grid));
-        if (isNaN(grid)) {
-            alert("Invalid grid value.");
-            return;
-        }
-        if (!fieldInit(grid)) {
-            return;
-        }
-        guiOptions.field.enabled = true;
-    }
-}
-
 function guiFieldSetup() {
-    guiField.add(guiOptions.field, 'enabled').name("Enable [E]").listen().onFinishChange(val => {
+    guiField.add(guiOptions.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
         fieldEnable(val);
     });
     guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen();
@@ -1171,6 +1144,8 @@ function guiSelectionClose(clear = true) {
     if (clear) selection.clear();
     guiSelection.close();
 }
+
+/* HELPERS */
 
 function selectionListUpdate(param, val) {
     simulationUpdateParticleList(param, val, selection.list);
@@ -1393,17 +1368,46 @@ function cameraTargetSet(pos) {
     graphics.controls.update();
 }
 
-function onWindowResize() {
-    log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
-    graphics.onWindowResize(window);
-    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
-}
-
 function showCursor() {
     guiOptions.controls.showCursor = true;
     let radius = Math.max(3 * simulation.particleRadius, 10);
     let thick = Math.max(0.1 * radius, 1);
     mouseHelper.showCursor(graphics, radius, thick);
+}
+
+function fieldInit(grid) {
+    let center = graphics.controls.target.clone();
+    if (!simulation.field.setup(simulation.field.mode, grid, center)) {
+        return false;
+    }
+    simulation.drawParticles();
+    return true;
+}
+
+function fieldEnable(val) {
+    guiOptions.field.enabled = false;
+    if (val == false) {
+        simulationDeleteParticleList(simulation.field.objectList);
+        simulation.field.cleanup();
+    } else {
+        let grid = Math.round(parseFloat(guiOptions.field.grid));
+        if (isNaN(grid)) {
+            alert("Invalid grid value.");
+            return;
+        }
+        if (!fieldInit(grid)) {
+            return;
+        }
+        guiOptions.field.enabled = true;
+    }
+}
+
+/* CALLBACKS */
+
+function onWindowResize() {
+    log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
+    graphics.onWindowResize(window);
+    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }
 
 function onPointerMove(event) {

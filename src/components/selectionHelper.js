@@ -1,6 +1,6 @@
-import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "./helpers";
-import { calcListStatistics } from "./physics";
-import { ParticleType } from "./particle";
+import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "../helpers";
+import { calcListStatistics } from "../physics";
+import { ParticleType } from "../particle";
 const { Image } = require('image-js');
 import { exportCSV } from "./csv";
 import { Vector3 } from "three";

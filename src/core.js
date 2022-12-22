@@ -7,7 +7,7 @@ import { decodeVector3 } from './helpers.js';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { scenariosList } from './scenarios.js';
 import { ParticleType } from './particle.js';
-import { parseCsv } from './csv.js';
+import { parseCsv } from './components/csv.js';
 
 export let graphics = undefined;
 export let simulation = undefined;

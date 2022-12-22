@@ -1,5 +1,5 @@
-import { Physics } from "./physics";
-import { Particle, ParticleType } from "./particle";
+import { Physics } from "../physics";
+import { Particle, ParticleType } from "../particle";
 
 function log(msg) {
     console.log("CSV: " + msg);

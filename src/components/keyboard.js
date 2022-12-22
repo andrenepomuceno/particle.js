@@ -39,7 +39,7 @@ export class Keyboard {
         this.onKeyDownMap.set('y', { callback: this.guiOptions.advancedControls.kickVelocity });
         this.onKeyDownMap.set('u', { callback: this.guiOptions.advancedControls.particleCleanup });
 
-        this.onKeyDownMap.set('e', {
+        this.onKeyDownMap.set('j', {
             callback: () => {
                 this.guiOptions.field.enabled = !this.guiOptions.field.enabled;
                 this.guiOptions.field.enable();

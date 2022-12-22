@@ -1,6 +1,6 @@
-import { Vector3, ArrowHelper, Mesh, RingGeometry, MeshBasicMaterial, PlaneGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
-import { simulation } from "./core.js";
-import { mouseToScreenCoord, cameraToWorldCoord } from './helpers.js';
+import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
+import { simulation } from "../core.js";
+import { mouseToScreenCoord, cameraToWorldCoord } from '../helpers.js';
 
 const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;

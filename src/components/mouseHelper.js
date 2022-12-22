@@ -1,4 +1,4 @@
-import { cameraToWorldCoord, mouseToScreenCoord } from "./helpers";
+import { cameraToWorldCoord, mouseToScreenCoord } from "../helpers";
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from "three";
 
 export class MouseHelper {

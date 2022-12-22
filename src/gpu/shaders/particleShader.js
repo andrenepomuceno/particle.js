@@ -68,44 +68,40 @@ vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
     return frag_color;
 }
 
-float sdCone(vec3 p, vec3 a, vec3 b, float ra, float rb)
-{
-    float rba  = rb-ra;
-    float baba = dot(b-a,b-a);
-    float papa = dot(p-a,p-a);
-    float paba = dot(p-a,b-a)/baba;
+float arrow(vec3 position, vec3 start, vec3 end, float baseRadius, float tipRadius, float tipHeight) {
+    vec3 t = start - end;
+    float l = length(t);
+    t /= l;
+    l = max(l, tipHeight);
 
-    float x = sqrt( papa - paba*paba*baba );
-
-    float cax = max(0.0,x-((paba<0.5)?ra:rb));
-    float cay = abs(paba-0.5)-0.5;
-
-    float k = rba*rba + baba;
-    float f = clamp( (rba*(x-ra)+paba*baba)/k, 0.0, 1.0 );
-
-    float cbx = x-ra - f*rba;
-    float cby = paba - f;
+    position -= end;
+    if (t.y + 1.0 < 0.0001) {
+        position.y = -position.y;
+    } else {
+        float k = 1.0 / (1.0 + t.y);
+        vec3 column1 = vec3(t.z * t.z * k + t.y, t.x, t.z * -t.x * k);
+        vec3 column2 = vec3(-t.x, t.y, -t.z);
+        vec3 column3 = vec3(-t.x * t.z * k, t.z, t.x * t.x * k + t.y);
+        position = mat3(column1, column2, column3) * position;
+    }
+ 
+    vec2 q = vec2(length(position.xz), position.y);
+    q.x = abs(q.x);
+   
+    // tip
+    vec2 e = vec2(tipRadius, tipHeight);
+    float h = clamp(dot(q, e) / dot(e, e), 0.0, 1.0);
+    vec2 d1 = q - e * h;
+    vec2 d2 = q - vec2(tipRadius, tipHeight);
+    d2.x -= clamp(d2.x, baseRadius - tipRadius, 0.0);
     
-    float s = (cbx < 0.0 && cay < 0.0) ? -1.0 : 1.0;
-    
-    return s*sqrt( min(cax*cax + cay*cay*baba,
-                       cbx*cbx + cby*cby*baba) );
-}
+    // base
+    vec2 d3 = q - vec2(baseRadius, tipHeight);
+    d3.y -= clamp(d3.y, 0.0, l - tipHeight);
+    vec2 d4 = vec2(q.y - l, max(q.x - baseRadius, 0.0));
 
-float sdCylinder(vec3 p, vec3 a, vec3 b, float r)
-{
-    vec3  ba = b - a;
-    vec3  pa = p - a;
-    float baba = dot(ba,ba);
-    float paba = dot(pa,ba);
-    float x = length(pa*baba-ba*paba) - r*baba;
-    float y = abs(paba-baba*0.5)-baba*0.5;
-    float x2 = x*x;
-    float y2 = y*y*baba;
-    
-    float d = (max(x,y)<0.0)?-min(x2,y2):(((x>0.0)?x2:0.0)+((y>0.0)?y2:0.0));
-    
-    return sign(d)*sqrt(abs(d))/baba;
+    float s = max(max(max(d1.x, -d1.y), d4.x), min(d2.y, d3.x));
+    return sqrt(min(min(min(dot(d1, d1), dot(d2, d2)), dot(d3, d3)), dot(d4, d4))) * sign(s);
 }
 
 #define UNDEFINED -1.0
@@ -119,12 +115,7 @@ const float antialias = 0.01;
 varying vec4 vColor;
 flat varying float vType;
 flat varying vec3 vVelocity;
-
-float sdArrow(vec3 p) {
-    float d1 = sdCylinder(p, vec3(-(0.5 - linewidth),0.0,0.0), vec3(0.1,0.0,0.0), linewidth);
-    float d2 = sdCone(p, vec3(0.1,0.0,0.0), vec3(0.5 - linewidth,0.0,0.0), 0.2, 0.0);
-    return min(d1, d2);
-}
+uniform vec2 resolution;
 
 vec4 velocityColor(vec3 vel) {
     const float velMax = 1e3;
@@ -141,18 +132,140 @@ vec4 velocityColor(vec3 vel) {
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
+mat3 lookAtMatrix(vec3 from, vec3 to) {
+    vec3 forward = normalize(to - from);
+    vec3 right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+    vec3 up = cross(right, forward);
+    return mat3(right, up, forward);
+}
+
+mat4 rotationMatrix(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return mat4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
+                oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
+                oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+                0.0, 0.0, 0.0, 1.0);
+}
+
+vec3 rotate(vec3 v, vec3 axis, float angle) {
+    mat4 m = rotationMatrix(axis, angle);
+    return (m * vec4(v, 1.0)).xyz;
+}
+
+float sdf(vec3 position) {
+    vec3 dir = normalize(vVelocity);
+
+    float angle = atan(dir.y, dir.x);
+    position = rotate(position, vec3(0.0, 0.0, -1.0), angle);
+    float angleZ = -asin(dir.z);
+    position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
+
+    float baseRadius = 0.02; 
+    float tipRadius = 0.15;
+    float tipHeight = 0.4;
+    float cornerRadius = 0.02;
+    vec3 start = vec3(-0.7, 0.0, 0.0);
+    vec3 end = vec3(0.7, 0.0, 0.0);
+    float d = arrow(position, start, end, baseRadius, tipRadius, tipHeight);
+    d -= cornerRadius;
+    return d;
+}
+
+vec3 normal(vec3 position) {
+    float epsilon = 0.001;
+    vec3 gradient = vec3(
+        sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)),
+        sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)),
+        sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))
+    );
+    return normalize(gradient);
+}
+
+float raycast(vec3 rayOrigin, vec3 rayDirection) {
+    int stepCount = 128 * 1;
+    float maximumDistance = 5.0;
+    float t = 0.0;
+    for (int i = 0; i < stepCount; i++) {
+        if (t > maximumDistance) {
+            break;
+        }
+        vec3 currentPosition = rayOrigin + rayDirection * t;
+        float d = sdf(currentPosition);
+        if (d < 0.0001) {
+            return t;
+        }
+        t += d;
+    }
+    return 0.0;
+}
+
+void mainImage()
+{
+    vec3 rayOrigin = vec3(0.0, 0.0, 2);
+    vec3 targetPosition = vec3(0.0);
+    mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
+    vec3 result = vec3(0.0);
+    const float quality = 1.0;
+    ivec2 sampleCount = ivec2(quality, quality);
+    for (int y = 0; y < sampleCount.y; y++)
+    {
+        for (int x = 0; x < sampleCount.x; x++)
+        {
+            vec2 uv = gl_PointCoord.xy + (vec2(float(x), float(y)) / vec2(sampleCount) - 0.5);
+            //uv = uv / resolution.xy;
+            //uv = (uv * 2.0) - 1.0;
+            //uv.x *= resolution.x / resolution.y;
+            vec3 rayDirection = normalize(vec3(uv, 1.5));
+            rayDirection = cameraTransform * rayDirection;
+            float t = raycast(rayOrigin, rayDirection);
+            vec3 color = vec3(0.0);
+            if (t > 0.0)
+            {
+                // same style that Inigo Quilez uses in his shaders
+                vec3 position = rayOrigin + rayDirection * t;
+                vec3 lightDirection = vec3(0.57735);
+                vec3 n = normal(position);
+                float diffuseAngle = max(dot(n, lightDirection), 0.0);
+                // diffuse
+                color = velocityColor(vVelocity).xyz * diffuseAngle; // arrow
+                // ambient
+                //color += vec3(1.0, 1.0, 1.0) * ((n.y + 1.0) * 0.5); // light
+            }
+            // gamma
+            color = sqrt(color);
+            result += color;
+        }
+    }
+    result /= float(sampleCount.x * sampleCount.y);
+    //result = vec3(0.5);
+    gl_FragColor = vec4(result, 1.0);
+}
+
 void main() {
     if (vType != PROBE) {        
         float d = length(gl_PointCoord - vec2(0.5)) - (0.5 - linewidth);
         gl_FragColor = filled(d, linewidth, antialias, vColor);
     } else {
-        vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
-        vec3 dir = normalize(vVelocity);
-        coordinates = mat3(dir.x, dir.y, 0, -dir.y, dir.x, 0, 0, 0, 1) * coordinates; // rotate
+        #if 0
+            vec3 coordinates = vec3(gl_PointCoord.xy - vec2(0.5), 0.0);
+            vec3 dir = normalize(vVelocity);
 
-        vec4 color = velocityColor(vVelocity);
-        float d = sdArrow(coordinates);
-        gl_FragColor = filled(d, linewidth, antialias, color);
+            float angle = atan(dir.y, dir.x);
+            mat4 rotZ = rotationMatrix(vec3(0.0, 0.0, -1.0), angle);
+            float angleZ = -asin(dir.z);
+            mat4 rotY = rotationMatrix(vec3(0.0, 1.0, 0.0), angleZ);
+            coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
+
+            vec4 color = velocityColor(vVelocity);
+            float d = arrow(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
+            gl_FragColor = filled(d, linewidth, antialias, color);
+        #else
+            mainImage();
+        #endif
     }
 }
 `;

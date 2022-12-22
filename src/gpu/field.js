@@ -65,7 +65,7 @@ export class FieldGPU {
         }
     }
 
-    setup(mode, grid, center) {
+    setup(mode, grid, center = new Vector3()) {
         log("setup");
         log("mode = " + mode);
         log("gridPoints = " + grid);

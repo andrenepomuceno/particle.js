@@ -23,6 +23,7 @@ function addFolder(name, list) {
     addFolder("dev", sandbox);
 }*/
 
+addFolder("fields", fields);
 addFolder("experiments1", experiments1);
 addFolder("experiments0", experiments0);
 addFolder("nuclearForce1", nuclearForce1);

@@ -86,13 +86,12 @@ export class FieldGPU {
         this.grid = ret.grid;
 
         if (!this.#populateField(center)) {
-            console.log("setup failed");
+            log("setup failed");
             return false;
         }
 
         this.enabled = true;
 
-        console.log("setup done");
         return true;
     }
 
@@ -145,7 +144,7 @@ export class FieldGPU {
     }
 
     #populateField(center = new Vector3(), mode = "cube") {
-        console.log("#populateField");
+        log("#populateField");
 
         if (!this.checkGridSize(this.grid[0])) {
             let probeCount = this.grid[0] * this.grid[1] * this.grid[2];

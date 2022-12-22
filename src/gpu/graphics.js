@@ -67,7 +67,7 @@ export class GraphicsGPU {
         this.readbackParticleData();
 
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        console.log(intersects);
+        log("intersects: " + intersects.length);
         for (let i = 0; i < intersects.length; i++) {
             let object = intersects[i];
             if (object.object.type != "Points") continue;
@@ -198,7 +198,6 @@ export class GraphicsGPU {
         }
 
         let element = this.renderer.domElement;//document.getElementById('container');
-        console.log(element);
         CanvasCapture.init(
             element,
             {

@@ -819,8 +819,6 @@ function guiGeneratorSetup() {
         'Proton/Neutron Model': "epnModel",
     };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
-        console.log(val);
-
         let v = 10 * parseFloat(guiOptions.info.velocity);
         if (isNaN(v) || v < 1e2) v = 1e2;
         switch (val) {
@@ -1232,7 +1230,6 @@ function particleGenerator(input) {
                     log(hexagonMap.size);
                     if (hexagonMap.size == 0) {
                         generateHexagon(0, 0, radius, hexagonMap);
-                        console.log(hexagonMap);
                     }
 
                     let idx = random(0, 256, true) % (hexagonMap.size);
@@ -1317,7 +1314,6 @@ function particleGenerator(input) {
                         { m: p.mass, q: p.charge, nq: p.nuclearCharge }
                     );
                 }
-                console.log(presetList);
             }
             break;
 

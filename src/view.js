@@ -422,6 +422,7 @@ let guiOptions = {
         q: '1',
         nq: '1',
         grid: '50',
+        automaticRefresh: true,
         fieldResize: () => {
             let center = graphics.controls.target.clone();
             simulation.field.resize(center);
@@ -488,6 +489,9 @@ export function viewSetup() {
     guiFieldSetup();
 
     scenarioSetup();
+
+    graphics.controls.addEventListener('end', onFinishMove);
+
     animate();
 }
 
@@ -1068,6 +1072,7 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'enabled').name("Enable").listen().onFinishChange(val => {
         fieldEnable(val);
     });
+    guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen();
     guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
         guiOptions.field.grid = simulation.field.grid[0];
         const grid = Math.round(parseFloat(val));
@@ -1391,6 +1396,7 @@ function cameraTargetSet(pos) {
 function onWindowResize() {
     log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
     graphics.onWindowResize(window);
+    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }
 
 function showCursor() {
@@ -1427,6 +1433,10 @@ function onPointerUp(event) {
             guiParticle.open();
         }
     }
+}
+
+function onFinishMove(event) {
+    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }
 
 function animate(time) {

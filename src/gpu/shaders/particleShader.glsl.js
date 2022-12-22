@@ -168,9 +168,9 @@ float myArrow(vec3 position) {
     float angleZ = -asin(dir.z);
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
-    float baseRadius = 0.15; 
-    float tipRadius = 0.35;
-    float tipHeight = 0.7;
+    float baseRadius = 0.1; 
+    float tipRadius = 0.3;
+    float tipHeight = 0.9;
     float cornerRadius = 0.05;
     vec3 start = vec3(1.0, 0.0, 0.0);
     vec3 end = vec3(-1.0, 0.0, 0.0);
@@ -190,7 +190,7 @@ vec3 normal(vec3 position) {
 }
 
 float raycast(vec3 rayOrigin, vec3 rayDirection) {
-    int stepCount = 128 * 1;
+    int stepCount = 128;
     float maximumDistance = 10.0;
     float t = 0.0;
     for (int i = 0; i < stepCount; i++) {
@@ -208,10 +208,13 @@ float raycast(vec3 rayOrigin, vec3 rayDirection) {
 }
 
 void arrow3d() {
-    mat3 eyeTransform = lookAtMatrix(cameraPosition, vPos);
-    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
-    rayOrigin = eyeTransform * rayOrigin;
     vec3 targetPosition = vec3(0.0);
+    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
+
+    mat3 eyeTransform = lookAtMatrix(cameraPosition, vPos);
+    
+    rayOrigin = eyeTransform * rayOrigin;
+
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     vec3 mainColor = velocityColor(vVelocity).xyz;
     
@@ -230,7 +233,7 @@ void arrow3d() {
         // ambient
         color += vec3(0.01) * ((n.y + 1.0) * 0.5); // light
     } else {
-        gl_FragColor = vec4(0.0, 0.1, 0.0, 0.5);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
         return;
     }
 
@@ -241,7 +244,8 @@ void arrow3d() {
 }
 
 void sphere() {
-    float d = length(gl_PointCoord - vec2(0.5)) - (0.5 - linewidth);
+    vec2 uv = gl_PointCoord - vec2(0.5);
+    float d = length(uv) - 0.5 + linewidth;
     gl_FragColor = filled(d, linewidth, antialias, vColor);
 }
 
@@ -251,8 +255,6 @@ void arrow2d() {
 
     float angle = atan(dir.y, dir.x);
     mat4 rotZ = rotationMatrix(vec3(0.0, 0.0, -1.0), angle);
-    float angleZ = -asin(dir.z);
-    mat4 rotY = rotationMatrix(vec3(0.0, 1.0, 0.0), angleZ);
     coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
 
     vec4 color = velocityColor(vVelocity);

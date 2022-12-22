@@ -85,7 +85,6 @@ export class FieldGPU {
         this.size = ret.size;
         this.grid = ret.grid;
 
-        center.z -= 5.0;
         if (!this.#populateField(center)) {
             console.log("setup failed");
             return false;
@@ -105,7 +104,6 @@ export class FieldGPU {
 
         let ret = this.calcGridSize(this.grid[0]);
         this.size = ret.size;
-        center.z -= 5.0;
 
         let idx = 0;
         switch (this.populateMode) {
@@ -130,16 +128,6 @@ export class FieldGPU {
         log("cleanup");
         this.objectList = [];
         this.enabled = false;
-    }
-
-    elementSize() {
-        let spacing = this.size / this.grid[0];
-        let radius = spacing / 2;
-        if (this.grid[2] > 1) {
-            radius /= 2;
-        }
-        radius *= 0.75;
-        return radius;
     }
 
     checkGridSize(width) {
@@ -187,15 +175,23 @@ export class FieldGPU {
         return true;
     }
 
+    elementSize() {
+        let spacing = this.size / this.grid[0];
+        let radius = spacing / 2;
+        if (this.grid[2] > 1) {
+            radius /= 2;
+        }
+        radius *= 0.75;
+        return radius;
+    }
+
     #createFieldElement(position) {
         let p = new Particle();
         p.type = ParticleType.probe;
-        p.mass = this.probeParam.m;
-        p.charge = this.probeParam.q;
-        p.nuclearCharge = this.probeParam.nq;
-        p.position = position;
 
+        this.#updateFieldElement(p, position.x, position.y, position.z);
         p.radius = this.elementSize();
+
         this.particleList.push(p);
         this.objectList.push(p);
     }
@@ -204,7 +200,9 @@ export class FieldGPU {
         particle.mass = this.probeParam.m;
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
-        particle.position.set(x, y, z).add(center);
+        particle.position.set(x, y, z)
+            .add(center)
+            .sub(new Vector3(0, 0, 2 * this.simulation.particleRadius));
         particle.radius = this.elementSize();
     }
 }

@@ -46,8 +46,8 @@ export class GraphicsGPU {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.target.set(0, 0, 0);
-        this.controls.update();
+        /*this.controls.target.set(0, 0, 0);
+        this.controls.update();*/
 
         this.raycaster = new Raycaster();
         this.raycaster.params.Points.threshold = 1;
@@ -321,42 +321,8 @@ export class GraphicsGPU {
         }
     }
 
-    readbackParticleData() {
-        log("readbackParticleData");
-
-        if (!this.initialized) {
-            log("not initialized");
-            return;
-        }
-
-        let particlePosition = this.particlePosition;
-        let particleVelocity = this.particleVelocity;
-
-        let current = (this.renderTarget + 0) % 2;
-
-        let texture = this.positionVariable.renderTargets[current];
-        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particlePosition);
-
-        texture = this.velocityVariable.renderTargets[current];
-        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particleVelocity);
-
-        let positions = [];
-        let i = 0;
-        this.particleList.forEach((p) => {
-            let offset = 4 * i++;
-
-            p.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2])
-            positions.push(p.position.x, p.position.y, p.position.z);
-
-            p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2])
-            p.collisions = particleVelocity[offset + 3];
-        });
-
-        this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-    }
-
     #initPointsObject() {
-        log("#initPointObjects");
+        log("#initPointsObject");
 
         let current = this.renderTarget % 2;
         this.pointsUniforms = {
@@ -377,7 +343,6 @@ export class GraphicsGPU {
         this.#fillPointPositions();
         this.fillPointRadius();
         this.#fillPointUVs();
-        //this.#fillPointTypes();
 
         if (this.pointsObject) {
             this.scene.remove(this.pointsObject);
@@ -483,5 +448,39 @@ export class GraphicsGPU {
 
         this.pointsUniforms['texturePosition'].value = positionVariable.renderTargets[target].texture;
         this.pointsUniforms['textureVelocity'].value = velocityVariable.renderTargets[target].texture;
+    }
+
+    readbackParticleData() {
+        log("readbackParticleData");
+
+        if (!this.initialized) {
+            log("not initialized");
+            return;
+        }
+
+        let particlePosition = this.particlePosition;
+        let particleVelocity = this.particleVelocity;
+
+        let current = (this.renderTarget + 0) % 2;
+
+        let texture = this.positionVariable.renderTargets[current];
+        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particlePosition);
+
+        texture = this.velocityVariable.renderTargets[current];
+        this.renderer.readRenderTargetPixels(texture, 0, 0, this.textureWidth, this.textureWidth, particleVelocity);
+
+        let positions = [];
+        let i = 0;
+        this.particleList.forEach((p) => {
+            let offset = 4 * i++;
+
+            p.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2])
+            positions.push(p.position.x, p.position.y, p.position.z);
+
+            p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2])
+            p.collisions = particleVelocity[offset + 3];
+        });
+
+        this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
     }
 }

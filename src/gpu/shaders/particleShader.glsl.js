@@ -218,7 +218,7 @@ normalize(vec3( \
 }
 
 const vec3 diffuseLight = -2.75 * normalize(vec3(0.3, 1.0, 1.0));
-const vec3 ambientLight = 0.001 * vec3(1, 1, 5);
+const vec3 ambientLight = 0.05 * normalize(vec3(31, 41, 53));
 const float epsilon = 1e-3;
 
 void sphere3d() {

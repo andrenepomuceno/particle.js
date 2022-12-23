@@ -208,10 +208,11 @@ vec4 particleArrowColor(vec3 vel) {
     float velocity = length(vel)/velMax;
     if (velocity > 1.0) {
         velocity = 1.0;
+        saturation = 0.0;
     }
-    value = sqrt(velocity);
+    value = max(sqrt(velocity), 0.2);
 
-    return vec4(hsv2rgb(vec3(velocity, saturation, value)), 1.0);
+    return vec4(hsv2rgb(vec3(0.75 * velocity, saturation, value)), 1.0);
 }
 
 vec3 gParticleColor = vec3(0.0);

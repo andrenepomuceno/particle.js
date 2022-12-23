@@ -43,6 +43,9 @@ export const particleFragmentShader = /* glsl */ `
 #define PROBE 1.0
 #define FIXED 2.0
 
+#define USE_3D_ARROW 1
+#define USE_3D_SPHERE 1
+
 const float linewidth = 0.05;
 const float antialias = 0.01;
 
@@ -85,7 +88,7 @@ vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
     return frag_color;
 }
 
-float arrow(vec3 position, vec3 start, vec3 end, float baseRadius, float tipRadius, float tipHeight) {
+float arrowSdf(vec3 position, vec3 start, vec3 end, float baseRadius, float tipRadius, float tipHeight) {
     vec3 t = start - end;
     float l = length(t);
     t /= l;
@@ -145,7 +148,7 @@ vec3 rotate(vec3 v, vec3 axis, float angle) {
     return (m * vec4(v, 1.0)).xyz;
 }
 
-float customArrow(vec3 position) {
+float customArrowSdf(vec3 position) {
     vec3 dir = normalize(vParticleVel);
 
     float angle = atan(dir.y, dir.x);
@@ -159,37 +162,9 @@ float customArrow(vec3 position) {
     float cornerRadius = 0.05;
     vec3 start = vec3(1.0, 0.0, 0.0);
     vec3 end = vec3(-1.0, 0.0, 0.0);
-    float d = arrow(position, start, end, baseRadius, tipRadius, tipHeight);
+    float d = arrowSdf(position, start, end, baseRadius, tipRadius, tipHeight);
     d -= cornerRadius;
     return d;
-}
-
-vec3 normal(vec3 position) {
-    float epsilon = 0.001;
-    vec3 gradient = vec3(
-        customArrow(position + vec3(epsilon, 0, 0)) - customArrow(position + vec3(-epsilon, 0, 0)),
-        customArrow(position + vec3(0, epsilon, 0)) - customArrow(position + vec3(0, -epsilon, 0)),
-        customArrow(position + vec3(0, 0, epsilon)) - customArrow(position + vec3(0, 0, -epsilon))
-    );
-    return normalize(gradient);
-}
-
-float raycast(vec3 rayOrigin, vec3 rayDirection) {
-    int stepCount = 128;
-    float maximumDistance = 10.0;
-    float t = 0.0;
-    for (int i = 0; i < stepCount; i++) {
-        if (t > maximumDistance) {
-            break;
-        }
-        vec3 currentPosition = rayOrigin + rayDirection * t;
-        float d = customArrow(currentPosition);
-        if (d < 0.0001) {
-            return t;
-        }
-        t += d;
-    }
-    return 0.0;
 }
 
 vec4 velocityColor(vec3 vel) {
@@ -219,32 +194,49 @@ void arrow3d() {
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     rayDirection = cameraTransform * rayDirection;
 
-    float t = raycast(rayOrigin, rayDirection);
+    // raymarch
+    int stepCount = 128;
+    float maximumDistance = 10.0;
+    float t = 0.0;
+    for (int i = 0; i < stepCount; i++) {
+        if (t > maximumDistance) {
+            t = 0.0;
+            break;
+        }
+        vec3 currentPosition = rayOrigin + rayDirection * t;
+        float d = customArrowSdf(currentPosition);
+        if (d < 0.0001) {
+            break;
+        }
+        t += d;
+    }
+
     vec3 color = vec3(0.0);
     if (t > 0.0) {
         vec3 position = rayOrigin + rayDirection * t;
-        vec3 lightDirection = vec3(0.0, 0.0, -1.0);
-        vec3 n = normal(position);
+        vec3 lightDirection = vec3(-0.777);
+
+        // calc normal
+        float epsilon = 0.001;
+        vec3 gradient = vec3(
+            customArrowSdf(position + vec3(epsilon, 0, 0)) - customArrowSdf(position + vec3(-epsilon, 0, 0)),
+            customArrowSdf(position + vec3(0, epsilon, 0)) - customArrowSdf(position + vec3(0, -epsilon, 0)),
+            customArrowSdf(position + vec3(0, 0, epsilon)) - customArrowSdf(position + vec3(0, 0, -epsilon))
+        );
+        vec3 n = normalize(gradient);
+
         float diffuseAngle = max(dot(n, lightDirection), 0.0);
         // diffuse
         vec3 baseColor = velocityColor(vParticleVel).xyz;
         color = baseColor * diffuseAngle;
         // ambient
         color += vec3(0.01) * ((n.y + 1.0) * 0.5);
-    } else {
-        discard;
-    }
+        color = sqrt(color); // gamma
 
-    // gamma
-    color = sqrt(color);
-
-    gl_FragColor = vec4(color, 1.0);
-}
-
-void sphere2d() {
-    vec2 uv = gl_PointCoord - vec2(0.5);
-    float d = length(uv) - 0.5 + linewidth;
-    gl_FragColor = filled(d, linewidth, antialias, vParticleColor);
+        gl_FragColor = vec4(color, 1.0);
+        } else {
+            discard;
+        }
 }
 
 float sphereSdf(vec3 position) {
@@ -295,21 +287,24 @@ void sphere3d() {
     vec3 color = vec3(0.0);
     if (t > 0.0) {
         vec3 position = rayOrigin + rayDirection * t;
-        vec3 lightDirection = vec3(0.0, 0.0, -1.0);
+        vec3 lightDirection = vec3(-0.777);
         vec3 n = normalSphere(position);
         float diffuseAngle = max(dot(n, lightDirection), 0.0);
         // diffuse
         color = vParticleColor.rgb * diffuseAngle;
         // ambient
         color += vec3(0.01) * ((n.y + 1.0) * 0.5);
+        color = sqrt(color); // gamma
+        gl_FragColor = vec4(color, 1.0);
     } else {
         discard;
     }
+}
 
-    // gamma
-    color = sqrt(color);
-
-    gl_FragColor = vec4(color, 1.0);
+void sphere2d() {
+    vec2 uv = gl_PointCoord - vec2(0.5);
+    float d = length(uv) - 0.5 + linewidth;
+    gl_FragColor = filled(d, linewidth, antialias, vParticleColor);
 }
 
 void arrow2d() {
@@ -321,19 +316,19 @@ void arrow2d() {
     coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
 
     vec4 color = velocityColor(vParticleVel);
-    float d = arrow(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
+    float d = arrowSdf(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
     gl_FragColor = filled(d, linewidth, antialias, color);
 }
 
 void main() {
     if (vParticleType != PROBE) {        
-        #if 0
+        #if !USE_3D_SPHERE
             sphere2d();
         #else
             sphere3d();
         #endif
     } else {
-        #if 0
+        #if !USE_3D_ARROW
             arrow2d();
         #else
             arrow3d();

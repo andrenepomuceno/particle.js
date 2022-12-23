@@ -266,7 +266,8 @@ let guiOptions = {
             cameraTargetSet(center);
         },
         place: () => {
-            guiOptions.controls.placeHint();
+            //guiOptions.controls.placeHint();
+            selectionPlace();
         },
     },
     generator: {

@@ -24,13 +24,13 @@ import {
     simulationImportCSV,
 } from './core.js';
 import { scenariosList } from './scenarios.js';
-import { SelectionHelper, SourceType } from './components/selectionHelper.js';
-import { createParticle, randomVector } from './scenarios/helpers.js';
-import { MouseHelper } from './components/mouseHelper';
-import { Keyboard } from './components/keyboard.js';
 import { randomSphericVector } from './helpers.js';
 import { exportCSV, uploadCsv } from './components/csv';
+import { MouseHelper } from './components/mouseHelper';
+import { Keyboard } from './components/keyboard.js';
+import { SelectionHelper, SourceType } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
+import { createParticle, randomVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
 let simulationIdx = 0;

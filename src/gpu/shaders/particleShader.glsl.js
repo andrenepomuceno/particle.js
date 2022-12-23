@@ -32,15 +32,28 @@ void main() {
 }
 `;
 
-export const particleFragmentShader = /* glsl */ `
+export function generateParticleShader(particle3d, arrow3d) {
+    function define(define, value) {
+        if (value == true) {
+            return "#define " + define + " 1\n";
+        } else {
+            return "#define " + define + " 0\n";
+        }
+    }
+
+    let config = "";
+    config += define("USE_3D_ARROW", particle3d);
+    config += define("USE_3D_SPHERE", arrow3d);
+    let shader = config + particleFragmentShader;
+    return shader;
+}
+
+const particleFragmentShader = /* glsl */ `
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
 #define FIXED 2.0
-
-#define USE_3D_ARROW 1
-#define USE_3D_SPHERE 1
 
 const float linewidth = 0.05;
 const float antialias = 0.01;
@@ -204,8 +217,8 @@ normalize(vec3( \
     }                                                           \
 }
 
-const vec3 diffuseLight = -1.75 * normalize(vec3(0.3, 1.0, 1.0));
-const vec3 ambientLight = 0.01 * vec3(1, 1, 5);
+const vec3 diffuseLight = -2.75 * normalize(vec3(0.3, 1.0, 1.0));
+const vec3 ambientLight = 0.001 * vec3(1, 1, 5);
 const float epsilon = 1e-3;
 
 void sphere3d() {

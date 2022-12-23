@@ -9,7 +9,6 @@ import {
     BufferGeometry,
     Float32BufferAttribute,
     Points,
-    MathUtils,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
@@ -17,8 +16,9 @@ let CanvasCapture = null;
 if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
 }
+
 import { computePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
-import { particleVertexShader, particleFragmentShader } from './shaders/particleShader.glsl.js';
+import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
 import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
 
@@ -34,6 +34,9 @@ export class GraphicsGPU {
 
         this.cleanup();
 
+        this.particle3d = true;
+        this.arrow3d = true;
+
         this.textureWidth = textureWidth0;
         this.maxParticles = this.textureWidth * this.textureWidth;
 
@@ -46,8 +49,6 @@ export class GraphicsGPU {
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        /*this.controls.target.set(0, 0, 0);
-        this.controls.update();*/
 
         this.raycaster = new Raycaster();
         this.raycaster.params.Points.threshold = 1;
@@ -333,7 +334,7 @@ export class GraphicsGPU {
         const pointsMaterial = new ShaderMaterial({
             uniforms: this.pointsUniforms,
             vertexShader: particleVertexShader,
-            fragmentShader: particleFragmentShader,
+            fragmentShader: generateParticleShader(this.particle3d, this.arrow3d),
         });
         pointsMaterial.extensions.drawBuffers = true;
 

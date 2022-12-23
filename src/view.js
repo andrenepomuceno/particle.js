@@ -359,6 +359,7 @@ let guiOptions = {
         cleanupThreshold: "8",
         ruler: "",
         automaticRotation: false,
+        shader3d: true,
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -456,6 +457,8 @@ function scenarioSetup(idx) {
 
     energyPanel.min = 0;
     energyPanel.max = 0;
+
+    guiOptions.advancedControls.automaticRotation = false;
     graphics.controls.autoRotate = false;
 
     if (guiOptions.controls.showCursor == true) {
@@ -1050,6 +1053,16 @@ function guiAdvancedControlsSetup() {
         } else {
             graphics.controls.autoRotate = false;
         }
+    });
+    guiAdvancedControls.add(guiOptions.advancedControls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
+        if (val == true) {
+            graphics.arrow3d = true;
+            graphics.particle3d = true;
+        } else {
+            graphics.arrow3d = false;
+            graphics.particle3d = false;
+        }
+        simulation.drawParticles();
     });
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 

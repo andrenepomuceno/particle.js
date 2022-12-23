@@ -538,8 +538,16 @@ function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
         autoRefresh = val;
     });
+    guiInfo.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+        if (val == true) {
+            showCursor();
+        } else {
+            mouseHelper.hideCursor();
+            guiOptions.controls.showCursor = false;
+        }
+    });
 
-    collapseList.push(guiInfo);
+    //collapseList.push(guiInfo);
     collapseList.push(guiInfoMore);
 }
 
@@ -598,14 +606,6 @@ function guiControlsSetup() {
     guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
     guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
     guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
-    guiControlsView.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
-        if (val == true) {
-            showCursor();
-        } else {
-            mouseHelper.hideCursor();
-            guiOptions.controls.showCursor = false;
-        }
-    });
 
     guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
@@ -1067,6 +1067,7 @@ function guiAdvancedControlsSetup() {
             graphics.arrow3d = false;
             graphics.particle3d = false;
         }
+        graphics.readbackParticleData();
         simulation.drawParticles();
     });
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
@@ -1426,6 +1427,7 @@ function fieldEnable(val) {
             alert("Invalid grid value.");
             return;
         }
+        graphics.readbackParticleData();
         if (!fieldInit(grid)) {
             return;
         }

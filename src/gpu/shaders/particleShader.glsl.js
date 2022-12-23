@@ -32,7 +32,7 @@ void main() {
 }
 `;
 
-export function generateParticleShader(particle3d, arrow3d) {
+export function generateParticleShader(particle3d, arrow3d, type = "spherow") {
     function define(define, value) {
         if (value == true) {
             return "#define " + define + " 1\n";
@@ -44,6 +44,9 @@ export function generateParticleShader(particle3d, arrow3d) {
     let config = "";
     config += define("USE_3D_ARROW", particle3d);
     config += define("USE_3D_SPHERE", arrow3d);
+    config += define("USE_PARTICLE_SPHERE", type == "sphere");
+    config += define("USE_PARTICLE_ARROW", type == "arrow");
+    config += define("USE_PARTICLE_SPHEROW", type == "spherow");
     let shader = config + particleFragmentShader;
     return shader;
 }
@@ -212,22 +215,35 @@ vec4 particleArrowColor(vec3 vel) {
     }
     value = max(sqrt(velocity), 0.2);
 
-    return vec4(hsv2rgb(vec3(0.75 * velocity, saturation, value)), 1.0);
+    return vec4(hsv2rgb(vec3(0.8333 * velocity, saturation, value)), 1.0);
 }
 
 vec3 gParticleColor = vec3(0.0);
 float particleSdf(vec3 position) {
-    const float radius = 5.0/8.0;
-    float d1 = length(position) - radius;
-    float d2 = customArrowSdf(position);
+    #if USE_PARTICLE_SPHEROW
+        const float radius = 0.5;
+        float d1 = length(position) - radius;
+        float d2 = customArrowSdf(position);
+        if (d1 < d2) {
+            gParticleColor = vParticleColor.rgb;
+            return d1;
+        } else {
+            gParticleColor = particleArrowColor(vParticleVel).rgb;
+            return d2;
+        }
+    #endif
 
-    if (d1 < d2) {
-        gParticleColor = vParticleColor.rgb;
-        return d1;
-    } else {
+    #if USE_PARTICLE_ARROW
+        float d2 = customArrowSdf(position);
         gParticleColor = particleArrowColor(vParticleVel).rgb;
         return d2;
-    }
+    #endif
+
+    #if USE_PARTICLE_SPHERE
+        float d1 = length(position) - radius;
+        gParticleColor = vParticleColor.rgb;
+        return d1;
+    #endif
 }
 
 #define DIFFUSE_LIGHT (-2.75)

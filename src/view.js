@@ -557,6 +557,10 @@ function guiInfoRefresh(now) {
     m = (m == 0) ? (1) : (m);
     let avgEnergy = e / n;
     let avgVelocity = Math.sqrt(e / m);
+    simulation.physics.avgEnergy = avgEnergy;
+    simulation.physics.avgVelocity = avgVelocity;
+    graphics.pointsUniforms['averageVelocity'].value = avgVelocity; // TODO FIX THIS
+
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);
 

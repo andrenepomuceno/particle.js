@@ -64,6 +64,7 @@ flat varying vec3 vParticlePos;
 flat varying vec3 vParticleVel;
 
 uniform vec2 resolution;
+uniform float averageVelocity;
 
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -189,6 +190,21 @@ vec4 fieldColor(vec3 vel) {
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
+vec4 particleArrowColor(vec3 vel) {
+    float velMax = 2.0 * averageVelocity;
+    const float velFade = 1e-2;
+    float saturation = 1.0;
+    float value = 0.7;
+    float velAbs = length(vel)/velMax;
+    if (velAbs > 1.0) {
+        velAbs = 1.0;
+        saturation = 0.0;
+    } else if (velAbs < velFade) {
+        value *= velAbs/velFade;
+    }
+    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
+}
+
 #define SURFACE_NORMAL(sdf, position) \
 normalize(vec3( \
     sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
@@ -219,14 +235,15 @@ const float epsilon = 1e-3;
 
 vec3 particleColor = vec3(0.0);
 float particleSdf(vec3 position) {
-    float d1 = length(position) - 0.5;
+    const float radius = 0.6;
+    float d1 = length(position) - radius;
     float d2 = customArrowSdf(position);
 
     if (d1 < d2) {
         particleColor = vParticleColor.rgb;
         return d1;
     } else {
-        particleColor = fieldColor(vParticleVel).rgb;
+        particleColor = particleArrowColor(vParticleVel).rgb;
         return d2;
     }
 }

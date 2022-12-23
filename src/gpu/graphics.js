@@ -330,6 +330,7 @@ export class GraphicsGPU {
             'texturePosition': { value: this.positionVariable.renderTargets[current].texture },
             'textureVelocity': { value: this.velocityVariable.renderTargets[current].texture },
             'cameraConstant': { value: getCameraConstant(this.camera) },
+            'averageVelocity': { value: this.physics.avgVelocity },
         };
 
         const pointsMaterial = new ShaderMaterial({

@@ -37,6 +37,9 @@ export class Physics {
         this.useBoxBoundary = false;
         this.useDistance1 = false;
         this.velocityShader = undefined;
+        
+        this.avgVelocity = 0.0;
+        this.avgEnergy = 0.0;
     }
 
     header() {
@@ -60,12 +63,15 @@ export function calcListStatistics(list) {
     let stats = {};
 
     stats.center = new Vector3();
+    stats.totalVelocity = new Vector3();
     stats.avgVelocity = new Vector3();
+    stats.avgEnergy = 0.0;
     stats.totalMass = 0;
     stats.totalCharge = 0;
     stats.totalNuclearCharge = 0;
     stats.particles = list.length;
     stats.fixed = 0;
+    stats.totalEnergy = 0.0;
 
     list.forEach(p => {
         switch (p.type) {
@@ -76,10 +82,11 @@ export function calcListStatistics(list) {
             case ParticleType.default:
             case ParticleType.fixed:
                 stats.center.add(p.position);
-                stats.avgVelocity.add(p.velocity);
+                stats.totalVelocity.add(p.velocity);
                 stats.totalMass += p.mass;
                 stats.totalCharge += p.charge;
                 stats.totalNuclearCharge += p.nuclearCharge;
+                stats.totalEnergy += p.energy();
                 break;
 
             case ParticleType.undefined:
@@ -89,7 +96,8 @@ export function calcListStatistics(list) {
     });
 
     stats.center.divideScalar(list.length);
-    stats.avgVelocity.divideScalar(list.length);
+    stats.avgVelocity.add(totalVelocity).divideScalar(list.length);
+    stats.avgEnergy = stats.totalEnergy/list.length;
 
     return stats;
 }

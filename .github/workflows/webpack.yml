@@ -2,11 +2,11 @@ name: NodeJS with Webpack
 
 on:
   push:
-    tags:
-      - "v*"
     branches:
       - main
       - dev
+    tags:
+      - v*
 
 permissions:
   contents: write
@@ -55,7 +55,7 @@ jobs:
       uses: peter-evans/create-pull-request@v4
       with:
         title: "Release ${GITHUB_REF#refs/*/}"
-        branch: ${GITHUB_REF#refs/*/}
+        branch: $GITHUB_REF
         base: main
         committer: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
 

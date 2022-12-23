@@ -6,6 +6,9 @@ function log(msg) {
     console.log("FieldGPU: " + msg);
 }
 
+const arrowMaxLen = 1e3;
+const arrowPadding = 0.75;
+
 export class FieldGPU {
     constructor(simulation) {
         log("constructor");
@@ -180,7 +183,8 @@ export class FieldGPU {
         if (this.grid[2] > 1) {
             radius /= 2;
         }
-        radius *= 0.75;
+        radius *= arrowPadding;
+        radius = Math.min(radius, arrowMaxLen);
         return radius;
     }
 

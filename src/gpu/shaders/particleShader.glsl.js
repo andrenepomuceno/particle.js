@@ -212,7 +212,7 @@ float particleArrowSdf(vec3 position) {
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
     float baseRadius = 0.1; 
-    float tipRadius = 0.5;
+    float tipRadius = 0.6;
     float tipHeight = 0.5;
     float cornerRadius = 0.05;
     vec3 start = vec3(1.0, 0.0, 0.0);
@@ -240,7 +240,7 @@ vec4 particleArrowColor(vec3 vel) {
 vec3 gParticleColor = vec3(0.0);
 float particleSdf(vec3 position) {
     #if USE_PARTICLE_SPHEROW
-        const float radius = 0.7;
+        const float radius = 0.8;
         float d1 = length(position) - radius;
         float d2 = particleArrowSdf(position);
         if (d1 < d2) {
@@ -266,7 +266,7 @@ float particleSdf(vec3 position) {
 }
 
 #define DIFFUSE_LIGHT (-2.75)
-#define AMBIENT_LIGHT (0.075)
+#define AMBIENT_LIGHT (0.1)
 
 const vec3 diffuseLight = DIFFUSE_LIGHT * normalize(vec3(0.3, 1.0, 1.0));
 const vec3 ambientLight = AMBIENT_LIGHT * normalize(vec3(31, 41, 53));

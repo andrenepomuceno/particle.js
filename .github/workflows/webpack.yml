@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -54,8 +55,5 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       uses: peter-evans/create-pull-request@v4
       with:
-        title: "Release ${GITHUB_REF#refs/*/}"
-        branch: $GITHUB_REF
         base: main
-        committer: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
 

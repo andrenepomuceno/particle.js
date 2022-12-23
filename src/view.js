@@ -358,6 +358,7 @@ let guiOptions = {
         randomVelocity: "10",
         cleanupThreshold: "8",
         ruler: "",
+        automaticRotation: false,
         reverseVelocity: () => {
             graphics.readbackParticleData();
             graphics.particleList.forEach((p) => {
@@ -455,6 +456,7 @@ function scenarioSetup(idx) {
 
     energyPanel.min = 0;
     energyPanel.max = 0;
+    graphics.controls.autoRotate = false;
 
     if (guiOptions.controls.showCursor == true) {
         showCursor();
@@ -886,6 +888,7 @@ function guiGeneratorSetup() {
         velocity = parseFloat(val);
         if (isNaN(velocity)) {
             alert("Invalid velocity.");
+            guiOptions.generator.velocity = '0';
             return;
         }
         guiOptions.generator.velocity = floatArrayToString([velocity, 0, 0], precision);
@@ -1034,6 +1037,20 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'ruler').name("Selection Ruler").listen();
+    guiAdvancedControls.add(guiOptions.advancedControls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
+        if (val == true) {
+            if (simulation.mode2D == true) {
+                alert('Cannot do this in 2D mode.');
+                guiOptions.advancedControls.automaticRotation = false;
+                graphics.controls.autoRotate = false;
+                return;
+            }
+            graphics.controls.autoRotate = true;
+            graphics.controls.autoRotateSpeed = 1.0;
+        } else {
+            graphics.controls.autoRotate = false;
+        }
+    });
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);

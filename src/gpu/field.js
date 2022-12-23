@@ -7,7 +7,7 @@ function log(msg) {
 }
 
 const arrowMaxLen = 1e3;
-const arrowPadding = 0.75;
+const arrowPadding = 0.9;
 
 export class FieldGPU {
     constructor(simulation) {
@@ -203,9 +203,12 @@ export class FieldGPU {
         particle.mass = this.probeParam.m;
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
+        particle.radius = this.elementSize();
+
         particle.position.set(x, y, z)
             .add(center)
-            .sub(new Vector3(0, 0, 2 * this.simulation.particleRadius));
-        particle.radius = this.elementSize();
+            //.sub(new Vector3(0, 0, 2 * this.simulation.particleRadius))
+            .sub(new Vector3(0, 0, 1))
+            ;        
     }
 }

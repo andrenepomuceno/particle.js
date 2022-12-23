@@ -175,36 +175,6 @@ float customArrowSdf(vec3 position) {
     return d;
 }
 
-vec4 fieldColor(vec3 vel) {
-    const float velMax = 1e3;
-    const float velFade = 1e-2;
-    float saturation = 1.0;
-    float value = 0.7;
-    float velAbs = length(vel)/velMax;
-    if (velAbs > 1.0) {
-        velAbs = 1.0;
-        saturation = 0.0;
-    } else if (velAbs < velFade) {
-        value *= velAbs/velFade;
-    }
-    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
-}
-
-vec4 particleArrowColor(vec3 vel) {
-    float velMax = 2.0 * averageVelocity;
-    const float velFade = 1e-2;
-    float saturation = 1.0;
-    float value = 0.7;
-    float velAbs = length(vel)/velMax;
-    if (velAbs > 1.0) {
-        velAbs = 1.0;
-        saturation = 0.0;
-    } else if (velAbs < velFade) {
-        value *= velAbs/velFade;
-    }
-    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
-}
-
 #define SURFACE_NORMAL(sdf, position) \
 normalize(vec3( \
     sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
@@ -233,6 +203,21 @@ const vec3 diffuseLight = -2.75 * normalize(vec3(0.3, 1.0, 1.0));
 const vec3 ambientLight = 0.05 * normalize(vec3(31, 41, 53));
 const float epsilon = 1e-3;
 
+vec4 particleArrowColor(vec3 vel) {
+    float velMax = 2.0 * averageVelocity;
+    const float velFade = 1e-2;
+    float saturation = 1.0;
+    float value = 0.7;
+    float velAbs = length(vel)/velMax;
+    if (velAbs > 1.0) {
+        velAbs = 1.0;
+        saturation = 0.0;
+    } else if (velAbs < velFade) {
+        value *= velAbs/velFade;
+    }
+    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
+}
+
 vec3 particleColor = vec3(0.0);
 float particleSdf(vec3 position) {
     const float radius = 0.6;
@@ -248,7 +233,7 @@ float particleSdf(vec3 position) {
     }
 }
 
-void sphere3d() {
+void particle3d() {
     vec3 targetPosition = vec3(0.0);
 
     vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
@@ -276,6 +261,21 @@ void sphere3d() {
     color = sqrt(color); // gamma
 
     gl_FragColor = vec4(color, 1.0);
+}
+
+vec4 fieldColor(vec3 vel) {
+    const float velMax = 1e3;
+    const float velFade = 1e-2;
+    float saturation = 1.0;
+    float value = 0.7;
+    float velAbs = length(vel)/velMax;
+    if (velAbs > 1.0) {
+        velAbs = 1.0;
+        saturation = 0.0;
+    } else if (velAbs < velFade) {
+        value *= velAbs/velFade;
+    }
+    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
 void arrow3d() {
@@ -334,7 +334,7 @@ void main() {
         #if !USE_3D_SPHERE
             sphere2d();
         #else
-            sphere3d();
+            particle3d();
         #endif
     } else {
         #if !USE_3D_ARROW

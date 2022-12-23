@@ -37,7 +37,7 @@ export class Physics {
         this.useBoxBoundary = false;
         this.useDistance1 = false;
         this.velocityShader = undefined;
-        
+
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;
     }
@@ -96,7 +96,7 @@ export function calcListStatistics(list) {
     });
 
     stats.center.divideScalar(list.length);
-    stats.avgVelocity.add(totalVelocity).divideScalar(list.length);
+    stats.avgVelocity.add(stats.totalVelocity).divideScalar(list.length);
     stats.avgEnergy = stats.totalEnergy/list.length;
 
     return stats;

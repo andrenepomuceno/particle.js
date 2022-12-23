@@ -26,12 +26,8 @@ void main() {
     gl_PointSize = r * cameraConstant / (- mvParticlePosition.z);
     gl_Position = projectionMatrix * mvParticlePosition;
 
-    if (vParticleType == PROBE) {
-        vec3 vel = texture2D( textureVelocity, uv ).xyz;
-        vParticleVel = vel;
-        vParticlePos = pos;
-    }
-    
+    vParticleVel = texture2D( textureVelocity, uv ).xyz;
+    vParticlePos = pos;
     vParticleColor = vec4(color, 1.0);
 }
 `;
@@ -167,6 +163,10 @@ float customArrowSdf(vec3 position) {
     return d;
 }
 
+float sphereSdf(vec3 position) {
+    return length(position) - 1.0;
+}
+
 vec4 velocityColor(vec3 vel) {
     const float velMax = 1e3;
     const float velFade = 1e-2;
@@ -180,6 +180,62 @@ vec4 velocityColor(vec3 vel) {
         value = velAbs/velFade;
     }
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
+}
+
+void sphere3d() {
+    vec3 targetPosition = vec3(0.0);
+
+    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
+    mat3 eyeTransform = lookAtMatrix(cameraPosition, vParticlePos);
+    rayOrigin = eyeTransform * rayOrigin;
+    
+    vec2 uv = gl_PointCoord.xy - vec2(0.5);
+    vec3 rayDirection = normalize(vec3(uv, 1.5));
+    mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
+    rayDirection = cameraTransform * rayDirection;
+
+    // raymarch
+    int stepCount = 128;
+    float maximumDistance = 10.0;
+    float t = 0.0;
+    for (int i = 0; i < stepCount; i++) {
+        if (t > maximumDistance) {
+            t = 0.0;
+            break;
+        }
+        vec3 currentPosition = rayOrigin + rayDirection * t;
+        float d = sphereSdf(currentPosition);
+        if (d < 0.0001) {
+            break;
+        }
+        t += d;
+    }
+
+    vec3 color = vec3(0.0);
+    if (t > 0.0) {
+        vec3 position = rayOrigin + rayDirection * t;
+        vec3 lightDirection = vec3(-0.777);
+
+        // calc normal
+        float epsilon = 0.001;
+        vec3 gradient = vec3(
+            sphereSdf(position + vec3(epsilon, 0, 0)) - sphereSdf(position + vec3(-epsilon, 0, 0)),
+            sphereSdf(position + vec3(0, epsilon, 0)) - sphereSdf(position + vec3(0, -epsilon, 0)),
+            sphereSdf(position + vec3(0, 0, epsilon)) - sphereSdf(position + vec3(0, 0, -epsilon))
+        );
+        vec3 n = normalize(gradient);
+
+        float diffuseAngle = max(dot(n, lightDirection), 0.0);
+        // diffuse
+        color = vParticleColor.rgb * diffuseAngle;
+        // ambient
+        color += vec3(0.01) * ((n.y + 1.0) * 0.5);
+        color = sqrt(color); // gamma
+
+        gl_FragColor = vec4(color, 1.0);
+        } else {
+            discard;
+        }
 }
 
 void arrow3d() {
@@ -237,68 +293,6 @@ void arrow3d() {
         } else {
             discard;
         }
-}
-
-float sphereSdf(vec3 position) {
-    return length(position) - 1.0;
-}
-
-vec3 normalSphere(vec3 position) {
-    float epsilon = 0.001;
-    vec3 gradient = vec3(
-        sphereSdf(position + vec3(epsilon, 0, 0)) - sphereSdf(position + vec3(-epsilon, 0, 0)),
-        sphereSdf(position + vec3(0, epsilon, 0)) - sphereSdf(position + vec3(0, -epsilon, 0)),
-        sphereSdf(position + vec3(0, 0, epsilon)) - sphereSdf(position + vec3(0, 0, -epsilon))
-    );
-    return normalize(gradient);
-}
-
-float raycastSphere(vec3 rayOrigin, vec3 rayDirection) {
-    int stepCount = 128;
-    float maximumDistance = 10.0;
-    float t = 0.0;
-    for (int i = 0; i < stepCount; i++) {
-        if (t > maximumDistance) {
-            break;
-        }
-        vec3 currentPosition = rayOrigin + rayDirection * t;
-        float d = sphereSdf(currentPosition);
-        if (d < 0.0001) {
-            return t;
-        }
-        t += d;
-    }
-    return 0.0;
-}
-
-void sphere3d() {
-    vec3 targetPosition = vec3(0.0);
-
-    vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
-    mat3 eyeTransform = lookAtMatrix(cameraPosition, vParticlePos);
-    rayOrigin = eyeTransform * rayOrigin;
-    
-    vec2 uv = gl_PointCoord.xy - vec2(0.5);
-    vec3 rayDirection = normalize(vec3(uv, 1.5));
-    mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
-    rayDirection = cameraTransform * rayDirection;
-
-    float t = raycastSphere(rayOrigin, rayDirection);
-    vec3 color = vec3(0.0);
-    if (t > 0.0) {
-        vec3 position = rayOrigin + rayDirection * t;
-        vec3 lightDirection = vec3(-0.777);
-        vec3 n = normalSphere(position);
-        float diffuseAngle = max(dot(n, lightDirection), 0.0);
-        // diffuse
-        color = vParticleColor.rgb * diffuseAngle;
-        // ambient
-        color += vec3(0.01) * ((n.y + 1.0) * 0.5);
-        color = sqrt(color); // gamma
-        gl_FragColor = vec4(color, 1.0);
-    } else {
-        discard;
-    }
 }
 
 void sphere2d() {

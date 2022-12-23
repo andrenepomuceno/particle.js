@@ -182,10 +182,35 @@ vec4 velocityColor(vec3 vel) {
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
-const vec3 diffuseLight = vec3(-1.0);
-//const vec3 diffuseLight = -vec3(0.0, 0.0, 1.0);
-const vec3 ambientLight = vec3(0.0, 0.0, 0.01);
-const float epsilon = 0.001;
+const vec3 diffuseLight = -vec3(0.1235, 1.0, 1.0);
+const vec3 ambientLight = vec3(0.01, 0.01, 0.0223);
+const float epsilon = 1e-3;
+
+#define NORMAL(sdf, position) \
+normalize(vec3( \
+    sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
+    sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)), \
+    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon)) \
+));
+
+#define RAYMARCH(sdf, t, rayOrigin, rayDirection) \
+{ \
+    int stepCount = 128; \
+    float maximumDistance = 10.0; \
+    for (int i = 0; i < stepCount; i++) { \
+        if (t > maximumDistance) { \
+            t = 0.0; \
+            break; \
+        } \
+        vec3 currentPosition = rayOrigin + rayDirection * t; \
+        float d = sdf(currentPosition); \
+        if (d < epsilon) { \
+            break; \
+        } \
+        t += d; \
+    } \
+    if (t <= 0.0) discard; \
+}
 
 void sphere3d() {
     vec3 targetPosition = vec3(0.0);
@@ -199,37 +224,13 @@ void sphere3d() {
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     rayDirection = cameraTransform * rayDirection;
 
-    // raymarch
-    int stepCount = 128;
-    float maximumDistance = 10.0;
     float t = 0.0;
-    for (int i = 0; i < stepCount; i++) {
-        if (t > maximumDistance) {
-            t = 0.0;
-            break;
-        }
-        vec3 currentPosition = rayOrigin + rayDirection * t;
-        float d = sphereSdf(currentPosition);
-        if (d < 0.0001) {
-            break;
-        }
-        t += d;
-    }
-    if (t <= 0.0) discard;
+    RAYMARCH(sphereSdf, t, rayOrigin, rayDirection);
 
     // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-
-    // calc normal
-    
-    vec3 gradient = vec3(
-        sphereSdf(position + vec3(epsilon, 0, 0)) - sphereSdf(position + vec3(-epsilon, 0, 0)),
-        sphereSdf(position + vec3(0, epsilon, 0)) - sphereSdf(position + vec3(0, -epsilon, 0)),
-        sphereSdf(position + vec3(0, 0, epsilon)) - sphereSdf(position + vec3(0, 0, -epsilon))
-    );
-    vec3 n = normalize(gradient);
-
+    vec3 n = NORMAL(sphereSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
     color = vParticleColor.rgb * diffuseAngle;
@@ -252,39 +253,16 @@ void arrow3d() {
     mat3 cameraTransform = lookAtMatrix(rayOrigin, targetPosition);
     rayDirection = cameraTransform * rayDirection;
 
-    // raymarch
-    int stepCount = 128;
-    float maximumDistance = 10.0;
     float t = 0.0;
-    for (int i = 0; i < stepCount; i++) {
-        if (t > maximumDistance) {
-            t = 0.0;
-            break;
-        }
-        vec3 currentPosition = rayOrigin + rayDirection * t;
-        float d = customArrowSdf(currentPosition);
-        if (d < 0.0001) {
-            break;
-        }
-        t += d;
-    }
-    if (t <= 0.0) discard;
+    RAYMARCH(customArrowSdf, t, rayOrigin, rayDirection);
 
+    // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-
-    // calc normal
-    vec3 gradient = vec3(
-        customArrowSdf(position + vec3(epsilon, 0, 0)) - customArrowSdf(position + vec3(-epsilon, 0, 0)),
-        customArrowSdf(position + vec3(0, epsilon, 0)) - customArrowSdf(position + vec3(0, -epsilon, 0)),
-        customArrowSdf(position + vec3(0, 0, epsilon)) - customArrowSdf(position + vec3(0, 0, -epsilon))
-    );
-    vec3 n = normalize(gradient);
-
+    vec3 n = NORMAL(customArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    vec3 baseColor = velocityColor(vParticleVel).xyz;
-    color = baseColor * diffuseAngle;
+    color = velocityColor(vParticleVel).rgb * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma

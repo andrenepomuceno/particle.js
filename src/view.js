@@ -422,7 +422,7 @@ let guiOptions = {
         q: '1',
         nq: '1',
         grid: '50',
-        automaticRefresh: true,
+        automaticRefresh: false,
         fieldResize: () => {
             let center = graphics.controls.target.clone();
             simulation.field.resize(center);

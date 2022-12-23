@@ -203,13 +203,15 @@ float customArrowSdf(vec3 position) {
 vec4 particleArrowColor(vec3 vel) {
     float velMax = 10.0 * averageVelocity;
     float saturation = 1.0;
-    float value = 0.9;
-    float velAbs = length(vel)/velMax;
-    if (velAbs > 1.0) {
-        velAbs = 1.0;
-        saturation = 0.0;
+    const float valueMax = 1.0;
+    float value = valueMax;
+    float velocity = length(vel)/velMax;
+    if (velocity > 1.0) {
+        velocity = 1.0;
     }
-    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
+    value = sqrt(velocity);
+
+    return vec4(hsv2rgb(vec3(velocity, saturation, value)), 1.0);
 }
 
 vec3 gParticleColor = vec3(0.0);

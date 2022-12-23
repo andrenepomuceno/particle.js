@@ -174,10 +174,6 @@ float customArrowSdf(vec3 position) {
     return d;
 }
 
-float sphereSdf(vec3 position) {
-    return length(position) - 1.0;
-}
-
 vec4 fieldColor(vec3 vel) {
     const float velMax = 1e3;
     const float velFade = 1e-2;
@@ -221,6 +217,20 @@ const vec3 diffuseLight = -2.75 * normalize(vec3(0.3, 1.0, 1.0));
 const vec3 ambientLight = 0.05 * normalize(vec3(31, 41, 53));
 const float epsilon = 1e-3;
 
+vec3 particleColor = vec3(0.0);
+float particleSdf(vec3 position) {
+    float d1 = length(position) - 0.5;
+    float d2 = customArrowSdf(position);
+
+    if (d1 < d2) {
+        particleColor = vParticleColor.rgb;
+        return d1;
+    } else {
+        particleColor = fieldColor(vParticleVel).rgb;
+        return d2;
+    }
+}
+
 void sphere3d() {
     vec3 targetPosition = vec3(0.0);
 
@@ -234,16 +244,16 @@ void sphere3d() {
     rayDirection = cameraTransform * rayDirection;
 
     float t = 0.0;
-    RAYMARCH(sphereSdf, rayOrigin, rayDirection);
+    RAYMARCH(particleSdf, rayOrigin, rayDirection);
     if (t <= 0.0) discard;
 
     // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-    vec3 n = SURFACE_NORMAL(sphereSdf, position);
+    vec3 n = SURFACE_NORMAL(particleSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = vParticleColor.rgb * diffuseAngle;
+    color = particleColor * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma
@@ -253,6 +263,8 @@ void sphere3d() {
 
 void arrow3d() {
     vec3 targetPosition = vec3(0.0);
+
+    particleColor = fieldColor(vParticleVel).rgb;
 
     vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
     mat3 eyeTransform = lookAtMatrix(cameraPosition, vParticlePos);
@@ -273,7 +285,7 @@ void arrow3d() {
     vec3 n = SURFACE_NORMAL(customArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = fieldColor(vParticleVel).rgb * diffuseAngle;
+    color = particleColor * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma

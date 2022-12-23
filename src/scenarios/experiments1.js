@@ -50,7 +50,7 @@ function electronProtonNeutron(simulation) {
     physics.nuclearChargeRange = 1e3;
     physics.boundaryDistance = 50 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10.0 * physics.nuclearChargeRange;
     graphics.cameraSetup();
     simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;

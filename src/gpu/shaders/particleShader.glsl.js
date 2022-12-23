@@ -182,6 +182,11 @@ vec4 velocityColor(vec3 vel) {
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
+const vec3 diffuseLight = vec3(-1.0);
+//const vec3 diffuseLight = -vec3(0.0, 0.0, 1.0);
+const vec3 ambientLight = vec3(0.0, 0.0, 0.01);
+const float epsilon = 0.001;
+
 void sphere3d() {
     vec3 targetPosition = vec3(0.0);
 
@@ -210,32 +215,29 @@ void sphere3d() {
         }
         t += d;
     }
+    if (t <= 0.0) discard;
 
+    // light
     vec3 color = vec3(0.0);
-    if (t > 0.0) {
-        vec3 position = rayOrigin + rayDirection * t;
-        vec3 lightDirection = vec3(-0.777);
+    vec3 position = rayOrigin + rayDirection * t;
 
-        // calc normal
-        float epsilon = 0.001;
-        vec3 gradient = vec3(
-            sphereSdf(position + vec3(epsilon, 0, 0)) - sphereSdf(position + vec3(-epsilon, 0, 0)),
-            sphereSdf(position + vec3(0, epsilon, 0)) - sphereSdf(position + vec3(0, -epsilon, 0)),
-            sphereSdf(position + vec3(0, 0, epsilon)) - sphereSdf(position + vec3(0, 0, -epsilon))
-        );
-        vec3 n = normalize(gradient);
+    // calc normal
+    
+    vec3 gradient = vec3(
+        sphereSdf(position + vec3(epsilon, 0, 0)) - sphereSdf(position + vec3(-epsilon, 0, 0)),
+        sphereSdf(position + vec3(0, epsilon, 0)) - sphereSdf(position + vec3(0, -epsilon, 0)),
+        sphereSdf(position + vec3(0, 0, epsilon)) - sphereSdf(position + vec3(0, 0, -epsilon))
+    );
+    vec3 n = normalize(gradient);
 
-        float diffuseAngle = max(dot(n, lightDirection), 0.0);
-        // diffuse
-        color = vParticleColor.rgb * diffuseAngle;
-        // ambient
-        color += vec3(0.01) * ((n.y + 1.0) * 0.5);
-        color = sqrt(color); // gamma
+    float diffuseAngle = max(dot(n, diffuseLight), 0.0);
+    // diffuse
+    color = vParticleColor.rgb * diffuseAngle;
+    // ambient
+    color += ambientLight * ((n.y + 1.0) * 0.5);
+    color = sqrt(color); // gamma
 
-        gl_FragColor = vec4(color, 1.0);
-        } else {
-            discard;
-        }
+    gl_FragColor = vec4(color, 1.0);
 }
 
 void arrow3d() {
@@ -266,33 +268,28 @@ void arrow3d() {
         }
         t += d;
     }
+    if (t <= 0.0) discard;
 
     vec3 color = vec3(0.0);
-    if (t > 0.0) {
-        vec3 position = rayOrigin + rayDirection * t;
-        vec3 lightDirection = vec3(-0.777);
+    vec3 position = rayOrigin + rayDirection * t;
 
-        // calc normal
-        float epsilon = 0.001;
-        vec3 gradient = vec3(
-            customArrowSdf(position + vec3(epsilon, 0, 0)) - customArrowSdf(position + vec3(-epsilon, 0, 0)),
-            customArrowSdf(position + vec3(0, epsilon, 0)) - customArrowSdf(position + vec3(0, -epsilon, 0)),
-            customArrowSdf(position + vec3(0, 0, epsilon)) - customArrowSdf(position + vec3(0, 0, -epsilon))
-        );
-        vec3 n = normalize(gradient);
+    // calc normal
+    vec3 gradient = vec3(
+        customArrowSdf(position + vec3(epsilon, 0, 0)) - customArrowSdf(position + vec3(-epsilon, 0, 0)),
+        customArrowSdf(position + vec3(0, epsilon, 0)) - customArrowSdf(position + vec3(0, -epsilon, 0)),
+        customArrowSdf(position + vec3(0, 0, epsilon)) - customArrowSdf(position + vec3(0, 0, -epsilon))
+    );
+    vec3 n = normalize(gradient);
 
-        float diffuseAngle = max(dot(n, lightDirection), 0.0);
-        // diffuse
-        vec3 baseColor = velocityColor(vParticleVel).xyz;
-        color = baseColor * diffuseAngle;
-        // ambient
-        color += vec3(0.01) * ((n.y + 1.0) * 0.5);
-        color = sqrt(color); // gamma
+    float diffuseAngle = max(dot(n, diffuseLight), 0.0);
+    // diffuse
+    vec3 baseColor = velocityColor(vParticleVel).xyz;
+    color = baseColor * diffuseAngle;
+    // ambient
+    color += ambientLight * ((n.y + 1.0) * 0.5);
+    color = sqrt(color); // gamma
 
-        gl_FragColor = vec4(color, 1.0);
-        } else {
-            discard;
-        }
+    gl_FragColor = vec4(color, 1.0);
 }
 
 void sphere2d() {

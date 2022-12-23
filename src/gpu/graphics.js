@@ -154,8 +154,9 @@ export class GraphicsGPU {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        if (this.initialized)
-            this.pointsUniforms.value = getCameraConstant(this.camera);
+        if (this.initialized == true) {
+            this.pointsUniforms['cameraConstant'].value = getCameraConstant(this.camera);
+        }
     }
 
     cleanup() {

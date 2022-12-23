@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Vector3, VectorKeyframeTrack } from 'three';
 import { ParticleType } from './particle';
 
 export const NuclearPotentialType = {
@@ -68,13 +68,24 @@ export function calcListStatistics(list) {
     stats.fixed = 0;
 
     list.forEach(p => {
-        if (p.type == ParticleType.fixed) stats.fixed++;
-        if (p.type != ParticleType.default && p.type != ParticleType.fixed) return;
-        stats.center.add(p.position);
-        stats.avgVelocity.add(p.velocity);
-        stats.totalMass += p.mass;
-        stats.totalCharge += p.charge;
-        stats.totalNuclearCharge += p.nuclearCharge;
+        switch (p.type) {
+            case ParticleType.fixed:
+                if (p.type == ParticleType.fixed) stats.fixed++;
+                //break;
+
+            case ParticleType.default:
+            case ParticleType.fixed:
+                stats.center.add(p.position);
+                stats.avgVelocity.add(p.velocity);
+                stats.totalMass += p.mass;
+                stats.totalCharge += p.charge;
+                stats.totalNuclearCharge += p.nuclearCharge;
+                break;
+
+            case ParticleType.undefined:
+            default:
+                return;
+        }    
     });
 
     stats.center.divideScalar(list.length);

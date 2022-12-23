@@ -155,7 +155,7 @@ export class GraphicsGPU {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         if (this.initialized == true) {
-            this.pointsUniforms['cameraConstant'].value = getCameraConstant(this.camera);
+            this.pointsUniforms['uCameraConstant'].value = getCameraConstant(this.camera);
         }
     }
 
@@ -329,8 +329,8 @@ export class GraphicsGPU {
         this.pointsUniforms = {
             'texturePosition': { value: this.positionVariable.renderTargets[current].texture },
             'textureVelocity': { value: this.velocityVariable.renderTargets[current].texture },
-            'cameraConstant': { value: getCameraConstant(this.camera) },
-            'averageVelocity': { value: this.physics.avgVelocity },
+            'uCameraConstant': { value: getCameraConstant(this.camera) },
+            'uAverageVelocity': { value: this.physics.avgVelocity },
         };
 
         const pointsMaterial = new ShaderMaterial({

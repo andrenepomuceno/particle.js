@@ -358,7 +358,7 @@ let guiOptions = {
         dampKickFactor: "0.1",
         randomVelocity: "10",
         cleanupThreshold: "8",
-        ruler: "",
+        ruler: "0",
         automaticRotation: false,
         shader3d: true,
         reverseVelocity: () => {
@@ -518,6 +518,7 @@ function guiInfoSetup() {
         graphics.controls.target.set(p.x, p.y, 0);
         graphics.controls.update();
     });
+    guiInfo.add(guiOptions.advancedControls, 'ruler').name("Ruler").listen();
     guiInfo.add(guiOptions.info, 'cameraNormal').name('Normal').listen();
     guiInfo.open();
 
@@ -537,14 +538,6 @@ function guiInfoSetup() {
     });
     guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
         autoRefresh = val;
-    });
-    guiInfo.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
-        if (val == true) {
-            showCursor();
-        } else {
-            mouseHelper.hideCursor();
-            guiOptions.controls.showCursor = false;
-        }
     });
 
     //collapseList.push(guiInfo);
@@ -567,7 +560,7 @@ function guiInfoRefresh(now) {
     let avgVelocity = Math.sqrt(e / m);
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
-    graphics.pointsUniforms['averageVelocity'].value = avgVelocity; // TODO FIX THIS
+    graphics.pointsUniforms['uAverageVelocity'].value = avgVelocity; // TODO FIX THIS
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);
@@ -606,6 +599,39 @@ function guiControlsSetup() {
     guiControlsView.add(guiOptions.controls, 'colorMode').name("Color Mode [Q]");
     guiControlsView.add(guiOptions.controls, 'hideOverlay').name("Hide Overlay [H]");
     guiControlsView.add(guiOptions.controls, 'collapseAll').name("Collapse all folders [M]");
+    guiControlsView.add(guiOptions.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+        if (val == true) {
+            showCursor();
+        } else {
+            mouseHelper.hideCursor();
+            guiOptions.controls.showCursor = false;
+        }
+    });
+    guiControlsView.add(guiOptions.advancedControls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
+        if (val == true) {
+            if (simulation.mode2D == true) {
+                alert('Cannot do this in 2D mode.');
+                guiOptions.advancedControls.automaticRotation = false;
+                graphics.controls.autoRotate = false;
+                return;
+            }
+            graphics.controls.autoRotate = true;
+            graphics.controls.autoRotateSpeed = 1.0;
+        } else {
+            graphics.controls.autoRotate = false;
+        }
+    });
+    guiControlsView.add(guiOptions.advancedControls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
+        if (val == true) {
+            graphics.arrow3d = true;
+            graphics.particle3d = true;
+        } else {
+            graphics.arrow3d = false;
+            graphics.particle3d = false;
+        }
+        graphics.readbackParticleData();
+        simulation.drawParticles();
+    });
 
     guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
@@ -1044,32 +1070,6 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
     guiAdvancedControls.add(guiOptions.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
-    guiAdvancedControls.add(guiOptions.advancedControls, 'ruler').name("Selection Ruler").listen();
-    guiAdvancedControls.add(guiOptions.advancedControls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
-        if (val == true) {
-            if (simulation.mode2D == true) {
-                alert('Cannot do this in 2D mode.');
-                guiOptions.advancedControls.automaticRotation = false;
-                graphics.controls.autoRotate = false;
-                return;
-            }
-            graphics.controls.autoRotate = true;
-            graphics.controls.autoRotateSpeed = 1.0;
-        } else {
-            graphics.controls.autoRotate = false;
-        }
-    });
-    guiAdvancedControls.add(guiOptions.advancedControls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
-        if (val == true) {
-            graphics.arrow3d = true;
-            graphics.particle3d = true;
-        } else {
-            graphics.arrow3d = false;
-            graphics.particle3d = false;
-        }
-        graphics.readbackParticleData();
-        simulation.drawParticles();
-    });
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);
@@ -1395,6 +1395,9 @@ function particleGenerator(input) {
 }
 
 function cameraTargetSet(pos) {
+    log('cameraTargetSet');
+    console.log(pos);
+    
     graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
     graphics.controls.target.set(pos.x, pos.y, pos.z);
     graphics.controls.update();
@@ -1501,7 +1504,7 @@ function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        if (autoRefresh == true || guiOptions.particle.obj != undefined) {
+        if (autoRefresh == true) {
             graphics.readbackParticleData();
         }
 

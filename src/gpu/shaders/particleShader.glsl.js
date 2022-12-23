@@ -4,7 +4,7 @@ attribute float radius;
 
 uniform sampler2D texturePosition;
 uniform sampler2D textureVelocity;
-uniform float cameraConstant;
+uniform float uCameraConstant;
 
 varying vec4 vParticleColor;
 flat varying float vParticleType;
@@ -23,7 +23,7 @@ void main() {
     vParticleType = tPos.w;
 
     vec4 mvParticlePosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = r * cameraConstant / (- mvParticlePosition.z);
+    gl_PointSize = r * uCameraConstant / (- mvParticlePosition.z);
     gl_Position = projectionMatrix * mvParticlePosition;
 
     vParticleVel = texture2D( textureVelocity, uv ).xyz;
@@ -68,7 +68,7 @@ flat varying vec3 vParticlePos;
 flat varying vec3 vParticleVel;
 
 uniform vec2 resolution;
-uniform float averageVelocity;
+uniform float uAverageVelocity;
 
 #define SURFACE_NORMAL(sdf, position) \
 normalize(vec3( \
@@ -184,7 +184,7 @@ float arrowSdf(vec3 position, vec3 start, vec3 end, float baseRadius, float tipR
     return sqrt(min(min(min(dot(d1, d1), dot(d2, d2)), dot(d3, d3)), dot(d4, d4))) * sign(s);
 }
 
-float customArrowSdf(vec3 position) {
+float fieldArrowSdf(vec3 position) {
     vec3 dir = normalize(vParticleVel);
 
     float angle = atan(dir.y, dir.x);
@@ -203,8 +203,27 @@ float customArrowSdf(vec3 position) {
     return d;
 }
 
+float particleArrowSdf(vec3 position) {
+    vec3 dir = normalize(vParticleVel);
+
+    float angle = atan(dir.y, dir.x);
+    position = rotate(position, vec3(0.0, 0.0, 1.0), angle);
+    float angleZ = -asin(dir.z);
+    position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
+
+    float baseRadius = 0.1; 
+    float tipRadius = 0.5;
+    float tipHeight = 0.5;
+    float cornerRadius = 0.05;
+    vec3 start = vec3(1.0, 0.0, 0.0);
+    vec3 end = vec3(-1.0, 0.0, 0.0);
+    float d = arrowSdf(position, start, end, baseRadius, tipRadius, tipHeight);
+    d -= cornerRadius;
+    return d;
+}
+
 vec4 particleArrowColor(vec3 vel) {
-    float velMax = 10.0 * averageVelocity;
+    float velMax = 10.0 * uAverageVelocity;
     float saturation = 1.0;
     const float valueMax = 1.0;
     float value = valueMax;
@@ -221,9 +240,9 @@ vec4 particleArrowColor(vec3 vel) {
 vec3 gParticleColor = vec3(0.0);
 float particleSdf(vec3 position) {
     #if USE_PARTICLE_SPHEROW
-        const float radius = 0.5;
+        const float radius = 0.7;
         float d1 = length(position) - radius;
-        float d2 = customArrowSdf(position);
+        float d2 = particleArrowSdf(position);
         if (d1 < d2) {
             gParticleColor = vParticleColor.rgb;
             return d1;
@@ -234,7 +253,7 @@ float particleSdf(vec3 position) {
     #endif
 
     #if USE_PARTICLE_ARROW
-        float d2 = customArrowSdf(position);
+        float d2 = fieldArrowSdf(position);
         gParticleColor = particleArrowColor(vParticleVel).rgb;
         return d2;
     #endif
@@ -312,13 +331,13 @@ void arrow3d() {
     rayDirection = cameraTransform * rayDirection;
 
     float t = 0.0;
-    RAYMARCH(customArrowSdf, rayOrigin, rayDirection);
+    RAYMARCH(fieldArrowSdf, rayOrigin, rayDirection);
     if (t <= 0.0) discard;
 
     // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-    vec3 n = SURFACE_NORMAL(customArrowSdf, position);
+    vec3 n = SURFACE_NORMAL(fieldArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
     color = gParticleColor * diffuseAngle;

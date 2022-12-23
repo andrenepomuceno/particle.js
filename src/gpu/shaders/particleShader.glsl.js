@@ -57,6 +57,7 @@ const particleFragmentShader = /* glsl */ `
 
 const float linewidth = 0.05;
 const float antialias = 0.01;
+const float epsilon = 1e-3;
 
 varying vec4 vParticleColor;
 flat varying float vParticleType;
@@ -65,6 +66,30 @@ flat varying vec3 vParticleVel;
 
 uniform vec2 resolution;
 uniform float averageVelocity;
+
+#define SURFACE_NORMAL(sdf, position) \
+normalize(vec3( \
+    sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
+    sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)), \
+    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))  \
+))
+
+#define RAYMARCH(sdf, rayOrigin, rayDirection) { \
+    int stepCount = 128;                                        \
+    float maximumDistance = 10.0;                               \
+    for (int i = 0; i < stepCount; i++) {                       \
+        if (t > maximumDistance) {                              \
+            t = 0.0;                                            \
+            break;                                              \
+        }                                                       \
+        vec3 currentPosition = rayOrigin + rayDirection * t;    \
+        float d = sdf(currentPosition);                         \
+        if (d < epsilon) {                                      \
+            break;                                              \
+        }                                                       \
+        t += d;                                                 \
+    }                                                           \
+}
 
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -94,6 +119,30 @@ vec4 filled(float distance, float linewidth, float antialias, vec4 fill) {
             frag_color = vec4(fill.rgb*alpha, 1.0);
 
     return frag_color;
+}
+
+mat3 lookAtMatrix(vec3 from, vec3 to) {
+    vec3 forward = normalize(to - from);
+    vec3 right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
+    vec3 up = cross(right, forward);
+    return mat3(right, up, forward);
+}
+
+mat4 rotationMatrix(vec3 axis, float angle) {
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return mat4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
+                oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
+                oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
+                0.0, 0.0, 0.0, 1.0);
+}
+
+vec3 rotate(vec3 v, vec3 axis, float angle) {
+    mat4 m = rotationMatrix(axis, angle);
+    return (m * vec4(v, 1.0)).xyz;
 }
 
 float arrowSdf(vec3 position, vec3 start, vec3 end, float baseRadius, float tipRadius, float tipHeight) {
@@ -132,30 +181,6 @@ float arrowSdf(vec3 position, vec3 start, vec3 end, float baseRadius, float tipR
     return sqrt(min(min(min(dot(d1, d1), dot(d2, d2)), dot(d3, d3)), dot(d4, d4))) * sign(s);
 }
 
-mat3 lookAtMatrix(vec3 from, vec3 to) {
-    vec3 forward = normalize(to - from);
-    vec3 right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
-    vec3 up = cross(right, forward);
-    return mat3(right, up, forward);
-}
-
-mat4 rotationMatrix(vec3 axis, float angle) {
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
-
-    return mat4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0.0,
-                oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0.0,
-                oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0.0,
-                0.0, 0.0, 0.0, 1.0);
-}
-
-vec3 rotate(vec3 v, vec3 axis, float angle) {
-    mat4 m = rotationMatrix(axis, angle);
-    return (m * vec4(v, 1.0)).xyz;
-}
-
 float customArrowSdf(vec3 position) {
     vec3 dir = normalize(vParticleVel);
 
@@ -175,63 +200,38 @@ float customArrowSdf(vec3 position) {
     return d;
 }
 
-#define SURFACE_NORMAL(sdf, position) \
-normalize(vec3( \
-    sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
-    sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)), \
-    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))  \
-))
-
-#define RAYMARCH(sdf, rayOrigin, rayDirection) { \
-    int stepCount = 128;                                        \
-    float maximumDistance = 10.0;                               \
-    for (int i = 0; i < stepCount; i++) {                       \
-        if (t > maximumDistance) {                              \
-            t = 0.0;                                            \
-            break;                                              \
-        }                                                       \
-        vec3 currentPosition = rayOrigin + rayDirection * t;    \
-        float d = sdf(currentPosition);                         \
-        if (d < epsilon) {                                      \
-            break;                                              \
-        }                                                       \
-        t += d;                                                 \
-    }                                                           \
-}
-
-const vec3 diffuseLight = -2.75 * normalize(vec3(0.3, 1.0, 1.0));
-const vec3 ambientLight = 0.05 * normalize(vec3(31, 41, 53));
-const float epsilon = 1e-3;
-
 vec4 particleArrowColor(vec3 vel) {
-    float velMax = 2.0 * averageVelocity;
-    const float velFade = 1e-2;
+    float velMax = 10.0 * averageVelocity;
     float saturation = 1.0;
-    float value = 0.7;
+    float value = 0.9;
     float velAbs = length(vel)/velMax;
     if (velAbs > 1.0) {
         velAbs = 1.0;
         saturation = 0.0;
-    } else if (velAbs < velFade) {
-        value *= velAbs/velFade;
     }
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
-vec3 particleColor = vec3(0.0);
+vec3 gParticleColor = vec3(0.0);
 float particleSdf(vec3 position) {
-    const float radius = 0.6;
+    const float radius = 5.0/8.0;
     float d1 = length(position) - radius;
     float d2 = customArrowSdf(position);
 
     if (d1 < d2) {
-        particleColor = vParticleColor.rgb;
+        gParticleColor = vParticleColor.rgb;
         return d1;
     } else {
-        particleColor = particleArrowColor(vParticleVel).rgb;
+        gParticleColor = particleArrowColor(vParticleVel).rgb;
         return d2;
     }
 }
+
+#define DIFFUSE_LIGHT (-2.75)
+#define AMBIENT_LIGHT (0.075)
+
+const vec3 diffuseLight = DIFFUSE_LIGHT * normalize(vec3(0.3, 1.0, 1.0));
+const vec3 ambientLight = AMBIENT_LIGHT * normalize(vec3(31, 41, 53));
 
 void particle3d() {
     vec3 targetPosition = vec3(0.0);
@@ -255,7 +255,7 @@ void particle3d() {
     vec3 n = SURFACE_NORMAL(particleSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = particleColor * diffuseAngle;
+    color = gParticleColor * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma
@@ -281,7 +281,7 @@ vec4 fieldColor(vec3 vel) {
 void arrow3d() {
     vec3 targetPosition = vec3(0.0);
 
-    particleColor = fieldColor(vParticleVel).rgb;
+    gParticleColor = fieldColor(vParticleVel).rgb;
 
     vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
     mat3 eyeTransform = lookAtMatrix(cameraPosition, vParticlePos);
@@ -302,7 +302,7 @@ void arrow3d() {
     vec3 n = SURFACE_NORMAL(customArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = particleColor * diffuseAngle;
+    color = gParticleColor * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma

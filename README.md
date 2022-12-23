@@ -15,7 +15,7 @@ Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
 
 ## Build
 
-[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=v0.48.0)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
+[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
 
 To run the test server on `localhost:8080`
 ```

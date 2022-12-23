@@ -52,15 +52,13 @@ flat varying vec3 vParticleVel;
 
 uniform vec2 resolution;
 
-vec3 hsv2rgb(vec3 c)
-{
+vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-vec4 filled(float distance, float linewidth, float antialias, vec4 fill)
-{
+vec4 filled(float distance, float linewidth, float antialias, vec4 fill) {
     vec4 frag_color;
     float t = linewidth/2.0 - antialias;
     float signed_distance = distance;
@@ -167,49 +165,48 @@ float sphereSdf(vec3 position) {
     return length(position) - 1.0;
 }
 
-vec4 velocityColor(vec3 vel) {
+vec4 fieldColor(vec3 vel) {
     const float velMax = 1e3;
     const float velFade = 1e-2;
     float saturation = 1.0;
-    float value = 0.6;
+    float value = 0.7;
     float velAbs = length(vel)/velMax;
     if (velAbs > 1.0) {
         velAbs = 1.0;
         saturation = 0.0;
     } else if (velAbs < velFade) {
-        value = velAbs/velFade;
+        value *= velAbs/velFade;
     }
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
-const vec3 diffuseLight = -vec3(0.1235, 1.0, 1.0);
-const vec3 ambientLight = vec3(0.01, 0.01, 0.0223);
-const float epsilon = 1e-3;
-
-#define NORMAL(sdf, position) \
+#define SURFACE_NORMAL(sdf, position) \
 normalize(vec3( \
     sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
     sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)), \
-    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon)) \
-));
+    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))  \
+))
 
-#define RAYMARCH(sdf, rayOrigin, rayDirection)           \
-{                                                           \
-    int stepCount = 128;                                    \
-    float maximumDistance = 10.0;                           \
-    for (int i = 0; i < stepCount; i++) {                   \
-        if (t > maximumDistance) {                          \
-            t = 0.0;                                        \
-            break;                                          \
-        }                                                   \
-        vec3 currentPosition = rayOrigin + rayDirection * t; \
-        float d = sdf(currentPosition);                     \
-        if (d < epsilon) {                                  \
-            break;                                          \
-        }                                                   \
-        t += d;                                             \
-    }                                                       \
+#define RAYMARCH(sdf, rayOrigin, rayDirection) { \
+    int stepCount = 128;                                        \
+    float maximumDistance = 10.0;                               \
+    for (int i = 0; i < stepCount; i++) {                       \
+        if (t > maximumDistance) {                              \
+            t = 0.0;                                            \
+            break;                                              \
+        }                                                       \
+        vec3 currentPosition = rayOrigin + rayDirection * t;    \
+        float d = sdf(currentPosition);                         \
+        if (d < epsilon) {                                      \
+            break;                                              \
+        }                                                       \
+        t += d;                                                 \
+    }                                                           \
 }
+
+const vec3 diffuseLight = -1.75 * normalize(vec3(0.3, 1.0, 1.0));
+const vec3 ambientLight = 0.01 * vec3(1, 1, 5);
+const float epsilon = 1e-3;
 
 void sphere3d() {
     vec3 targetPosition = vec3(0.0);
@@ -225,12 +222,12 @@ void sphere3d() {
 
     float t = 0.0;
     RAYMARCH(sphereSdf, rayOrigin, rayDirection);
-    if (t <= 0.0) discard; \
+    if (t <= 0.0) discard;
 
     // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-    vec3 n = NORMAL(sphereSdf, position);
+    vec3 n = SURFACE_NORMAL(sphereSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
     color = vParticleColor.rgb * diffuseAngle;
@@ -255,15 +252,15 @@ void arrow3d() {
 
     float t = 0.0;
     RAYMARCH(customArrowSdf, rayOrigin, rayDirection);
-    if (t <= 0.0) discard; \
+    if (t <= 0.0) discard;
 
     // light
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
-    vec3 n = NORMAL(customArrowSdf, position);
+    vec3 n = SURFACE_NORMAL(customArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = velocityColor(vParticleVel).rgb * diffuseAngle;
+    color = fieldColor(vParticleVel).rgb * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma
@@ -285,7 +282,7 @@ void arrow2d() {
     mat4 rotZ = rotationMatrix(vec3(0.0, 0.0, -1.0), angle);
     coordinates = (rotZ * vec4(coordinates, 1.0)).xyz;
 
-    vec4 color = velocityColor(vParticleVel);
+    vec4 color = fieldColor(vParticleVel);
     float d = arrowSdf(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
     gl_FragColor = filled(d, linewidth, antialias, color);
 }

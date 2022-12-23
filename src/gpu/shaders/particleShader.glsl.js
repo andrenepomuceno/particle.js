@@ -193,23 +193,22 @@ normalize(vec3( \
     sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon)) \
 ));
 
-#define RAYMARCH(sdf, t, rayOrigin, rayDirection) \
-{ \
-    int stepCount = 128; \
-    float maximumDistance = 10.0; \
-    for (int i = 0; i < stepCount; i++) { \
-        if (t > maximumDistance) { \
-            t = 0.0; \
-            break; \
-        } \
+#define RAYMARCH(sdf, rayOrigin, rayDirection)           \
+{                                                           \
+    int stepCount = 128;                                    \
+    float maximumDistance = 10.0;                           \
+    for (int i = 0; i < stepCount; i++) {                   \
+        if (t > maximumDistance) {                          \
+            t = 0.0;                                        \
+            break;                                          \
+        }                                                   \
         vec3 currentPosition = rayOrigin + rayDirection * t; \
-        float d = sdf(currentPosition); \
-        if (d < epsilon) { \
-            break; \
-        } \
-        t += d; \
-    } \
-    if (t <= 0.0) discard; \
+        float d = sdf(currentPosition);                     \
+        if (d < epsilon) {                                  \
+            break;                                          \
+        }                                                   \
+        t += d;                                             \
+    }                                                       \
 }
 
 void sphere3d() {
@@ -225,7 +224,8 @@ void sphere3d() {
     rayDirection = cameraTransform * rayDirection;
 
     float t = 0.0;
-    RAYMARCH(sphereSdf, t, rayOrigin, rayDirection);
+    RAYMARCH(sphereSdf, rayOrigin, rayDirection);
+    if (t <= 0.0) discard; \
 
     // light
     vec3 color = vec3(0.0);
@@ -254,7 +254,8 @@ void arrow3d() {
     rayDirection = cameraTransform * rayDirection;
 
     float t = 0.0;
-    RAYMARCH(customArrowSdf, t, rayOrigin, rayDirection);
+    RAYMARCH(customArrowSdf, rayOrigin, rayDirection);
+    if (t <= 0.0) discard; \
 
     // light
     vec3 color = vec3(0.0);

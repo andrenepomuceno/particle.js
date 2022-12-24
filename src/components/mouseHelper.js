@@ -40,11 +40,12 @@ export class MouseHelper {
     }
 
     avgVelocity() {
-        let sum = 0;
+        let sum = new Vector2();
         this.samples.forEach((val) => {
-            sum += val.length();
+            sum.add(val);
         });
-        return sum / this.taps;
+        sum.divideScalar(this.taps);
+        return sum;
     }
 
     showCursor(graphics, radius = 100, thickness = 10) {

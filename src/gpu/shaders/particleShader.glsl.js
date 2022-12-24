@@ -1,9 +1,29 @@
+export function generateParticleShader(particle3d, field3d, type) {
+    function define(define, value) {
+        if (value == true) {
+            return "#define " + define + " 1\n";
+        } else {
+            return "#define " + define + " 0\n";
+        }
+    }
+
+    let config = "";
+    config += define("USE_3D_ARROW", particle3d);
+    config += define("USE_3D_SPHERE", field3d);
+    config += define("USE_PARTICLE_SPHERE", type == "sphere");
+    config += define("USE_PARTICLE_ARROW", type == "arrow");
+    config += define("USE_PARTICLE_SPHEROW", type == "spherow");
+    let shader = config + particleFragmentShader;
+    return shader;
+}
+
 export const particleVertexShader = /* glsl */ `
 attribute vec3 color;
 attribute float radius;
 
 uniform sampler2D texturePosition;
 uniform sampler2D textureVelocity;
+uniform sampler2D textureProperties;
 uniform float uCameraConstant;
 
 varying vec4 vParticleColor;
@@ -32,66 +52,49 @@ void main() {
 }
 `;
 
-export function generateParticleShader(particle3d, arrow3d, type = "spherow") {
-    function define(define, value) {
-        if (value == true) {
-            return "#define " + define + " 1\n";
-        } else {
-            return "#define " + define + " 0\n";
-        }
-    }
-
-    let config = "";
-    config += define("USE_3D_ARROW", particle3d);
-    config += define("USE_3D_SPHERE", arrow3d);
-    config += define("USE_PARTICLE_SPHERE", type == "sphere");
-    config += define("USE_PARTICLE_ARROW", type == "arrow");
-    config += define("USE_PARTICLE_SPHEROW", type == "spherow");
-    let shader = config + particleFragmentShader;
-    return shader;
-}
-
 const particleFragmentShader = /* glsl */ `
-
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
 #define FIXED 2.0
 
-const float linewidth = 0.05;
-const float antialias = 0.01;
-const float epsilon = 1e-3;
+#define LINEWIDTH 5e-2
+#define ANTIALIAS 1e-2
+#define EPSILON 1e-3
+
+uniform float uAvgVelocity;
+uniform float uAvgFieldVel;
 
 varying vec4 vParticleColor;
 flat varying float vParticleType;
 flat varying vec3 vParticlePos;
 flat varying vec3 vParticleVel;
 
-uniform vec2 resolution;
-uniform float uAverageVelocity;
 
 #define SURFACE_NORMAL(sdf, position) \
 normalize(vec3( \
-    sdf(position + vec3(epsilon, 0, 0)) - sdf(position + vec3(-epsilon, 0, 0)), \
-    sdf(position + vec3(0, epsilon, 0)) - sdf(position + vec3(0, -epsilon, 0)), \
-    sdf(position + vec3(0, 0, epsilon)) - sdf(position + vec3(0, 0, -epsilon))  \
+    sdf(position + vec3(EPSILON, 0.0, 0.0)) - sdf(position + vec3(-EPSILON, 0.0, 0.0)), \
+    sdf(position + vec3(0.0, EPSILON, 0.0)) - sdf(position + vec3(0.0, -EPSILON, 0.0)), \
+    sdf(position + vec3(0.0, 0.0, EPSILON)) - sdf(position + vec3(0.0, 0.0, -EPSILON))  \
 ))
 
 #define RAYMARCH(sdf, rayOrigin, rayDirection) { \
     int stepCount = 128;                                        \
     float maximumDistance = 10.0;                               \
+    float tt = 0.0;                                             \
     for (int i = 0; i < stepCount; i++) {                       \
-        if (t > maximumDistance) {                              \
-            t = 0.0;                                            \
+        if (tt > maximumDistance) {                             \
+            tt = 0.0;                                           \
             break;                                              \
         }                                                       \
-        vec3 currentPosition = rayOrigin + rayDirection * t;    \
+        vec3 currentPosition = rayOrigin + rayDirection * tt;   \
         float d = sdf(currentPosition);                         \
-        if (d < epsilon) {                                      \
+        if (d < EPSILON) {                                      \
             break;                                              \
         }                                                       \
-        t += d;                                                 \
+        tt += d;                                                \
     }                                                           \
+    t = tt;                                                     \
 }
 
 vec3 hsv2rgb(vec3 c) {
@@ -211,8 +214,8 @@ float particleArrowSdf(vec3 position) {
     float angleZ = -asin(dir.z);
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
-    float baseRadius = 0.1; 
-    float tipRadius = 0.6;
+    float baseRadius = 0.3; 
+    float tipRadius = 0.75;
     float tipHeight = 0.5;
     float cornerRadius = 0.05;
     vec3 start = vec3(1.0, 0.0, 0.0);
@@ -223,7 +226,7 @@ float particleArrowSdf(vec3 position) {
 }
 
 vec4 particleArrowColor(vec3 vel) {
-    float velMax = 10.0 * uAverageVelocity;
+    float velMax = max(16.0 * uAvgVelocity, 1.0);
     float saturation = 1.0;
     const float valueMax = 1.0;
     float value = valueMax;
@@ -288,38 +291,36 @@ void particle3d() {
     if (t <= 0.0) discard;
 
     // light
-    vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
     vec3 n = SURFACE_NORMAL(particleSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = gParticleColor * diffuseAngle;
+    vec3 color = gParticleColor * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
-    color = sqrt(color); // gamma
-
+    // gamma
+    color = sqrt(color);
+    
     gl_FragColor = vec4(color, 1.0);
 }
 
 vec4 fieldColor(vec3 vel) {
-    const float velMax = 1e3;
+    float velMax = min(1e3 * uAvgFieldVel, 1e3);
     const float velFade = 1e-2;
     float saturation = 1.0;
-    float value = 0.7;
+    const float valueMax = 1.0;
+    float value = valueMax;
     float velAbs = length(vel)/velMax;
     if (velAbs > 1.0) {
         velAbs = 1.0;
         saturation = 0.0;
-    } else if (velAbs < velFade) {
-        value *= velAbs/velFade;
     }
+    value = sqrt(velAbs);
     return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
 }
 
-void arrow3d() {
+void field3d() {
     vec3 targetPosition = vec3(0.0);
-
-    gParticleColor = fieldColor(vParticleVel).rgb;
 
     vec3 rayOrigin = vec3(0.0, 0.0, 4.0);
     mat3 eyeTransform = lookAtMatrix(cameraPosition, vParticlePos);
@@ -340,7 +341,7 @@ void arrow3d() {
     vec3 n = SURFACE_NORMAL(fieldArrowSdf, position);
     float diffuseAngle = max(dot(n, diffuseLight), 0.0);
     // diffuse
-    color = gParticleColor * diffuseAngle;
+    color = fieldColor(vParticleVel).rgb * diffuseAngle;
     // ambient
     color += ambientLight * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma
@@ -350,8 +351,8 @@ void arrow3d() {
 
 void sphere2d() {
     vec2 uv = gl_PointCoord - vec2(0.5);
-    float d = length(uv) - 0.5 + linewidth;
-    gl_FragColor = filled(d, linewidth, antialias, vParticleColor);
+    float d = length(uv) - 0.5 + LINEWIDTH;
+    gl_FragColor = filled(d, LINEWIDTH, ANTIALIAS, vParticleColor);
 }
 
 void arrow2d() {
@@ -364,7 +365,7 @@ void arrow2d() {
 
     vec4 color = fieldColor(vParticleVel);
     float d = arrowSdf(coordinates, vec3(-0.5,0.0,0.0), vec3(0.5,0.0,0.0), 0.02, 0.15, 0.4);
-    gl_FragColor = filled(d, linewidth, antialias, color);
+    gl_FragColor = filled(d, LINEWIDTH, ANTIALIAS, color);
 }
 
 void main() {
@@ -378,7 +379,7 @@ void main() {
         #if !USE_3D_ARROW
             arrow2d();
         #else
-            arrow3d();
+            field3d();
         #endif
     }
 }

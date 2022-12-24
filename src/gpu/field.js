@@ -6,7 +6,6 @@ function log(msg) {
     console.log("FieldGPU: " + msg);
 }
 
-const arrowMaxLen = 1e3;
 const arrowPadding = 0.9;
 
 export class FieldGPU {
@@ -28,6 +27,7 @@ export class FieldGPU {
         this.objectList = [];
 
         this.enabled = false;
+        this.avgVelocity = 0.0;
     }
 
     calcGridSize(width) {
@@ -184,7 +184,6 @@ export class FieldGPU {
             radius /= 2;
         }
         radius *= arrowPadding;
-        radius = Math.min(radius, arrowMaxLen);
         return radius;
     }
 
@@ -210,5 +209,15 @@ export class FieldGPU {
             //.sub(new Vector3(0, 0, 2 * this.simulation.particleRadius))
             .sub(new Vector3(0, 0, 1))
             ;        
+    }
+
+    refreshAvgVelocity() {
+        let sum = new Vector3();
+        this.objectList.forEach(p => {
+            sum.add(p.velocity);
+        })
+        this.avgVelocity = sum.length() / this.objectList.length;
+
+        this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;
     }
 }

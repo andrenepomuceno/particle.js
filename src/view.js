@@ -427,6 +427,7 @@ let guiOptions = {
         grid: '50',
         automaticRefresh: false,
         fieldResize: () => {
+            if (simulation.field.enable == false) return;
             let center = graphics.controls.target.clone();
             simulation.field.resize(center);
         },
@@ -560,7 +561,8 @@ function guiInfoRefresh(now) {
     let avgVelocity = Math.sqrt(e / m);
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
-    graphics.pointsUniforms['uAverageVelocity'].value = avgVelocity; // TODO FIX THIS
+    graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
+    simulation.field.refreshAvgVelocity();
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);
@@ -593,6 +595,20 @@ function guiControlsSetup() {
     const guiControlsCamera = guiControls.addFolder("[+] Camera");
     guiControlsCamera.add(guiOptions.controls, 'resetCamera').name("Reset Camera [C]");
     guiControlsCamera.add(guiOptions.controls, 'xyCamera').name("XY Camera [V]");
+    guiControlsCamera.add(guiOptions.advancedControls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
+        if (val == true) {
+            if (simulation.mode2D == true) {
+                alert('Cannot do this in 2D mode.');
+                guiOptions.advancedControls.automaticRotation = false;
+                graphics.controls.autoRotate = false;
+                return;
+            }
+            graphics.controls.autoRotate = true;
+            graphics.controls.autoRotateSpeed = 1.0;
+        } else {
+            graphics.controls.autoRotate = false;
+        }
+    });
 
     const guiControlsView = guiControls.addFolder("[+] View");
     guiControlsView.add(guiOptions.controls, 'hideAxis').name("Hide/Show Axis [A]");
@@ -605,20 +621,6 @@ function guiControlsSetup() {
         } else {
             mouseHelper.hideCursor();
             guiOptions.controls.showCursor = false;
-        }
-    });
-    guiControlsView.add(guiOptions.advancedControls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
-        if (val == true) {
-            if (simulation.mode2D == true) {
-                alert('Cannot do this in 2D mode.');
-                guiOptions.advancedControls.automaticRotation = false;
-                graphics.controls.autoRotate = false;
-                return;
-            }
-            graphics.controls.autoRotate = true;
-            graphics.controls.autoRotateSpeed = 1.0;
-        } else {
-            graphics.controls.autoRotate = false;
         }
     });
     guiControlsView.add(guiOptions.advancedControls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
@@ -691,7 +693,7 @@ function guiParticleSetup() {
     });
     //guiParticleVariables.open();
 
-    //const guiParticleActions = guiParticle.addFolder("[+] Actions");
+    //const guiParticleActions = guiParticle.addFolder("[+] Controls");
     guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
     guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
     guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
@@ -778,7 +780,7 @@ function guiSelectionSetup() {
         guiOptions.selection.fixedPosition = val;
     });
 
-    const guiSelectionActions = guiSelection.addFolder("[+] Actions");
+    const guiSelectionActions = guiSelection.addFolder("[+] Controls");
     guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
     guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
@@ -1079,7 +1081,11 @@ function guiFieldSetup() {
     guiField.add(guiOptions.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
         fieldEnable(val);
     });
-    guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen();
+    guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen().onFinishChange(val => {
+        if (val == true) {
+            guiOptions.field.fieldResize();
+        }
+    });
     guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
         guiOptions.field.grid = simulation.field.grid[0];
         const grid = Math.round(parseFloat(val));

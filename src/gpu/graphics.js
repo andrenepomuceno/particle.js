@@ -36,6 +36,7 @@ export class GraphicsGPU {
 
         this.particle3d = true;
         this.arrow3d = true;
+        this.particleShaderMode = 'spherow';
 
         this.textureWidth = textureWidth0;
         this.maxParticles = this.textureWidth * this.textureWidth;
@@ -330,13 +331,14 @@ export class GraphicsGPU {
             'texturePosition': { value: this.positionVariable.renderTargets[current].texture },
             'textureVelocity': { value: this.velocityVariable.renderTargets[current].texture },
             'uCameraConstant': { value: getCameraConstant(this.camera) },
-            'uAverageVelocity': { value: this.physics.avgVelocity },
+            'uAvgVelocity': { value: this.physics.avgVelocity },
+            'uAvgFieldVel': { value: 0.0 },
         };
 
         const pointsMaterial = new ShaderMaterial({
             uniforms: this.pointsUniforms,
             vertexShader: particleVertexShader,
-            fragmentShader: generateParticleShader(this.particle3d, this.arrow3d),
+            fragmentShader: generateParticleShader(this.particle3d, this.arrow3d, this.particleShaderMode),
         });
         pointsMaterial.extensions.drawBuffers = true;
 

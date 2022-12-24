@@ -54,6 +54,6 @@ jobs:
     - name: Create Pull Request
       if: startsWith(github.ref, 'refs/tags/v')
       uses: peter-evans/create-pull-request@v4
-      # with:
-      #   base: main
+      with:
+        base: main
 

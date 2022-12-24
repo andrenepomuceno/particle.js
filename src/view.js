@@ -1299,6 +1299,11 @@ function particleGenerator(input) {
                 if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
                 break;
         }
+        let mv = mouseHelper.avgVelocity();
+        let mouseVelocity = new Vector3(mv.x, mv.y, 0);
+        mouseVelocity.multiplyScalar(10.0);
+        console.log(mouseVelocity);
+        v.add(mouseVelocity);
         return v;
     }
 
@@ -1391,7 +1396,7 @@ function particleGenerator(input) {
         );
     }
 
-    selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+    selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
     selection.source = SourceType.generated;
     selection.list = newParticleList;
     guiSelection.open();

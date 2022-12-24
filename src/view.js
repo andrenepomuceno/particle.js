@@ -1088,6 +1088,19 @@ function guiAdvancedControlsSetup() {
 }
 
 function guiFieldSetup() {
+    function updateFieldParameter(param, val) {
+        val = parseFloat(val);
+        guiOptions.field[param] = simulation.field.probeParam[param].toExponential(2);
+        if (isNaN(val)) {
+            alert("Invalid value.");
+            return;
+        }
+        if (simulation.field.probeParam[param] == val) return;
+        simulation.field.probeParam[param] = val;
+        guiOptions.field[param] = val.toExponential(2);
+        guiOptions.field.fieldResize();
+    }
+
     guiField.add(guiOptions.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
         fieldEnable(val);
     });
@@ -1117,43 +1130,13 @@ function guiFieldSetup() {
         guiOptions.field.grid = grid;
     });
     guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
-        const f = simulation.field;
-        const m = parseFloat(val);
-        guiOptions.field.m = simulation.field.probeParam.m.toExponential(2);
-        if (isNaN(m)) {
-            alert("Invalid value.");
-            return;
-        }
-        if (simulation.field.probeParam.m == m) return;
-        simulation.field.probeParam.m = m;
-        guiOptions.field.m = m.toExponential(2);
-        guiOptions.field.fieldResize();
+        updateFieldParameter('m', val);
     });
     guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
-        const f = simulation.field;
-        const q = parseFloat(val);
-        guiOptions.field.q = simulation.field.probeParam.q.toExponential(2);
-        if (isNaN(q)) {
-            alert("Invalid value.");
-            return;
-        }
-        if (simulation.field.probeParam.q == q) return;
-        simulation.field.probeParam.q = q;
-        guiOptions.field.q = q.toExponential(2);
-        guiOptions.field.fieldResize();
+        updateFieldParameter('q', val);
     });
     guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
-        const f = simulation.field;
-        const nq = parseFloat(val);
-        guiOptions.field.nq = simulation.field.probeParam.nq.toExponential(2);
-        if (isNaN(nq)) {
-            alert("Invalid value.");
-            return;
-        }
-        if (simulation.field.probeParam.nq == nq) return;
-        simulation.field.probeParam.nq = nq;
-        guiOptions.field.nq = nq.toExponential(2);
-        guiOptions.field.fieldResize();
+        updateFieldParameter('nq', val);
     });
     guiField.add(guiOptions.field, 'fieldResize').name("Refresh [F]");
     guiField.add(guiOptions.field, 'close').name("Close");

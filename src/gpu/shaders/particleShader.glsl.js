@@ -315,7 +315,7 @@ vec4 fieldColor(vec3 vel) {
     }
     float root = sqrt(velAbs);
     float value = valueMax * root;
-    velAbs = root;
+    //velAbs = root;
     return vec4(hsv2rgb(vec3(0.8333 * velAbs, saturation, value)), 1.0);
 }
 

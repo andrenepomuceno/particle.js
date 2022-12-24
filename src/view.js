@@ -80,8 +80,8 @@ let guiOptions = {
         velocity: "",
         // debug
         cameraNormal: '',
-        fieldMaxVel: 0,
-        fieldAvgVel: 0,
+        fieldMaxVel: '0',
+        fieldAvgVel: '0',
     },
     controls: {
         pauseResume: function () {
@@ -575,8 +575,8 @@ function guiInfoRefresh(now) {
     graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
 
     simulation.field.refreshMaxVelocity();
-    guiOptions.info.fieldMaxVel = simulation.field.maxVelocity;
-    guiOptions.info.fieldAvgVel = simulation.field.avgVelocity;
+    guiOptions.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
+    guiOptions.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);

@@ -64,6 +64,7 @@ const particleFragmentShader = /* glsl */ `
 
 uniform float uAvgVelocity;
 uniform float uMaxFieldVel;
+uniform float uAvgFieldVel;
 
 varying vec4 vParticleColor;
 flat varying float vParticleType;
@@ -305,7 +306,8 @@ void particle3d() {
 }
 
 vec4 fieldColor(vec3 vel) {
-    float velMax = max(0.9 * uMaxFieldVel, 1e2);
+    //float velMax = max(0.9 * uMaxFieldVel, 1e2);
+    float velMax = max(16.0 * uAvgFieldVel, 1e2);
     float saturation = 1.0;
     const float valueMax = 0.7;
     float velAbs = length(vel)/velMax;

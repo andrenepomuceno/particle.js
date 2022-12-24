@@ -28,6 +28,8 @@ export class FieldGPU {
 
         this.enabled = false;
         this.maxVelocity = 0.0;
+        this.avgVelocity = 0.0;
+        this.avgList = [];
     }
 
     calcGridSize(width) {
@@ -228,7 +230,18 @@ export class FieldGPU {
             }
         })
         this.maxVelocity = max;
-        this.avgVelocity = sum.length()/this.arrowList.length;
+
+        let avg = sum.length()/this.arrowList.length;
+        this.avgList.push(avg);
+        if (this.avgList.length > 10) this.avgList.shift();
+        let valSum = 0.0;
+        this.avgList.forEach(val => {
+            valSum += val;
+        })
+        this.avgVelocity = valSum/this.avgList.length;
+        
+        log('this.maxVelocity ' + this.maxVelocity)
+        log('this.avgVelocity ' + this.avgVelocity)
 
         this.graphics.pointsUniforms['uMaxFieldVel'].value = this.maxVelocity;
         this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;

@@ -97,7 +97,7 @@ class Core {
 
         graphics.readbackParticleData();
 
-        let normalizedList = normalizePosition(particleList);
+        let normalizedList = this.normalizePosition(particleList);
         normalizedList.forEach((p, index) => {
             p.position.add(center);
             graphics.particleList.push(p);
@@ -399,6 +399,8 @@ class Core {
             totalCharge = stats.totalCharge.toExponential(1);
         }
 
+        let updateLevel = 0;
+
         switch (parameter) {
             case "mass":
                 {
@@ -417,6 +419,7 @@ class Core {
                     list.forEach((p) => {
                         p.mass *= ratio;
                     });
+                    updateLevel = 2;
                 }
                 break;
 
@@ -437,6 +440,7 @@ class Core {
                     list.forEach((p) => {
                         p.charge *= ratio;
                     });
+                    updateLevel = 2;
                 }
                 break;
 
@@ -454,11 +458,12 @@ class Core {
                     }
 
                     graphics.readbackParticleData();
-                    let tmpList = normalizePosition(list);
+                    let tmpList = this.normalizePosition(list);
                     list.forEach((particle, index) => {
                         tmpList[index].position.add(centerVector);
                         particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
                     });
+                    updateLevel = 1;
                 }
                 break;
 
@@ -482,6 +487,7 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(totalVelocityMean);
                     });
+                    updateLevel = 1;
                 }
                 break;
 
@@ -509,6 +515,7 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(dirVec);
                     });
+                    updateLevel = 1;
                 }
                 break;
 
@@ -518,6 +525,7 @@ class Core {
                     if (value == true) particle.type = ParticleType.fixed;
                     else particle.type = ParticleType.default;
                 });
+                updateLevel = 1;
                 break;
 
             default:
@@ -525,7 +533,11 @@ class Core {
                 return;
         }
 
-        simulation.drawParticles();
+        if (updateLevel == 1) {
+            graphics.drawParticles(physics.particleList, physics);
+        } else if (updateLevel == 2) {
+            simulation.drawParticles();
+        }
     }
 
     deleteAll() {

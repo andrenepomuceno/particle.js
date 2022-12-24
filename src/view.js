@@ -227,7 +227,7 @@ let guiOptions = {
         },
         import: () => {
             uploadCsv((name, content) => {
-                selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+                selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
                 core.importParticleList(selection, name, content);
             });
         },
@@ -1449,9 +1449,9 @@ function onPointerMove(event) {
 
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
-        selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
+        selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
         selection.start(event);
-        ruler.start(graphics, event);
+        ruler.start(simulation.graphics, event);
     }
 }
 

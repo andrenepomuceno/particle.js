@@ -4,6 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
+    randomElements,
     periodicTable,
     electronProtonNeutron,
     superNucleus3D,
@@ -35,6 +36,82 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
+}
+
+function randomElements(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.useBoxBoundary = true;
+    //physics.useDistance1 = true;
+    simulation.mode2D = true;
+
+    physics.nuclearChargeRange = 1e4;
+    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
+    graphics.cameraSetup();
+    simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1e-9;
+    physics.chargeConstant = 1e-2;
+    physics.nuclearChargeConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+
+    simulation.field.probeConfig(0, 1e3, 0);
+    //if (!ENV?.production) simulation.field.setup("2d", 50);
+
+    let nucleusTypes = [
+        { m: 1.007276466583, q: 1, nq: 1 },
+        { m: 1.00866491588, q: 0, nq: 1 },
+    ];
+    let cloudTypes = [
+        { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
+    ];
+
+    let n = 1;
+    const m = 1e-3 / cloudTypes[0].m;
+    const q = 1;
+    const nq = 1;
+    const v = 1.0;
+
+    let r0 = 0.01 * physics.nuclearChargeRange;
+    let r1 = 0.5 * physics.nuclearChargeRange;
+    let r2 = 0.493 * physics.nuclearChargeRange;
+    let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
+    if (size % 2 == 0) size -= 1;
+    console.log("size = " + size);
+
+    function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
+        let options = {
+            m, q, nq,
+            r0: 0, r1: r0,
+            randomSequence: false,
+            randomNQSignal: false,
+            v1: velocity,
+            center
+        };
+        createParticles(simulation, nucleusList, n * nucleusList.length, options);
+        options = { ...options, r0, r1 };
+        createParticles(simulation, cloudList, n * cloudList.length, options);
+    }
+
+    let gridSize = [7, 7, 1];
+    if (!ENV?.production) gridSize = [15, 10, 1];
+
+    cubeGenerator((x, y, z) => {
+        //let s = ((n % 2 == 0) ? (1) : (-1));
+        let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
+        let center = new Vector3(x, y, z);
+        n = random(1, 64, true);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, s * nq, r0, r1, center, v);
+        n++;
+    }, 4 * r2 * gridSize[0], gridSize);
+    shuffleArray(physics.particleList);
 }
 
 function periodicTable(simulation) {
@@ -99,11 +176,13 @@ function periodicTable(simulation) {
         createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    const gridSize = [7, 7, 1];
+    let gridSize = [7, 7, 1];
+    if (!ENV?.production) gridSize = [12, 10, 1];
+
     cubeGenerator((x, y, z) => {
         //let s = ((n % 2 == 0) ? (1) : (-1));
         let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
-        let center = new Vector3(x, y, z);
+        let center = new Vector3(x, -y, z);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, s * nq, r0, r1, center, v);
         n++;
     }, 6 * r2 * gridSize[0], gridSize);

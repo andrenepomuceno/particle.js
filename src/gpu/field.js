@@ -30,6 +30,7 @@ export class FieldGPU {
         this.maxVelocity = 0.0;
         this.avgVelocity = 0.0;
         this.avgList = [];
+        this.varList = [];
     }
 
     calcGridSize(width) {
@@ -102,7 +103,7 @@ export class FieldGPU {
 
     resize(center) {
         log("resize");
-        console.log(center);
+        //console.log(center);
 
         if (this.arrowList.length == 0) return;
 
@@ -230,18 +231,34 @@ export class FieldGPU {
             }
         })
         this.maxVelocity = max;
-
         let avg = sum.length()/this.arrowList.length;
+
         this.avgList.push(avg);
         if (this.avgList.length > 10) this.avgList.shift();
         let valSum = 0.0;
         this.avgList.forEach(val => {
             valSum += val;
         })
-        this.avgVelocity = valSum/this.avgList.length;
+        let avgFIR = valSum/this.avgList.length;
+        this.avgVelocity = avgFIR;
+
+        let variance = 0.0;
+        this.avgList.forEach(val => {
+            variance += Math.pow(val - avg, 2);
+        })
+        variance /= this.avgList.length;
+
+        this.varList.push(variance);
+        if (this.varList.length > 10) this.varList.shift();
+        let varSum = 0.0;
+        this.varList.forEach(val => {
+            varSum += val;
+        })
+        let varFIR = varSum/this.avgList.length;
         
-        log('this.maxVelocity ' + this.maxVelocity)
-        log('this.avgVelocity ' + this.avgVelocity)
+        //log('this.maxVelocity ' + this.maxVelocity);
+        //log('this.avgVelocity ' + this.avgVelocity);
+        log("variance " + varFIR);
 
         this.graphics.pointsUniforms['uMaxFieldVel'].value = this.maxVelocity;
         this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;

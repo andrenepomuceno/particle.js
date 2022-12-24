@@ -456,7 +456,7 @@ export class GraphicsGPU {
     }
 
     readbackParticleData() {
-        console.log("readbackParticleData");
+        log("readbackParticleData");
 
         if (!this.initialized) {
             log("not initialized");

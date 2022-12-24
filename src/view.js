@@ -1412,7 +1412,7 @@ function cameraTargetSet(pos) {
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
-    let radius = Math.max(3 * simulation.particleRadius, 10);
+    let radius = Math.max(2 * simulation.particleRadius, 10);
     let thick = Math.max(0.1 * radius, 1);
     mouseHelper.showCursor(simulation.graphics, radius, thick);
 }

@@ -29,7 +29,7 @@ class Core {
     }
 
     setup(idx) {
-        log("simulationSetup idx = " + idx);
+        log("setup idx = " + idx);
 
         if (idx != undefined) {
             if (idx >= 0 && idx < scenariosList.length) {
@@ -85,7 +85,7 @@ class Core {
     }
 
     createParticleList(particleList, center = new Vector3()) {
-        log("simulationCreateParticles " + particleList.length + " " + center.toArray());
+        log("createParticleList " + particleList.length + " " + center.toArray());
 
         if (particleList == undefined || particleList.length == 0) return;
 
@@ -107,7 +107,7 @@ class Core {
     }
 
     updatePhysics(key, value) {
-        log("simulationUpdatePhysics key " + key + " val " + value);
+        log("updatePhysics key " + key + " val " + value);
 
         if (value == undefined || value === "") return;
 
@@ -217,7 +217,7 @@ class Core {
     }
 
     updateParticle(particle, key, value) {
-        log("simulationUpdateParticle key = " + key + " val = " + value + " particle = " + particle);
+        log("updateParticle key = " + key + " val = " + value + " particle = " + particle);
 
         if (particle == undefined) return;
         if (value == undefined || value === "") return;
@@ -325,7 +325,7 @@ class Core {
     }
 
     deleteParticleList(list) {
-        log("simulationDelete " + list.length);
+        log("deleteParticleList " + list.length);
 
         if (list == undefined) return;
 
@@ -345,7 +345,7 @@ class Core {
     }
 
     particleAutoCleanup(threshold = 4) {
-        log("simulationParticleCleanup threshold = " + threshold);
+        log("particleAutoCleanup threshold = " + threshold);
 
         function positionToKeyMap(p) {
             let key = p.position.toArray();
@@ -387,7 +387,7 @@ class Core {
     }
 
     updateParticleList(parameter, value, list) {
-        log("simulationUpdateAll " + parameter + " " + value + " " + list.length);
+        log("updateParticleList " + parameter + " " + value + " " + list.length);
 
         let totalMass = simulation.totalMass.toExponential(1);
         let totalCharge = simulation.totalCharge.toExponential(1);
@@ -541,14 +541,14 @@ class Core {
     }
 
     deleteAll() {
-        log("simulationDeleteAll");
+        log("deleteAll");
 
         simulation.particleList = [];
         simulation.drawParticles();
     }
 
     importCSV(filename, content) {
-        log("Importing " + filename);
+        log("importCSV " + filename);
 
         let graphics = simulation.graphics;
 

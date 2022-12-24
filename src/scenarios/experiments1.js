@@ -99,7 +99,7 @@ function periodicTable(simulation) {
         createParticles(simulation, cloudList, n * cloudList.length, options);
     }
 
-    const gridSize = [11, 11, 1];
+    const gridSize = [7, 7, 1];
     cubeGenerator((x, y, z) => {
         //let s = ((n % 2 == 0) ? (1) : (-1));
         let s = ((random(0, 1) >= 0.5) ? (1) : (-1));

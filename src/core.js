@@ -379,7 +379,7 @@ class Core {
                 }
             }
         });
-        simulationDeleteParticleList(deleteList);
+        this.deleteParticleList(deleteList);
 
         pMap.forEach((value, key) => {
             console.log(key + "," + value.count);

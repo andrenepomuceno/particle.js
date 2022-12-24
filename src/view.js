@@ -667,7 +667,9 @@ function guiParticleSetup() {
         }
         guiOptions.particle.obj = obj;
     });
-    guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen();
+    guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen().onFinishChange(val => {
+        core.updateParticle(guiOptions.particle.obj, 'color', val);
+    });
     guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
 
     const guiParticleProperties = guiParticle.addFolder("[+] Properties");

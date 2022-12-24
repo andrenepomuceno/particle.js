@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Color, Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
 import { decodeVector3 } from './helpers.js';
 import { scenariosList } from './scenarios.js';
@@ -217,28 +217,30 @@ class Core {
     }
 
     updateParticle(particle, key, value) {
-        log("simulationUpdateParticle key = " + key + " val = " + value);
-        log("particle = " + particle);
+        log("simulationUpdateParticle key = " + key + " val = " + value + " particle = " + particle);
 
-        if (value == undefined || value === "") return;
         if (particle == undefined) return;
+        if (value == undefined || value === "") return;
 
-        let update = true;
+        let simpleUpdate = false;
+        let fullUpdate = false;
 
         graphics.readbackParticleData();
-
 
         switch (key) {
             case "mass":
                 particle.mass = parseFloat(value);
+                fullUpdate = true;
                 break;
 
             case "charge":
                 particle.charge = parseFloat(value);
+                fullUpdate = true;
                 break;
 
             case "nuclearCharge":
                 particle.nuclearCharge = parseFloat(value);
+                fullUpdate = true;
                 break;
 
             case "position":
@@ -252,6 +254,7 @@ class Core {
                         }
                         particle.position = vec;
                     }
+                    simpleUpdate = true;
                 }
                 break;
 
@@ -262,11 +265,11 @@ class Core {
                         alert("Value is too big!");
                         return;
                     }
-
                     if (particle.velocity.length() == 0) {
                         particle.velocity.set(1.0, 0.0, 0.0);
                     }
                     particle.velocity.normalize().multiplyScalar(velocity);
+                    simpleUpdate = true;
                 }
 
                 break;
@@ -285,6 +288,7 @@ class Core {
                         alert("Invalid value.");
                         return;
                     }
+                    simpleUpdate = true;
                 }
                 break;
 
@@ -294,19 +298,28 @@ class Core {
                 particle.nuclearCharge = 0;
                 particle.velocity.set(0, 0, 0);
                 particle.position.set(0, 0, 0);
+                fullUpdate = true;
                 break;
 
             case "fixed":
                 if (value === true) particle.type = ParticleType.fixed;
                 else if (value === false) particle.type = ParticleType.default;
                 break;
+            
+            case 'color':
+                let color = value.replace('#', '');
+                color = parseInt(color, 16);
+                particle.setColor(color);
+                simpleUpdate = true;
+                break;
 
             default:
-                update = false;
                 break;
         }
 
-        if (update) {
+        if (simpleUpdate) {
+            graphics.drawParticles(physics.particleList, physics);
+        } else if (fullUpdate) {
             simulation.drawParticles();
         }
     }

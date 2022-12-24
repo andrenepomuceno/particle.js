@@ -72,6 +72,9 @@ let guiOptions = {
         cameraNormal: '',
         fieldMaxVel: '0',
         fieldAvgVel: '0',
+        rulerLen: '0',
+        rulerDelta: '0,0,0',
+        rulerStart: '0,0,0',
     },
     controls: {
         pauseResume: function () {
@@ -351,7 +354,6 @@ let guiOptions = {
         dampKickFactor: "0.1",
         randomVelocity: "10",
         cleanupThreshold: "8",
-        ruler: "0",
         automaticRotation: false,
         shader3d: true,
         reverseVelocity: () => {
@@ -436,7 +438,7 @@ let guiOptions = {
 const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
 const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
-const ruler = new Ruler(simulation.graphics, guiOptions.advancedControls);
+const ruler = new Ruler(simulation.graphics, guiOptions.info);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
@@ -512,7 +514,6 @@ function guiInfoSetup() {
         simulation.graphics.controls.target.set(p.x, p.y, 0);
         simulation.graphics.controls.update();
     });
-    guiInfo.add(guiOptions.advancedControls, 'ruler').name("Ruler").listen();
     guiInfo.open();
 
     const guiInfoMore = guiInfo.addFolder("[+] Statistics");
@@ -525,6 +526,12 @@ function guiInfoSetup() {
         core.updateParticleList("charge", val);
     });
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
+
+    const guiInfoRuler = guiInfo.addFolder("[+] Ruler");
+    guiInfoRuler.add(guiOptions.info, 'rulerLen').name("Length").listen();
+    guiInfoRuler.add(guiOptions.info, 'rulerDelta').name("Delta").listen();
+    guiInfoRuler.add(guiOptions.info, 'rulerStart').name("Start").listen();
+    guiInfoRuler.open();
 
     guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
         simulation.bidimensionalMode(val);
@@ -544,6 +551,7 @@ function guiInfoSetup() {
 
     //collapseList.push(guiInfo);
     collapseList.push(guiInfoMore);
+    collapseList.push(guiInfoRuler);
 }
 
 function guiInfoRefresh(now) {
@@ -1199,7 +1207,7 @@ function selectionPlace() {
     } else {
         core.createParticleList(selection.list, center);
     }
-} 1
+}
 
 function snapshot() {
     let name = simulation.state()[0];

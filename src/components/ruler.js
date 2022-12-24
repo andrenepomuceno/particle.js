@@ -1,6 +1,6 @@
 import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
 import { simulation } from "../core.js";
-import { mouseToScreenCoord, cameraToWorldCoord } from '../helpers.js';
+import { mouseToScreenCoord, cameraToWorldCoord, floatArrayToString } from '../helpers.js';
 
 const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;
@@ -103,10 +103,9 @@ export class Ruler {
         this.graphics.scene.remove(this.selection);
         this.selection = undefined;
 
-        this.controls.ruler =
-            "d: " + this.ruler.length().toExponential(3) +
-            " x: " + this.ruler.x.toExponential(3) +
-            " y: " + this.ruler.y.toExponential(3);
+        this.controls.rulerLen = this.ruler.length().toExponential(3);        
+        this.controls.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
+        this.controls.rulerStart = floatArrayToString(this.p1.toArray(), 3);
 
         this.started = false;
     }

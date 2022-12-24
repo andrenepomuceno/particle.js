@@ -1,4 +1,4 @@
-import { LatheGeometry, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -10,7 +10,6 @@ import {
     generateHexagon, exportFilename
 } from './helpers.js';
 import {
-    graphics,
     simulation,
     simulationSetup,
     simulationUpdatePhysics,
@@ -114,15 +113,15 @@ let guiOptions = {
         },
         hideAxis: function () {
             hideAxis = !hideAxis;
-            graphics.showAxis(!hideAxis);
+            simulation.graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
             followParticle = false;
-            graphics.controls.reset();
+            simulation.graphics.controls.reset();
         },
         xyCamera: function () {
             followParticle = false;
-            cameraTargetSet(graphics.controls.target);
+            cameraTargetSet(simulation.graphics.controls.target);
         },
         colorMode: function () {
             (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
@@ -184,7 +183,7 @@ let guiOptions = {
             selectionPlace();
         },
         record: () => {
-            graphics.capture(simulation.name);
+            simulation.graphics.capture(simulation.name);
         },
         debug: () => {
             console.log(exportCSV(simulation));
@@ -209,7 +208,7 @@ let guiOptions = {
         lookAt: function () {
             let x = guiOptions.particle.obj.position;
             cameraTargetSet(x);
-            //graphics.controls.target.set(x.x, x.y, x.z);
+            //simulation.graphics.controls.target.set(x.x, x.y, x.z);
         },
         close: function () {
             guiParticleClose();
@@ -365,15 +364,15 @@ let guiOptions = {
         automaticRotation: false,
         shader3d: true,
         reverseVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 p.velocity.multiplyScalar(-1);
             });
             simulation.drawParticles();
         },
         zeroVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 p.velocity.set(0, 0, 0);
             });
             simulation.drawParticles();
@@ -388,23 +387,23 @@ let guiOptions = {
         },
         dampVelocity: () => {
             let factor = parseFloat(guiOptions.advancedControls.dampKickFactor);
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 p.velocity.multiplyScalar(1.0 - factor);
             });
             simulation.drawParticles();
         },
         kickVelocity: () => {
             let factor = parseFloat(guiOptions.advancedControls.dampKickFactor);
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 p.velocity.multiplyScalar(1.0 + factor);
             });
             simulation.drawParticles();
         },
         addRandomVelocity: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 let e = parseFloat(guiOptions.advancedControls.randomVelocity);
                 if (isNaN(e)) return;
                 p.velocity.add(randomSphericVector(0, e, simulation.mode2D));
@@ -412,8 +411,8 @@ let guiOptions = {
             simulation.drawParticles();
         },
         zeroPosition: () => {
-            graphics.readbackParticleData();
-            graphics.particleList.forEach((p) => {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.particleList.forEach((p) => {
                 p.position = randomSphericVector(0, 1, simulation.mode2D);
             });
             simulation.drawParticles();
@@ -431,7 +430,7 @@ let guiOptions = {
         automaticRefresh: false,
         fieldResize: () => {
             if (simulation.field.enable == false) return;
-            let center = graphics.controls.target.clone();
+            let center = simulation.graphics.controls.target.clone();
             simulation.field.resize(center);
         },
         close: () => {
@@ -446,7 +445,7 @@ let guiOptions = {
 const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
 const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
-const ruler = new Ruler(graphics, guiOptions.advancedControls);
+const ruler = new Ruler(simulation.graphics, guiOptions.advancedControls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
@@ -464,7 +463,7 @@ function scenarioSetup(idx) {
     energyPanel.max = 0;
 
     guiOptions.advancedControls.automaticRotation = false;
-    graphics.controls.autoRotate = false;
+    simulation.graphics.controls.autoRotate = false;
 
     if (guiOptions.controls.showCursor == true) {
         showCursor();
@@ -500,7 +499,7 @@ export function viewSetup() {
 
     scenarioSetup();
 
-    graphics.controls.addEventListener('end', onFinishMove);
+    simulation.graphics.controls.addEventListener('end', onFinishMove);
 
     animate();
 }
@@ -518,9 +517,9 @@ function guiInfoSetup() {
             alert("Invalid coordinates!");
             return;
         }
-        graphics.camera.position.set(p.x, p.y, p.z);
-        graphics.controls.target.set(p.x, p.y, 0);
-        graphics.controls.update();
+        simulation.graphics.camera.position.set(p.x, p.y, p.z);
+        simulation.graphics.controls.target.set(p.x, p.y, 0);
+        simulation.graphics.controls.update();
     });
     guiInfo.add(guiOptions.advancedControls, 'ruler').name("Ruler").listen();
     guiInfo.open();
@@ -561,7 +560,7 @@ function guiInfoRefresh(now) {
 
     guiOptions.info.name = name;
     guiOptions.info.folderName = simulation.folderName;
-    guiOptions.info.particles = n + " / " + graphics.maxParticles;
+    guiOptions.info.particles = n + " / " + simulation.graphics.maxParticles;
 
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";
@@ -572,7 +571,7 @@ function guiInfoRefresh(now) {
     let avgVelocity = Math.sqrt(e / m);
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
-    graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
+    simulation.graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
 
     simulation.field.refreshMaxVelocity();
     guiOptions.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
@@ -584,8 +583,8 @@ function guiInfoRefresh(now) {
     guiOptions.info.collisions = c;
     guiOptions.info.mass = m.toExponential(2);
     guiOptions.info.charge = totalCharge.toExponential(2);
-    guiOptions.info.cameraPosition = floatArrayToString(graphics.camera.position.toArray(), 1);
-    let tmp = graphics.controls.target.clone().sub(graphics.camera.position).normalize().toArray();
+    guiOptions.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
+    let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
     guiOptions.info.cameraNormal = arrayToString(tmp, 1);
     guiOptions.info.mode2D = simulation.mode2D;
 
@@ -614,13 +613,13 @@ function guiControlsSetup() {
             if (simulation.mode2D == true) {
                 alert('Cannot do this in 2D mode.');
                 guiOptions.advancedControls.automaticRotation = false;
-                graphics.controls.autoRotate = false;
+                simulation.graphics.controls.autoRotate = false;
                 return;
             }
-            graphics.controls.autoRotate = true;
-            graphics.controls.autoRotateSpeed = 1.0;
+            simulation.graphics.controls.autoRotate = true;
+            simulation.graphics.controls.autoRotateSpeed = 1.0;
         } else {
-            graphics.controls.autoRotate = false;
+            simulation.graphics.controls.autoRotate = false;
         }
     });
 
@@ -639,13 +638,13 @@ function guiControlsSetup() {
     });
     guiControlsView.add(guiOptions.advancedControls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
         if (val == true) {
-            graphics.arrow3d = true;
-            graphics.particle3d = true;
+            simulation.graphics.arrow3d = true;
+            simulation.graphics.particle3d = true;
         } else {
-            graphics.arrow3d = false;
-            graphics.particle3d = false;
+            simulation.graphics.arrow3d = false;
+            simulation.graphics.particle3d = false;
         }
-        graphics.readbackParticleData();
+        simulation.graphics.readbackParticleData();
         simulation.drawParticles();
     });
 
@@ -963,12 +962,12 @@ function guiParametersSetup() {
             return;
         }
         if (val > simulation.physics.particleList.length) {
-            graphics.readbackParticleData();
-            graphics.setMaxParticles(val);
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.setMaxParticles(val);
             simulation.drawParticles();
             return;
         }
-        graphics.setMaxParticles(val);
+        simulation.graphics.setMaxParticles(val);
         scenarioSetup();
     });
 
@@ -1057,7 +1056,7 @@ function guiParametersRefresh() {
     edit.forceConstant = simulation.physics.forceConstant;
     edit.radius = simulation.particleRadius;
     edit.radiusRange = simulation.particleRadiusRange;
-    edit.maxParticles = graphics.maxParticles;
+    edit.maxParticles = simulation.graphics.maxParticles;
     edit.boxBoundary = simulation.physics.useBoxBoundary;
     edit.distance1 = simulation.physics.useDistance1;
     edit.nuclearPotential = simulation.physics.nuclearPotential;
@@ -1193,7 +1192,7 @@ function selectionPlace() {
     if (mouseHelper.overGUI) return;
     if (selection.list == undefined || selection.list.length == 0) return;
 
-    let center = cameraToWorldCoord(mouseHelper.position, graphics.camera, 0);
+    let center = cameraToWorldCoord(mouseHelper.position, simulation.graphics.camera, 0);
     if (simulation.mode2D) {
         center.z = 0;
     }
@@ -1214,8 +1213,8 @@ function snapshot() {
     let finalName = exportFilename(name)
     log("snapshot " + finalName);
 
-    graphics.update();
-    graphics.renderer.domElement.toBlob((blob) => {
+    simulation.graphics.update();
+    simulation.graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
     downloadFile(exportCSV(simulation), finalName + ".csv", "text/plain;charset=utf-8");
@@ -1399,20 +1398,20 @@ function particleGenerator(input) {
 
 function cameraTargetSet(pos) {
     log('cameraTargetSet');
-    graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
-    graphics.controls.target.set(pos.x, pos.y, pos.z);
-    graphics.controls.update();
+    simulation.graphics.camera.position.set(pos.x, pos.y, simulation.graphics.controls.getDistance());
+    simulation.graphics.controls.target.set(pos.x, pos.y, pos.z);
+    simulation.graphics.controls.update();
 }
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
     let radius = Math.max(3 * simulation.particleRadius, 10);
     let thick = Math.max(0.1 * radius, 1);
-    mouseHelper.showCursor(graphics, radius, thick);
+    mouseHelper.showCursor(simulation.graphics, radius, thick);
 }
 
 function fieldInit(grid) {
-    let center = graphics.controls.target.clone();
+    let center = simulation.graphics.controls.target.clone();
     if (!simulation.field.setup(simulation.field.mode, grid, center)) {
         return false;
     }
@@ -1431,7 +1430,7 @@ function fieldEnable(val) {
             alert("Invalid grid value.");
             return;
         }
-        graphics.readbackParticleData();
+        simulation.graphics.readbackParticleData();
         if (!fieldInit(grid)) {
             return;
         }
@@ -1443,7 +1442,7 @@ function fieldEnable(val) {
 
 function onWindowResize() {
     log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
-    graphics.onWindowResize(window);
+    simulation.graphics.onWindowResize(window);
     if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }
 
@@ -1468,7 +1467,7 @@ function onPointerUp(event) {
         selection.end(event, ruler.mode);
         ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
-        let particle = graphics.raycast(mouseHelper.position);
+        let particle = simulation.graphics.raycast(mouseHelper.position);
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticle.open();
@@ -1484,7 +1483,7 @@ function onFinishMove(event) {
 function animate(time) {
     requestAnimationFrame(animate);
 
-    graphics.update();
+    simulation.graphics.update();
     statsPanel.update();
 
     if (followParticle && guiOptions.particle.obj) {
@@ -1507,7 +1506,7 @@ function animate(time) {
         lastViewUpdate = time;
 
         if (autoRefresh == true) {
-            graphics.readbackParticleData();
+            simulation.graphics.readbackParticleData();
         }
 
         guiInfoRefresh(time);

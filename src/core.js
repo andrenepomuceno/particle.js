@@ -9,9 +9,9 @@ import { scenariosList } from './scenarios.js';
 import { ParticleType } from './particle.js';
 import { parseCsv } from './components/csv.js';
 
-export let graphics = undefined;
-export let simulation = undefined;
-let physics = undefined;
+let graphics = new GraphicsGPU();
+let physics = new Physics();
+export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
     console.log("Simulation: " + msg)

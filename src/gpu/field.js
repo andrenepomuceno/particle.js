@@ -220,7 +220,7 @@ export class FieldGPU {
             let len = p.velocity.length();
             if (len > max) {
                 max = len
-                log("max = " + max);
+                //log("max = " + max.toExponential());
             }
         })
         this.maxVelocity = max;

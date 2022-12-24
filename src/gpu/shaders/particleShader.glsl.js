@@ -307,14 +307,15 @@ void particle3d() {
 vec4 fieldColor(vec3 vel) {
     float velMax = max(uMaxFieldVel, 1e3);
     float saturation = 1.0;
-    const float valueMax = 1.0;
-    float value = valueMax;
+    const float valueMax = 0.7;
     float velAbs = length(vel)/velMax;
-    if (velAbs > 1.0) {
+    if (velAbs > 0.99) {
         velAbs = 1.0;
         saturation = 0.0;
     }
-    value = sqrt(velAbs);
+    float root = sqrt(velAbs);
+    float value = valueMax * root;
+    velAbs = root;
     return vec4(hsv2rgb(vec3(0.8333 * velAbs, saturation, value)), 1.0);
 }
 

@@ -79,6 +79,7 @@ let guiOptions = {
         folderName: "",
         velocity: "",
         cameraNormal: '',
+        fieldMaxVel: 0,
     },
     controls: {
         pauseResume: function () {
@@ -520,7 +521,6 @@ function guiInfoSetup() {
         graphics.controls.update();
     });
     guiInfo.add(guiOptions.advancedControls, 'ruler').name("Ruler").listen();
-    guiInfo.add(guiOptions.info, 'cameraNormal').name('Normal').listen();
     guiInfo.open();
 
     const guiInfoMore = guiInfo.addFolder("[+] Statistics");
@@ -540,6 +540,14 @@ function guiInfoSetup() {
     guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
         autoRefresh = val;
     });
+
+    if (!ENV?.production) {
+        const guiInfoDebug = guiInfo.addFolder('[+] Debug');
+        guiInfoDebug.add(guiOptions.info, 'cameraNormal').name('Normal').listen();
+        guiInfoDebug.add(guiOptions.info, 'fieldMaxVel').name('Field Max Vel').listen();
+        guiInfoDebug.open();
+        collapseList.push(guiInfoDebug);
+    }
 
     //collapseList.push(guiInfo);
     collapseList.push(guiInfoMore);
@@ -562,7 +570,9 @@ function guiInfoRefresh(now) {
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
     graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
+
     simulation.field.refreshMaxVelocity();
+    guiOptions.info.fieldMaxVel = simulation.field.maxVelocity;
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);

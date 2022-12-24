@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { LatheGeometry, Vector3 } from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -78,8 +78,10 @@ let guiOptions = {
         mode2D: false,
         folderName: "",
         velocity: "",
+        // debug
         cameraNormal: '',
         fieldMaxVel: 0,
+        fieldAvgVel: 0,
     },
     controls: {
         pauseResume: function () {
@@ -543,8 +545,9 @@ function guiInfoSetup() {
 
     if (!ENV?.production) {
         const guiInfoDebug = guiInfo.addFolder('[+] Debug');
-        guiInfoDebug.add(guiOptions.info, 'cameraNormal').name('Normal').listen();
-        guiInfoDebug.add(guiOptions.info, 'fieldMaxVel').name('Field Max Vel').listen();
+        guiInfoDebug.add(guiOptions.info, 'cameraNormal').name('cameraNormal').listen();
+        guiInfoDebug.add(guiOptions.info, 'fieldMaxVel').name('fieldMaxVel').listen();
+        guiInfoDebug.add(guiOptions.info, 'fieldAvgVel').name('fieldAvgVel').listen();
         guiInfoDebug.open();
         collapseList.push(guiInfoDebug);
     }
@@ -573,6 +576,7 @@ function guiInfoRefresh(now) {
 
     simulation.field.refreshMaxVelocity();
     guiOptions.info.fieldMaxVel = simulation.field.maxVelocity;
+    guiOptions.info.fieldAvgVel = simulation.field.avgVelocity;
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);
@@ -1117,12 +1121,12 @@ function guiFieldSetup() {
             return;
         }
         if (val == simulation.field.grid[0]) return;
-        if (simulation.field.enabled == false || simulation.field.objectList.length == 0) return;
+        if (simulation.field.enabled == false || simulation.field.arrowList.length == 0) return;
         if (simulation.field.checkGridSize(val) == false) {
             alert('Field is too big!');
             return;
         }
-        simulationDeleteParticleList(simulation.field.objectList);
+        simulationDeleteParticleList(simulation.field.arrowList);
         simulation.field.cleanup();
         if (!fieldInit(grid)) {
             return;
@@ -1419,7 +1423,7 @@ function fieldInit(grid) {
 function fieldEnable(val) {
     guiOptions.field.enabled = false;
     if (val == false) {
-        simulationDeleteParticleList(simulation.field.objectList);
+        simulationDeleteParticleList(simulation.field.arrowList);
         simulation.field.cleanup();
     } else {
         let grid = Math.round(parseFloat(guiOptions.field.grid));
@@ -1473,6 +1477,7 @@ function onPointerUp(event) {
 }
 
 function onFinishMove(event) {
+    log('onFinishMove');
     if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }
 

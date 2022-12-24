@@ -333,6 +333,7 @@ export class GraphicsGPU {
             'uCameraConstant': { value: getCameraConstant(this.camera) },
             'uAvgVelocity': { value: this.physics.avgVelocity },
             'uMaxFieldVel': { value: 0.0 },
+            'uAvgFieldVel': { value: 0.0 },
         };
 
         const pointsMaterial = new ShaderMaterial({
@@ -455,7 +456,7 @@ export class GraphicsGPU {
     }
 
     readbackParticleData() {
-        log("readbackParticleData");
+        console.log("readbackParticleData");
 
         if (!this.initialized) {
             log("not initialized");

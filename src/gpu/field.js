@@ -3,7 +3,7 @@ import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { Particle, ParticleType } from '../particle.js';
 
 function log(msg) {
-    console.log("FieldGPU: " + msg);
+    console.log("Field: " + msg);
 }
 
 const arrowPadding = 0.9;
@@ -24,7 +24,7 @@ export class FieldGPU {
         this.probeParam = { m: 1, q: 1, nq: 1 };
         this.firstProbeIdx = undefined;
 
-        this.objectList = [];
+        this.arrowList = [];
 
         this.enabled = false;
         this.maxVelocity = 0.0;
@@ -100,9 +100,9 @@ export class FieldGPU {
 
     resize(center) {
         log("resize");
-        log("center: ", center);
+        console.log(center);
 
-        if (this.objectList.length == 0) return;
+        if (this.arrowList.length == 0) return;
 
         let ret = this.calcGridSize(this.grid[0]);
         this.size = ret.size;
@@ -111,14 +111,14 @@ export class FieldGPU {
         switch (this.populateMode) {
             case "sphere":
                 sphereGenerator((x, y, z) => {
-                    this.#updateFieldElement(this.objectList[idx++], x, y, z, center);
+                    this.#updateFieldElement(this.arrowList[idx++], x, y, z, center);
                 }, this.size, this.grid);
                 break;
 
             case "cube":
             default:
                 cubeGenerator((x, y, z) => {
-                    this.#updateFieldElement(this.objectList[idx++], x, y, z, center);
+                    this.#updateFieldElement(this.arrowList[idx++], x, y, z, center);
                 }, this.size, this.grid);
                 break;
         }
@@ -129,7 +129,7 @@ export class FieldGPU {
 
     cleanup() {
         log("cleanup");
-        this.objectList = [];
+        this.arrowList = [];
         this.enabled = false;
     }
 
@@ -139,7 +139,7 @@ export class FieldGPU {
         let ret = this.calcGridSize(width);
         let probeCount = ret.grid[0] * ret.grid[1] * ret.grid[2];
         log("probeCount = " + probeCount);
-        let total = this.particleList.length - this.objectList.length + probeCount;
+        let total = this.particleList.length - this.arrowList.length + probeCount;
         log("total = " + total);
         if (total > this.graphics.maxParticles) {
             return false;
@@ -196,7 +196,7 @@ export class FieldGPU {
         p.radius = this.elementSize();
 
         this.particleList.push(p);
-        this.objectList.push(p);
+        this.arrowList.push(p);
     }
 
     #updateFieldElement(particle, x, y, z, center = new Vector3()) {
@@ -215,8 +215,12 @@ export class FieldGPU {
     refreshMaxVelocity() {
         if (this.enabled == false) return;
 
+        //this.maxVelocity = 0.0;
+
         let max = this.maxVelocity;
-        this.objectList.forEach(p => {
+        let sum = new Vector3();
+        this.arrowList.forEach(p => {
+            sum.add(p.velocity);
             let len = p.velocity.length();
             if (len > max) {
                 max = len
@@ -224,6 +228,9 @@ export class FieldGPU {
             }
         })
         this.maxVelocity = max;
-        this.graphics.pointsUniforms['uMaxFieldVel'].value = max;
+        this.avgVelocity = sum.length()/this.arrowList.length;
+
+        this.graphics.pointsUniforms['uMaxFieldVel'].value = this.maxVelocity;
+        this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;
     }
 }

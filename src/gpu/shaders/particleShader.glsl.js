@@ -305,7 +305,7 @@ void particle3d() {
 }
 
 vec4 fieldColor(vec3 vel) {
-    float velMax = max(uMaxFieldVel, 1e3);
+    float velMax = max(0.9 * uMaxFieldVel, 1e2);
     float saturation = 1.0;
     const float valueMax = 0.7;
     float velAbs = length(vel)/velMax;

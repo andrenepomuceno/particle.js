@@ -158,6 +158,7 @@ let guiOptions = {
             if (hideOverlay == false) {
                 statsPanel.domElement.style.visibility = "hidden";
                 gui.hide();
+                mouseHelper.overGUI = false;
                 hideOverlay = true;
             } else {
                 statsPanel.domElement.style.visibility = "visible";

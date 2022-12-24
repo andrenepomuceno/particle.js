@@ -31,6 +31,7 @@ npm run build
 ```
 
 ## Features
+- Real time simulation
 - Runs on GPU.
 - Supports 2D and 3D modes.
 - Can export and import simulations.

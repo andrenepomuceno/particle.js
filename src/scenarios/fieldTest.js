@@ -51,7 +51,7 @@ function nuclearField(simulation) {
     simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(1.1 * physics.nuclearChargeRange, 0, 0);
-    let v = new Vector3(0, 0, 0);
+    let v = new Vector3(1, 0, 0);
     let fixed = true;
     let q = 1;
     let m = 1;
@@ -70,7 +70,7 @@ function electromagneticField(simulation) {
     simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);
-    let v = new Vector3(0, 0, 0);
+    let v = new Vector3(1, 0, 0);
     let fixed = true;
     let q = 10;
     let m = 1;

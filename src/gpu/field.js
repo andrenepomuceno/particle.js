@@ -27,7 +27,7 @@ export class FieldGPU {
         this.objectList = [];
 
         this.enabled = false;
-        this.avgVelocity = 0.0;
+        this.maxVelocity = 0.0;
     }
 
     calcGridSize(width) {
@@ -124,6 +124,7 @@ export class FieldGPU {
         }
 
         this.simulation.drawParticles();
+        this.maxVelocity = 0.0;
     }
 
     cleanup() {
@@ -211,13 +212,18 @@ export class FieldGPU {
             ;        
     }
 
-    refreshAvgVelocity() {
-        let sum = new Vector3();
-        this.objectList.forEach(p => {
-            sum.add(p.velocity);
-        })
-        this.avgVelocity = sum.length() / this.objectList.length;
+    refreshMaxVelocity() {
+        if (this.enabled == false) return;
 
-        this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;
+        let max = this.maxVelocity;
+        this.objectList.forEach(p => {
+            let len = p.velocity.length();
+            if (len > max) {
+                max = len
+                log("max = " + max);
+            }
+        })
+        this.maxVelocity = max;
+        this.graphics.pointsUniforms['uMaxFieldVel'].value = max;
     }
 }

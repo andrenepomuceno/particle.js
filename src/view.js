@@ -562,7 +562,7 @@ function guiInfoRefresh(now) {
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
     graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
-    simulation.field.refreshAvgVelocity();
+    simulation.field.refreshMaxVelocity();
 
     guiOptions.info.energy = avgEnergy.toExponential(2);
     guiOptions.info.velocity = avgVelocity.toExponential(2);
@@ -1402,8 +1402,6 @@ function particleGenerator(input) {
 
 function cameraTargetSet(pos) {
     log('cameraTargetSet');
-    console.log(pos);
-    
     graphics.camera.position.set(pos.x, pos.y, graphics.controls.getDistance());
     graphics.controls.target.set(pos.x, pos.y, pos.z);
     graphics.controls.update();

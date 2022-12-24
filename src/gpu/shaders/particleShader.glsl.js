@@ -63,7 +63,7 @@ const particleFragmentShader = /* glsl */ `
 #define EPSILON 1e-3
 
 uniform float uAvgVelocity;
-uniform float uAvgFieldVel;
+uniform float uMaxFieldVel;
 
 varying vec4 vParticleColor;
 flat varying float vParticleType;
@@ -305,8 +305,7 @@ void particle3d() {
 }
 
 vec4 fieldColor(vec3 vel) {
-    float velMax = min(1e3 * uAvgFieldVel, 1e3);
-    const float velFade = 1e-2;
+    float velMax = max(uMaxFieldVel, 1e3);
     float saturation = 1.0;
     const float valueMax = 1.0;
     float value = valueMax;
@@ -316,7 +315,7 @@ vec4 fieldColor(vec3 vel) {
         saturation = 0.0;
     }
     value = sqrt(velAbs);
-    return vec4(hsv2rgb(vec3(velAbs, saturation, value)), 1.0);
+    return vec4(hsv2rgb(vec3(0.8333 * velAbs, saturation, value)), 1.0);
 }
 
 void field3d() {

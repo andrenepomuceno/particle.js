@@ -11,16 +11,7 @@ import {
 } from './helpers.js';
 import {
     simulation,
-    simulationSetup,
-    simulationUpdatePhysics,
-    simulationFindParticle,
-    simulationUpdateParticle,
-    simulationCreateParticleList,
-    simulationUpdateParticleList,
-    simulationImportParticleList,
-    simulationDeleteParticleList,
-    simulationParticleAutoCleanup,
-    simulationImportCSV,
+    core,
 } from './core.js';
 import { scenariosList } from './scenarios.js';
 import { randomSphericVector } from './helpers.js';
@@ -106,7 +97,7 @@ let guiOptions = {
         import: function () {
             uploadCsv((name, content) => {
                 guiParticleClose();
-                simulationImportCSV(name, content);
+                core.importCSV(name, content);
                 guiInfoRefresh();
                 guiParametersRefresh();
             });
@@ -154,7 +145,7 @@ let guiOptions = {
         },
         deleteAll: () => {
             if (confirm("This will delete all particles.\nAre you sure?")) {
-                simulationDeleteAll();
+                core.deleteAll();
             }
         },
         sandbox: () => {
@@ -214,7 +205,7 @@ let guiOptions = {
             guiParticleClose();
         },
         reset: () => {
-            simulationUpdateParticle(guiOptions.particle.obj, "reset", 0);
+            core.updateParticle(guiOptions.particle.obj, "reset", 0);
         },
         delete: () => {
 
@@ -237,7 +228,7 @@ let guiOptions = {
         import: () => {
             uploadCsv((name, content) => {
                 selection = new SelectionHelper(graphics, guiOptions.selection, guiSelection);
-                simulationImportParticleList(selection, name, content);
+                core.importParticleList(selection, name, content);
             });
         },
         clone: () => {
@@ -253,7 +244,7 @@ let guiOptions = {
                 alert('Selection source must be "simulation".\nSelect particles first.');
                 return;
             }
-            simulationDeleteParticleList(selection.list);
+            core.deleteParticleList(selection.list);
             guiSelectionClose();
         },
         lookAt: () => {
@@ -383,7 +374,7 @@ let guiOptions = {
                 alert("Invalid threshold.");
                 return;
             }
-            simulationParticleAutoCleanup(thresh);
+            core.particleAutoCleanup(thresh);
         },
         dampVelocity: () => {
             let factor = parseFloat(guiOptions.advancedControls.dampKickFactor);
@@ -452,7 +443,7 @@ function scenarioSetup(idx) {
     guiSelectionClose();
     guiParticleClose();
 
-    simulationSetup(idx);
+    core.setup(idx);
 
     guiParametersRefresh();
     guiInfoRefresh();
@@ -528,10 +519,10 @@ function guiInfoSetup() {
     guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'velocity').name('Velocity (avg)').listen();
     guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
-        simulationUpdateParticleList("mass", val);
+        core.updateParticleList("mass", val);
     });
     guiInfoMore.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
-        simulationUpdateParticleList("charge", val);
+        core.updateParticleList("charge", val);
     });
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 
@@ -663,7 +654,7 @@ function guiControlsSetup() {
 
 function guiParticleSetup() {
     guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
-        let obj = simulationFindParticle(parseInt(val));
+        let obj = core.findParticle(parseInt(val));
         if (obj == undefined) {
             if (simulation.physics.particleList == undefined ||
                 simulation.physics.particleList.length == 0) {
@@ -681,28 +672,28 @@ function guiParticleSetup() {
 
     const guiParticleProperties = guiParticle.addFolder("[+] Properties");
     guiParticleProperties.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "mass", val);
+        core.updateParticle(guiOptions.particle.obj, "mass", val);
     });
     guiParticleProperties.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "charge", val);
+        core.updateParticle(guiOptions.particle.obj, "charge", val);
     });
     guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "nuclearCharge", val);
+        core.updateParticle(guiOptions.particle.obj, "nuclearCharge", val);
     });
     guiParticleProperties.open();
 
     const guiParticleVariables = guiParticle.addFolder("[+] Variables");
     guiParticleVariables.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "position", val);
+        core.updateParticle(guiOptions.particle.obj, "position", val);
     });
     guiParticleVariables.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "velocityAbs", val);
+        core.updateParticle(guiOptions.particle.obj, "velocityAbs", val);
     });
     guiParticleVariables.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "velocityDir", val);
+        core.updateParticle(guiOptions.particle.obj, "velocityDir", val);
     });
     guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
-        simulationUpdateParticle(guiOptions.particle.obj, "fixed", val);
+        core.updateParticle(guiOptions.particle.obj, "fixed", val);
     });
     //guiParticleVariables.open();
 
@@ -973,19 +964,19 @@ function guiParametersSetup() {
 
     const guiParametersConsts = guiParameters.addFolder("[+] Constants");
     guiParametersConsts.add(guiOptions.parameters, 'massConstant').name("Gravitational Constant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("massConstant", val);
+        core.updatePhysics("massConstant", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("Electric Constant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("chargeConstant", val);
+        core.updatePhysics("chargeConstant", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("Nuclear Force Constant").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nuclearChargeConstant", val);
+        core.updatePhysics("nuclearChargeConstant", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("Nuclear Force Range").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("nuclearChargeRange", val);
+        core.updatePhysics("nuclearChargeRange", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("Force Multiplier").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("forceConstant", val);
+        core.updatePhysics("forceConstant", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'minDistance').name("Minimum Distance").listen().onFinishChange((val) => {
         let d = parseFloat(val);
@@ -993,31 +984,31 @@ function guiParametersSetup() {
             alert("Invalid value.");
             return;
         }
-        simulationUpdatePhysics("minDistance2", Math.pow(d, 2));
+        core.updatePhysics("minDistance2", Math.pow(d, 2));
     });
     //guiParametersConsts.open();
 
     const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("Boundary Distance").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boundaryDistance", val);
+        core.updatePhysics("boundaryDistance", val);
     });
     guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("Boundary Damping Factor").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boundaryDamping", val);
+        core.updatePhysics("boundaryDamping", val);
     });
     guiParametersBoundary.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("boxBoundary", val);
+        core.updatePhysics("boxBoundary", val);
     });
     guiParametersBoundary.add(guiOptions.parameters, 'enableBoundary').name("Enable Boundary").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("enableBoundary", val);
+        core.updatePhysics("enableBoundary", val);
     });
     //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] View");
     guiParametersVisual.add(guiOptions.parameters, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("radius", val);
+        core.updatePhysics("radius", val);
     });
     guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("radiusRange", val);
+        core.updatePhysics("radiusRange", val);
     });
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
@@ -1029,10 +1020,10 @@ function guiParametersSetup() {
         'Sin[a x^b]': NuclearPotentialType.potential_powXR,
     }
     guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("potential", val);
+        core.updatePhysics("potential", val);
     });
     guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
-        simulationUpdatePhysics("distance1", val);
+        core.updatePhysics("distance1", val);
     });
 
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
@@ -1125,7 +1116,7 @@ function guiFieldSetup() {
             alert('Field is too big!');
             return;
         }
-        simulationDeleteParticleList(simulation.field.arrowList);
+        core.deleteParticleList(simulation.field.arrowList);
         simulation.field.cleanup();
         if (!fieldInit(grid)) {
             return;
@@ -1184,7 +1175,7 @@ function guiSelectionClose(clear = true) {
 /* HELPERS */
 
 function selectionListUpdate(param, val) {
-    simulationUpdateParticleList(param, val, selection.list);
+    core.updateParticleList(param, val, selection.list);
     selection.guiRefresh();
 }
 
@@ -1202,9 +1193,9 @@ function selectionPlace() {
     }
 
     if (selection.source == SourceType.simulation) {
-        simulationUpdateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
+        core.updateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
     } else {
-        simulationCreateParticleList(selection.list, center);
+        core.createParticleList(selection.list, center);
     }
 } 1
 
@@ -1422,7 +1413,7 @@ function fieldInit(grid) {
 function fieldEnable(val) {
     guiOptions.field.enabled = false;
     if (val == false) {
-        simulationDeleteParticleList(simulation.field.arrowList);
+        core.deleteParticleList(simulation.field.arrowList);
         simulation.field.cleanup();
     } else {
         let grid = Math.round(parseFloat(guiOptions.field.grid));

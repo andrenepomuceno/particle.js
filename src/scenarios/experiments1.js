@@ -45,11 +45,11 @@ function randomElements(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     physics.useBoxBoundary = true;
-    //physics.useDistance1 = true;
+    physics.useDistance1 = true;
     simulation.mode2D = true;
 
     physics.nuclearChargeRange = 1e4;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.boundaryDistance = 25 * physics.nuclearChargeRange;
     physics.boundaryDamping = 0.9;
     graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
     graphics.cameraSetup();
@@ -57,8 +57,8 @@ function randomElements(simulation) {
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
-    physics.massConstant = 1e-9;
-    physics.chargeConstant = 1e-2;
+    physics.massConstant = 1e-6;
+    physics.chargeConstant = 1;
     physics.nuclearChargeConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
 
@@ -73,8 +73,7 @@ function randomElements(simulation) {
         { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
     ];
 
-    let n = 1;
-    const m = 1e-3 / cloudTypes[0].m;
+    const m = 1e-2 / cloudTypes[0].m;
     const q = 1;
     const nq = 1;
     const v = 1.0;
@@ -82,9 +81,6 @@ function randomElements(simulation) {
     let r0 = 0.01 * physics.nuclearChargeRange;
     let r1 = 0.5 * physics.nuclearChargeRange;
     let r2 = 0.493 * physics.nuclearChargeRange;
-    let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
-    if (size % 2 == 0) size -= 1;
-    console.log("size = " + size);
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
         let options = {
@@ -104,11 +100,10 @@ function randomElements(simulation) {
     if (!ENV?.production) gridSize = [15, 10, 1];
 
     cubeGenerator((x, y, z) => {
-        //let s = ((n % 2 == 0) ? (1) : (-1));
-        let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
+        let snq = nq;// * ((random(0, 1) >= 0.5) ? (1) : (-1));
         let center = new Vector3(x, y, z);
-        n = random(1, 64, true);
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, s * nq, r0, r1, center, v);
+        let n = random(1, 64, true);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, snq, r0, r1, center, v);
         n++;
     }, 4 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);

@@ -59,7 +59,7 @@ jobs:
         script: |
           const { repo, owner } = context.repo;
           const result = await github.rest.pulls.create({
-            title: ${GITHUB_REF#refs/*/},
+            title: 'Automated ${{ github.ref_name }}',
             owner,
             repo,
             head: '${{ github.ref_name }}',

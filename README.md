@@ -72,7 +72,7 @@ and $V(d)$ represents the nuclear potential, that can be any nuclear potential f
 
 For this project, the default is
 
-$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$.
+$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$, where $d_max$ is the nuclear force range.
 
 Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
 

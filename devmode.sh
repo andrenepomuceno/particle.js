@@ -8,3 +8,5 @@ npm run madge2 &
 
 npm run test &
 npm run record &
+
+ps

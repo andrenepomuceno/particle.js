@@ -57,9 +57,10 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
+          tile=${GITHUB_REF#refs/*/}
           const { repo, owner } = context.repo;
           const result = await github.rest.pulls.create({
-            title: ${GITHUB_REF#refs/*/},
+            title: "$title",
             owner,
             repo,
             head: '${{ github.ref_name }}',

@@ -72,7 +72,7 @@ and $V(d)$ represents the nuclear potential, that can be any nuclear potential f
 
 For this project, the default is
 
-$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$.
+$V(d \le d_{max})=\sin{(2.\pi.\frac{d}{d_{max}})}$, where $d_{max}$ is the nuclear force range.
 
 Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
 
@@ -100,9 +100,15 @@ So, the force exerted by a collision is (a lot of omitted calculus here...)
 
 $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
 
-## Structure
+## Code Architecture
 
 ![structure](img/graph1.svg)
+
+## Donate
+
+**BTC:** 187JHUUqszdB9fC6Nn52CpP7UsEeD8GsNh
+
+**Github Sponsor:** https://github.com/sponsors/andrenepomuceno
 
 ## Special Thanks
 

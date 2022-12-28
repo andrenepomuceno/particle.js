@@ -5,7 +5,7 @@ import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
     randomElements,
-    periodicTable,
+    //periodicTable,
     electronProtonNeutron,
     superNucleus3D,
     hexagonalCrystal,

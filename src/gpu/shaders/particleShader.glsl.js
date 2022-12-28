@@ -216,8 +216,8 @@ float particleArrowSdf(vec3 position) {
     position = rotate(position, vec3(0.0, 1.0, 0.0), angleZ);
 
     float baseRadius = 0.3; 
-    float tipRadius = 0.75;
-    float tipHeight = 0.5;
+    float tipRadius = 0.9;
+    float tipHeight = 0.75;
     float cornerRadius = 0.05;
     vec3 start = vec3(1.0, 0.0, 0.0);
     vec3 end = vec3(-1.0, 0.0, 0.0);

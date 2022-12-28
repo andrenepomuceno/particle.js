@@ -4,9 +4,9 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
-    //periodicTable,
+    periodicTable,
     air,
-    experiment0,
+    randomElements,
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
@@ -125,7 +125,7 @@ function air(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
-    simulation.mode2D = false;
+    simulation.mode2D = true;
 
     const m = 1 * 1e18; // attometer
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
@@ -210,12 +210,12 @@ function air(simulation) {
 
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, zNumber, 1.0, 1.0, snq, r0, r1, center, v);
         index++;
-    }, 3.0 * r2 * gridSize[0], gridSize);
+    }, 2.5 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);
     console.log(eleHistogram);
 }
 
-function experiment0(simulation) {
+function randomElements(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

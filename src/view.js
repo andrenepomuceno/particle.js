@@ -43,9 +43,9 @@ const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder("SELECTION");
 const guiGenerate = gui.addFolder("GENERATOR");
-const guiParameters = gui.addFolder("PARAMETERS");
-const guiAdvancedControls = gui.addFolder("ADVANCED");
 const guiField = gui.addFolder("FIELD");
+const guiAdvancedControls = gui.addFolder("ADVANCED");
+const guiParameters = gui.addFolder("PARAMETERS");
 
 function log(msg) {
     console.log("View: " + msg);
@@ -869,7 +869,9 @@ function guiGeneratorSetup() {
         'E Beam': "eBeam",
         'Alpha Beam': "alphaBeam",
         'Quark Model': "stdModel0",
-        'Proton/Neutron Model': "epnModel",
+        'EPN': "epnModel",
+        'EPN Model (Scale)': "epnModelScaled",
+        'Quark Model (Scale)': "stdModel0Scaled",
     };
     guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         let v = 10 * parseFloat(guiOptions.info.velocity);
@@ -891,6 +893,8 @@ function guiGeneratorSetup() {
             case "epnModel":
             case "stdModel0":
             case "randomClone":
+            case "stdModel0Scaled":
+            case "epnModelScaled":
                 defaultTemplate();
                 break;
 
@@ -1222,6 +1226,8 @@ function snapshot() {
     downloadFile(exportCSV(simulation), finalName + ".csv", "text/plain;charset=utf-8");
 }
 
+import { scaleEPN } from './physics.js';
+
 let hexagonMap = new Map();
 function particleGenerator(input) {
     log("generateParticles");
@@ -1300,12 +1306,15 @@ function particleGenerator(input) {
                 if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
                 break;
         }
-        
-        let mv = mouseHelper.avgVelocity();
-        let mouseVelocity = new Vector3(mv.x, mv.y, 0);
-        mouseVelocity.multiplyScalar(10.0);
-        console.log(mouseVelocity);
-        v.add(mouseVelocity);
+
+        if (Date.now() - mouseHelper.lastMove < 1000) {
+            let mv = mouseHelper.avgVelocity();
+            let mouseVelocity = new Vector3(mv.x, mv.y, 0);
+            mouseVelocity.multiplyScalar(0.005 * simulation.graphics.controls.getDistance());
+            console.log(mouseVelocity);
+            v.add(mouseVelocity);
+        }
+
         return v;
     }
 
@@ -1347,6 +1356,14 @@ function particleGenerator(input) {
                 { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
                 { m: 1.007276466583, q: 1, nq: 1 },
                 { m: 1.00866491588, q: 0, nq: 1 },
+            ];
+            break;
+
+        case "epnModelScaled":
+            presetList = [
+                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60 },
+                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1 },
+                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1 },
             ];
             break;
 
@@ -1432,6 +1449,7 @@ function fieldEnable(val) {
     if (val == false) {
         core.deleteParticleList(simulation.field.arrowList);
         simulation.field.cleanup();
+        guiField.close();
     } else {
         let grid = Math.round(parseFloat(guiOptions.field.grid));
         if (isNaN(grid)) {

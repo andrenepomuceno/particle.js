@@ -100,7 +100,7 @@ function randomElements(simulation) {
     if (!ENV?.production) gridSize = [15, 10, 1];
 
     cubeGenerator((x, y, z) => {
-        let snq = nq;// * ((random(0, 1) >= 0.5) ? (1) : (-1));
+        let snq = nq * ((random(0, 1) >= 0.5) ? (1) : (-1));
         let center = new Vector3(x, y, z);
         let n = random(1, 64, true);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, snq, r0, r1, center, v);

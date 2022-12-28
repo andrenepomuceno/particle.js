@@ -272,8 +272,8 @@ float particleSdf(vec3 position) {
 #define DIFFUSE_LIGHT (-2.75)
 #define AMBIENT_LIGHT (0.1)
 
-const vec3 diffuseLight = DIFFUSE_LIGHT * normalize(vec3(0.3, 1.0, 1.0));
-const vec3 ambientLight = AMBIENT_LIGHT * normalize(vec3(31, 41, 53));
+const vec3 diffuseLightPosition = normalize(vec3(1.0, 1.0, 1.0));
+const vec3 ambientLightColor = normalize(vec3(31, 41, 53));
 
 void particle3d() {
     vec3 targetPosition = vec3(0.0);
@@ -294,12 +294,24 @@ void particle3d() {
     // light
     vec3 position = rayOrigin + rayDirection * t;
     vec3 n = SURFACE_NORMAL(particleSdf, position);
-    float diffuseAngle = max(dot(n, diffuseLight), 0.0);
+    vec3 color = vec3(0.0);
+
     // diffuse
-    vec3 color = gParticleColor * diffuseAngle;
+    vec3 diffuseColor = 1.0 * gParticleColor;
+    float diffuseAngle = max(dot(n, DIFFUSE_LIGHT * diffuseLightPosition), 0.0);
+    color += diffuseColor * diffuseAngle;
+    
     // ambient
-    color += ambientLight * ((n.y + 1.0) * 0.5);
-    // gamma
+    color += AMBIENT_LIGHT * ambientLightColor * ((n.y + 1.0) * 0.5);
+    
+    // specular
+    float specularStrength = 1.0;
+    vec3 specularColor = ambientLightColor;//normalize(vec3(1.0, 1.0, 1.0));
+    vec3 reflectDir = reflect(-diffuseLightPosition, n);
+    float spec = pow(max(dot(rayDirection, reflectDir), 0.0), 32.0);
+    vec3 specular = specularStrength * spec * specularColor;
+    color += specular;
+
     color = sqrt(color);
     
     gl_FragColor = vec4(color, 1.0);
@@ -341,11 +353,11 @@ void field3d() {
     vec3 color = vec3(0.0);
     vec3 position = rayOrigin + rayDirection * t;
     vec3 n = SURFACE_NORMAL(fieldArrowSdf, position);
-    float diffuseAngle = max(dot(n, diffuseLight), 0.0);
+    float diffuseAngle = max(dot(n, DIFFUSE_LIGHT * diffuseLightPosition), 0.0);
     // diffuse
     color = fieldColor(vParticleVel).rgb * diffuseAngle;
     // ambient
-    color += ambientLight * ((n.y + 1.0) * 0.5);
+    color += AMBIENT_LIGHT * ambientLightColor * ((n.y + 1.0) * 0.5);
     color = sqrt(color); // gamma
 
     gl_FragColor = vec4(color, 1.0);

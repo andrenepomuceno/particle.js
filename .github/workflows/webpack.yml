@@ -7,6 +7,8 @@ on:
       - dev
     tags:
       - v*
+  pull_request:
+    types: [opened, reopened]
 
 permissions:
   contents: write
@@ -62,9 +64,8 @@ jobs:
             head: '${{ github.ref_name }}',
             owner,
             repo,
-            head: '${{ github.ref_name }}',
             base: 'main',
             body: [
-              'Automated PR'
-            ].join('\n')
+              'Automated PR for RC ${{ github.ref_name }}'
+            ].join('\n'),
           });

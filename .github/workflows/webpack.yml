@@ -10,9 +10,7 @@ on:
   pull_request:
     types: [opened, reopened]
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: write-all
 
 jobs:
   build:
@@ -40,12 +38,43 @@ jobs:
       run: |
         zip -r particle.js_${GITHUB_REF#refs/*/}.zip dist
 
+    - name: create pull request
+      run: |
+        git checkout -b release/${{ github.ref_name }}
+        gh pr create --base main --head release/${{ github.ref_name }} --title 'Merge release/${{ github.ref_name }} into main' --body 'Created by Github action'
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - uses: peterjgrainger/action-create-branch@v2.2.0
+    #   if: startsWith(github.ref, 'refs/tags/v')
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     branch: 'release/${{ github.ref_name }}'
+    #     sha: '${{ github.event.pull_request.head.sha }}'
+
+    # - name: Create Pull Request
+    #   if: startsWith(github.ref, 'refs/tags/v')
+    #   uses: actions/github-script@v6
+    #   with:
+    #     script: |
+    #       const { repo, owner } = context.repo;
+    #       const result = await github.rest.pulls.create({
+    #         head: 'release/${{ github.ref_name }}',
+    #         owner,
+    #         repo,
+    #         base: 'main',
+    #         body: [
+    #           'Automated PR for RC ${{ github.ref_name }}'
+    #         ].join('\n'),
+    #       });
+
     - uses: ncipollo/release-action@v1
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
-        draft: true
+        # draft: true
 
     - name: Deploy gh-pages
       if: startsWith(github.ref, 'refs/tags/v')
@@ -53,19 +82,3 @@ jobs:
       with:
         folder: dist
         branch: gh-pages
-
-    - name: Create Pull Request
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { repo, owner } = context.repo;
-          const result = await github.rest.pulls.create({
-            head: '${{ github.ref_name }}',
-            owner,
-            repo,
-            base: 'main',
-            body: [
-              'Automated PR for RC ${{ github.ref_name }}'
-            ].join('\n'),
-          });

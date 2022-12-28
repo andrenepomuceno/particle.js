@@ -1443,6 +1443,7 @@ function fieldEnable(val) {
             return;
         }
         guiOptions.field.enabled = true;
+        guiField.open();
     }
 }
 

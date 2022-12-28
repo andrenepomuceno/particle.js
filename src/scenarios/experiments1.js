@@ -61,7 +61,7 @@ function air(simulation) {
     physics.nuclearForceRange = nuclearForceRange;
     physics.boundaryDistance = 25 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10.0 * physics.nuclearForceRange;
+    graphics.cameraDistance = 20.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
@@ -132,8 +132,8 @@ function air(simulation) {
     let histogram = new Map();
     let index = 0;
     cubeGenerator((x, y, z) => {
-        //let snq = nq * ((random(0, 1) >= 0.5) ? (1) : (-1));
-        let snq = nq * (index % 2) ? (1) : (-1);
+        let snq = nq * ((random(0, 1) >= 0.01) ? (1) : (-1));
+        //let snq = nq * (index % 2) ? (1) : (-1);
         let center = new Vector3(x, -y, z);
         let rRatio = random(0, 1);
         let n;
@@ -157,7 +157,7 @@ function air(simulation) {
 
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, 1.0, snq, r0, r1, center, v);
         index++;
-    }, 1.0 * r2 * gridSize[0], gridSize);
+    }, 2.0 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);
     console.log(histogram);
 }

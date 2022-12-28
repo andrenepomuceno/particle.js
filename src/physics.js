@@ -26,8 +26,8 @@ export class Physics {
         this.forceConstant = 1.0;
         this.massConstant = 1.0;
         this.chargeConstant = 1.0;
-        this.nuclearChargeConstant = 1.0;
-        this.nuclearChargeRange = 1e3;
+        this.nuclearForceConstant = 1.0;
+        this.nuclearForceRange = 1e3;
 
         this.collisionCounter = 0;
 
@@ -43,7 +43,7 @@ export class Physics {
     }
 
     header() {
-        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nuclearChargeConstant,nuclearChargeRange,boundaryDistance,boundaryDamping";
+        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nuclearForceConstant,nuclearForceRange,boundaryDistance,boundaryDamping";
     }
 
     csv() {
@@ -52,8 +52,8 @@ export class Physics {
             + this.forceConstant + ","
             + this.massConstant + ","
             + this.chargeConstant + ","
-            + this.nuclearChargeConstant + ","
-            + this.nuclearChargeRange + ","
+            + this.nuclearForceConstant + ","
+            + this.nuclearForceRange + ","
             + this.boundaryDistance + ","
             + this.boundaryDamping;
     }

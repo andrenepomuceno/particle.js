@@ -31,9 +31,9 @@ precision highp float;
 uniform float minDistance2;
 uniform float massConstant;
 uniform float chargeConstant;
-uniform float nuclearChargeConstant;
-uniform float nuclearChargeRange;
-uniform float nuclearChargeRange2;
+uniform float nuclearForceConstant;
+uniform float nuclearForceRange;
+uniform float nuclearForceRange2;
 uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
@@ -128,7 +128,7 @@ void main() {
                 force /= distance1;
             #endif
 
-            if (distance2 <= nuclearChargeRange2) {
+            if (distance2 <= nuclearForceRange2) {
                 float nq1 = props1.w;
                 float nq2 = props2.w;
 
@@ -137,10 +137,10 @@ void main() {
                 #endif
 
                 #if USE_HOOKS_LAW
-                    float x = (2.0 * distance1 - nuclearChargeRange)/nuclearChargeRange;
-                    force += -nuclearChargeConstant * nq1 * nq2 * x;
+                    float x = (2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+                    force += -nuclearForceConstant * nq1 * nq2 * x;
                 #else
-                    float x = distance1/nuclearChargeRange;
+                    float x = distance1/nuclearForceRange;
 
                     #if USE_POTENTIAL0 // "powXR"
                         const float r = 1.0/3.0, log2 = log(2.0);
@@ -156,7 +156,7 @@ void main() {
                         x = sin(2.0 * PI * x);
                     #endif
 
-                    force += nuclearChargeConstant * nq1 * nq2 * x;
+                    force += nuclearForceConstant * nq1 * nq2 * x;
                 #endif
             }
 

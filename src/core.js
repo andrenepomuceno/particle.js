@@ -55,7 +55,7 @@ class Core {
         let imported = parseCsv(simulation, filename, content);
         if (imported == undefined) return;
 
-        if (imported.physics.nuclearChargeRange != physics.nuclearChargeRange) {
+        if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
             alert("Imported particle physics do not match!");
         }
 
@@ -123,12 +123,12 @@ class Core {
                 physics.chargeConstant = parseFloat(value);
                 break;
 
-            case "nuclearChargeConstant":
-                physics.nuclearChargeConstant = parseFloat(value);
+            case "nuclearForceConstant":
+                physics.nuclearForceConstant = parseFloat(value);
                 break;
 
-            case "nuclearChargeRange":
-                physics.nuclearChargeRange = parseFloat(value);
+            case "nuclearForceRange":
+                physics.nuclearForceRange = parseFloat(value);
                 break;
 
             case "boundaryDamping":
@@ -350,7 +350,7 @@ class Core {
         function positionToKeyMap(p) {
             let key = p.position.toArray();
             key.forEach((val, idx) => {
-                key[idx] = Math.round(val / simulation.physics.nuclearChargeRange);
+                key[idx] = Math.round(val / simulation.physics.nuclearForceRange);
             });
             return key.toString();
         }

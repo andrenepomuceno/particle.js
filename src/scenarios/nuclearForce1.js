@@ -35,8 +35,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nuclearChargeConstant = 1.0;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 1.0;
+    physics.nuclearForceRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e6;
@@ -51,14 +51,14 @@ function cloud2(simulation) {
     simulation.setParticleRadius(5e3, 1e3);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
 
     let m = 1;
     let q = 1;
     let nq = 1;
-    let r0 = physics.nuclearChargeRange;
+    let r0 = physics.nuclearForceRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -104,14 +104,14 @@ function cloud1(simulation) {
     simulation.setParticleRadius(50, 25);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceRange = 1e3;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
 
     let m = 1;
     let q = 1;
     let nq = 1;
-    let r0 = 8 * physics.nuclearChargeRange;
+    let r0 = 8 * physics.nuclearForceRange;
     let v = 0;
     let n = graphics.maxParticles;
 
@@ -157,7 +157,7 @@ function cloud0(simulation) {
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e5;
+    physics.nuclearForceRange = 1e5;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
 
@@ -210,7 +210,7 @@ function triforce2(simulation) {
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
 
@@ -264,7 +264,7 @@ function triforce1(simulation) {
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
 
@@ -317,7 +317,7 @@ function triforce0(simulation) {
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
 
@@ -370,7 +370,7 @@ function charge_nuclearCharge_point0(simulation) {
     simulation.setParticleRadius(2e3, 5e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 1e-6;
 
@@ -423,7 +423,7 @@ function GPU_point14(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -465,7 +465,7 @@ function GPU_point13(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -507,7 +507,7 @@ function GPU_point12(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -549,7 +549,7 @@ function GPU_point11(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -591,7 +591,7 @@ function GPU_point10(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -633,7 +633,7 @@ function GPU_blob9_posNQ(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -675,7 +675,7 @@ function GPU_blob8_posNQ_rng(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -717,7 +717,7 @@ function GPU_point7(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -759,7 +759,7 @@ function GPU_point6(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -801,7 +801,7 @@ function GPU_point5(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -843,7 +843,7 @@ function GPU_point4(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -885,7 +885,7 @@ function GPU_point3(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 
@@ -927,7 +927,7 @@ function GPU_point2(simulation) {
     simulation.setParticleRadius(1e3, 1e2);
     simulation.physics.boundaryDistance = 1e9;
     
-    physics.nuclearChargeRange = 1e6;
+    physics.nuclearForceRange = 1e6;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
 

@@ -334,8 +334,8 @@ let guiOptions = {
     parameters: {
         massConstant: "",
         chargeConstant: "",
-        nuclearChargeConstant: "",
-        nuclearChargeRange: "",
+        nuclearForceConstant: "",
+        nuclearForceRange: "",
         boundaryDamping: "",
         boundaryDistance: "",
         minDistance: "",
@@ -980,11 +980,11 @@ function guiParametersSetup() {
     guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("Electric Constant").listen().onFinishChange((val) => {
         core.updatePhysics("chargeConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeConstant').name("Nuclear Force Constant").listen().onFinishChange((val) => {
-        core.updatePhysics("nuclearChargeConstant", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearForceConstant').name("Nuclear Force Constant").listen().onFinishChange((val) => {
+        core.updatePhysics("nuclearForceConstant", val);
     });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearChargeRange').name("Nuclear Force Range").listen().onFinishChange((val) => {
-        core.updatePhysics("nuclearChargeRange", val);
+    guiParametersConsts.add(guiOptions.parameters, 'nuclearForceRange').name("Nuclear Force Range").listen().onFinishChange((val) => {
+        core.updatePhysics("nuclearForceRange", val);
     });
     guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("Force Multiplier").listen().onFinishChange((val) => {
         core.updatePhysics("forceConstant", val);
@@ -1050,8 +1050,8 @@ function guiParametersRefresh() {
     let edit = guiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(2);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-    edit.nuclearChargeConstant = simulation.physics.nuclearChargeConstant.toExponential(2);
-    edit.nuclearChargeRange = simulation.physics.nuclearChargeRange.toExponential(2);
+    edit.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(2);
+    edit.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
     edit.minDistance = Math.sqrt(simulation.physics.minDistance2);

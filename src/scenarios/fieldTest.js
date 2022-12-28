@@ -35,8 +35,8 @@ function defaultConfig(simulation, distance = 4.0e2) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 2e2;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 2e2;
 
     simulation.bidimensionalMode(true);
     simulation.setParticleRadius(10, 0);
@@ -50,7 +50,7 @@ function nuclearField(simulation) {
     simulation.field.probeConfig(0, 0, 5e2);
     simulation.fieldSetup("2d", grid);
 
-    let x = new Vector3(1.1 * physics.nuclearChargeRange, 0, 0);
+    let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);
     let v = new Vector3(1, 0, 0);
     let fixed = true;
     let q = 1;

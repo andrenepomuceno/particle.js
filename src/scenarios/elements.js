@@ -26,9 +26,9 @@ function defaultParameters(simulation, cameraDistance = 5000) {
 
     physics.forceConstant = 8;
     physics.massConstant = 1e-6;
-    physics.nuclearChargeConstant = -1;
-    physics.nuclearChargeRange = 200;
-    physics.chargeConstant = Math.abs(physics.nuclearChargeConstant) / 60;
+    physics.nuclearForceConstant = -1;
+    physics.nuclearForceRange = 200;
+    physics.chargeConstant = Math.abs(physics.nuclearForceConstant) / 60;
 
     simulation.setParticleRadius(30, 10);
     simulation.physics.boundaryDistance = 1e5;
@@ -47,7 +47,7 @@ function atom(physics, n, center = new Vector3()) {
     let q = 100;
     let nq = 1;
 
-    let r0 = physics.nuclearChargeRange / 2;
+    let r0 = physics.nuclearForceRange / 2;
     let r1 = 3 * r0;
     let r2 = 2 * r1 * n;
 
@@ -73,7 +73,7 @@ function h2(simulation) {
     let m = 1 / 100;
     let q = 100;
     let nq = 1;
-    let r0 = physics.nuclearChargeRange / 2;
+    let r0 = physics.nuclearForceRange / 2;
     let r1 = 4 * r0;
     let r2 = 2 * r1;
     let x = 2 * r0 * 0.8;
@@ -89,9 +89,9 @@ function water(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation, 7000);
     //;
-    // physics.nuclearChargeConstant = 60;
-    // physics.nuclearChargeRange = 512;
-    let x = physics.nuclearChargeRange * 1.5;
+    // physics.nuclearForceConstant = 60;
+    // physics.nuclearForceRange = 512;
+    let x = physics.nuclearForceRange * 1.5;
     let y = x / 2;
     atom(physics, 1, new Vector3(-x, -y, 0));
     atom(physics, 8, new Vector3(0, y, 0));

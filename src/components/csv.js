@@ -115,8 +115,8 @@ export function parseCsv(simulation, filename, content) {
                 imported.physics.forceConstant = parseFloat(values[3]);
                 imported.physics.massConstant = parseFloat(values[4]);
                 imported.physics.chargeConstant = parseFloat(values[5]);
-                imported.physics.nuclearChargeConstant = parseFloat(values[6]);
-                imported.physics.nuclearChargeRange = parseFloat(values[7]);
+                imported.physics.nuclearForceConstant = parseFloat(values[6]);
+                imported.physics.nuclearForceRange = parseFloat(values[7]);
                 imported.physics.boundaryDistance = parseFloat(values[8]);
                 imported.physics.boundaryDamping = parseFloat(values[9]);
                 imported.cycles = parseFloat(values[10]);

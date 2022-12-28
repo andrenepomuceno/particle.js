@@ -28,8 +28,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e5;
@@ -53,8 +53,8 @@ function crystal(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [23, 23, 1];
-    let r0 = physics.nuclearChargeRange * 1 / 100;
-    let r1 = physics.nuclearChargeRange * 0.639;
+    let r0 = physics.nuclearForceRange * 1 / 100;
+    let r1 = physics.nuclearForceRange * 0.639;
     let v = 0;
     let n = 2;
 
@@ -96,8 +96,8 @@ function randomBlob(simulation) {
     let m = 1 / 10;
     let q = 1;
     let nq = 1;
-    let r0 = physics.nuclearChargeRange * 0;
-    let r1 = physics.nuclearChargeRange * 3;
+    let r0 = physics.nuclearForceRange * 0;
+    let r1 = physics.nuclearForceRange * 3;
     let v = 0;
     let n = 1200;
 
@@ -141,8 +141,8 @@ function molecule(simulation) {
     let m = 1;
     let q = 32;
     let nq = 1;
-    let r0 = physics.nuclearChargeRange / 100;
-    let r1 = physics.nuclearChargeRange * 0.35;
+    let r0 = physics.nuclearForceRange / 100;
+    let r1 = physics.nuclearForceRange * 0.35;
     let v = 0;
     let n = 2;
 
@@ -204,7 +204,7 @@ function oppositChargeBall(simulation) {
     let m = 1;
     let q = 1;
     let nq = 1;
-    let r = physics.nuclearChargeRange * 3.0;
+    let r = physics.nuclearForceRange * 3.0;
     let v = 0;
     let n = 1200;
 
@@ -239,7 +239,7 @@ function sameChargeBall(simulation) {
     let m = 1;
     let q = 0;
     let nq = 1;
-    let r = physics.nuclearChargeRange * 0.5;
+    let r = physics.nuclearForceRange * 0.5;
     let v = 0;
     let n = 512;
 
@@ -263,7 +263,7 @@ function oppositeCharge(simulation) {
     let m = 1;
     let q = 0;
     let nq = 1;
-    let r = physics.nuclearChargeRange * 0.49;
+    let r = physics.nuclearForceRange * 0.49;
     let v = 0;
 
     let pos = new Vector3(r, 0, 0);
@@ -285,7 +285,7 @@ function sameCharge(simulation) {
     let m = 1;
     let q = 0;
     let nq = 1;
-    let r = physics.nuclearChargeRange * 0.5;
+    let r = physics.nuclearForceRange * 0.5;
     let v = 0;
 
     let pos = new Vector3(r, 0, 0);

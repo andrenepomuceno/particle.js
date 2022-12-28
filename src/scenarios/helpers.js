@@ -203,3 +203,17 @@ export function drawGrid(simulation, divisions = 10) {
     gridHelper.geometry.translate(0, 0, z);
     simulation.graphics.scene.add(gridHelper);
 }
+
+export function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
+    let options = {
+        m, q, nq,
+        r0: 0, r1: r0,
+        randomSequence: false,
+        randomNQSignal: false,
+        v1: velocity,
+        center
+    };
+    createParticles(simulation, nucleusList, n * nucleusList.length, options);
+    options = { ...options, r0, r1 };
+    createParticles(simulation, cloudList, n * cloudList.length, options);
+}

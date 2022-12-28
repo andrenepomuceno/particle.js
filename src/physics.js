@@ -9,6 +9,14 @@ export const NuclearPotentialType = {
     potential_powAX: "potential2",
 }
 
+export const scaleEPN = {
+    m: 1 * 1e18,  // attometer
+    kg: 1.0 * (1 / 9.1093837015) * 1e30,  // kilogram, quantum mass
+    s: 1e27,  // second, quantum time
+    c: 100.0 * (1 / 1.602176634) * 1e18,  // attocoulomb
+}
+export const nuclearForceRange = 1e-15 * scaleEPN.m;
+
 function log(msg) {
     console.log("Physics: " + msg);
 }

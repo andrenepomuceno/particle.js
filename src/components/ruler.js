@@ -58,6 +58,8 @@ export class Ruler {
         this.graphics.scene.add(this.selection);
 
         this.started = true;
+
+        this.update(event);
     }
 
     update(event) {

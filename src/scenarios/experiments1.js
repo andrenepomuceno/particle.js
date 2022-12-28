@@ -4,7 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
-    //trueConstants,
+    realScaledConstants,
     randomElements,
     periodicTable,
     electronProtonNeutron,
@@ -39,7 +39,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function trueConstants(simulation) {
+function realScaledConstants(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -49,49 +49,42 @@ function trueConstants(simulation) {
     physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    const sizeScale = 1e-9;
-    const timeScale = 1e-9;
+    const m = 1 * 1e18; // meter
+    const kg = 1.0 * (1/9.1093837015)* 1e30; // kilogram
+    const s = 1e27; // second
+    const c = 100.0 * (1/1.602176634) * 1e18; // coulomb
+    const nuclearForceRange = 1e-15 * m;
+    const nq = 1.0;
+    const v = 1.0;
 
-    let g = 6.6743e-11;// m3 kg-1 s-2
-    g *= Math.pow(sizeScale, 3) * Math.pow(timeScale, -2);
-    console.log(g);
-    let e = 8.988e9; // N⋅m2⋅C−2
-    e *= Math.pow(sizeScale, 2);
-    console.log(e);
-
-    physics.nuclearChargeRange = 1e4;
+    physics.nuclearChargeRange = nuclearForceRange;
     physics.boundaryDistance = 25 * physics.nuclearChargeRange;
-    physics.boundaryDamping = 0.9;
+    physics.boundaryDamping = 0.5;
     graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
     graphics.cameraSetup();
     simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.forceConstant = 1;
-    physics.massConstant = 1e-6;
-    physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.massConstant = 6.6743e-11 * kg**-1 * m**3 * s**-2;
+    physics.chargeConstant = 8.988e9 * kg**1 * m**3 * s**-2 * c**-2;
+    physics.nuclearChargeConstant = 1.0;
+    physics.forceConstant = 1.0;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+
+    let r0 = 0.01 * physics.nuclearChargeRange;
+    let r1 = 0.5 * physics.nuclearChargeRange;
+    let r2 = 0.493 * physics.nuclearChargeRange;
 
     simulation.field.probeConfig(0, 1e3, 0);
     //if (!ENV?.production) simulation.field.setup("2d", 50);
 
     let nucleusTypes = [
-        { m: 1.007276466583, q: 1, nq: 1 },
-        { m: 1.00866491588, q: 0, nq: 1 },
+        { m: 1.67262192e-27, q: 1.602176634e-19, nq: 1 },
+        { m: 1.67492749e-27 /* kg */, q: 0, nq: 1 },
     ];
     let cloudTypes = [
-        { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
+        { m: 9.1093837015e-31 /* kg */, q: -1.602176634e-19 /* C */, nq: -1/60 },
     ];
-
-    const m = 1e-2 / cloudTypes[0].m;
-    const q = 1;
-    const nq = 1;
-    const v = 1.0;
-
-    let r0 = 0.01 * physics.nuclearChargeRange;
-    let r1 = 0.5 * physics.nuclearChargeRange;
-    let r2 = 0.493 * physics.nuclearChargeRange;
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
         let options = {
@@ -114,7 +107,7 @@ function trueConstants(simulation) {
         let snq = nq * ((random(0, 1) >= 0.5) ? (1) : (-1));
         let center = new Vector3(x, y, z);
         let n = random(1, 64, true);
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, snq, r0, r1, center, v);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, kg, c, snq, r0, r1, center, v);
         n++;
     }, 4 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);

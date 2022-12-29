@@ -31,7 +31,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/})"
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/release_})"
       id: extract_branch
 
     - name: Build
@@ -60,7 +60,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/})"
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/release_})"
       id: extract_branch
 
     - uses: actions/download-artifact@v3

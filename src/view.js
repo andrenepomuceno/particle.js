@@ -44,14 +44,6 @@ function log(msg) {
 
 let collapseList = [];
 let guiOptions = {
-    nextFrame: false,
-    statsPanel,
-    energyPanel,
-    gui,
-    ruler: undefined,
-    mouseHelper,
-    selection,
-
     scenarioSetup: (idx) => {
         scenarioSetup(idx);
     },
@@ -61,6 +53,15 @@ let guiOptions = {
     cameraTargetSet: (pos) => {
         cameraTargetSet(pos);
     },
+
+    nextFrame: false,
+    statsPanel,
+    energyPanel,
+    gui,
+    mouseHelper,
+    selection,
+    ruler: undefined,
+    keyboard: undefined,
 
     info: {},
     controls: {},
@@ -72,7 +73,7 @@ let guiOptions = {
     field: {},
 }
 
-let keyboard = new Keyboard(mouseHelper, guiOptions);
+guiOptions.keyboard = new Keyboard(mouseHelper, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
@@ -100,8 +101,8 @@ function scenarioSetup(idx) {
 
 export function viewSetup() {
     window.onresize = onWindowResize;
-    document.addEventListener("keydown", e => keyboard.onKeyDown(keyboard, e));
-    document.addEventListener("keyup", e => keyboard.onKeyUp(keyboard, e));
+    document.addEventListener("keydown", e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
+    document.addEventListener("keyup", e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
 
     window.addEventListener('pointermove', onPointerMove);
     document.addEventListener("pointerdown", onPointerDown);
@@ -132,7 +133,7 @@ export function viewSetup() {
 
     simulation.graphics.controls.addEventListener('end', onFinishMove);
 
-    keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
+    guiOptions.keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
     guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
 
     animate();

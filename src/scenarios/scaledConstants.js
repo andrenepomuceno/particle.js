@@ -41,7 +41,7 @@ function water(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
-    simulation.mode2D = false;
+    simulation.mode2D = true;
 
     const m = 1 * 1e18; // attometer
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
@@ -70,8 +70,8 @@ function water(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
 
-    let gridSize = [8, 8, 1];
-    if (!ENV?.production && graphics.maxParticles > 20 * 20 * (2 * 3 + 1) * 5) {
+    let gridSize = [10, 10, 1];
+    if (!ENV?.production && graphics.maxParticles > 30 * 20 * (2 * 3 + 1) * 5) {
         gridSize = [30, 20, 1];
         physics.boundaryDistance *= 2;
     }

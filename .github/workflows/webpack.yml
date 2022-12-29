@@ -56,11 +56,11 @@ jobs:
           });
           console.log(result);
 
-          result = await github.rest.git.tags({
-            owner,
-            repo,
-            tag: branch,
-          });
+          # result = await github.rest.git.tags({
+          #   owner,
+          #   repo,
+          #   tag: branch,
+          # });
 
     - name: Pack
       if: startsWith(github.ref, 'refs/heads/release')

@@ -302,7 +302,7 @@ void particle3d() {
     color += diffuseColor * diffuseAngle;
     
     // ambient
-    color += (AMBIENT_LIGHT * ambientLightColor) * gParticleColor * ((n.y + 1.0) * 0.5);
+    color += AMBIENT_LIGHT * gParticleColor * ((n.y + 1.0) * 0.5);
     
     // specular
     float specularStrength = 2.0;

@@ -42,8 +42,6 @@ function water(simulation) {
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = false;
-    let gridSize = [8, 8, 1];
-    if (!ENV?.production && graphics.maxParticles > 20 * 20 * (2 * 3 + 1) * 5) gridSize = [9, 9, 9];
 
     const m = 1 * 1e18; // attometer
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
@@ -71,6 +69,12 @@ function water(simulation) {
     let r0 = 0.05 * physics.nuclearForceRange;
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
+
+    let gridSize = [8, 8, 1];
+    if (!ENV?.production && graphics.maxParticles > 20 * 20 * (2 * 3 + 1) * 5) {
+        gridSize = [30, 20, 1];
+        physics.boundaryDistance *= 2;
+    }
 
     let nucleusTypes = [
         { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV

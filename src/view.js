@@ -26,6 +26,8 @@ import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './menu/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
 import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
+import { guiGeneratorSetup } from './menu/generator.js';
+import { guiSelectionSetup } from './menu/selection.js';
 
 let hideAxis = false;
 let colorMode = "charge";
@@ -55,6 +57,9 @@ function log(msg) {
 
 let collapseList = [];
 let guiOptions = {
+    scenarioSetup: (idx) => {
+        scenarioSetup(idx);
+    },
     info: {},
     controls: {
         pauseResume: function () {
@@ -155,9 +160,6 @@ let guiOptions = {
                 obj.close();
             });
         },
-        place: () => {
-            selectionPlace();
-        },
         record: () => {
             simulation.graphics.capture(simulation.name);
         },
@@ -167,122 +169,8 @@ let guiOptions = {
         showCursor: true,
     },
     particle: {},
-    selection: {
-        pattern: 'box',
-        source: "None",
-        particles: 0,
-        mass: "",
-        charge: "",
-        nuclearCharge: "",
-        velocity: "",
-        velocityDir: "",
-        center: "",
-        fixedPosition: false,
-        export: () => {
-            selection.export(simulation);
-        },
-        import: () => {
-            uploadCsv((name, content) => {
-                selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
-                core.importParticleList(selection, name, content);
-            });
-        },
-        clone: () => {
-            selection.clone();
-            selection.guiRefresh();
-        },
-        clear: () => {
-            guiSelectionClose();
-        },
-        delete: () => {
-            if (selection.list == undefined || selection.list.length == 0) return;
-            if (selection.source != SourceType.simulation) {
-                alert('Selection source must be "simulation".\nSelect particles first.');
-                return;
-            }
-            core.deleteParticleList(selection.list);
-            guiSelectionClose();
-        },
-        lookAt: () => {
-            if (selection.list.length == 0) return;
-
-            let center = new Vector3();
-            selection.list.forEach((particle) => {
-                center.add(particle.position);
-            });
-            center.divideScalar(selection.list.length);
-
-            cameraTargetSet(center);
-        },
-        place: () => {
-            //guiOptions.controls.placeHint();
-            selectionPlace();
-        },
-    },
-    generator: {
-        mass: "1",
-        randomMass: false,
-        enableZeroMass: false,
-        roundMass: true,
-
-        charge: "1",
-        randomCharge: false,
-        chargeRandomSignal: true,
-        enableZeroCharge: false,
-        roundCharge: true,
-
-        nuclearCharge: "1",
-        randomNuclearCharge: false,
-        nuclearChargeRandomSignal: true,
-        enableZeroNuclearCharge: false,
-        roundNuclearCharge: true,
-
-        velocity: "1,0,0",
-        randomVelocity: true,
-
-        radius: "1",
-        quantity: "1",
-        pattern: "circle",
-        preset: "default",
-        fixed: false,
-        generate: () => {
-            guiGenerator.open();
-            particleGenerator(guiOptions.generator);
-        },
-        clear: () => {
-            guiGenerator.close();
-        },
-        default: () => {
-            let clean = {
-                mass: "1",
-                randomMass: false,
-                enableZeroMass: false,
-                roundMass: true,
-
-                charge: "1",
-                randomCharge: false,
-                chargeRandomSignal: true,
-                enableZeroCharge: false,
-                roundCharge: true,
-
-                nuclearCharge: "1",
-                randomNuclearCharge: false,
-                nuclearChargeRandomSignal: true,
-                enableZeroNuclearCharge: false,
-                roundNuclearCharge: true,
-
-                velocity: "1,0,0",
-                randomVelocity: true,
-
-                radius: "1",
-                quantity: "1",
-                pattern: "circle",
-                preset: "default",
-                fixed: false,
-            };
-            Object.assign(guiOptions.generator, clean);
-        },
-    },
+    selection: {},
+    generator: {},
     parameters: {},
     advancedControls: {
         dampKickFactor: "0.1",
@@ -354,12 +242,12 @@ let guiOptions = {
 
 const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
-const keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
-const ruler = new Ruler(simulation.graphics, guiOptions.info);
+let keyboard = undefined;
+let ruler = undefined;
 
 function scenarioSetup(idx) {
     log("setup " + idx);
-    guiSelectionClose();
+    guiOptions.selection.clear();
     guiOptions.particle.close();
 
     core.setup(idx);
@@ -402,14 +290,17 @@ export function viewSetup() {
     guiControlsSetup(guiOptions, guiControls, collapseList);
     guiParticleSetup(guiOptions, guiParticle, collapseList);
     guiParametersSetup(guiOptions, guiParameters, collapseList);
-    guiSelectionSetup(guiOptions, guiSelection, collapseList);
-    guiGeneratorSetup(guiOptions, guiGenerator, collapseList);
+    guiSelectionSetup(guiOptions, guiSelection, collapseList, selection, mouseHelper);
+    guiGeneratorSetup(guiOptions, guiGenerator, collapseList, mouseHelper, guiSelection, selection);
     guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList);
     guiFieldSetup(guiOptions, guiField, collapseList);
 
     scenarioSetup();
 
     simulation.graphics.controls.addEventListener('end', onFinishMove);
+
+    keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
+    ruler = new Ruler(simulation.graphics, guiOptions.info);
 
     animate();
 }
@@ -491,219 +382,6 @@ function guiControlsSetup(guiOptions, guiControls, collapseList) {
     collapseList.push(guiControlsView);
 }
 
-function guiSelectionSetup(guiOptions, guiSelection, collapseList) {
-    const patternList = {
-        Box: 'box',
-        Circle: 'circle',
-    };
-    guiSelection.add(guiOptions.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
-        switch (val) {
-            case 'box':
-            default:
-                ruler.mode = 'box';
-                break;
-
-            case 'circle':
-                ruler.mode = 'circle';
-                break
-        }
-    });
-    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
-    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
-
-    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
-    guiSelection.guiSelectionProperties = guiSelectionProperties;
-    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("mass", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("charge", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("nuclearCharge", val);
-    });
-
-    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
-    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
-        selectionListUpdate("velocityAbs", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
-        selectionListUpdate("velocityDir", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
-        selectionListUpdate("center", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'fixedPosition').name("Fixed Position").listen().onFinishChange((val) => {
-        selectionListUpdate("fixed", val);
-        guiOptions.selection.fixedPosition = val;
-    });
-
-    const guiSelectionActions = guiSelection.addFolder("[+] Controls");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
-    guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
-    guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
-    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
-    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'place').name("Place [Z]");
-
-    guiSelection.add(guiOptions.selection, 'clear').name("Close");
-
-    collapseList.push(guiSelection);
-    collapseList.push(guiSelectionActions);
-    collapseList.push(guiSelectionProperties);
-    collapseList.push(guiSelectionVariables);
-}
-
-function guiGeneratorSetup(guiOptions, guiGenerator, collapseList) {
-    guiGenerator.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
-        guiOptions.generator.quantity = Math.round(parseFloat(val));
-    });
-    guiGenerator.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
-        guiOptions.generator.radius = parseFloat(val);
-    });
-
-    function defaultTemplate() {
-        guiOptions.generator.mass = "1";
-        guiOptions.generator.randomMass = false;
-        guiOptions.generator.enableZeroMass = false;
-        guiOptions.generator.roundMass = false;
-
-        guiOptions.generator.charge = "1";
-        guiOptions.generator.randomCharge = false;
-        guiOptions.generator.chargeRandomSignal = false;
-        guiOptions.generator.enableZeroCharge = true;
-        guiOptions.generator.roundCharge = false;
-
-        guiOptions.generator.nuclearCharge = "1";
-        guiOptions.generator.randomNuclearCharge = false;
-        guiOptions.generator.nuclearChargeRandomSignal = true;
-        guiOptions.generator.enableZeroNuclearCharge = false;
-        guiOptions.generator.roundNuclearCharge = true;
-    }
-
-    function beamTemplate(v) {
-        guiOptions.generator.velocity = v + ",0,0";
-        guiOptions.generator.randomVelocity = false;
-    }
-
-    const patternList = {
-        Circle: "circle",
-        Square: "square",
-        Hexagon: "hexagon",
-        Beam: "beam",
-    };
-    guiGenerator.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
-        switch (val) {
-            case "beam":
-                let v = 10 * parseFloat(guiOptions.info.velocity);
-                if (isNaN(v) || v < 1e2) v = 1e2;
-                beamTemplate(v);
-                guiOptions.generator.quantity = 16;
-                break;
-
-            default:
-                break;
-        }
-    });
-
-    const presetList = {
-        'Default': "default",
-        'Random Clone': "randomClone",
-        'E Beam': "eBeam",
-        'Alpha Beam': "alphaBeam",
-        'Quark Model': "stdModel0",
-        'EPN': "epnModel",
-        'EPN Model (Scale)': "epnModelScaled",
-        'Quark Model (Scale)': "stdModel0Scaled",
-    };
-    guiGenerator.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
-        let v = 10 * parseFloat(guiOptions.info.velocity);
-        if (isNaN(v) || v < 1e2) v = 1e2;
-        switch (val) {
-            case "eBeam":
-                defaultTemplate();
-                beamTemplate(v);
-                guiOptions.generator.quantity = "32";
-                break;
-
-            case "alphaBeam":
-                defaultTemplate();
-                beamTemplate(v);
-                guiOptions.generator.quantity = "24";
-                guiOptions.generator.nuclearChargeRandomSignal = false;
-                break;
-
-            case "epnModel":
-            case "stdModel0":
-            case "randomClone":
-            case "stdModel0Scaled":
-            case "epnModelScaled":
-                defaultTemplate();
-                break;
-
-            default:
-                guiOptions.generator.default();
-                break;
-        }
-    });
-
-    const guiGenerateMass = guiGenerator.addFolder("[+] Mass");
-    guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
-        guiOptions.generator.mass = parseFloat(val);
-    });
-    guiGenerateMass.add(guiOptions.generator, "randomMass").name("Randomize value?").listen();
-    guiGenerateMass.add(guiOptions.generator, "enableZeroMass").name("Allow zero?").listen();
-    guiGenerateMass.add(guiOptions.generator, "roundMass").name("Round?").listen();
-    //guiGenerateMass.open();
-
-    const guiGenerateCharge = guiGenerator.addFolder("[+] Charge");
-    guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.charge = parseFloat(val);
-    });
-    guiGenerateCharge.add(guiOptions.generator, "randomCharge").name("Randomize value?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "chargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "enableZeroCharge").name("Allow zero?").listen();
-    guiGenerateCharge.add(guiOptions.generator, "roundCharge").name("Round?").listen();
-    //guiGenerateCharge.open();
-
-    const guiGenerateNuclearCharge = guiGenerator.addFolder("[+] Nuclear Charge");
-    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearCharge").name("Nuclear Charge").listen().onFinishChange((val) => {
-        guiOptions.generator.nuclearCharge = parseFloat(val);
-    });
-    guiGenerateNuclearCharge.add(guiOptions.generator, "randomNuclearCharge").name("Randomize value?").listen();
-    guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearChargeRandomSignal").name("Randomize signal?").listen();
-    guiGenerateNuclearCharge.add(guiOptions.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
-    guiGenerateNuclearCharge.add(guiOptions.generator, "roundNuclearCharge").name("Round?").listen();
-
-    const guiGenerateVelocity = guiGenerator.addFolder("[+] Velocity");
-    guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
-        const precision = 2;
-        let velocity = decodeVector3(val);
-        if (velocity != undefined) {
-            guiOptions.generator.velocity = floatArrayToString([velocity.x, velocity.y, velocity.z], precision);
-            return;
-        }
-        velocity = parseFloat(val);
-        if (isNaN(velocity)) {
-            alert("Invalid velocity.");
-            guiOptions.generator.velocity = '0';
-            return;
-        }
-        guiOptions.generator.velocity = floatArrayToString([velocity, 0, 0], precision);
-    });
-    guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
-
-    guiGenerator.add(guiOptions.generator, "fixed").name("Fixed position?").listen();
-    guiGenerator.add(guiOptions.generator, "generate").name("Generate [G]");
-    guiGenerator.add(guiOptions.generator, "default").name("Default Values");
-    guiGenerator.add(guiOptions.generator, "clear").name("Close");
-
-    collapseList.push(guiGenerator);
-    collapseList.push(guiGenerateCharge);
-    collapseList.push(guiGenerateMass);
-    collapseList.push(guiGenerateVelocity);
-}
-
 function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList) {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
@@ -731,37 +409,7 @@ function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList)
     collapseList.push(guiAdvancedControls);
 }
 
-function guiSelectionClose(clear = true) {
-    if (clear) selection.clear();
-    guiSelection.close();
-}
-
 /* HELPERS */
-
-function selectionListUpdate(param, val) {
-    core.updateParticleList(param, val, selection.list);
-    selection.guiRefresh();
-}
-
-function selectionPlace() {
-    if (mouseHelper.overGUI) return;
-    if (selection.list == undefined || selection.list.length == 0) return;
-
-    let center = cameraToWorldCoord(mouseHelper.position, simulation.graphics.camera, 0);
-    if (simulation.mode2D) {
-        center.z = 0;
-    }
-
-    if (selection.source == SourceType.generated) {
-        particleGenerator(guiOptions.generator);
-    }
-
-    if (selection.source == SourceType.simulation) {
-        core.updateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
-    } else {
-        core.createParticleList(selection.list, center);
-    }
-}
 
 function snapshot() {
     let name = simulation.state()[0];
@@ -773,209 +421,6 @@ function snapshot() {
         downloadFile(blob, finalName + ".png", "image/png");
     }, 'image/png', 1);
     downloadFile(exportCSV(simulation), finalName + ".csv", "text/plain;charset=utf-8");
-}
-
-import { scaleEPN } from './physics.js';
-
-let hexagonMap = new Map();
-function particleGenerator(input) {
-    log("generateParticles");
-
-    function generateMass() {
-        let m = presetList[presetIdx].m;
-        m *= mass;
-        if (guiOptions.generator.randomMass) m *= random(0, 1);
-        if (guiOptions.generator.roundMass) m = Math.round(m);
-        if (!guiOptions.generator.enableZeroMass && m == 0) m = mass;
-        return m;
-    }
-
-    function generateCharge() {
-        let s = 1;
-        let q = presetList[presetIdx].q;
-        q *= charge;
-        if (guiOptions.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomCharge) q *= random(0, 1);
-        if (guiOptions.generator.roundCharge) q = Math.round(q);
-        if (!guiOptions.generator.enableZeroCharge && q == 0) q = charge;
-        return s * q;
-    }
-
-    function generateNuclearCharge() {
-        let s = 1;
-        let nq = presetList[presetIdx].nq;
-        nq *= nuclearCharge;
-        if (guiOptions.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (guiOptions.generator.randomNuclearCharge) nq *= random(0, 1);
-        if (guiOptions.generator.roundNuclearCharge) nq = Math.round(nq);
-        if (!guiOptions.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
-        return s * nq;
-    }
-
-    function generatePosition() {
-        switch (input.pattern) {
-            case "circle":
-                return randomSphericVector(0, radius);
-
-            case "square":
-                return randomVector(radius);
-
-            case "hexagon":
-                {
-                    log(hexagonMap.size);
-                    if (hexagonMap.size == 0) {
-                        generateHexagon(0, 0, radius, hexagonMap);
-                    }
-
-                    let idx = random(0, 256, true) % (hexagonMap.size);
-                    let pos = new Vector3();
-                    for (let [key, value] of hexagonMap) {
-                        if (idx-- == 0) {
-                            pos.set(value.x, value.y, 0);
-                            hexagonMap.delete(key);
-                            break;
-                        }
-                    }
-
-                    return pos;
-                }
-
-            default:
-                return new Vector3();
-        }
-    }
-
-    function generateVelocity() {
-        let v = velocity;
-        switch (input.pattern) {
-            case "beam":
-                break;
-
-            default:
-                if (guiOptions.generator.randomVelocity) v = randomSphericVector(0, v.length(), simulation.mode2D);
-                break;
-        }
-
-        if (Date.now() - mouseHelper.lastMove < 1000) {
-            let mv = mouseHelper.avgVelocity();
-            let mouseVelocity = new Vector3(mv.x, mv.y, 0);
-            mouseVelocity.multiplyScalar(0.005 * simulation.graphics.controls.getDistance());
-            //console.log(mouseVelocity);
-            v.add(mouseVelocity);
-        }
-
-        return v;
-    }
-
-    let mass = parseFloat(input.mass);
-    let charge = parseFloat(input.charge);
-    let nuclearCharge = parseFloat(input.nuclearCharge);
-    let radius = Math.abs(parseFloat(input.radius));
-    let quantity = Math.round(parseFloat(input.quantity));
-    if (isNaN(mass) || isNaN(charge) || isNaN(nuclearCharge) || isNaN(radius) || isNaN(quantity)) {
-        alert("Invalid parameters!");
-        return;
-    }
-    let velocity = decodeVector3(input.velocity);
-    if (velocity == undefined) {
-        velocity = parseFloat(input.velocity);
-        if (isNaN(velocity)) {
-            alert("Invalid velocity!");
-            return;
-        }
-        velocity = { x: velocity, y: 0, z: 0 };
-    }
-    velocity = new Vector3(velocity.x, velocity.y, velocity.z);
-
-    let presetList = [];
-    let presetIdx = 0;
-    let preset = input.preset;
-    switch (preset) {
-        case "stdModel0":
-            presetList = [
-                { m: 0.01, q: 0, nq: 1 },
-                { m: 0.511, q: -1, nq: 1 },
-                { m: 3, q: 1 / 3, nq: 1 },
-                { m: 6, q: -2 / 3, nq: 1 },
-            ];
-            break;
-
-        case "epnModel":
-            presetList = [
-                { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
-                { m: 1.007276466583, q: 1, nq: 1 },
-                { m: 1.00866491588, q: 0, nq: 1 },
-            ];
-            break;
-
-        case "epnModelScaled":
-            presetList = [
-                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60, name: "electron" },
-                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1, name: "proton" },
-                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1, name: "netron" },
-            ];
-            break;
-
-        case 'quarkModelScaled':
-            presetList = [
-                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1, name: "electron" },
-                { m: 5.347988087839e-30 * scaleEPN.kg, q: 2/3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark up" }, // 3 MeV
-                { m: 1.069597617568e-29 * scaleEPN.kg, q: -1/3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark down" }, // 6 MeV
-            ];
-            break;
-
-        case "randomClone":
-            {
-                presetList = [];
-                for (let i = 0; i < quantity; ++i) {
-                    let idx = random(0, simulation.particleList.length - 1, true);
-                    let p = simulation.particleList[idx];
-                    presetList.push(
-                        { m: p.mass, q: p.charge, nq: p.nuclearCharge }
-                    );
-                }
-            }
-            break;
-
-        case "eBeam":
-            presetList = [
-                { m: 0.511, q: -1, nq: 1 },
-            ];
-            break;
-
-        case "alphaBeam":
-            presetList = [
-                { m: 3, q: 1 / 3, nq: 1 },
-                { m: 6, q: -2 / 3, nq: 1 },
-            ];
-            break;
-
-        default:
-            presetList = [
-                { m: 1, q: 1, nq: 1 },
-            ];
-            break;
-    }
-
-    let newParticleList = [];
-    //if (input.pattern == "hexagon") quantity *= 6;
-    for (let i = 0; i < quantity; ++i) {
-        presetIdx = random(0, presetList.length - 1, true);
-        createParticle(
-            newParticleList,
-            generateMass(),
-            generateCharge(),
-            generateNuclearCharge(),
-            generatePosition(),
-            generateVelocity(),
-            guiOptions.generator.fixed
-        );
-    }
-
-    selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
-    selection.source = SourceType.generated;
-    selection.list = newParticleList;
-    guiSelection.open();
 }
 
 function cameraTargetSet(pos) {

@@ -14,6 +14,7 @@ export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
     guiOptions.info = {
         name: "",
         particles: "",
+        maxParticles: "",
         energy: "",
         time: "",
         collisions: 0,
@@ -40,17 +41,21 @@ export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
     });
     guiInfo.add(guiOptions.info, 'folderName').name('Folder').listen();
     guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
-    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
-        let p = decodeVector3(val);
-        if (p == undefined) {
-            alert("Invalid coordinates!");
+    guiInfo.add(guiOptions.info, 'maxParticles').name('Max Particles').listen().onFinishChange((val) => {
+        val = parseFloat(val);
+        if (val == simulation.physics.particleList.length) {
             return;
         }
-        simulation.graphics.camera.position.set(p.x, p.y, p.z);
-        simulation.graphics.controls.target.set(p.x, p.y, 0);
-        simulation.graphics.controls.update();
+        if (val > simulation.physics.particleList.length) {
+            simulation.graphics.readbackParticleData();
+            simulation.graphics.setMaxParticles(val);
+            simulation.drawParticles();
+            return;
+        }
+        simulation.graphics.setMaxParticles(val);
+        guiOptions.scenarioSetup();
     });
+    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
     guiInfo.open();
 
     const guiInfoMore = guiInfo.addFolder("[+] Statistics");
@@ -65,6 +70,16 @@ export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 
     const guiInfoRuler = guiInfo.addFolder("[+] Ruler");
+    guiInfoRuler.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
+        let p = decodeVector3(val);
+        if (p == undefined) {
+            alert("Invalid coordinates!");
+            return;
+        }
+        simulation.graphics.camera.position.set(p.x, p.y, p.z);
+        simulation.graphics.controls.target.set(p.x, p.y, 0);
+        simulation.graphics.controls.update();
+    });
     guiInfoRuler.add(guiOptions.info, 'rulerLen').name("Length").listen();
     guiInfoRuler.add(guiOptions.info, 'rulerDelta').name("Delta").listen();
     guiInfoRuler.add(guiOptions.info, 'rulerStart').name("Start").listen();
@@ -96,7 +111,8 @@ export function guiInfoRefresh(guiOptions, energyPanel) {
 
     guiOptions.info.name = name;
     guiOptions.info.folderName = simulation.folderName;
-    guiOptions.info.particles = n + " / " + simulation.graphics.maxParticles;
+    guiOptions.info.particles = n;
+    guiOptions.info.maxParticles = simulation.graphics.maxParticles;
 
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
     guiOptions.info.time = realTime + " (" + t + ")";

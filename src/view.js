@@ -1377,6 +1377,14 @@ function particleGenerator(input) {
             ];
             break;
 
+        case 'quarkModelScaled':
+            presetList = [
+                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1, name: "electron" },
+                { m: 5.347988087839e-30 * scaleEPN.kg, q: 2/3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark up" }, // 3 MeV
+                { m: 1.069597617568e-29 * scaleEPN.kg, q: -1/3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark down" }, // 6 MeV
+            ];
+            break;
+
         case "randomClone":
             {
                 presetList = [];

@@ -25,7 +25,7 @@
   "dependencies": {
     "dat.gui": "^0.7.9",
     "image-js": "^0.35.2",
-    "three": "^0.147.0"
+    "three": "^0.148.0"
   },
   "devDependencies": {
     "canvas-capture": "^2.0.5",

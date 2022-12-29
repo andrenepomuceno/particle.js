@@ -455,7 +455,12 @@ function onPointerMove(event) {
 
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
-        selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
+        //selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
+        selection.clear();
+        selection.graphics = simulation.graphics;
+        selection.options = guiOptions.selection;
+        selection.guiSelection = guiSelection;
+
         selection.start(event);
         ruler.start(simulation.graphics, event);
     }

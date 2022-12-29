@@ -71,9 +71,9 @@ function essentialElements(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
 
-    let gridSize = [15, 15, 1];
+    let gridSize = [14, 14, 1];
     if (!ENV?.production && graphics.maxParticles > 30 * 20 * (2 * 3 + 1) * 5) {
-        gridSize = [30, 20, 1];
+        gridSize = [40, 30, 1];
         physics.boundaryDistance *= 2;
     }
 
@@ -86,14 +86,14 @@ function essentialElements(simulation) {
     ];
 
     let elementsRatios = [
-        { r: 55, n: 1, name: "H" },
-        { r: 34, n: 6, name: "C" }, 
-        { r: 21, n: 7, name: "N" }, 
-        { r: 13, n: 8, name: "O" },
-        { r: 8, n: 12, name: "Mg" },
-        { r: 5, n: 15, name: "P" },
-        { r: 3, n: 16, name: "S" },
-        { r: 2, n: 26, name: "Fe" },
+        { r: 100, n: 1, name: "H" },
+        { r: 30, n: 6, name: "C" }, 
+        { r: 30, n: 7, name: "N" }, 
+        { r: 10, n: 8, name: "O" },
+        { r: 1, n: 12, name: "Mg" },
+        { r: 1, n: 15, name: "P" },
+        { r: 1, n: 16, name: "S" },
+        { r: 1, n: 26, name: "Fe" },
         { r: 1, n: 29, name: "Cu" },
         { r: 1, n: 30, name: "Zn" },
     ];
@@ -102,7 +102,7 @@ function essentialElements(simulation) {
 
     let eleHistogram = new Map();
     let index = 0;
-    cubeGenerator((x, y, z) => {
+    for (let j = 0; j < gridSize[0]*gridSize[1]*gridSize[2]; ++j) {
         let snq = nq * ((random(0, 1) >= 0.01) ? (1) : (-1));
         //let snq = nq * (index % 2) ? (1) : (-1);
         //let center = new Vector3(x, -y, z);
@@ -129,7 +129,7 @@ function essentialElements(simulation) {
 
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
         index++;
-    }, 3 * r2 * gridSize[0], gridSize);
+    }
     shuffleArray(physics.particleList);
 
     console.log(eleHistogram);

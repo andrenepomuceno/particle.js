@@ -1,4 +1,4 @@
-import { createParticlesList, randomVector } from './helpers';
+import { createParticlesList, randomVector } from '../scenariosHelpers';
 import { random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 

@@ -1,5 +1,5 @@
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
-import { createParticle } from './helpers';
+import { createParticle } from '../scenariosHelpers';
 import { random, } from '../helpers';
 import { Particle } from '../particle';
 

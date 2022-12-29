@@ -1,16 +1,17 @@
-import { scenarios0 } from './scenarios/scenarios0.js';
-import { scenarios1 } from './scenarios/scenarios1.js';
-import { fields } from './scenarios/fieldTest.js';
-import { elements } from './scenarios/elements.js';
-import { nuclearForce } from './scenarios/nuclearForce.js';
-import { scenarios2 } from './scenarios/scenarios2.js';
-import { gpgpu } from './scenarios/gpgpuTest';
-import { nuclearForce1 } from './scenarios/nuclearForce1.js';
-import { experiments0 } from './scenarios/experiments0.js';
-import { tests } from './scenarios/tests.js';
-import { sandbox } from './scenarios/sandbox.js';
-import { experiments1 } from './scenarios/experiments1.js';
-import { scaledConstants } from './scenarios/scaledConstants.js';
+import { scenarios0 } from './scenarios_v0/scenarios0.js';
+import { scenarios1 } from './scenarios_v0/scenarios1.js';
+import { fields } from './scenarios_v0/fieldTest.js';
+import { elements } from './scenarios_v0/elements.js';
+import { nuclearForce } from './scenarios_v0/nuclearForce.js';
+import { scenarios2 } from './scenarios_v0/scenarios2.js';
+import { gpgpu } from './scenarios_v0/gpgpuTest';
+import { nuclearForce1 } from './scenarios_v0/nuclearForce1.js';
+import { experiments0 } from './scenarios_v0/experiments0.js';
+import { tests } from './scenarios_v0/tests.js';
+import { sandbox } from './scenarios_v0/sandbox.js';
+import { experiments1 } from './scenarios_v0/experiments1.js';
+
+import { scaledConstants } from './scenarios_v1/scaledConstants.js';
 
 export let scenariosList = [];
 function addFolder(name, list) {

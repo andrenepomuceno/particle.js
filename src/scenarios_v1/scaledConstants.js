@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createNuclei, createNucleiFromList, parseElementRatioList, randomVector } from './helpers';
+import { createNuclei, createNucleiFromList, parseElementRatioList, randomVector } from '../scenariosHelpers';
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
 import { NuclearPotentialType } from '../physics';
 

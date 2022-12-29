@@ -20,7 +20,7 @@ import { MouseHelper } from './components/mouseHelper';
 import { Keyboard } from './components/keyboard.js';
 import { SelectionHelper, SourceType } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
-import { createParticle, randomVector } from './scenarios/helpers.js';
+import { createParticle, randomVector } from './scenariosHelpers.js';
 
 let hideAxis = false;
 let colorMode = "charge";

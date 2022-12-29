@@ -22,16 +22,19 @@ import { SelectionHelper, SourceType } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 import { createParticle, randomVector } from './scenariosHelpers.js';
 
+import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './menu/info.js';
+import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
+import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
+import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
+
 let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 let nextFrame = false;
 let pause = false;
-let followParticle = false;
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
-let autoRefresh = true;
 
 let statsPanel = new Stats();
 let energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
@@ -52,29 +55,7 @@ function log(msg) {
 
 let collapseList = [];
 let guiOptions = {
-    info: {
-        name: "",
-        particles: "",
-        energy: "",
-        time: "",
-        collisions: 0,
-        mass: "",
-        radius: "",
-        charge: "",
-        cameraDistance: "",
-        cameraPosition: "",
-        autoRefresh: autoRefresh,
-        mode2D: false,
-        folderName: "",
-        velocity: "",
-        // debug
-        cameraNormal: '',
-        fieldMaxVel: '0',
-        fieldAvgVel: '0',
-        rulerLen: '0',
-        rulerDelta: '0,0,0',
-        rulerStart: '0,0,0',
-    },
+    info: {},
     controls: {
         pauseResume: function () {
             pause = !pause;
@@ -98,7 +79,7 @@ let guiOptions = {
         },
         import: function () {
             uploadCsv((name, content) => {
-                guiParticleClose();
+                guiOptions.particle.close();
                 core.importCSV(name, content);
                 guiInfoRefresh(guiOptions, energyPanel);
                 guiParametersRefresh(guiOptions);
@@ -109,11 +90,11 @@ let guiOptions = {
             simulation.graphics.showAxis(!hideAxis);
         },
         resetCamera: function () {
-            followParticle = false;
+            guiOptions.particle.followParticle = false;
             simulation.graphics.controls.reset();
         },
         xyCamera: function () {
-            followParticle = false;
+            guiOptions.particle.followParticle = false;
             cameraTargetSet(simulation.graphics.controls.target);
         },
         colorMode: function () {
@@ -185,37 +166,7 @@ let guiOptions = {
         },
         showCursor: true,
     },
-    particle: {
-        obj: undefined,
-        id: "",
-        name: '',
-        mass: "",
-        charge: "",
-        nuclearCharge: "",
-        position: "",
-        velocityDir: "",
-        velocityAbs: "",
-        color: "#000000",
-        fixed: false,
-        energy: "",
-        follow: function () {
-            followParticle = !followParticle;
-        },
-        lookAt: function () {
-            let x = guiOptions.particle.obj.position;
-            cameraTargetSet(x);
-            //simulation.graphics.controls.target.set(x.x, x.y, x.z);
-        },
-        close: function () {
-            guiParticleClose();
-        },
-        reset: () => {
-            core.updateParticle(guiOptions.particle.obj, "reset", 0);
-        },
-        delete: () => {
-
-        },
-    },
+    particle: {},
     selection: {
         pattern: 'box',
         source: "None",
@@ -332,26 +283,7 @@ let guiOptions = {
             Object.assign(guiOptions.generator, clean);
         },
     },
-    parameters: {
-        massConstant: "",
-        chargeConstant: "",
-        nuclearForceConstant: "",
-        nuclearForceRange: "",
-        boundaryDamping: "",
-        boundaryDistance: "",
-        minDistance: "",
-        forceConstant: "",
-        maxParticles: "",
-        radius: "",
-        radiusRange: "",
-        nuclearPotential: NuclearPotentialType.default,
-        boxBoundary: false,
-        distance1: false,
-        enableBoundary: true,
-        close: () => {
-            guiParameters.close();
-        },
-    },
+    parameters: {},
     advancedControls: {
         dampKickFactor: "0.1",
         randomVelocity: "10",
@@ -417,25 +349,7 @@ let guiOptions = {
             guiAdvancedControls.close();
         },
     },
-    field: {
-        enabled: false,
-        m: '1',
-        q: '1',
-        nq: '1',
-        grid: '50',
-        automaticRefresh: false,
-        fieldResize: () => {
-            if (simulation.field.enable == false) return;
-            let center = simulation.graphics.controls.target.clone();
-            simulation.field.resize(center);
-        },
-        close: () => {
-            guiField.close();
-        },
-        enable: () => {
-            fieldEnable(guiOptions.field.enabled);
-        },
-    },
+    field: {},
 }
 
 const mouseHelper = new MouseHelper();
@@ -446,7 +360,7 @@ const ruler = new Ruler(simulation.graphics, guiOptions.info);
 function scenarioSetup(idx) {
     log("setup " + idx);
     guiSelectionClose();
-    guiParticleClose();
+    guiOptions.particle.close();
 
     core.setup(idx);
 
@@ -465,11 +379,6 @@ function scenarioSetup(idx) {
         showCursor();
     }
 }
-
-import { guiInfoSetup, guiInfoRefresh } from './menu/info.js';
-import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
-import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
-import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
 
 export function viewSetup() {
     window.onresize = onWindowResize;
@@ -822,25 +731,6 @@ function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList)
     collapseList.push(guiAdvancedControls);
 }
 
-function guiParticleClose(clear = true) {
-    followParticle = false;
-    if (clear) {
-        let particleView = guiOptions.particle;
-        particleView.obj = undefined;
-        particleView.id = "";
-        particleView.mass = "";
-        particleView.charge = "";
-        particleView.nuclearCharge = "";
-        particleView.color = "";
-        particleView.position = "";
-        particleView.velocityDir = "";
-        particleView.velocityAbs = "";
-        particleView.energy = "";
-        particleView.fixed = false;
-    }
-    guiParticle.close();
-}
-
 function guiSelectionClose(clear = true) {
     if (clear) selection.clear();
     guiSelection.close();
@@ -1102,36 +992,6 @@ function showCursor() {
     mouseHelper.showCursor(simulation.graphics, radius, thick);
 }
 
-function fieldInit(grid) {
-    let center = simulation.graphics.controls.target.clone();
-    if (!simulation.field.setup(simulation.field.mode, grid, center)) {
-        return false;
-    }
-    simulation.drawParticles();
-    return true;
-}
-
-function fieldEnable(val) {
-    guiOptions.field.enabled = false;
-    if (val == false) {
-        core.deleteParticleList(simulation.field.arrowList);
-        simulation.field.cleanup();
-        guiField.close();
-    } else {
-        let grid = Math.round(parseFloat(guiOptions.field.grid));
-        if (isNaN(grid)) {
-            alert("Invalid grid value.");
-            return;
-        }
-        simulation.graphics.readbackParticleData();
-        if (!fieldInit(grid)) {
-            return;
-        }
-        guiOptions.field.enabled = true;
-        guiField.open();
-    }
-}
-
 /* CALLBACKS */
 
 function onWindowResize() {
@@ -1180,7 +1040,7 @@ function animate(time) {
     simulation.graphics.update();
     statsPanel.update();
 
-    if (followParticle && guiOptions.particle.obj) {
+    if (guiOptions.particle.followParticle && guiOptions.particle.obj) {
         let x = guiOptions.particle.obj.position;
         cameraTargetSet(x);
     }

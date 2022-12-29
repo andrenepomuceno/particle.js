@@ -8,7 +8,33 @@ import {
     core,
 } from '../core.js';
 
+export let autoRefresh = true;
+
 export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
+    guiOptions.info = {
+        name: "",
+        particles: "",
+        energy: "",
+        time: "",
+        collisions: 0,
+        mass: "",
+        radius: "",
+        charge: "",
+        cameraDistance: "",
+        cameraPosition: "",
+        autoRefresh: autoRefresh,
+        mode2D: false,
+        folderName: "",
+        velocity: "",
+        // debug
+        cameraNormal: '',
+        fieldMaxVel: '0',
+        fieldAvgVel: '0',
+        rulerLen: '0',
+        rulerDelta: '0,0,0',
+        rulerStart: '0,0,0',
+    };
+
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
         simulation.name = val;
     });

@@ -205,7 +205,7 @@ export function drawGrid(simulation, divisions = 10) {
     simulation.graphics.scene.add(gridHelper);
 }
 
-export function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
+export function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity, e = n) {
     let options = {
         m, q, nq,
         r0: 0, r1: r0,
@@ -216,5 +216,18 @@ export function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q
     };
     createParticles(simulation, nucleusList, n * nucleusList.length, options);
     options = { ...options, r0, r1 };
-    createParticles(simulation, cloudList, n * cloudList.length, options);
+    createParticles(simulation, cloudList, e * cloudList.length, options);
+}
+
+export function parseElementRatioList(list) {
+    list.sort((a, b) => {
+        return a.r > b.r;
+    });
+    let ratioMax = 0.0;
+    list.forEach(v => {
+        if (v.r > ratioMax) ratioMax = v.r;
+    })
+    list.forEach((v, i) => {
+        list[i].r /= ratioMax;
+    })
 }

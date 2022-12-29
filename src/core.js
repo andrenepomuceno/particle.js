@@ -20,7 +20,7 @@ class Core {
     constructor() {
         this.scenariosList = scenariosList;
         this.particleSetup = scenariosList[0];
-        this.simulationIdx = undefined;
+        this.simulationIdx = 0;
         log("simulations loaded: " + scenariosList.length);
     }
 
@@ -34,6 +34,7 @@ class Core {
         log("setup idx = " + idx);
 
         if (idx != undefined) {
+            this.simulationIdx = idx;
             if (idx >= 0 && idx < scenariosList.length) {
                 this.particleSetup = scenariosList[idx];
             } else if (idx == -1) {
@@ -43,8 +44,6 @@ class Core {
                 return;
             }
         }
-
-        this.simulationIdx = idx;
 
         this.internalSetup();
 

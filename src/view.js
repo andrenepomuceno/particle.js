@@ -1321,7 +1321,7 @@ function particleGenerator(input) {
             let mv = mouseHelper.avgVelocity();
             let mouseVelocity = new Vector3(mv.x, mv.y, 0);
             mouseVelocity.multiplyScalar(0.005 * simulation.graphics.controls.getDistance());
-            console.log(mouseVelocity);
+            //console.log(mouseVelocity);
             v.add(mouseVelocity);
         }
 
@@ -1371,9 +1371,9 @@ function particleGenerator(input) {
 
         case "epnModelScaled":
             presetList = [
-                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60 },
-                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1 },
-                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1 },
+                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60, name: "electron" },
+                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1, name: "proton" },
+                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1, name: "netron" },
             ];
             break;
 

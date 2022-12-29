@@ -30,7 +30,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - name: Extract branch name
-      if: startsWith(github.ref, 'refs/heads/release')
       shell: bash
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
       id: extract_branch
@@ -40,8 +39,37 @@ jobs:
         npm install
         npm run build --env 'version= ${{ steps.extract_branch.outputs.branch }}'
 
+    - name: Pack
+      run: |
+        zip -r particle.js_${{ steps.extract_branch.outputs.branch }}.zip dist
+
+    # - uses: actions/upload-artifact@v3
+    #   with:
+    #     name: build
+    #     path: particle.js_${{ steps.extract_branch.outputs.branch }}.zip
+
+  deploy:
+    if: startsWith(github.ref, 'refs/heads/release')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    # - uses: actions/checkout@v3
+
+    # - name: Extract branch name
+    #   shell: bash
+    #   run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
+    #   id: extract_branch
+
+    # - uses: actions/download-artifact@v3
+    #   with:
+    #     name: build
+
+    # - name: Extract
+    #   run: |
+    #     unzip particle.js_${{ steps.extract_branch.outputs.branch }}.zip
+
     - name: Create Pull Request
-      if: startsWith(github.ref, 'refs/heads/release')
       uses: actions/github-script@v6
       with:
         script: |
@@ -62,20 +90,13 @@ jobs:
           });
           console.log(result);
 
-    - name: Pack
-      if: startsWith(github.ref, 'refs/heads/release')
-      run: |
-        zip -r particle.js_${{ steps.extract_branch.outputs.branch }}.zip dist
-
     - uses: ncipollo/release-action@v1
-      if: startsWith(github.ref, 'refs/heads/release')
       with:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ steps.extract_branch.outputs.branch }}
 
     - name: Deploy gh-pages
-      if: startsWith(github.ref, 'refs/heads/release')
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: dist

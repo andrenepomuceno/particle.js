@@ -1048,6 +1048,7 @@ function guiParametersSetup() {
         'Sin[a x]': NuclearPotentialType.default,
         'Hooks Law': NuclearPotentialType.hooksLaw,
         'Sin[a (1 - b^x)]': NuclearPotentialType.potential_powAX,
+        'Sin[a (1 - b^x)] v2': NuclearPotentialType.potential_powAXv2,
         'Sin[-Exp[-a x]]': NuclearPotentialType.potential_exp,
         'Sin[a x^b]': NuclearPotentialType.potential_powXR,
     }

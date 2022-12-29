@@ -19,6 +19,7 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
     config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
     config += define("USE_POTENTIAL1", nuclearPotential === NuclearPotentialType.potential_exp);
     config += define("USE_POTENTIAL2", nuclearPotential === NuclearPotentialType.potential_powAX);
+    config += define("USE_POTENTIAL3", nuclearPotential === NuclearPotentialType.potential_powAXv2);
     let shader = config + computeVelocity;
     return shader;
 }
@@ -152,6 +153,8 @@ void main() {
                         x = sin(2.0 * PI * x);
                     #elif USE_POTENTIAL2 // "powAX"
                         x = sin(7.22423 * (1.0 - pow(0.13026, x)));
+                    #elif USE_POTENTIAL3 // "powAX v2"
+                        x = sin(6.64541 * (1.0 - pow(0.054507, x)));
                     #else
                         x = sin(2.0 * PI * x);
                     #endif

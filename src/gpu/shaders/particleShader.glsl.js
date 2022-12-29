@@ -270,7 +270,7 @@ float particleSdf(vec3 position) {
 }
 
 #define DIFFUSE_LIGHT (-3.0)
-#define AMBIENT_LIGHT (0.5)
+#define AMBIENT_LIGHT (1.0/3.0)
 
 const vec3 diffuseLightPosition = normalize(vec3(1.0, 1.0, 1.0));
 const vec3 ambientLightColor = vec3(31, 41, 53)/255.0;

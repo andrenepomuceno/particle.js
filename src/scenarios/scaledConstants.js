@@ -63,7 +63,7 @@ function essentialElements(simulation) {
 
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = (0.00274442); // fine structure
+    physics.nuclearForceConstant = (1/7); // fine structure
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
@@ -84,7 +84,6 @@ function essentialElements(simulation) {
     let cloudTypes = [
         { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
     ];
-
     let elementsRatios = [
         { r: 100, n: 1, name: "H" },
         { r: 30, n: 6, name: "C" }, 
@@ -103,7 +102,12 @@ function essentialElements(simulation) {
     let eleHistogram = new Map();
     let index = 0;
     for (let j = 0; j < gridSize[0]*gridSize[1]*gridSize[2]; ++j) {
-        let snq = nq * ((random(0, 1) >= 0.01) ? (1) : (-1));
+        let sq = 1.0;
+        let snq = nq;
+        if (random(0, 1) <= 0.01) {
+            snq *= -1;
+            sq *= -1;
+        }
         //let snq = nq * (index % 2) ? (1) : (-1);
         //let center = new Vector3(x, -y, z);
         let center = randomVector(-physics.boundaryDistance, physics.boundaryDistance);
@@ -127,7 +131,7 @@ function essentialElements(simulation) {
             }
         }
 
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, sq, snq, r0, r1, center, v, zNumber);
         index++;
     }
     shuffleArray(physics.particleList);

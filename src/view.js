@@ -188,6 +188,7 @@ let guiOptions = {
     particle: {
         obj: undefined,
         id: "",
+        name: '',
         mass: "",
         charge: "",
         nuclearCharge: "",
@@ -686,6 +687,11 @@ function guiParticleSetup() {
         }
         guiOptions.particle.obj = obj;
     });
+    guiParticle.add(guiOptions.particle, 'name').name('Name').listen().onFinishChange((val) => {
+        if (guiOptions.particle.obj != undefined) {
+            guiOptions.particle.obj.name = val;
+        }
+    });
     guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen().onFinishChange(val => {
         core.updateParticle(guiOptions.particle.obj, 'color', val);
     });
@@ -737,6 +743,7 @@ function guiParticleRefresh() {
     if (particle) {
         //static info
         particleView.id = particle.id;
+        particleView.name = particle.name;
         particleView.mass = particle.mass.toExponential(3);
         particleView.charge = particle.charge.toExponential(3);
         particleView.nuclearCharge = particle.nuclearCharge;

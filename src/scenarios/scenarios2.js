@@ -26,8 +26,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1 / 137;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     simulation.physics.boundaryDistance = 1e6;
@@ -41,7 +41,7 @@ function string(simulation) {
     simulation.setParticleRadius(50, 40);
     simulation.bidimensionalMode(true);
     
-    physics.nuclearChargeRange = 1e5;
+    physics.nuclearForceRange = 1e5;
 
     let m = 1;
     let q = 1;
@@ -118,8 +118,8 @@ function nucleiGrid(simulation) {
     let q = 3;
     let nq = 1;
     let grid = [13, 13, 1];
-    let r0 = physics.nuclearChargeRange * 0.05;
-    let r1 = physics.nuclearChargeRange * 0.63;
+    let r0 = physics.nuclearForceRange * 0.05;
+    let r1 = physics.nuclearForceRange * 0.63;
     let v = 0;
     let n = 1;
 
@@ -238,13 +238,13 @@ function shootedBarrier(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [59, 9, 1];
-    let r0 = physics.nuclearChargeRange * 1 / 100;
-    let r1 = physics.nuclearChargeRange * 0.63;
+    let r0 = physics.nuclearForceRange * 1 / 100;
+    let r1 = physics.nuclearForceRange * 0.63;
     let v = 0;
     let n = 2;
 
     for (let i = 0; i < 15; i++) {
-        createParticle(physics.particleList, 1, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearChargeRange, 0), new Vector3(0, -100, 0));
+        createParticle(physics.particleList, 1, -q, nq, new Vector3(0, 1e4 + i * physics.nuclearForceRange, 0), new Vector3(0, -100, 0));
     }
 
     let aux = 0;
@@ -291,7 +291,7 @@ function standardModelBlob2(simulation) {
     let q = 20;
     let nq = 1;
     let grid = [23, 22, 1];
-    let r0 = physics.nuclearChargeRange * 4;
+    let r0 = physics.nuclearForceRange * 4;
     let v = 0;
     let n = 1200 / 4;
 
@@ -402,7 +402,7 @@ function standardModelBlobSymetric(simulation) {
     let m = 1e-1;
     let q = 1;
     let nq = 1;
-    let r0 = physics.nuclearChargeRange * 3;
+    let r0 = physics.nuclearForceRange * 3;
     let v = 5;
     let n = 300;
 
@@ -497,7 +497,7 @@ function standardModelBlob0(simulation) {
     let q = 10;
     let nq = 1;
     let grid = [23, 22, 1];
-    let r0 = physics.nuclearChargeRange * 3;
+    let r0 = physics.nuclearForceRange * 3;
     let v = 0;
     let n = 300;
 

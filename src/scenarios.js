@@ -10,6 +10,7 @@ import { experiments0 } from './scenarios/experiments0.js';
 import { tests } from './scenarios/tests.js';
 import { sandbox } from './scenarios/sandbox.js';
 import { experiments1 } from './scenarios/experiments1.js';
+import { scaledConstants } from './scenarios/scaledConstants.js';
 
 export let scenariosList = [];
 function addFolder(name, list) {
@@ -24,6 +25,7 @@ function addFolder(name, list) {
 }*/
 
 //addFolder("fields", fields);
+addFolder("scaledConstants", scaledConstants);
 addFolder("experiments1", experiments1);
 addFolder("experiments0", experiments0);
 addFolder("nuclearForce1", nuclearForce1);

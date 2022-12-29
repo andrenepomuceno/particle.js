@@ -5,7 +5,7 @@ import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
     randomElements,
-    periodicTable,
+    //periodicTable,
     electronProtonNeutron,
     superNucleus3D,
     hexagonalCrystal,
@@ -27,8 +27,8 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 1e3;
 
     physics.boundaryDistance = 1e5;
     physics.boundaryDamping = 0.9;
@@ -48,19 +48,19 @@ function randomElements(simulation) {
     physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e4;
-    physics.boundaryDistance = 25 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e4;
+    physics.boundaryDistance = 25 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 20.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
-    simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+    physics.nuclearForceConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
     //if (!ENV?.production) simulation.field.setup("2d", 50);
@@ -78,9 +78,9 @@ function randomElements(simulation) {
     const nq = 1;
     const v = 1.0;
 
-    let r0 = 0.01 * physics.nuclearChargeRange;
-    let r1 = 0.5 * physics.nuclearChargeRange;
-    let r2 = 0.493 * physics.nuclearChargeRange;
+    let r0 = 0.01 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.493 * physics.nuclearForceRange;
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
         let options = {
@@ -97,10 +97,10 @@ function randomElements(simulation) {
     }
 
     let gridSize = [7, 7, 1];
-    if (!ENV?.production) gridSize = [15, 10, 1];
+    if (!ENV?.production && graphics.maxParticles > 15*10*3*32) gridSize = [15, 10, 1];
 
     cubeGenerator((x, y, z) => {
-        let snq = nq;// * ((random(0, 1) >= 0.5) ? (1) : (-1));
+        let snq = nq * ((random(0, 1) >= 0.5) ? (1) : (-1));
         let center = new Vector3(x, y, z);
         let n = random(1, 64, true);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, snq, r0, r1, center, v);
@@ -119,19 +119,19 @@ function periodicTable(simulation) {
     //physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e4;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e4;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 20.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 20.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
-    simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1e-2;
-    physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+    physics.nuclearForceConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
     //if (!ENV?.production) simulation.field.setup("2d", 50);
@@ -150,9 +150,9 @@ function periodicTable(simulation) {
     const nq = 1;
     const v = 1.0;
 
-    let r0 = 0.01 * physics.nuclearChargeRange;
-    let r1 = 0.5 * physics.nuclearChargeRange;
-    let r2 = 0.493 * physics.nuclearChargeRange;
+    let r0 = 0.01 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.493 * physics.nuclearForceRange;
     let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
     if (size % 2 == 0) size -= 1;
     console.log("size = " + size);
@@ -172,7 +172,7 @@ function periodicTable(simulation) {
     }
 
     let gridSize = [7, 7, 1];
-    if (!ENV?.production) gridSize = [12, 10, 1];
+    if (!ENV?.production && graphics.maxParticles > 12*10*3*60) gridSize = [12, 10, 1];
 
     cubeGenerator((x, y, z) => {
         //let s = ((n % 2 == 0) ? (1) : (-1));
@@ -194,19 +194,19 @@ function electronProtonNeutron(simulation) {
     physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e3;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e3;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10.0 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
-    simulation.particleRadius = 0.04 * physics.nuclearChargeRange;
+    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.forceConstant = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearChargeRange, 2);
+    physics.nuclearForceConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
     //if (!ENV?.production) simulation.field.setup("2d", 50);
@@ -225,9 +225,9 @@ function electronProtonNeutron(simulation) {
     const nq = 1;
     const v = 1.0;
 
-    let r0 = 0.1 * physics.nuclearChargeRange;
-    let r1 = 0.5 * physics.nuclearChargeRange;
-    let r2 = 0.493 * physics.nuclearChargeRange;
+    let r0 = 0.1 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.493 * physics.nuclearForceRange;
     let size = Math.round(Math.sqrt(graphics.maxParticles / (10 * n)));
     if (size % 2 == 0) size -= 1;
     console.log("size = " + size);
@@ -264,24 +264,24 @@ function superNucleus3D(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = false;
 
-    physics.nuclearChargeRange = 1e6;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e6;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 0.6 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.001 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 0.6 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.001 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e-2;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
     physics.minDistance2 = Math.pow(1 / 10, 2);
 
     let particleTypes = [
         { m: 256, q: 16, nq: 1 }
     ]
     createParticles(simulation, particleTypes, graphics.maxParticles, {
-        r1: 1.0,//2.0 * physics.nuclearChargeRange
+        r1: 1.0,//2.0 * physics.nuclearForceRange
         v1: 1.0,
         //m: 1.0,
         randomM: true, roundM: true,
@@ -299,17 +299,17 @@ function hexagonalCrystal(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e3;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e3;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.05 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     const n = 2;
     const m = 1;
@@ -317,9 +317,9 @@ function hexagonalCrystal(simulation) {
     const nq = 1;
     const v = 0;
 
-    let r0 = 0.05 * physics.nuclearChargeRange;
-    let r1 = 0.5 * physics.nuclearChargeRange;
-    let r2 = 0.493 * physics.nuclearChargeRange;
+    let r0 = 0.05 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.493 * physics.nuclearForceRange;
 
     let size = Math.round(Math.sqrt(graphics.maxParticles / (28 * n)));
     if (size % 2 == 0) size -= 1;
@@ -341,17 +341,17 @@ function squareCrystal(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e3;
-    physics.boundaryDistance = 50 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e3;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.05 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     const n = 2;
     const m = 1;
@@ -359,8 +359,8 @@ function squareCrystal(simulation) {
     const nq = 1;
     const v = 0;
 
-    const r0 = physics.nuclearChargeRange * 0.01;
-    const r1 = physics.nuclearChargeRange * 0.50;
+    const r0 = physics.nuclearForceRange * 0.01;
+    const r1 = physics.nuclearForceRange * 0.50;
 
     let size = Math.round(Math.sqrt(graphics.maxParticles / (8 * n)));
     if (size % 2 == 0) size -= 1;
@@ -390,17 +390,17 @@ function standardModel3(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
-    physics.nuclearChargeRange = 1e4;
-    physics.boundaryDistance = 25 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e4;
+    physics.boundaryDistance = 25 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 10 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    graphics.cameraDistance = 10 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     let particleTypes = [
         { m: 0.01, q: 0, nq: 1 },
@@ -409,7 +409,7 @@ function standardModel3(simulation) {
         { m: 6, q: -1 / 3, nq: 1 },
     ]
     createParticles(simulation, particleTypes, graphics.maxParticles, {
-        randomQSignal: false, v1: 0, r1: 2.0 * physics.nuclearChargeRange
+        randomQSignal: false, v1: 0, r1: 2.0 * physics.nuclearForceRange
     });
     //drawGrid(simulation);
 }
@@ -424,15 +424,15 @@ function standardModel2(simulation) {
 
     physics.boundaryDistance = 1e8;
 
-    physics.nuclearChargeRange = 1e6;
-    graphics.cameraDistance = 3 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e6;
+    graphics.cameraDistance = 3 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     let particleTypes = [
         //{ m: 0, q: 0, nq: 1 },
@@ -454,15 +454,15 @@ function standardModel1(simulation) {
 
     physics.boundaryDistance = 1e7;
 
-    physics.nuclearChargeRange = 1e6;
-    graphics.cameraDistance = 5 * physics.nuclearChargeRange;
-    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e6;
+    graphics.cameraDistance = 5 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     let particleTypes = [
         { m: 0.511, q: -1, nq: 1 },
@@ -484,13 +484,13 @@ function plasmaBall(simulation) {
     physics.boundaryDistance = 1e5;
     graphics.cameraDistance = physics.boundaryDistance;
 
-    physics.nuclearChargeRange = 1e4;
-    simulation.particleRadius = 0.01 * physics.nuclearChargeRange;
+    physics.nuclearForceRange = 1e4;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
 
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
-    physics.nuclearChargeConstant = 1;
+    physics.nuclearForceConstant = 1;
 
     let particleTypes = [
         { m: 0.5, q: -1, nq: 1 },

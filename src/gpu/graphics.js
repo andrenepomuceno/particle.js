@@ -263,9 +263,9 @@ export class GraphicsGPU {
         uniforms['minDistance2'] = { value: physics.minDistance2 };
         uniforms['massConstant'] = { value: physics.massConstant };
         uniforms['chargeConstant'] = { value: physics.chargeConstant };
-        uniforms['nuclearChargeConstant'] = { value: physics.nuclearChargeConstant };
-        uniforms['nuclearChargeRange'] = { value: physics.nuclearChargeRange };
-        uniforms['nuclearChargeRange2'] = { value: Math.pow(physics.nuclearChargeRange, 2) };
+        uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
+        uniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
+        uniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };

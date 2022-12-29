@@ -23,6 +23,7 @@ export class Keyboard {
         this.onKeyDownMap.set('home', { callback: this.guiOptions.controls.home });
         this.onKeyDownMap.set('h', { callback: this.guiOptions.controls.hideOverlay });
         this.onKeyDownMap.set('z', { callback: this.guiOptions.controls.place });
+        this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });
         this.onKeyDownMap.set('s', { callback: this.guiOptions.controls.sandbox });
         this.onKeyDownMap.set('m', { callback: this.guiOptions.controls.collapseAll });
@@ -30,6 +31,7 @@ export class Keyboard {
         this.onKeyDownMap.set('*', { callback: this.guiOptions.controls.record });
 
         this.onKeyDownMap.set('g', { callback: this.guiOptions.generator.generate });
+        this.onKeyDownMap.set('G', { callback: this.guiOptions.generator.clear });
 
         this.onKeyDownMap.set('x', { callback: this.guiOptions.selection.clone });
         this.onKeyDownMap.set('d', { callback: this.guiOptions.selection.delete });
@@ -51,6 +53,8 @@ export class Keyboard {
     onKeyDown(keyboard, event) {
         if (keyboard.mouseHelper.overGUI || keyboard.onKeyDownMap == undefined) return;
         let key = event.key.toLowerCase();
+        if (event.key == 'G') key = event.key;
+        if (event.key == 'Z') key = event.key;
         if (keyboard.onKeyDownMap.has(key)) {
             let callback = keyboard.onKeyDownMap.get(key).callback;
             return callback();

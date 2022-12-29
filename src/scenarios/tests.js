@@ -20,8 +20,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 1e3;
 
     simulation.setParticleRadius(20, 10);
     physics.boundaryDistance = 1e6;
@@ -39,7 +39,7 @@ function boundaryTest(simulation) {
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nuclearChargeConstant = 0;
+    physics.nuclearForceConstant = 0;
 
     let n = 100;
     let m = 10;
@@ -77,7 +77,7 @@ function colisionTest(simulation) {
 
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nuclearChargeConstant = 0;
+    physics.nuclearForceConstant = 0;
 
     let r = 10;
     physics.minDistance2 = Math.pow(2 * r, 2);

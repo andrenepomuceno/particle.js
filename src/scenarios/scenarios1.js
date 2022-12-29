@@ -59,10 +59,10 @@ function simulationNuclei4(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = -60;
-    physics.nuclearChargeRange = 256;
+    physics.nuclearForceConstant = -60;
+    physics.nuclearForceRange = 256;
 
-    let r = physics.nuclearChargeRange / 2;
+    let r = physics.nuclearForceRange / 2;
     let v = 0;
     let q = 1e2;
     let nq = 1;
@@ -141,10 +141,10 @@ function simulationNuclei3(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = -60;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = -60;
+    physics.nuclearForceRange = 1e3;
 
-    let r = physics.nuclearChargeRange / 2;
+    let r = physics.nuclearForceRange / 2;
     let v = 0;
     let m = 1e2;
     let q = 1e2;
@@ -205,10 +205,10 @@ function simulationStrongCube0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 60;
-    physics.nuclearChargeRange = 1e3;
+    physics.nuclearForceConstant = 60;
+    physics.nuclearForceRange = 1e3;
 
-    let r = physics.nuclearChargeRange / 2;
+    let r = physics.nuclearForceRange / 2;
     let v = 0;
     let m = 1e2;
     let q = 64;
@@ -217,9 +217,9 @@ function simulationStrongCube0(simulation) {
 
     let grid = [2, 2, 2];
     let space = [
-        6 * physics.nuclearChargeRange,
-        6 * physics.nuclearChargeRange,
-        6 * physics.nuclearChargeRange
+        6 * physics.nuclearForceRange,
+        6 * physics.nuclearForceRange,
+        6 * physics.nuclearForceRange
     ];
     n /= (grid[0] * grid[1] * grid[2]);
     for (let i = 0; i < grid[0]; ++i) {
@@ -273,10 +273,10 @@ function simulationStrongBlob0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1/137;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 2e3;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 2e3;
 
-    let r = physics.nuclearChargeRange;
+    let r = physics.nuclearForceRange;
     let v = 0;
     let m = 1;
     let q = 50;
@@ -318,10 +318,10 @@ function simulationNuclei2(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 5e3;
-    physics.nuclearChargeConstant = 60;
-    physics.nuclearChargeRange = 1000;
+    physics.nuclearForceConstant = 60;
+    physics.nuclearForceRange = 1000;
     2
-    let x = physics.nuclearChargeRange / 2;
+    let x = physics.nuclearForceRange / 2;
     let center = new Vector3(0, x, 0);
     let v = new Vector3(0, 0, 0);
     let m = 100;
@@ -351,13 +351,13 @@ function simulationNuclei1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 128;
 
     let m0 = 1;
     let q0 = 1;
     let nq0 = 1;
-    let x = physics.nuclearChargeRange / 2;
+    let x = physics.nuclearForceRange / 2;
     createParticle2(m0, q0, nq0,
         new Vector3(x, 0, 0));
     createParticle2(m0, q0, nq0,
@@ -380,14 +380,14 @@ function simulationNuclei0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 64;
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = 64;
+    physics.nuclearForceRange = 128;
 
     let m0 = 1;
     let m1 = 5;
     let q0 = 150;
     let nq0 = 1;
-    let x = physics.nuclearChargeRange / 3;
+    let x = physics.nuclearForceRange / 3;
     let y = 500;
     let v = 7;
 
@@ -429,10 +429,10 @@ function simulationStrong2(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
-    physics.nuclearChargeConstant = 10;
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = 10;
+    physics.nuclearForceRange = 128;
 
-    let x0 = physics.nuclearChargeRange / 3;
+    let x0 = physics.nuclearForceRange / 3;
     let x = 1000;
     let y = x;
     let vx = 2;
@@ -475,10 +475,10 @@ function simulationStrong1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = Math.pow(80, 2);
-    physics.nuclearChargeConstant = Math.pow(5, 2);
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = Math.pow(5, 2);
+    physics.nuclearForceRange = 128;
 
-    let x0 = physics.nuclearChargeRange / 3;
+    let x0 = physics.nuclearForceRange / 3;
     let r1 = 256;
     let v1 = 15;
 
@@ -502,10 +502,10 @@ function simulationStrong0(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
-    physics.nuclearChargeConstant = 1;
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 128;
 
-    let x = physics.nuclearChargeRange / 3;
+    let x = physics.nuclearForceRange / 3;
     let v = 0;
     let m = 1;
     let q = 1;
@@ -626,8 +626,8 @@ function simulationAtom1(simulation) {
     physics.forceConstant = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1e2;
-    physics.nuclearChargeConstant = 1e2;
-    physics.nuclearChargeRange = 128;
+    physics.nuclearForceConstant = 1e2;
+    physics.nuclearForceRange = 128;
 
     let r0 = 64;
     let v0 = 1;

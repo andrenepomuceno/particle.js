@@ -29,10 +29,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - name: Extract branch name
+      if: startsWith(github.ref, 'refs/heads/release')
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
+      id: extract_branch
+
     - name: Build
       run: |
         npm install
-        npm run build --env "version=${GITHUB_REF#refs/*/}"
+        npm run build --env 'version= ${{ steps.extract_branch.outputs.branch }}'
 
     - name: Create Pull Request
       if: startsWith(github.ref, 'refs/heads/release')
@@ -55,12 +61,6 @@ jobs:
             ].join('\n')
           });
           console.log(result);
-
-    - name: Extract branch name
-      if: startsWith(github.ref, 'refs/heads/release')
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
-      id: extract_branch
 
     - name: Pack
       if: startsWith(github.ref, 'refs/heads/release')

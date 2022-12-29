@@ -25,11 +25,13 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Use Node.js ${{ matrix.node-version }}
+      if: startsWith(github.ref, 'refs/heads/release') == false
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
 
     - name: Build
+      if: startsWith(github.ref, 'refs/heads/release') == false
       run: |
         npm install
         npm run build --env "version=${GITHUB_REF#refs/*/}"
@@ -45,6 +47,7 @@ jobs:
             owner,
             repo,
             base: 'main',
+            title: 'Merge ${{ github.ref_name }}',
             body: [
               'Automated PR for RC ${{ github.ref_name }}'
             ].join('\n')

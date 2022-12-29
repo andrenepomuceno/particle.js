@@ -59,8 +59,8 @@ function simulationNuclei4(simulation) {
     simulation.setParticleRadius(30, 10);
 
     physics.forceConstant = 1;
-    physics.massConstant = 1e-3;
-    physics.chargeConstant = 1;
+    physics.massConstant = 1e-9;
+    physics.chargeConstant = 1e-6;
     physics.nuclearForceConstant = -60;
     physics.nuclearForceRange = 256;
 

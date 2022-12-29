@@ -11,6 +11,10 @@ import { exportCSV, uploadCsv } from '../components/csv';
 import { guiInfoRefresh } from './info.js';
 import { guiParametersRefresh } from './parameters.js';
 
+function log(msg) {
+    console.log("menu/controls: " + msg);
+}
+
 let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;

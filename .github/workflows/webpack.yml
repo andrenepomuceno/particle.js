@@ -25,13 +25,11 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Use Node.js ${{ matrix.node-version }}
-      if: startsWith(github.ref, 'refs/heads/release') == false
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
 
     - name: Build
-      if: startsWith(github.ref, 'refs/heads/release') == false
       run: |
         npm install
         npm run build --env "version=${GITHUB_REF#refs/*/}"
@@ -55,12 +53,12 @@ jobs:
           console.log(result);
 
     - name: Pack
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/heads/release')
       run: |
         zip -r particle.js_${GITHUB_REF#refs/*/}.zip dist    
 
     - name: Deploy gh-pages
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(github.ref, 'refs/heads/release')
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: dist

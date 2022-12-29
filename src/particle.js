@@ -1,4 +1,4 @@
-import { Vector3, Color } from "three";
+import { Vector3, Color } from 'three';
 
 let particleId = 0;
 

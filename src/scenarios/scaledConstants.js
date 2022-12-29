@@ -81,7 +81,7 @@ function water(simulation) {
     ];
 
     let elementsRatios = [
-        { r: 2, n: 1, name: "H" }, 
+        { r: 3, n: 1, name: "H" }, 
         { r: 1, n: 8, name: "O" },
     ];
     parseElementRatioList(elementsRatios);

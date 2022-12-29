@@ -356,7 +356,7 @@ let guiOptions = {
         randomVelocity: "10",
         cleanupThreshold: "8",
         automaticRotation: false,
-        rotationSpeed: '0',
+        rotationSpeed: simulation.graphics.controls.autoRotateSpeed.toString(),
         shader3d: true,
         reverseVelocity: () => {
             simulation.graphics.readbackParticleData();
@@ -624,7 +624,13 @@ function guiControlsSetup() {
         }
     });
     guiControlsCamera.add(guiOptions.advancedControls, 'rotationSpeed').name("Rotation Speed").listen().onFinishChange(val => {
-
+        val = parseFloat(val);
+        if (isNaN(val)) {
+            alert('Invalid value.');
+            guiOptions.advancedControls.rotationSpeed = simulation.graphics.controls.autoRotateSpeed;
+            return;
+        }
+        simulation.graphics.controls.autoRotateSpeed = val;
     });
 
     const guiControlsView = guiControls.addFolder("[+] View");

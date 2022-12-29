@@ -66,7 +66,7 @@ class Core {
     }
 
     normalizePosition(list) {
-        log("normalizePosition");
+        log('normalizePosition');
         let normalizedList = [];
 
         let meanPosition = new Vector3();
@@ -118,69 +118,69 @@ class Core {
         let updateShader = false;
 
         switch (key) {
-            case "massConstant":
+            case 'massConstant':
                 physics.massConstant = parseFloat(value);
                 break;
 
-            case "chargeConstant":
+            case 'chargeConstant':
                 physics.chargeConstant = parseFloat(value);
                 break;
 
-            case "nuclearForceConstant":
+            case 'nuclearForceConstant':
                 physics.nuclearForceConstant = parseFloat(value);
                 break;
 
-            case "nuclearForceRange":
+            case 'nuclearForceRange':
                 physics.nuclearForceRange = parseFloat(value);
                 break;
 
-            case "boundaryDamping":
+            case 'boundaryDamping':
                 physics.boundaryDamping = parseFloat(value);
                 break;
 
-            case "boundaryDistance":
+            case 'boundaryDistance':
                 physics.boundaryDistance = parseFloat(value);
                 break;
 
-            case "minDistance2":
+            case 'minDistance2':
                 physics.minDistance2 = parseFloat(value);
                 break;
 
-            case "forceConstant":
+            case 'forceConstant':
                 physics.forceConstant = parseFloat(value);
                 break;
 
-            case "radius":
+            case 'radius':
                 simulation.particleRadius = parseFloat(value);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
 
-            case "radiusRange":
+            case 'radiusRange':
                 simulation.particleRadiusRange = parseFloat(value);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
 
-            case "potential":
+            case 'potential':
                 physics.nuclearPotential = value;
                 updatePhysics = false;
                 updateShader = true;
                 break;
 
-            case "boxBoundary":
+            case 'boxBoundary':
                 physics.useBoxBoundary = value;
                 updatePhysics = false;
                 updateShader = true;
                 break;
 
-            case "distance1":
+            case 'distance1':
                 physics.useDistance1 = value;
                 updatePhysics = false;
                 updateShader = true;
                 break;
 
-            case "enableBoundary":
+            case 'enableBoundary':
                 physics.enableBoundary = value;
                 updatePhysics = false;
                 updateShader = true;
@@ -231,22 +231,22 @@ class Core {
         graphics.readbackParticleData();
 
         switch (key) {
-            case "mass":
+            case 'mass':
                 particle.mass = parseFloat(value);
                 fullUpdate = true;
                 break;
 
-            case "charge":
+            case 'charge':
                 particle.charge = parseFloat(value);
                 fullUpdate = true;
                 break;
 
-            case "nuclearCharge":
+            case 'nuclearCharge':
                 particle.nuclearCharge = parseFloat(value);
                 fullUpdate = true;
                 break;
 
-            case "position":
+            case 'position':
                 {
                     let v = decodeVector3(value);
                     if (v) {
@@ -261,7 +261,7 @@ class Core {
                 }
                 break;
 
-            case "velocityAbs":
+            case 'velocityAbs':
                 {
                     let velocity = parseFloat(value);
                     if (velocity >= physics.boundaryDistance) {
@@ -277,7 +277,7 @@ class Core {
 
                 break;
 
-            case "velocityDir":
+            case 'velocityDir':
                 {
                     let dir = decodeVector3(value);
                     if (dir) {
@@ -295,7 +295,7 @@ class Core {
                 }
                 break;
 
-            case "reset":
+            case 'reset':
                 particle.mass = 0;
                 particle.charge = 0;
                 particle.nuclearCharge = 0;
@@ -304,7 +304,7 @@ class Core {
                 fullUpdate = true;
                 break;
 
-            case "fixed":
+            case 'fixed':
                 if (value === true) particle.type = ParticleType.fixed;
                 else if (value === false) particle.type = ParticleType.default;
                 break;
@@ -405,7 +405,7 @@ class Core {
         let updateLevel = 0;
 
         switch (parameter) {
-            case "mass":
+            case 'mass':
                 {
                     let ratio = parseFloat(value);
                     if (isNaN(ratio)) {
@@ -426,7 +426,7 @@ class Core {
                 }
                 break;
 
-            case "charge":
+            case 'charge':
                 {
                     let ratio = parseFloat(value);
                     if (isNaN(ratio)) {
@@ -447,7 +447,7 @@ class Core {
                 }
                 break;
 
-            case "center":
+            case 'center':
                 {
                     let center = decodeVector3(value);
                     if (center == undefined) {
@@ -470,7 +470,7 @@ class Core {
                 }
                 break;
 
-            case "velocityAbs":
+            case 'velocityAbs':
                 {
                     let newVelocityAbs = parseFloat(value);
                     if (Math.abs(newVelocityAbs) >= physics.boundaryDistance) {
@@ -494,7 +494,7 @@ class Core {
                 }
                 break;
 
-            case "velocityDir":
+            case 'velocityDir':
                 {
                     let newDir = decodeVector3(value);
                     if (newDir == undefined) {
@@ -522,7 +522,7 @@ class Core {
                 }
                 break;
 
-            case "fixed":
+            case 'fixed':
                 graphics.readbackParticleData();
                 list.forEach(particle => {
                     if (value == true) particle.type = ParticleType.fixed;
@@ -544,7 +544,7 @@ class Core {
     }
 
     deleteAll() {
-        log("deleteAll");
+        log('deleteAll');
 
         simulation.particleList = [];
         simulation.drawParticles();

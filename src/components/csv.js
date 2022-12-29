@@ -6,7 +6,7 @@ function log(msg) {
 }
 
 export function exportCSV(simulation, list) {
-    log("simulationCsv");
+    log('simulationCsv');
     let physics = simulation.physics;
     let graphics = simulation.graphics;
 
@@ -18,7 +18,7 @@ export function exportCSV(simulation, list) {
 
     graphics.readbackParticleData();
 
-    let output = "version";
+    let output = 'version';
     output += "," + physics.header();
     output += ",cycles";
     output += ",targetX,targetY,targetZ,cameraX,cameraY,cameraZ";
@@ -110,7 +110,7 @@ export function parseCsv(simulation, filename, content) {
                     return false;
                 }
                 imported.version = values[0];
-                imported.physics.enableColision = (values[1] == "true") ? (true) : (false);
+                imported.physics.enableColision = (values[1] == 'true') ? (true) : (false);
                 imported.physics.minDistance2 = parseFloat(values[2]);
                 imported.physics.forceConstant = parseFloat(values[3]);
                 imported.physics.massConstant = parseFloat(values[4]);
@@ -136,11 +136,11 @@ export function parseCsv(simulation, filename, content) {
                 imported.particleRadiusRange = parseFloat(values[18]);
                 let version = parseFloat(imported.version);
                 if (version >= 1.1)
-                    imported.mode2D = (values[19] === "true");
+                    imported.mode2D = (values[19] === 'true');
                 if (version >= 1.2)
                     imported.physics.nuclearPotential = values[20];
-                imported.physics.useBoxBoundary = (values[21] === "true");
-                imported.physics.useDistance1 = (values[22] === "true");
+                imported.physics.useBoxBoundary = (values[21] === 'true');
+                imported.physics.useDistance1 = (values[22] === 'true');
                 break;
 
             case 2:

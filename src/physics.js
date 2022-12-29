@@ -7,6 +7,7 @@ export const NuclearPotentialType = {
     potential_powXR: 'potential0',
     potential_exp: 'potential1',
     potential_powAX: 'potential2',
+    potential_powAXv2: 'potential3',
 }
 
 export const scaleEPN = {

@@ -1,4 +1,4 @@
-import { drawGrid } from './helpers';
+import { drawGrid } from '../scenariosHelpers';
 import { NuclearPotentialType } from '../physics';
 
 export const sandbox = [

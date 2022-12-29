@@ -31,7 +31,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/})"
       id: extract_branch
 
     - name: Build
@@ -40,10 +40,12 @@ jobs:
         npm run build --env 'version= ${{ steps.extract_branch.outputs.branch }}'
 
     - name: Pack
+      if: startsWith(github.ref, 'refs/heads/release_v')
       run: |
         zip -r particle.js_${{ steps.extract_branch.outputs.branch }}.zip dist
 
     - uses: actions/upload-artifact@v3
+      if: startsWith(github.ref, 'refs/heads/release_v')
       with:
         name: build
         path: particle.js_${{ steps.extract_branch.outputs.branch }}.zip
@@ -58,7 +60,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/})"
       id: extract_branch
 
     - uses: actions/download-artifact@v3

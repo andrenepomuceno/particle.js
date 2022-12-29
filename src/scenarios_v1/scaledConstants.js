@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createNuclei, createNucleiFromList, parseElementRatioList, randomVector } from './helpers';
+import { createNuclei, createNucleiFromList, parseElementRatioList, randomVector } from '../scenariosHelpers';
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
 import { NuclearPotentialType } from '../physics';
 
@@ -39,7 +39,7 @@ function essentialElements(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.nuclearPotential = NuclearPotentialType.potential_powAXv2;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = true;
@@ -63,7 +63,7 @@ function essentialElements(simulation) {
 
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = (0.00274442); // fine structure
+    physics.nuclearForceConstant = (1 / 7); // fine structure
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
@@ -71,24 +71,17 @@ function essentialElements(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
 
-    let gridSize = [14, 14, 1];
-    if (!ENV?.production && graphics.maxParticles > 30 * 20 * (2 * 3 + 1) * 5) {
-        gridSize = [40, 30, 1];
-        physics.boundaryDistance *= 2;
-    }
-
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
         { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
     ];
-
     let elementsRatios = [
         { r: 100, n: 1, name: "H" },
-        { r: 30, n: 6, name: "C" }, 
-        { r: 30, n: 7, name: "N" }, 
+        { r: 30, n: 6, name: "C" },
+        { r: 30, n: 7, name: "N" },
         { r: 10, n: 8, name: "O" },
         { r: 1, n: 12, name: "Mg" },
         { r: 1, n: 15, name: "P" },
@@ -99,13 +92,39 @@ function essentialElements(simulation) {
     ];
     parseElementRatioList(elementsRatios);
     console.log(elementsRatios);
+    let totalr = 0;
+    let totals = 0;
+    elementsRatios.forEach(v => {
+        totalr += v.r;
+        totals += v.r * v.n;
+    });
+    let meanMass = totals/totalr;
+    console.log(meanMass);
+
+    function calcGridSize(m) {
+        let counter = 0;
+        let grid = [5, 5, 1];
+        while (counter++ < 1e3) {
+            let next = (grid[0] + 1) * (grid[1] + 1) * grid[2];
+            if (m * next > graphics.maxParticles) break;
+            grid[0] += 1;
+            grid[1] += 1;
+        }
+        return grid;
+    }
+
+    let gridSize = calcGridSize(7 * Math.round(meanMass + 0.5));
+    physics.boundaryDistance = gridSize[0] * physics.nuclearForceRange;
 
     let eleHistogram = new Map();
     let index = 0;
-    for (let j = 0; j < gridSize[0]*gridSize[1]*gridSize[2]; ++j) {
-        let snq = nq * ((random(0, 1) >= 0.01) ? (1) : (-1));
-        //let snq = nq * (index % 2) ? (1) : (-1);
-        //let center = new Vector3(x, -y, z);
+    for (let j = 0; j < gridSize[0] * gridSize[1] * gridSize[2]; ++j) {
+        let sq = 1.0;
+        let snq = nq;
+        if (random(0, 1) <= 0.1) {
+            snq *= -1;
+            sq *= -1;
+        }
         let center = randomVector(-physics.boundaryDistance, physics.boundaryDistance);
 
         let rng = random(0, 1);
@@ -127,7 +146,7 @@ function essentialElements(simulation) {
             }
         }
 
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, sq, snq, r0, r1, center, v, zNumber);
         index++;
     }
     shuffleArray(physics.particleList);
@@ -184,15 +203,15 @@ function water(simulation) {
     }
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
         { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
     ];
 
     let elementsRatios = [
-        { r: 3, n: 1, name: "H" }, 
+        { r: 3, n: 1, name: "H" },
         { r: 1, n: 8, name: "O" },
     ];
     parseElementRatioList(elementsRatios);
@@ -278,8 +297,8 @@ function quarkModelAir(simulation) {
     if (!ENV?.production && graphics.maxParticles > 20 * 20 * (2 * 3 + 1) * 7) gridSize = [20, 20, 1];
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
         { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },

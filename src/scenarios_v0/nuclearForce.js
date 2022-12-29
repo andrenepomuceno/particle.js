@@ -1,6 +1,6 @@
 
 import { Vector3 } from 'three';
-import { createParticle, createParticlesList, randomVector } from './helpers';
+import { createParticle, createParticlesList, randomVector } from '../scenariosHelpers';
 import { cubeGenerator, random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 

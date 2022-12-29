@@ -1,9 +1,9 @@
-import { random, randomSpheric, randomDisc } from "../helpers";
+import { random, randomSpheric, randomDisc } from "./helpers";
 import { Vector3 } from 'three';
 import { GridHelper } from 'three';
-import { Particle, ParticleType } from '../particle';
-import { randomSphericVector } from "../helpers";
-import { createParticles } from "../helpers";
+import { Particle, ParticleType } from './particle';
+import { randomSphericVector } from "./helpers";
+import { createParticles } from "./helpers";
 
 export function randomVector(range, mode2D = true, round = false) {
     let v = new Vector3(

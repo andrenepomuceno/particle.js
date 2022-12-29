@@ -6,7 +6,7 @@ import {
 } from './core.js';
 import { MouseHelper } from './components/mouseHelper';
 import { Keyboard } from './components/keyboard.js';
-import { SelectionHelper, SourceType } from './components/selectionHelper.js';
+import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
 import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './menu/info.js';
@@ -51,7 +51,7 @@ let guiOptions = {
     cameraTargetSet: (pos) => {
         cameraTargetSet(pos);
     },
-    
+
     info: {},
     controls: {},
     particle: {},
@@ -64,8 +64,8 @@ let guiOptions = {
 
 const mouseHelper = new MouseHelper();
 let selection = new SelectionHelper();
-let keyboard = undefined;
-let ruler = undefined;
+let keyboard = new Keyboard(mouseHelper, guiOptions);
+let ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
@@ -109,6 +109,9 @@ export function viewSetup() {
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiInfoSetup(guiOptions, guiInfo, collapseList);
+    console.log(guiOptions);
+    console.log(guiControls);
+    console.log(collapseList);
     guiControlsSetup(guiOptions, guiControls, collapseList);
     guiParticleSetup(guiOptions, guiParticle, collapseList);
     guiParametersSetup(guiOptions, guiParameters, collapseList);

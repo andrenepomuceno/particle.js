@@ -48,6 +48,7 @@ export class Physics {
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;
+        this.timeDelta = 0.5;
     }
 
     header() {

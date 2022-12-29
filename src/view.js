@@ -356,6 +356,7 @@ let guiOptions = {
         randomVelocity: "10",
         cleanupThreshold: "8",
         automaticRotation: false,
+        rotationSpeed: '0',
         shader3d: true,
         reverseVelocity: () => {
             simulation.graphics.readbackParticleData();
@@ -621,6 +622,9 @@ function guiControlsSetup() {
         } else {
             simulation.graphics.controls.autoRotate = false;
         }
+    });
+    guiControlsCamera.add(guiOptions.advancedControls, 'rotationSpeed').name("Rotation Speed").listen().onFinishChange(val => {
+
     });
 
     const guiControlsView = guiControls.addFolder("[+] View");

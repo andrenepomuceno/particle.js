@@ -269,6 +269,7 @@ export class GraphicsGPU {
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
+        uniforms['uTimeDelta'] = { value: physics.timeDelta };
     }
 
     #fillTextures() {

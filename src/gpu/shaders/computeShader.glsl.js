@@ -205,6 +205,8 @@ precision highp float;
 #define PROBE 1.0
 #define FIXED 2.0
 
+uniform float uTimeDelta;
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
@@ -214,6 +216,7 @@ void main() {
 
     if (type == DEFAULT) {
         vec3 vel = texture2D( textureVelocity, uv ).xyz;
+        //pos += uTimeDelta * vel;
         pos += vel;
     }
 

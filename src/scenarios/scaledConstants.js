@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { createNuclei, createNucleiFromList } from './helpers';
+import { createNuclei, createNucleiFromList, parseElementRatioList } from './helpers';
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
 import { NuclearPotentialType } from '../physics';
 
@@ -30,92 +30,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
-}
-
-function parseElementRatioList(list) {
-    list.sort((a, b) => {
-        return a.r > b.r;
-    });
-    let ratioMax = 0.0;
-    list.forEach(v => {
-        if (v.r > ratioMax) ratioMax = v.r;
-    })
-    list.forEach((v, i) => {
-        list[i].r /= ratioMax;
-    })
-}
-
-function periodicTable(simulation) {
-    let graphics = simulation.graphics;
-    let physics = simulation.physics;
-    defaultParameters(simulation);
-
-    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
-    physics.useBoxBoundary = true;
-    //physics.useDistance1 = true;
-    simulation.mode2D = true;
-
-    const m = 1 * 1e18; // attometer
-    const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
-    const s = 1e27; // second, quantum time
-    const C = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
-    const nuclearForceRange = 1e-15 * m;
-    const nq = 1.0;
-    const v = 1.0;
-
-    physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 40 * physics.nuclearForceRange;
-    physics.boundaryDamping = 0.9;
-    graphics.cameraDistance = 20.0 * physics.nuclearForceRange;
-    graphics.cameraSetup();
-    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
-
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * C ** -2;
-    physics.nuclearForceConstant = 1.0;
-    physics.forceConstant = 1 / 3;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
-
-    let r0 = 0.05 * physics.nuclearForceRange;
-    let r1 = 0.5 * physics.nuclearForceRange;
-    let r2 = 0.493 * physics.nuclearForceRange;
-
-    let gridSize = [8, 8, 1];
-    if (!ENV?.production && graphics.maxParticles > 10 * 10 * 3 * 50) gridSize = [10, 10, 1];
-
-    let nucleusTypes = [
-        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * C, nq: 1 },
-        { m: 1.67492749e-27 * kg, q: 0, nq: 1 },
-    ];
-    let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * C, nq: -1 / 60 },
-    ];
-
-    function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
-        let options = {
-            m, q, nq,
-            r0: 0, r1: r0,
-            randomSequence: false,
-            randomNQSignal: false,
-            v1: velocity,
-            center
-        };
-        createParticles(simulation, nucleusList, n * nucleusList.length, options);
-        options = { ...options, r0, r1 };
-        createParticles(simulation, cloudList, n * cloudList.length, options);
-    }
-
-    let n = 1;
-    cubeGenerator((x, y, z) => {
-        //let s = ((n % 2 == 0) ? (1) : (-1));
-        let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
-        //let s = 1;
-        let center = new Vector3(x, -y, z);
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, 1.0, s * nq, r0, r1, center, v);
-        n++;
-    }, 6 * r2 * gridSize[0], gridSize);
-    shuffleArray(physics.particleList);
 }
 
 function quarkModelAir(simulation) {
@@ -209,7 +123,7 @@ function quarkModelAir(simulation) {
             }
         }
 
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
         index++;
     }, 3 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);
@@ -220,6 +134,79 @@ function quarkModelAir(simulation) {
         total += v.count;
     });
     console.log(total);
+}
+
+function periodicTable(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.useBoxBoundary = true;
+    //physics.useDistance1 = true;
+    simulation.mode2D = true;
+
+    const m = 1 * 1e18; // attometer
+    const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
+    const s = 1e27; // second, quantum time
+    const C = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
+    const nuclearForceRange = 1e-15 * m;
+    const nq = 1.0;
+    const v = 1.0;
+
+    physics.nuclearForceRange = nuclearForceRange;
+    physics.boundaryDistance = 40 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 20.0 * physics.nuclearForceRange;
+    graphics.cameraSetup();
+    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+
+    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * C ** -2;
+    physics.nuclearForceConstant = 1.0;
+    physics.forceConstant = 1 / 3;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
+
+    let r0 = 0.05 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.493 * physics.nuclearForceRange;
+
+    let gridSize = [8, 8, 1];
+    if (!ENV?.production && graphics.maxParticles > 10 * 10 * 3 * 50) gridSize = [10, 10, 1];
+
+    let nucleusTypes = [
+        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * C, nq: 1 },
+        { m: 1.67492749e-27 * kg, q: 0, nq: 1 },
+    ];
+    let cloudTypes = [
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * C, nq: -1 / 60 },
+    ];
+
+    function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
+        let options = {
+            m, q, nq,
+            r0: 0, r1: r0,
+            randomSequence: false,
+            randomNQSignal: false,
+            v1: velocity,
+            center
+        };
+        createParticles(simulation, nucleusList, n * nucleusList.length, options);
+        options = { ...options, r0, r1 };
+        createParticles(simulation, cloudList, n * cloudList.length, options);
+    }
+
+    let n = 1;
+    cubeGenerator((x, y, z) => {
+        //let s = ((n % 2 == 0) ? (1) : (-1));
+        let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
+        //let s = 1;
+        let center = new Vector3(x, -y, z);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, 1.0, s * nq, r0, r1, center, v);
+        n++;
+    }, 6 * r2 * gridSize[0], gridSize);
+    shuffleArray(physics.particleList);
 }
 
 function air(simulation) {

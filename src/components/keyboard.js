@@ -55,6 +55,7 @@ export class Keyboard {
         let key = event.key.toLowerCase();
         if (event.key == 'G') key = event.key;
         if (event.key == 'Z') key = event.key;
+        console.log(key);
         if (keyboard.onKeyDownMap.has(key)) {
             let callback = keyboard.onKeyDownMap.get(key).callback;
             return callback();

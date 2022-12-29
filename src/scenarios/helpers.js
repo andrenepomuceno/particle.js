@@ -226,8 +226,8 @@ export function parseElementRatioList(list) {
     let ratioMax = 0.0;
     list.forEach(v => {
         if (v.r > ratioMax) ratioMax = v.r;
-    })
+    });
     list.forEach((v, i) => {
         list[i].r /= ratioMax;
-    })
+    });
 }

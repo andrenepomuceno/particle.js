@@ -14,8 +14,6 @@ let gMouseHelper = undefined;
 
 export function guiSelectionSetup(guiOptions, guiSelection) {
     console.log('guiSelectionSetup');
-    console.log(guiOptions);
-    console.log(guiSelection);
 
     gGuiOptions = guiOptions;
     gGuiSelection = guiSelection;

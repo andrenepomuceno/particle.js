@@ -19,13 +19,18 @@ let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 
+let gGuiOptions;
+
 export function guiControlsSetup(guiOptions, guiControls) {
+    gGuiOptions = guiOptions;
     guiOptions.controls = {
         pause: false,
         automaticRotation: false,
         rotationSpeed: simulation.graphics.controls.autoRotateSpeed.toString(),
         shader3d: true,
         showCursor: true,
+        radius: '10',
+        radiusRange: '0',
         pauseResume: function () {
             guiOptions.controls.pause = !guiOptions.controls.pause;
         },
@@ -52,6 +57,7 @@ export function guiControlsSetup(guiOptions, guiControls) {
                 core.importCSV(name, content);
                 guiInfoRefresh(guiOptions, guiOptions.energyPanel);
                 guiParametersRefresh(guiOptions);
+                guiControlsRefresh();
             });
         },
         hideAxis: function () {
@@ -194,6 +200,12 @@ export function guiControlsSetup(guiOptions, guiControls) {
         simulation.graphics.readbackParticleData();
         simulation.drawParticles();
     });
+    guiControlsView.add(guiOptions.controls, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
+        core.updatePhysics("radius", val);
+    });
+    guiControlsView.add(guiOptions.controls, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
+        core.updatePhysics("radiusRange", val);
+    });
 
     guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
@@ -206,6 +218,11 @@ export function guiControlsSetup(guiOptions, guiControls) {
     guiOptions.collapseList.push(guiControlsCamera);
     guiOptions.collapseList.push(guiControlsSimulation);
     guiOptions.collapseList.push(guiControlsView);
+}
+
+export function guiControlsRefresh() {
+    gGuiOptions.controls.radius = simulation.particleRadius;
+    gGuiOptions.controls.radiusRange = simulation.particleRadiusRange;
 }
 
 function snapshot() {

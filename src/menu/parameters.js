@@ -68,12 +68,7 @@ export function guiParametersSetup(guiOptions, guiParameters) {
     //guiParametersBoundary.open();
 
     const guiParametersVisual = guiParameters.addFolder("[+] View");
-    guiParametersVisual.add(guiOptions.parameters, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
-        core.updatePhysics("radius", val);
-    });
-    guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
-        core.updatePhysics("radiusRange", val);
-    });
+    
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
     const potentialType = {
@@ -110,8 +105,6 @@ export function guiParametersRefresh(guiOptions) {
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
     edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
     edit.forceConstant = simulation.physics.forceConstant;
-    edit.radius = simulation.particleRadius;
-    edit.radiusRange = simulation.particleRadiusRange;
     edit.maxParticles = simulation.graphics.maxParticles;
     edit.boxBoundary = simulation.physics.useBoxBoundary;
     edit.distance1 = simulation.physics.useDistance1;

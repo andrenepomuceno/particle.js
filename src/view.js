@@ -5,7 +5,7 @@ import {
     core,
 } from './core.js';
 import { MouseHelper } from './components/mouseHelper';
-import { Keyboard } from './components/keyboard.js';
+import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
@@ -15,7 +15,7 @@ import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
 import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
 import { guiGeneratorSetup } from './menu/generator.js';
 import { guiSelectionSetup } from './menu/selection.js';
-import { guiControlsSetup } from './menu/controls.js';
+import { guiControlsSetup, guiControlsRefresh } from './menu/controls.js';
 import { guiAdvancedControlsSetup } from './menu/advancedControls.js';
 
 const viewUpdateDelay = 1000;
@@ -74,7 +74,7 @@ let guiOptions = {
     field: {},
 }
 
-guiOptions.keyboard = new Keyboard(mouseHelper, guiOptions);
+guiOptions.keyboard = new KeyboardHelper(mouseHelper, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
@@ -85,6 +85,7 @@ function scenarioSetup(idx) {
     core.setup(idx);
 
     guiParametersRefresh(guiOptions);
+    guiControlsRefresh();
     guiInfoRefresh(guiOptions, energyPanel);
     guiOptions.generator.default();
     guiFieldRefresh(guiOptions);
@@ -131,7 +132,7 @@ export function viewSetup() {
 
     simulation.graphics.controls.addEventListener('end', onFinishMove);
 
-    guiOptions.keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
+    guiOptions.keyboard = new KeyboardHelper(mouseHelper, guiOptions, simulation);
     guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
 
     animate();
@@ -233,6 +234,7 @@ function animate(time) {
         guiParticleRefresh(guiOptions);
         selectionHelper.guiRefresh();
         guiParametersRefresh(guiOptions);
+        guiControlsRefresh();
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

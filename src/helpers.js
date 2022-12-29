@@ -405,6 +405,8 @@ export function createParticles(simulation, typeList, n, options) {
 
         p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
 
+        p.name = typeList[type].name;
+
         simulation.physics.particleList.push(p);
     }
 }

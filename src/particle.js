@@ -26,6 +26,7 @@ export class Particle {
         this.radius = undefined;
         this.uv = [];
         this.collisions = 0.0;
+        this.name = '';
     }
 
     clone() {
@@ -61,7 +62,7 @@ export class Particle {
     }
 
     header() {
-        return "id,type,mass,charge,nuclearCharge,x,y,z,vx,vy,vz,e,collisions";
+        return "id,type,mass,charge,nuclearCharge,x,y,z,vx,vy,vz,e,collisions,name";
     }
 
     csv() {
@@ -73,6 +74,7 @@ export class Particle {
             this.position.toArray() + "," +
             this.velocity.toArray() + "," +
             this.energy() + "," +
-            this.collisions;
+            this.collisions + ',' +
+            this.name;
     }
 }

@@ -52,7 +52,7 @@ function quarkModelAir(simulation) {
     const v = 1.0;
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 40 * physics.nuclearForceRange;
+    physics.boundaryDistance = 20 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
     graphics.cameraDistance = 15.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
@@ -73,11 +73,11 @@ function quarkModelAir(simulation) {
     if (!ENV?.production && graphics.maxParticles > 20 * 20 * (2 * 3 + 1) * 7) gridSize = [20, 20, 1];
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1 }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1 }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60 },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: "electron" },
     ];
 
     let elementsRatios = [

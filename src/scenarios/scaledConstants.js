@@ -41,7 +41,7 @@ function water(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
-    simulation.mode2D = false;
+    simulation.mode2D = true;
 
     const m = 1 * 1e18; // attometer
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass

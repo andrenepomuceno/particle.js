@@ -18,7 +18,9 @@ function log(msg) {
 
 class Core {
     constructor() {
+        this.scenariosList = scenariosList;
         this.particleSetup = scenariosList[0];
+        this.simulationIdx = undefined;
         log("simulations loaded: " + scenariosList.length);
     }
 
@@ -41,6 +43,8 @@ class Core {
                 return;
             }
         }
+
+        this.simulationIdx = idx;
 
         this.internalSetup();
 

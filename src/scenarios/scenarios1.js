@@ -52,6 +52,8 @@ function simulationNuclei4(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(30, 10);
@@ -134,6 +136,8 @@ function simulationNuclei3(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 20000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(30, 10);
@@ -197,6 +201,8 @@ function simulationStrongCube0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 20000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -266,6 +272,8 @@ function simulationStrongBlob0(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 10000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(50, 10);
@@ -311,6 +319,8 @@ function simulationNuclei2(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 10000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(100, 50);
@@ -345,6 +355,8 @@ function simulationNuclei1(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 1000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
@@ -373,6 +385,8 @@ function simulationNuclei0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 2000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -597,6 +611,8 @@ function simulationBlob0(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 4000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
@@ -619,6 +635,8 @@ function simulationAtom1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
@@ -655,6 +673,8 @@ function simulationAtom0(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 1000;
     graphics.cameraPhi = graphics.cameraTheta = 0;

@@ -23,7 +23,6 @@ import { Ruler } from './components/ruler';
 import { createParticle, randomVector } from './scenarios/helpers.js';
 
 let hideAxis = false;
-let simulationIdx = 0;
 let colorMode = "charge";
 let hideOverlay = false;
 let nextFrame = false;
@@ -87,12 +86,12 @@ let guiOptions = {
             scenarioSetup();
         },
         next: function () {
-            if (simulationIdx < scenariosList.length - 1)
-                scenarioSetup(++simulationIdx);
+            if (core.simulationIdx < scenariosList.length - 1)
+                scenarioSetup(++core.simulationIdx);
         },
         previous: function () {
-            if (simulationIdx > 0)
-                scenarioSetup(--simulationIdx);
+            if (core.simulationIdx > 0)
+                scenarioSetup(--core.simulationIdx);
         },
         snapshot: function () {
             snapshot();
@@ -134,8 +133,8 @@ let guiOptions = {
             alert("Work in progress!");
         },
         home: function () {
-            simulationIdx = 0;
-            scenarioSetup(simulationIdx);
+            core.simulationIdx = 0;
+            scenarioSetup(core.simulationIdx);
         },
         mouseHint: () => {
             alert(
@@ -152,7 +151,8 @@ let guiOptions = {
             }
         },
         sandbox: () => {
-            scenarioSetup(-1);
+            core.simulationIdx = core.scenariosList.length - 1;
+            scenarioSetup(core.simulationIdx);
         },
         hideOverlay: () => {
             if (hideOverlay == false) {

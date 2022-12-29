@@ -89,6 +89,8 @@ function simulation0(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 5000;
 
     physics.massConstant = 1;
@@ -106,6 +108,8 @@ function simulation1(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 4000;
     physics.massConstant = 1;
@@ -127,6 +131,8 @@ function simulationGrid2D(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 5000
     graphics.cameraPhi = 0; graphics.cameraTheta = 0;
@@ -155,6 +161,8 @@ function simulationGrid3D(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = 30; graphics.cameraTheta = 45;
@@ -188,6 +196,8 @@ function simulationCross(simulation) {
     let physics = simulation.physics;
     particleList = physics.particleList;
 
+    physics.useDistance1 = true;
+
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
     physics.forceConstant = 5;
@@ -213,6 +223,8 @@ function simulationSpheres(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     particleList = physics.particleList;
+
+    physics.useDistance1 = true;
 
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;

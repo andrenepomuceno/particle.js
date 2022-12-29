@@ -40,17 +40,27 @@ jobs:
       with:
         script: |
           const { repo, owner } = context.repo;
+
+          let branch = '${{ github.ref_name }}';
+          branch = branch.replace(/^.*[\\\/]/, '')
+
           let result = await github.rest.pulls.create({
             head: '${{ github.ref_name }}',
             owner,
             repo,
             base: 'main',
-            title: 'Merge ${{ github.ref_name }}',
+            title: 'Merge ' + branch,
             body: [
-              'Automated PR for RC ${{ github.ref_name }}'
+              'Automated PR for RC ' + branch
             ].join('\n')
           });
           console.log(result);
+
+          result = await github.rest.git.tags({
+            owner,
+            repo,
+            tag: branch,
+          });
 
     - name: Pack
       if: startsWith(github.ref, 'refs/heads/release')
@@ -63,3 +73,9 @@ jobs:
       with:
         folder: dist
         branch: gh-pages
+
+    - uses: ncipollo/release-action@v1
+      if: startsWith(github.ref, 'refs/heads/release')
+      with:
+        artifacts: "particle.js*.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}

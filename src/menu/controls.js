@@ -26,7 +26,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList) {
             guiOptions.controls.pause = !guiOptions.controls.pause;
         },
         step: function () {
-            nextFrame = true;
+            guiOptions.nextFrame = true;
         },
         reset: function () {
             guiOptions.scenarioSetup();
@@ -46,7 +46,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList) {
             uploadCsv((name, content) => {
                 guiOptions.particle.close();
                 core.importCSV(name, content);
-                guiInfoRefresh(guiOptions, energyPanel);
+                guiInfoRefresh(guiOptions, guiOptions.energyPanel);
                 guiParametersRefresh(guiOptions);
             });
         },
@@ -102,13 +102,13 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList) {
         },
         hideOverlay: () => {
             if (hideOverlay == false) {
-                statsPanel.domElement.style.visibility = "hidden";
-                gui.hide();
+                guiOptions.statsPanel.domElement.style.visibility = "hidden";
+                guiOptions.gui.hide();
                 mouseHelper.overGUI = false;
                 hideOverlay = true;
             } else {
-                statsPanel.domElement.style.visibility = "visible";
-                gui.show();
+                guiOptions.statsPanel.domElement.style.visibility = "visible";
+                guiOptions.gui.show();
                 hideOverlay = false;
             }
         },

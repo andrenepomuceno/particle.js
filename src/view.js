@@ -18,7 +18,6 @@ import { guiSelectionSetup } from './menu/selection.js';
 import { guiControlsSetup } from './menu/controls.js';
 import { guiAdvancedControlsSetup } from './menu/advancedControls.js';
 
-let nextFrame = false;
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
@@ -42,6 +41,11 @@ function log(msg) {
 
 let collapseList = [];
 let guiOptions = {
+    nextFrame: false,
+    statsPanel,
+    energyPanel,
+    gui,
+
     scenarioSetup: (idx) => {
         scenarioSetup(idx);
     },
@@ -204,8 +208,8 @@ function animate(time) {
         cameraTargetSet(x);
     }
 
-    if (!guiOptions.controls.pause || nextFrame) {
-        nextFrame = false;
+    if (!guiOptions.controls.pause || guiOptions.nextFrame) {
+        guiOptions.nextFrame = false;
 
         let dt = 0;
         if (!isNaN(time) && lastAnimateTime > 0) {

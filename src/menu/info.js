@@ -106,7 +106,7 @@ export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
     collapseList.push(guiInfoRuler);
 }
 
-export function guiInfoRefresh(guiOptions, energyPanel) {
+export function guiInfoRefresh(guiOptions) {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
 
     guiOptions.info.name = name;
@@ -141,6 +141,6 @@ export function guiInfoRefresh(guiOptions, energyPanel) {
     guiOptions.info.mode2D = simulation.mode2D;
 
     let energy = avgVelocity;
-    if (energy > energyPanel.max) energyPanel.max = energy;
-    energyPanel.update(energy, energyPanel.max);
+    if (energy > guiOptions.energyPanel.max) guiOptions.energyPanel.max = energy;
+    guiOptions.energyPanel.update(energy, guiOptions.energyPanel.max);
 }

@@ -77,7 +77,7 @@ function quarkModelAir(simulation) {
         { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: "electron" },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
     ];
 
     let elementsRatios = [

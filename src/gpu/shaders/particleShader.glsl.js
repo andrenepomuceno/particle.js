@@ -80,7 +80,7 @@ normalize(vec3( \
 ))
 
 #define RAYMARCH(sdf, rayOrigin, rayDirection) { \
-    int stepCount = 128;                                        \
+    int stepCount = 32;                                         \
     float maximumDistance = 10.0;                               \
     float tt = 0.0;                                             \
     for (int i = 0; i < stepCount; i++) {                       \
@@ -269,11 +269,11 @@ float particleSdf(vec3 position) {
     #endif
 }
 
-#define DIFFUSE_LIGHT (-2.75)
+#define DIFFUSE_LIGHT (-3.0)
 #define AMBIENT_LIGHT (0.1)
 
 const vec3 diffuseLightPosition = normalize(vec3(1.0, 1.0, 1.0));
-const vec3 ambientLightColor = normalize(vec3(31, 41, 53));
+const vec3 ambientLightColor = vec3(31, 41, 53)/255.0;
 
 void particle3d() {
     vec3 targetPosition = vec3(0.0);
@@ -302,10 +302,10 @@ void particle3d() {
     color += diffuseColor * diffuseAngle;
     
     // ambient
-    color += AMBIENT_LIGHT * ambientLightColor * ((n.y + 1.0) * 0.5);
+    color += (AMBIENT_LIGHT * ambientLightColor) * ((n.y + 1.0) * 0.5);
     
     // specular
-    float specularStrength = 1.0;
+    float specularStrength = 2.0;
     vec3 specularColor = ambientLightColor;//normalize(vec3(1.0, 1.0, 1.0));
     vec3 reflectDir = reflect(-diffuseLightPosition, n);
     float spec = pow(max(dot(rayDirection, reflectDir), 0.0), 32.0);

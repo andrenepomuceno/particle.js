@@ -4,9 +4,9 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
-    randomElements,
+    //randomElements,
     //periodicTable,
-    electronProtonNeutron,
+    carbonCrystal,
     superNucleus3D,
     hexagonalCrystal,
     squareCrystal,
@@ -184,7 +184,7 @@ function periodicTable(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function electronProtonNeutron(simulation) {
+function carbonCrystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

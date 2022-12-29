@@ -41,7 +41,7 @@ const guiInfo = gui.addFolder("INFORMATION");
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder("SELECTION");
-const guiGenerate = gui.addFolder("GENERATOR");
+const guiGenerator = gui.addFolder("GENERATOR");
 const guiField = gui.addFolder("FIELD");
 const guiAdvancedControls = gui.addFolder("ADVANCED");
 const guiParameters = gui.addFolder("PARAMETERS");
@@ -101,7 +101,7 @@ let guiOptions = {
                 guiParticleClose();
                 core.importCSV(name, content);
                 guiInfoRefresh(guiOptions, energyPanel);
-                guiParametersRefresh();
+                guiParametersRefresh(guiOptions);
             });
         },
         hideAxis: function () {
@@ -295,11 +295,11 @@ let guiOptions = {
         preset: "default",
         fixed: false,
         generate: () => {
-            guiGenerate.open();
+            guiGenerator.open();
             particleGenerator(guiOptions.generator);
         },
         clear: () => {
-            guiGenerate.close();
+            guiGenerator.close();
         },
         default: () => {
             let clean = {
@@ -450,10 +450,10 @@ function scenarioSetup(idx) {
 
     core.setup(idx);
 
-    guiParametersRefresh();
+    guiParametersRefresh(guiOptions);
     guiInfoRefresh(guiOptions, energyPanel);
     guiOptions.generator.default();
-    guiFieldRefresh();
+    guiFieldRefresh(guiOptions);
 
     energyPanel.min = 0;
     energyPanel.max = 0;
@@ -467,6 +467,9 @@ function scenarioSetup(idx) {
 }
 
 import { guiInfoSetup, guiInfoRefresh } from './menu/info.js';
+import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
+import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
+import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
 
 export function viewSetup() {
     window.onresize = onWindowResize;
@@ -487,13 +490,13 @@ export function viewSetup() {
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiInfoSetup(guiOptions, guiInfo, collapseList);
-    guiControlsSetup();
-    guiParticleSetup();
-    guiParametersSetup();
-    guiSelectionSetup();
-    guiGeneratorSetup();
-    guiAdvancedControlsSetup();
-    guiFieldSetup();
+    guiControlsSetup(guiOptions, guiControls, collapseList);
+    guiParticleSetup(guiOptions, guiParticle, collapseList);
+    guiParametersSetup(guiOptions, guiParameters, collapseList);
+    guiSelectionSetup(guiOptions, guiSelection, collapseList);
+    guiGeneratorSetup(guiOptions, guiGenerator, collapseList);
+    guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList);
+    guiFieldSetup(guiOptions, guiField, collapseList);
 
     scenarioSetup();
 
@@ -502,7 +505,7 @@ export function viewSetup() {
     animate();
 }
 
-function guiControlsSetup() {
+function guiControlsSetup(guiOptions, guiControls, collapseList) {
     guiControls.add(guiOptions.controls, 'mouseHint').name("Mouse Controls (click for more...)");
     guiControls.add(guiOptions.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
@@ -579,100 +582,7 @@ function guiControlsSetup() {
     collapseList.push(guiControlsView);
 }
 
-function guiParticleSetup() {
-    guiParticle.add(guiOptions.particle, 'id').name('ID').listen().onFinishChange((val) => {
-        let obj = core.findParticle(parseInt(val));
-        if (obj == undefined) {
-            if (simulation.physics.particleList == undefined ||
-                simulation.physics.particleList.length == 0) {
-                alert("There's no particle in the simulation!");
-            } else {
-                alert("Particle not found!\n" +
-                    "Hint: the first one is " + simulation.physics.particleList[0].id);
-            }
-            return;
-        }
-        guiOptions.particle.obj = obj;
-    });
-    guiParticle.add(guiOptions.particle, 'name').name('Name').listen().onFinishChange((val) => {
-        if (guiOptions.particle.obj != undefined) {
-            guiOptions.particle.obj.name = val;
-        }
-    });
-    guiParticle.addColor(guiOptions.particle, 'color').name('Color').listen().onFinishChange(val => {
-        core.updateParticle(guiOptions.particle.obj, 'color', val);
-    });
-    guiParticle.add(guiOptions.particle, 'energy').name('Energy').listen();
-
-    const guiParticleProperties = guiParticle.addFolder("[+] Properties");
-    guiParticleProperties.add(guiOptions.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "mass", val);
-    });
-    guiParticleProperties.add(guiOptions.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "charge", val);
-    });
-    guiParticleProperties.add(guiOptions.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "nuclearCharge", val);
-    });
-    guiParticleProperties.open();
-
-    const guiParticleVariables = guiParticle.addFolder("[+] Variables");
-    guiParticleVariables.add(guiOptions.particle, 'position').name('Position').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "position", val);
-    });
-    guiParticleVariables.add(guiOptions.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "velocityAbs", val);
-    });
-    guiParticleVariables.add(guiOptions.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "velocityDir", val);
-    });
-    guiParticleVariables.add(guiOptions.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
-        core.updateParticle(guiOptions.particle.obj, "fixed", val);
-    });
-    //guiParticleVariables.open();
-
-    //const guiParticleActions = guiParticle.addFolder("[+] Controls");
-    guiParticle.add(guiOptions.particle, 'follow').name('Follow/Unfollow');
-    guiParticle.add(guiOptions.particle, 'lookAt').name('Look At');
-    guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
-    guiParticle.add(guiOptions.particle, 'close').name('Close');
-
-    collapseList.push(guiParticle);
-    //collapseList.push(guiParticleActions);
-    collapseList.push(guiParticleVariables);
-    collapseList.push(guiParticleProperties);
-}
-
-function guiParticleRefresh() {
-    let particleView = guiOptions.particle;
-    let particle = particleView.obj;
-
-    if (particle) {
-        //static info
-        particleView.id = particle.id;
-        particleView.name = particle.name;
-        particleView.mass = particle.mass.toExponential(3);
-        particleView.charge = particle.charge.toExponential(3);
-        particleView.nuclearCharge = particle.nuclearCharge;
-        particleView.fixed = (particle.type == ParticleType.fixed);
-
-        let color = particle.color;
-        particleView.color = "#" + color.getHexString();//arrayToString(color.toArray(), 2);
-
-        //dynamic info
-        let position = [];
-        particle.position.toArray().forEach(element => {
-            position.push(element.toExponential(3));
-        });
-        particleView.position = position;
-        particleView.velocityDir = arrayToString(
-            particle.velocity.clone().normalize().toArray(), 3);
-        particleView.velocityAbs = particle.velocity.length().toExponential(3);
-        particleView.energy = particle.energy().toExponential(3);
-    }
-}
-
-function guiSelectionSetup() {
+function guiSelectionSetup(guiOptions, guiSelection, collapseList) {
     const patternList = {
         Box: 'box',
         Circle: 'circle',
@@ -735,11 +645,11 @@ function guiSelectionSetup() {
     collapseList.push(guiSelectionVariables);
 }
 
-function guiGeneratorSetup() {
-    guiGenerate.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
+function guiGeneratorSetup(guiOptions, guiGenerator, collapseList) {
+    guiGenerator.add(guiOptions.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
         guiOptions.generator.quantity = Math.round(parseFloat(val));
     });
-    guiGenerate.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
+    guiGenerator.add(guiOptions.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
         guiOptions.generator.radius = parseFloat(val);
     });
 
@@ -773,7 +683,7 @@ function guiGeneratorSetup() {
         Hexagon: "hexagon",
         Beam: "beam",
     };
-    guiGenerate.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
+    guiGenerator.add(guiOptions.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
         switch (val) {
             case "beam":
                 let v = 10 * parseFloat(guiOptions.info.velocity);
@@ -797,7 +707,7 @@ function guiGeneratorSetup() {
         'EPN Model (Scale)': "epnModelScaled",
         'Quark Model (Scale)': "stdModel0Scaled",
     };
-    guiGenerate.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
+    guiGenerator.add(guiOptions.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
         let v = 10 * parseFloat(guiOptions.info.velocity);
         if (isNaN(v) || v < 1e2) v = 1e2;
         switch (val) {
@@ -828,7 +738,7 @@ function guiGeneratorSetup() {
         }
     });
 
-    const guiGenerateMass = guiGenerate.addFolder("[+] Mass");
+    const guiGenerateMass = guiGenerator.addFolder("[+] Mass");
     guiGenerateMass.add(guiOptions.generator, "mass").name("Mass").listen().onFinishChange((val) => {
         guiOptions.generator.mass = parseFloat(val);
     });
@@ -837,7 +747,7 @@ function guiGeneratorSetup() {
     guiGenerateMass.add(guiOptions.generator, "roundMass").name("Round?").listen();
     //guiGenerateMass.open();
 
-    const guiGenerateCharge = guiGenerate.addFolder("[+] Charge");
+    const guiGenerateCharge = guiGenerator.addFolder("[+] Charge");
     guiGenerateCharge.add(guiOptions.generator, "charge").name("Charge").listen().onFinishChange((val) => {
         guiOptions.generator.charge = parseFloat(val);
     });
@@ -847,7 +757,7 @@ function guiGeneratorSetup() {
     guiGenerateCharge.add(guiOptions.generator, "roundCharge").name("Round?").listen();
     //guiGenerateCharge.open();
 
-    const guiGenerateNuclearCharge = guiGenerate.addFolder("[+] Nuclear Charge");
+    const guiGenerateNuclearCharge = guiGenerator.addFolder("[+] Nuclear Charge");
     guiGenerateNuclearCharge.add(guiOptions.generator, "nuclearCharge").name("Nuclear Charge").listen().onFinishChange((val) => {
         guiOptions.generator.nuclearCharge = parseFloat(val);
     });
@@ -856,7 +766,7 @@ function guiGeneratorSetup() {
     guiGenerateNuclearCharge.add(guiOptions.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
     guiGenerateNuclearCharge.add(guiOptions.generator, "roundNuclearCharge").name("Round?").listen();
 
-    const guiGenerateVelocity = guiGenerate.addFolder("[+] Velocity");
+    const guiGenerateVelocity = guiGenerator.addFolder("[+] Velocity");
     guiGenerateVelocity.add(guiOptions.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
         const precision = 2;
         let velocity = decodeVector3(val);
@@ -874,127 +784,18 @@ function guiGeneratorSetup() {
     });
     guiGenerateVelocity.add(guiOptions.generator, "randomVelocity").name("Randomize?").listen();
 
-    guiGenerate.add(guiOptions.generator, "fixed").name("Fixed position?").listen();
-    guiGenerate.add(guiOptions.generator, "generate").name("Generate [G]");
-    guiGenerate.add(guiOptions.generator, "default").name("Default Values");
-    guiGenerate.add(guiOptions.generator, "clear").name("Close");
+    guiGenerator.add(guiOptions.generator, "fixed").name("Fixed position?").listen();
+    guiGenerator.add(guiOptions.generator, "generate").name("Generate [G]");
+    guiGenerator.add(guiOptions.generator, "default").name("Default Values");
+    guiGenerator.add(guiOptions.generator, "clear").name("Close");
 
-    collapseList.push(guiGenerate);
+    collapseList.push(guiGenerator);
     collapseList.push(guiGenerateCharge);
     collapseList.push(guiGenerateMass);
     collapseList.push(guiGenerateVelocity);
 }
 
-function guiParametersSetup() {
-    guiParameters.add(guiOptions.parameters, 'maxParticles').name("Max Particles").listen().onFinishChange((val) => {
-        val = parseFloat(val);
-        if (val == simulation.physics.particleList.length) {
-            return;
-        }
-        if (val > simulation.physics.particleList.length) {
-            simulation.graphics.readbackParticleData();
-            simulation.graphics.setMaxParticles(val);
-            simulation.drawParticles();
-            return;
-        }
-        simulation.graphics.setMaxParticles(val);
-        scenarioSetup();
-    });
-
-    const guiParametersConsts = guiParameters.addFolder("[+] Constants");
-    guiParametersConsts.add(guiOptions.parameters, 'massConstant').name("Gravitational Constant").listen().onFinishChange((val) => {
-        core.updatePhysics("massConstant", val);
-    });
-    guiParametersConsts.add(guiOptions.parameters, 'chargeConstant').name("Electric Constant").listen().onFinishChange((val) => {
-        core.updatePhysics("chargeConstant", val);
-    });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearForceConstant').name("Nuclear Force Constant").listen().onFinishChange((val) => {
-        core.updatePhysics("nuclearForceConstant", val);
-    });
-    guiParametersConsts.add(guiOptions.parameters, 'nuclearForceRange').name("Nuclear Force Range").listen().onFinishChange((val) => {
-        core.updatePhysics("nuclearForceRange", val);
-    });
-    guiParametersConsts.add(guiOptions.parameters, 'forceConstant').name("Force Multiplier").listen().onFinishChange((val) => {
-        core.updatePhysics("forceConstant", val);
-    });
-    guiParametersConsts.add(guiOptions.parameters, 'minDistance').name("Minimum Distance").listen().onFinishChange((val) => {
-        let d = parseFloat(val);
-        if (isNaN(d)) {
-            alert("Invalid value.");
-            return;
-        }
-        core.updatePhysics("minDistance2", Math.pow(d, 2));
-    });
-    //guiParametersConsts.open();
-
-    const guiParametersBoundary = guiParameters.addFolder("[+] Boundary");
-    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDistance').name("Boundary Distance").listen().onFinishChange((val) => {
-        core.updatePhysics("boundaryDistance", val);
-    });
-    guiParametersBoundary.add(guiOptions.parameters, 'boundaryDamping').name("Boundary Damping Factor").listen().onFinishChange((val) => {
-        core.updatePhysics("boundaryDamping", val);
-    });
-    guiParametersBoundary.add(guiOptions.parameters, 'boxBoundary').name("Use box boundary").listen().onFinishChange((val) => {
-        core.updatePhysics("boxBoundary", val);
-    });
-    guiParametersBoundary.add(guiOptions.parameters, 'enableBoundary').name("Enable Boundary").listen().onFinishChange((val) => {
-        core.updatePhysics("enableBoundary", val);
-    });
-    //guiParametersBoundary.open();
-
-    const guiParametersVisual = guiParameters.addFolder("[+] View");
-    guiParametersVisual.add(guiOptions.parameters, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
-        core.updatePhysics("radius", val);
-    });
-    guiParametersVisual.add(guiOptions.parameters, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
-        core.updatePhysics("radiusRange", val);
-    });
-
-    const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
-    const potentialType = {
-        'Sin[a x]': NuclearPotentialType.default,
-        'Hooks Law': NuclearPotentialType.hooksLaw,
-        'Sin[a (1 - b^x)]': NuclearPotentialType.potential_powAX,
-        'Sin[a (1 - b^x)] v2': NuclearPotentialType.potential_powAXv2,
-        'Sin[-Exp[-a x]]': NuclearPotentialType.potential_exp,
-        'Sin[a x^b]': NuclearPotentialType.potential_powXR,
-    }
-    guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
-        core.updatePhysics("potential", val);
-    });
-    guiParametersInteractions.add(guiOptions.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
-        core.updatePhysics("distance1", val);
-    });
-
-    guiParameters.add(guiOptions.parameters, 'close').name("Close");
-
-    collapseList.push(guiParameters);
-    collapseList.push(guiParametersBoundary);
-    collapseList.push(guiParametersConsts);
-    collapseList.push(guiParametersVisual);
-    collapseList.push(guiParametersInteractions);
-}
-
-function guiParametersRefresh() {
-    let edit = guiOptions.parameters;
-    edit.massConstant = simulation.physics.massConstant.toExponential(2);
-    edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-    edit.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(2);
-    edit.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(2);
-    edit.boundaryDamping = simulation.physics.boundaryDamping;
-    edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
-    edit.forceConstant = simulation.physics.forceConstant;
-    edit.radius = simulation.particleRadius;
-    edit.radiusRange = simulation.particleRadiusRange;
-    edit.maxParticles = simulation.graphics.maxParticles;
-    edit.boxBoundary = simulation.physics.useBoxBoundary;
-    edit.distance1 = simulation.physics.useDistance1;
-    edit.nuclearPotential = simulation.physics.nuclearPotential;
-    edit.enableBoundary = simulation.physics.enableBoundary;
-}
-
-function guiAdvancedControlsSetup() {
+function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList) {
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
     guiAdvancedControls.add(guiOptions.advancedControls, 'reverseVelocity').name("Reverse Velocity");
 
@@ -1019,73 +820,6 @@ function guiAdvancedControlsSetup() {
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
     collapseList.push(guiAdvancedControls);
-}
-
-function guiFieldSetup() {
-    function updateFieldParameter(param, val) {
-        val = parseFloat(val);
-        guiOptions.field[param] = simulation.field.probeParam[param].toExponential(2);
-        if (isNaN(val)) {
-            alert("Invalid value.");
-            return;
-        }
-        if (simulation.field.probeParam[param] == val) return;
-        simulation.field.probeParam[param] = val;
-        guiOptions.field[param] = val.toExponential(2);
-        guiOptions.field.fieldResize();
-    }
-
-    guiField.add(guiOptions.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
-        fieldEnable(val);
-    });
-    guiField.add(guiOptions.field, 'automaticRefresh').name("Automatic Refresh").listen().onFinishChange(val => {
-        if (val == true) {
-            guiOptions.field.fieldResize();
-        }
-    });
-    guiField.add(guiOptions.field, 'grid').name("Grid").listen().onFinishChange(val => {
-        guiOptions.field.grid = simulation.field.grid[0];
-        const grid = Math.round(parseFloat(val));
-        if (isNaN(grid)) {
-            alert("Invalid value.");
-            return;
-        }
-        if (val == simulation.field.grid[0]) return;
-        if (simulation.field.enabled == false || simulation.field.arrowList.length == 0) return;
-        if (simulation.field.checkGridSize(val) == false) {
-            alert('Field is too big!');
-            return;
-        }
-        core.deleteParticleList(simulation.field.arrowList);
-        simulation.field.cleanup();
-        if (!fieldInit(grid)) {
-            return;
-        }
-        guiOptions.field.grid = grid;
-    });
-    guiField.add(guiOptions.field, 'm').name("Mass").listen().onFinishChange(val => {
-        updateFieldParameter('m', val);
-    });
-    guiField.add(guiOptions.field, 'q').name("Charge").listen().onFinishChange(val => {
-        updateFieldParameter('q', val);
-    });
-    guiField.add(guiOptions.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
-        updateFieldParameter('nq', val);
-    });
-    guiField.add(guiOptions.field, 'fieldResize').name("Refresh [F]");
-    guiField.add(guiOptions.field, 'close').name("Close");
-
-    collapseList.push(guiField);
-}
-
-function guiFieldRefresh() {
-    let opt = guiOptions.field;
-    let field = simulation.field;
-    opt.enabled = field.enabled;
-    opt.m = field.probeParam.m.toExponential(2);
-    opt.q = field.probeParam.q.toExponential(2);
-    opt.nq = field.probeParam.nq.toExponential(2);
-    opt.grid = field.grid[0];
 }
 
 function guiParticleClose(clear = true) {
@@ -1470,9 +1204,9 @@ function animate(time) {
         }
 
         guiInfoRefresh(guiOptions, energyPanel);
-        guiParticleRefresh();
+        guiParticleRefresh(guiOptions);
         selection.guiRefresh();
-        guiParametersRefresh();
+        guiParametersRefresh(guiOptions);
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

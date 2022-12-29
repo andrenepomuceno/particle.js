@@ -84,11 +84,11 @@ export function guiSelectionSetup(guiOptions, guiSelection, collapseList, select
         switch (val) {
             case 'box':
             default:
-                ruler.mode = 'box';
+                guiOptions.ruler.mode = 'box';
                 break;
 
             case 'circle':
-                ruler.mode = 'circle';
+                guiOptions.ruler.mode = 'circle';
                 break
         }
     });

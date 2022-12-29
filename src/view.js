@@ -35,6 +35,9 @@ const guiField = gui.addFolder("FIELD");
 const guiAdvancedControls = gui.addFolder("ADVANCED");
 const guiParameters = gui.addFolder("PARAMETERS");
 
+const mouseHelper = new MouseHelper();
+const selection = new SelectionHelper();
+
 function log(msg) {
     console.log("View: " + msg);
 }
@@ -45,6 +48,9 @@ let guiOptions = {
     statsPanel,
     energyPanel,
     gui,
+    ruler: undefined,
+    mouseHelper,
+    selection,
 
     scenarioSetup: (idx) => {
         scenarioSetup(idx);
@@ -66,10 +72,8 @@ let guiOptions = {
     field: {},
 }
 
-const mouseHelper = new MouseHelper();
-const selection = new SelectionHelper();
 let keyboard = new Keyboard(mouseHelper, guiOptions);
-let ruler = new Ruler(simulation.graphics, guiOptions.controls);
+guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
@@ -129,7 +133,7 @@ export function viewSetup() {
     simulation.graphics.controls.addEventListener('end', onFinishMove);
 
     keyboard = new Keyboard(mouseHelper, guiOptions, simulation);
-    ruler = new Ruler(simulation.graphics, guiOptions.info);
+    guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
 
     animate();
 }
@@ -162,7 +166,7 @@ function onPointerMove(event) {
     mouseHelper.move(event);
     if (selection.started) {
         selection.update(event);
-        ruler.update(event);
+        guiOptions.ruler.update(event);
     }
 }
 
@@ -175,14 +179,14 @@ function onPointerDown(event) {
         selection.guiSelection = guiSelection;
 
         selection.start(event);
-        ruler.start(simulation.graphics, event);
+        guiOptions.ruler.start(simulation.graphics, event);
     }
 }
 
 function onPointerUp(event) {
     if (event.button == 0 && selection.started) {
-        selection.end(event, ruler.mode);
-        ruler.finish(event);
+        selection.end(event, guiOptions.ruler.mode);
+        guiOptions.ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
         let particle = simulation.graphics.raycast(mouseHelper.position);
         if (particle) {

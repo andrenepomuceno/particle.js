@@ -67,7 +67,7 @@ let guiOptions = {
 }
 
 const mouseHelper = new MouseHelper();
-let selection = new SelectionHelper();
+const selection = new SelectionHelper();
 let keyboard = new Keyboard(mouseHelper, guiOptions);
 let ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
@@ -116,7 +116,7 @@ export function viewSetup() {
     console.log(guiOptions);
     console.log(guiControls);
     console.log(collapseList);
-    guiControlsSetup(guiOptions, guiControls, collapseList);
+    guiControlsSetup(guiOptions, guiControls, collapseList, mouseHelper);
     guiParticleSetup(guiOptions, guiParticle, collapseList);
     guiParametersSetup(guiOptions, guiParameters, collapseList);
     guiSelectionSetup(guiOptions, guiSelection, collapseList, selection, mouseHelper);

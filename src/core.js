@@ -248,8 +248,9 @@ class Core {
 
             case 'position':
                 {
+                    console.log(value);
                     let v = decodeVector3(value);
-                    if (v) {
+                    if (v != undefined) {
                         let vec = new Vector3(v.x, v.y, v.z);
                         if (vec.length() >= physics.boundaryDistance) {
                             alert("Value is too big!");
@@ -307,6 +308,7 @@ class Core {
             case 'fixed':
                 if (value === true) particle.type = ParticleType.fixed;
                 else if (value === false) particle.type = ParticleType.default;
+                simpleUpdate = true;
                 break;
             
             case 'color':

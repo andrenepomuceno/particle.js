@@ -19,7 +19,7 @@ let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 
-export function guiControlsSetup(guiOptions, guiControls, collapseList) {
+export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHelper) {
     guiOptions.controls = {
         pause: false,
         automaticRotation: false,

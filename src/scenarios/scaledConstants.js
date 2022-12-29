@@ -63,8 +63,8 @@ function essentialElements(simulation) {
 
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 1.0;
-    physics.forceConstant = 1 / 3;
+    physics.nuclearForceConstant = (0.00274442); // fine structure
+    physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;

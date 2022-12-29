@@ -1,5 +1,5 @@
 import { ParticleType } from './particle.js';
-import { MathUtils, Vector3 } from "three";
+import { MathUtils, Vector3 } from 'three';
 import { Particle } from './particle.js';
 
 export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
@@ -19,11 +19,11 @@ export function random(a, b, round = false) {
     return r;
 }
 
-export function randomColor(mode = "hue") {
+export function randomColor(mode = 'hue') {
     let color;
 
     switch (mode) {
-        case "rgb":
+        case 'rgb':
             const min = 10;
             const max = 255;
             let r = random(min, max, true);
@@ -32,7 +32,7 @@ export function randomColor(mode = "hue") {
             color = "rgb(" + r + "," + g + "," + b + ")";
             break;
 
-        case "hue":
+        case 'hue':
         default:
             let h = random(0, 360, true);
             color = "hsl(" + h + ",100%,50%)";
@@ -154,8 +154,8 @@ export function generateHexagon(cx, cy, radius, map) {
     }
 }
 
-export function hexagonGenerator(callback, cellRadius, grid, mode = "offset") {
-    let hexToPixel = (mode == "offset") ? offsetHexToPixel : axialHexToPixel;
+export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset') {
+    let hexToPixel = (mode == 'offset') ? offsetHexToPixel : axialHexToPixel;
 
     let vertexMap = new Map();
     let width = grid[0];
@@ -199,7 +199,7 @@ export function downloadFile(data, filename, type) {
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(file, filename);
     else { // Others
-        let a = document.createElement("a"),
+        let a = document.createElement('a'),
             url = URL.createObjectURL(file);
         a.href = url;
         a.download = filename;
@@ -339,7 +339,7 @@ export function decodeVector3(value) {
     return vec;
 }
 
-export function exportFilename(prefix = "particles") {
+export function exportFilename(prefix = 'particles') {
     let timestamp = new Date().toISOString();
     let finalName = prefix + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");

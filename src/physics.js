@@ -2,11 +2,11 @@ import { Vector3, VectorKeyframeTrack } from 'three';
 import { ParticleType } from './particle';
 
 export const NuclearPotentialType = {
-    default: "default",
-    hooksLaw: "hooks",
-    potential_powXR: "potential0",
-    potential_exp: "potential1",
-    potential_powAX: "potential2",
+    default: 'default',
+    hooksLaw: 'hooks',
+    potential_powXR: 'potential0',
+    potential_exp: 'potential1',
+    potential_powAX: 'potential2',
 }
 
 export const scaleEPN = {
@@ -23,7 +23,7 @@ function log(msg) {
 
 export class Physics {
     constructor() {
-        log("constructor");
+        log('constructor');
 
         this.enableColision = true;
         this.enableBoundary = true;
@@ -48,6 +48,7 @@ export class Physics {
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;
+        this.timeDelta = 0.5;
     }
 
     header() {

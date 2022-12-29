@@ -40,22 +40,39 @@ jobs:
       with:
         script: |
           const { repo, owner } = context.repo;
+
+          let branch = '${{ github.ref_name }}';
+          branch = branch.replace(/^.*[\\\/]/, '')
+
           let result = await github.rest.pulls.create({
             head: '${{ github.ref_name }}',
             owner,
             repo,
             base: 'main',
-            title: 'Merge ${{ github.ref_name }}',
+            title: 'Merge ' + branch,
             body: [
-              'Automated PR for RC ${{ github.ref_name }}'
+              'Automated PR for RC ' + branch
             ].join('\n')
           });
           console.log(result);
 
+    - name: Extract branch name
+      if: startsWith(github.ref, 'refs/heads/release')
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/release_})"
+      id: extract_branch
+
     - name: Pack
       if: startsWith(github.ref, 'refs/heads/release')
       run: |
-        zip -r particle.js_${GITHUB_REF#refs/*/}.zip dist    
+        zip -r particle.js_${{ steps.extract_branch.outputs.branch }}.zip dist
+
+    - uses: ncipollo/release-action@v1
+      if: startsWith(github.ref, 'refs/heads/release')
+      with:
+        artifacts: "particle.js*.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ steps.extract_branch.outputs.branch }}
 
     - name: Deploy gh-pages
       if: startsWith(github.ref, 'refs/heads/release')

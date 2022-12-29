@@ -10,7 +10,7 @@ import {
 let gGuiOptions = undefined;
 let gGuiParticle = undefined;
 
-export function guiParticleSetup(guiOptions, guiParticle, collapseList) {
+export function guiParticleSetup(guiOptions, guiParticle) {
     gGuiOptions = guiOptions;
     gGuiParticle = guiParticle;
 
@@ -104,10 +104,10 @@ export function guiParticleSetup(guiOptions, guiParticle, collapseList) {
     guiParticle.add(guiOptions.particle, 'reset').name('Reset Attributes');
     guiParticle.add(guiOptions.particle, 'close').name('Close');
 
-    collapseList.push(guiParticle);
-    //collapseList.push(guiParticleActions);
-    collapseList.push(guiParticleVariables);
-    collapseList.push(guiParticleProperties);
+    guiOptions.collapseList.push(guiParticle);
+    //guiOptions.collapseList.push(guiParticleActions);
+    guiOptions.collapseList.push(guiParticleVariables);
+    guiOptions.collapseList.push(guiParticleProperties);
 }
 
 export function guiParticleRefresh(guiOptions) {

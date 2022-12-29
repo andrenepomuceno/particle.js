@@ -4,7 +4,7 @@ import {
 } from '../core.js';
 import { randomSphericVector } from '../helpers.js';
 
-export function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList) {
+export function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls) {
     guiOptions.advancedControls = {
         dampKickFactor: "0.1",
         randomVelocity: "10",
@@ -91,5 +91,5 @@ export function guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collap
     guiAdvancedControls.add(guiOptions.advancedControls, 'zeroPosition').name("Zero Position");
     guiAdvancedControls.add(guiOptions.advancedControls, 'close').name("Close");
 
-    collapseList.push(guiAdvancedControls);
+    guiOptions.collapseList.push(guiAdvancedControls);
 }

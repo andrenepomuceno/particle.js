@@ -36,7 +36,7 @@ const guiAdvancedControls = gui.addFolder("ADVANCED");
 const guiParameters = gui.addFolder("PARAMETERS");
 
 const mouseHelper = new MouseHelper();
-const selection = new SelectionHelper();
+const selectionHelper = new SelectionHelper();
 
 function log(msg) {
     console.log("View: " + msg);
@@ -59,9 +59,10 @@ let guiOptions = {
     energyPanel,
     gui,
     mouseHelper,
-    selection,
+    selectionHelper,
     ruler: undefined,
     keyboard: undefined,
+    collapseList,
 
     info: {},
     controls: {},
@@ -78,7 +79,7 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
-    guiOptions.selection.clear();
+    guiOptions.selectionHelper.clear();
     guiOptions.particle.close();
 
     core.setup(idx);
@@ -117,17 +118,14 @@ export function viewSetup() {
     mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
-    guiInfoSetup(guiOptions, guiInfo, collapseList);
-    console.log(guiOptions);
-    console.log(guiControls);
-    console.log(collapseList);
-    guiControlsSetup(guiOptions, guiControls, collapseList, mouseHelper);
-    guiParticleSetup(guiOptions, guiParticle, collapseList);
-    guiParametersSetup(guiOptions, guiParameters, collapseList);
-    guiSelectionSetup(guiOptions, guiSelection, collapseList, selection, mouseHelper);
-    guiGeneratorSetup(guiOptions, guiGenerator, collapseList, mouseHelper, guiSelection, selection);
-    guiAdvancedControlsSetup(guiOptions, guiAdvancedControls, collapseList);
-    guiFieldSetup(guiOptions, guiField, collapseList);
+    guiInfoSetup(guiOptions, guiInfo);
+    guiControlsSetup(guiOptions, guiControls);
+    guiParticleSetup(guiOptions, guiParticle);
+    guiParametersSetup(guiOptions, guiParameters);
+    guiSelectionSetup(guiOptions, guiSelection);
+    guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
+    guiAdvancedControlsSetup(guiOptions, guiAdvancedControls);
+    guiFieldSetup(guiOptions, guiField);
 
     scenarioSetup();
 
@@ -165,8 +163,8 @@ function onWindowResize() {
 
 function onPointerMove(event) {
     mouseHelper.move(event);
-    if (selection.started) {
-        selection.update(event);
+    if (selectionHelper.started) {
+        selectionHelper.update(event);
         guiOptions.ruler.update(event);
     }
 }
@@ -174,19 +172,19 @@ function onPointerMove(event) {
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
         //selection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
-        selection.clear();
-        selection.graphics = simulation.graphics;
-        selection.options = guiOptions.selection;
-        selection.guiSelection = guiSelection;
+        selectionHelper.clear();
+        selectionHelper.graphics = simulation.graphics;
+        selectionHelper.options = guiOptions.selection;
+        selectionHelper.guiSelection = guiSelection;
 
-        selection.start(event);
+        selectionHelper.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
     }
 }
 
 function onPointerUp(event) {
-    if (event.button == 0 && selection.started) {
-        selection.end(event, guiOptions.ruler.mode);
+    if (event.button == 0 && selectionHelper.started) {
+        selectionHelper.end(event, guiOptions.ruler.mode);
         guiOptions.ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
         let particle = simulation.graphics.raycast(mouseHelper.position);
@@ -233,7 +231,7 @@ function animate(time) {
 
         guiInfoRefresh(guiOptions, energyPanel);
         guiParticleRefresh(guiOptions);
-        selection.guiRefresh();
+        selectionHelper.guiRefresh();
         guiParametersRefresh(guiOptions);
     }
 

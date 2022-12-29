@@ -19,7 +19,7 @@ let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 
-export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHelper) {
+export function guiControlsSetup(guiOptions, guiControls) {
     guiOptions.controls = {
         pause: false,
         automaticRotation: false,
@@ -108,7 +108,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
             if (hideOverlay == false) {
                 guiOptions.statsPanel.domElement.style.visibility = "hidden";
                 guiOptions.gui.hide();
-                mouseHelper.overGUI = false;
+                guiOptions.mouseHelper.overGUI = false;
                 hideOverlay = true;
             } else {
                 guiOptions.statsPanel.domElement.style.visibility = "visible";
@@ -120,7 +120,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
             guiControls.close();
         },
         collapseAll: () => {
-            collapseList.forEach((obj) => {
+            guiOptions.collapseList.forEach((obj) => {
                 obj.close();
             });
         },
@@ -179,7 +179,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
         if (val == true) {
             guiOptions.showCursor();
         } else {
-            mouseHelper.hideCursor();
+            guiOptions.mouseHelper.hideCursor();
             guiOptions.controls.showCursor = false;
         }
     });
@@ -202,10 +202,10 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
-    collapseList.push(guiControls);
-    collapseList.push(guiControlsCamera);
-    collapseList.push(guiControlsSimulation);
-    collapseList.push(guiControlsView);
+    guiOptions.collapseList.push(guiControls);
+    guiOptions.collapseList.push(guiControlsCamera);
+    guiOptions.collapseList.push(guiControlsSimulation);
+    guiOptions.collapseList.push(guiControlsView);
 }
 
 function snapshot() {

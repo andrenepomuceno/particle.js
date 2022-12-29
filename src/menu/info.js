@@ -10,7 +10,7 @@ import {
 
 export let autoRefresh = true;
 
-export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
+export function guiInfoSetup(guiOptions, guiInfo) {
     guiOptions.info = {
         name: "",
         particles: "",
@@ -98,12 +98,12 @@ export function guiInfoSetup(guiOptions, guiInfo, collapseList) {
         guiInfoDebug.add(guiOptions.info, 'fieldMaxVel').name('fieldMaxVel').listen();
         guiInfoDebug.add(guiOptions.info, 'fieldAvgVel').name('fieldAvgVel').listen();
         guiInfoDebug.open();
-        collapseList.push(guiInfoDebug);
+        guiOptions.collapseList.push(guiInfoDebug);
     }
 
-    //collapseList.push(guiInfo);
-    collapseList.push(guiInfoMore);
-    collapseList.push(guiInfoRuler);
+    //guiOptions.collapseList.push(guiInfo);
+    guiOptions.collapseList.push(guiInfoMore);
+    guiOptions.collapseList.push(guiInfoRuler);
 }
 
 export function guiInfoRefresh(guiOptions) {

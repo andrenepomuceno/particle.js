@@ -4,7 +4,7 @@ import {
     core,
 } from '../core';
 
-export function guiParametersSetup(guiOptions, guiParameters, collapseList) {
+export function guiParametersSetup(guiOptions, guiParameters) {
     guiOptions.parameters = {
         massConstant: "",
         chargeConstant: "",
@@ -93,11 +93,11 @@ export function guiParametersSetup(guiOptions, guiParameters, collapseList) {
 
     guiParameters.add(guiOptions.parameters, 'close').name("Close");
 
-    collapseList.push(guiParameters);
-    collapseList.push(guiParametersBoundary);
-    collapseList.push(guiParametersConsts);
-    collapseList.push(guiParametersVisual);
-    collapseList.push(guiParametersInteractions);
+    guiOptions.collapseList.push(guiParameters);
+    guiOptions.collapseList.push(guiParametersBoundary);
+    guiOptions.collapseList.push(guiParametersConsts);
+    guiOptions.collapseList.push(guiParametersVisual);
+    guiOptions.collapseList.push(guiParametersInteractions);
 }
 
 export function guiParametersRefresh(guiOptions) {

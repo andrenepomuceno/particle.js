@@ -218,7 +218,8 @@ void main() {
     float type = tPos.w;
 
     if (type == DEFAULT) {
-        vec3 vel = texture2D( textureVelocity, uv ).xyz;
+        vec4 tVel = texture2D( textureVelocity, uv );
+        vec3 vel = tVel.xyz;
         //pos += uTimeDelta * vel;
         pos += vel;
     }

@@ -126,12 +126,12 @@ export function guiSelectionSetup(guiOptions, guiSelection) {
 
     const guiSelectionActions = guiSelection.addFolder("[+] Controls");
     guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
-    guiSelectionActions.add(guiOptions.selection, 'clone').name("Clone [X]");
     guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
     guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
     guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-    guiSelectionActions.add(guiOptions.selection, 'place').name("Place [Z]");
 
+    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
+    guiSelection.add(guiOptions.selection, 'place').name("Place [Z]");
     guiSelection.add(guiOptions.selection, 'clear').name("Close");
 
     guiOptions.collapseList.push(guiSelection);

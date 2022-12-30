@@ -12,10 +12,10 @@ import { Ruler } from './components/ruler';
 import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
-import { guiFieldSetup, guiFieldRefresh } from './gui/field.js';
+import { GUIField } from './gui/field.js';
 import { guiGeneratorSetup } from './gui/generator.js';
 import { guiSelectionSetup } from './gui/selection.js';
-import { guiControlsSetup, guiControlsRefresh, GUIControls } from './gui/controls.js';
+import { GUIControls } from './gui/controls.js';
 import { GUIAdvancedControls } from './gui/advancedControls.js';
 
 const viewUpdateDelay = 1000;
@@ -90,7 +90,7 @@ function scenarioSetup(idx) {
     guiOptions.guiControls.refresh();
     guiInfoRefresh();
     guiOptions.generator.default();
-    guiFieldRefresh();
+    guiOptions.guiField.refresh();
 
     energyPanel.min = 0;
     energyPanel.max = 0;
@@ -130,7 +130,8 @@ export function viewSetup() {
     guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
     guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
     guiOptions.guiAdvancedControls.setup();
-    guiFieldSetup(guiOptions, guiField);
+    guiOptions.guiField = new GUIField(guiOptions, guiField);
+    guiOptions.guiField.setup();
 
     scenarioSetup();
 

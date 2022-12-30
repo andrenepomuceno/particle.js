@@ -4,7 +4,11 @@ import {
     core,
 } from '../core';
 
+let gGuiOptions;
+
 export function guiParametersSetup(guiOptions, guiParameters) {
+    gGuiOptions = guiOptions;
+
     guiOptions.parameters = {
         massConstant: "",
         chargeConstant: "",
@@ -67,9 +71,6 @@ export function guiParametersSetup(guiOptions, guiParameters) {
     });
     //guiParametersBoundary.open();
 
-    const guiParametersVisual = guiParameters.addFolder("[+] View");
-    
-
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
     const potentialType = {
         'Sin[a x]': NuclearPotentialType.default,
@@ -91,19 +92,18 @@ export function guiParametersSetup(guiOptions, guiParameters) {
     guiOptions.collapseList.push(guiParameters);
     guiOptions.collapseList.push(guiParametersBoundary);
     guiOptions.collapseList.push(guiParametersConsts);
-    guiOptions.collapseList.push(guiParametersVisual);
     guiOptions.collapseList.push(guiParametersInteractions);
 }
 
-export function guiParametersRefresh(guiOptions) {
-    let edit = guiOptions.parameters;
+export function guiParametersRefresh() {
+    let edit = gGuiOptions.parameters;
     edit.massConstant = simulation.physics.massConstant.toExponential(2);
     edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
     edit.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(2);
     edit.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
+    edit.minDistance = Math.sqrt(simulation.physics.minDistance2).toExponential(2);
     edit.forceConstant = simulation.physics.forceConstant;
     edit.maxParticles = simulation.graphics.maxParticles;
     edit.boxBoundary = simulation.physics.useBoxBoundary;

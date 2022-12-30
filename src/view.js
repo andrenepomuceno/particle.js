@@ -22,8 +22,8 @@ const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
-let statsPanel = new Stats();
-let energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
+const statsPanel = new Stats();
+const energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
 
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
@@ -84,11 +84,11 @@ function scenarioSetup(idx) {
 
     core.setup(idx);
 
-    guiParametersRefresh(guiOptions);
+    guiParametersRefresh();
     guiControlsRefresh();
-    guiInfoRefresh(guiOptions, energyPanel);
+    guiInfoRefresh();
     guiOptions.generator.default();
-    guiFieldRefresh(guiOptions);
+    guiFieldRefresh();
 
     energyPanel.min = 0;
     energyPanel.max = 0;
@@ -230,10 +230,10 @@ function animate(time) {
             simulation.graphics.readbackParticleData();
         }
 
-        guiInfoRefresh(guiOptions, energyPanel);
-        guiParticleRefresh(guiOptions);
+        guiInfoRefresh();
+        guiParticleRefresh();
         selectionHelper.guiRefresh();
-        guiParametersRefresh(guiOptions);
+        guiParametersRefresh();
         guiControlsRefresh();
     }
 

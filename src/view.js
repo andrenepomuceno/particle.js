@@ -1,5 +1,4 @@
 import * as dat from 'dat.gui';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import {
     simulation,
     core,
@@ -8,6 +7,7 @@ import { MouseHelper } from './components/mouseHelper';
 import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
+import Stats from './components/stats';
 
 import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';

@@ -103,7 +103,7 @@ export function guiParametersRefresh() {
     edit.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(2);
     edit.boundaryDamping = simulation.physics.boundaryDamping;
     edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
-    edit.minDistance = Math.sqrt(simulation.physics.minDistance2);
+    edit.minDistance = Math.sqrt(simulation.physics.minDistance2).toExponential(2);
     edit.forceConstant = simulation.physics.forceConstant;
     edit.maxParticles = simulation.graphics.maxParticles;
     edit.boxBoundary = simulation.physics.useBoxBoundary;

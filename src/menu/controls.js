@@ -221,8 +221,8 @@ export function guiControlsSetup(guiOptions, guiControls) {
 }
 
 export function guiControlsRefresh() {
-    gGuiOptions.controls.radius = simulation.particleRadius;
-    gGuiOptions.controls.radiusRange = simulation.particleRadiusRange;
+    gGuiOptions.controls.radius = simulation.particleRadius.toFixed(3);
+    gGuiOptions.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
 }
 
 function snapshot() {

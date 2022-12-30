@@ -391,6 +391,8 @@ class Core {
     }
 
     updateParticleList(parameter, value, list) {
+        let totalMass = simulation.totalMass.toExponential(1);
+        let totalCharge = simulation.totalCharge.toExponential(1);
         if (list == undefined) {
             list = graphics.particleList;
         } else {
@@ -399,9 +401,6 @@ class Core {
             totalCharge = stats.totalCharge.toExponential(1);
         }
         log("updateParticleList " + parameter + " " + value + " " + list.length);
-
-        let totalMass = simulation.totalMass.toExponential(1);
-        let totalCharge = simulation.totalCharge.toExponential(1);
 
         let updateLevel = 0;
 

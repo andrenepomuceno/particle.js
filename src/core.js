@@ -9,7 +9,7 @@ import { FieldGPU } from './gpu/field';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { parseCsv } from './components/csv.js';
 
-let graphics = new GraphicsGPU();
+const graphics = new GraphicsGPU();
 let physics = new Physics();
 
 function log(msg) {

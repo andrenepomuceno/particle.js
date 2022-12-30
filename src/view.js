@@ -53,11 +53,10 @@ let guiOptions = {
     cameraTargetSet: (pos) => {
         cameraTargetSet(pos);
     },
-
+    
     nextFrame: false,
     statsPanel,
     energyPanel,
-    gui,
     mouseHelper,
     selectionHelper,
     ruler: undefined,

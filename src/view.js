@@ -72,6 +72,7 @@ let guiOptions = {
     advancedControls: {},
     field: {},
 
+    gui,
     guiControls: undefined,
     guiAdvancedControls: undefined,
 }

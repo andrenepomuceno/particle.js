@@ -19,13 +19,18 @@ let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 
-export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHelper) {
+let gGuiOptions;
+
+export function guiControlsSetup(guiOptions, guiControls) {
+    gGuiOptions = guiOptions;
     guiOptions.controls = {
         pause: false,
         automaticRotation: false,
         rotationSpeed: simulation.graphics.controls.autoRotateSpeed.toString(),
         shader3d: true,
         showCursor: true,
+        radius: '10',
+        radiusRange: '0',
         pauseResume: function () {
             guiOptions.controls.pause = !guiOptions.controls.pause;
         },
@@ -52,6 +57,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
                 core.importCSV(name, content);
                 guiInfoRefresh(guiOptions, guiOptions.energyPanel);
                 guiParametersRefresh(guiOptions);
+                guiControlsRefresh();
             });
         },
         hideAxis: function () {
@@ -108,7 +114,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
             if (hideOverlay == false) {
                 guiOptions.statsPanel.domElement.style.visibility = "hidden";
                 guiOptions.gui.hide();
-                mouseHelper.overGUI = false;
+                guiOptions.mouseHelper.overGUI = false;
                 hideOverlay = true;
             } else {
                 guiOptions.statsPanel.domElement.style.visibility = "visible";
@@ -120,7 +126,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
             guiControls.close();
         },
         collapseAll: () => {
-            collapseList.forEach((obj) => {
+            guiOptions.collapseList.forEach((obj) => {
                 obj.close();
             });
         },
@@ -179,7 +185,7 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
         if (val == true) {
             guiOptions.showCursor();
         } else {
-            mouseHelper.hideCursor();
+            guiOptions.mouseHelper.hideCursor();
             guiOptions.controls.showCursor = false;
         }
     });
@@ -194,6 +200,12 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
         simulation.graphics.readbackParticleData();
         simulation.drawParticles();
     });
+    guiControlsView.add(guiOptions.controls, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
+        core.updatePhysics("radius", val);
+    });
+    guiControlsView.add(guiOptions.controls, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
+        core.updatePhysics("radiusRange", val);
+    });
 
     guiControls.add(guiOptions.controls, 'sandbox').name("Sandbox Mode [S]");
     guiControls.add(guiOptions.controls, 'snapshot').name("Export simulation [P]");
@@ -202,10 +214,15 @@ export function guiControlsSetup(guiOptions, guiControls, collapseList, mouseHel
 
     guiControls.add(guiOptions.controls, 'close').name("Close");
 
-    collapseList.push(guiControls);
-    collapseList.push(guiControlsCamera);
-    collapseList.push(guiControlsSimulation);
-    collapseList.push(guiControlsView);
+    guiOptions.collapseList.push(guiControls);
+    guiOptions.collapseList.push(guiControlsCamera);
+    guiOptions.collapseList.push(guiControlsSimulation);
+    guiOptions.collapseList.push(guiControlsView);
+}
+
+export function guiControlsRefresh() {
+    gGuiOptions.controls.radius = simulation.particleRadius;
+    gGuiOptions.controls.radiusRange = simulation.particleRadiusRange;
 }
 
 function snapshot() {

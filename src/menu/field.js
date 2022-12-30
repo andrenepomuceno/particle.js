@@ -6,7 +6,7 @@ import {
 let gGuiOptions = undefined;
 let gGuiField = undefined;
 
-export function guiFieldSetup(guiOptions, guiField, collapseList) {
+export function guiFieldSetup(guiOptions, guiField) {
     function updateFieldParameter(param, val) {
         val = parseFloat(val);
         guiOptions.field[param] = simulation.field.probeParam[param].toExponential(2);
@@ -83,7 +83,7 @@ export function guiFieldSetup(guiOptions, guiField, collapseList) {
     guiField.add(guiOptions.field, 'fieldResize').name("Refresh [F]");
     guiField.add(guiOptions.field, 'close').name("Close");
 
-    collapseList.push(guiField);
+    guiOptions.collapseList.push(guiField);
 }
 
 export function guiFieldRefresh(guiOptions) {

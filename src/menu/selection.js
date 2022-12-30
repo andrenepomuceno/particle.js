@@ -7,16 +7,18 @@ import { uploadCsv } from '../components/csv';
 import { SelectionHelper, SourceType } from '../components/selectionHelper.js';
 import { cameraToWorldCoord } from '../helpers.js';
 
-let gGuiOptions;
-let gGuiSelection;
-let gSelection;
-let gMouseHelper;
+let gGuiOptions = undefined;
+let gGuiSelection = undefined;
+let gSelection = undefined;
+let gMouseHelper = undefined;
 
-export function guiSelectionSetup(guiOptions, guiSelection, collapseList, selection, mouseHelper) {
+export function guiSelectionSetup(guiOptions, guiSelection) {
+    console.log('guiSelectionSetup');
+
     gGuiOptions = guiOptions;
     gGuiSelection = guiSelection;
-    gSelection = selection;
-    gMouseHelper = mouseHelper;
+    gSelection = guiOptions.selectionHelper;
+    gMouseHelper = guiOptions.mouseHelper;
 
     guiOptions.selection = {
         pattern: 'box',
@@ -132,13 +134,16 @@ export function guiSelectionSetup(guiOptions, guiSelection, collapseList, select
 
     guiSelection.add(guiOptions.selection, 'clear').name("Close");
 
-    collapseList.push(guiSelection);
-    collapseList.push(guiSelectionActions);
-    collapseList.push(guiSelectionProperties);
-    collapseList.push(guiSelectionVariables);
+    guiOptions.collapseList.push(guiSelection);
+    guiOptions.collapseList.push(guiSelectionActions);
+    guiOptions.collapseList.push(guiSelectionProperties);
+    guiOptions.collapseList.push(guiSelectionVariables);
+
+    console.log('guiSelectionSetup done');
 }
 
 function guiSelectionClose(clear = true) {
+    console.log(gSelection);
     if (clear) gSelection.clear();
     gGuiSelection.close();
 }

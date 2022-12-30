@@ -21,11 +21,11 @@ let gMouseHelper = undefined;
 let gGuiSelection = undefined;
 let gSelection = undefined;
 
-export function guiGeneratorSetup(guiOptions, guiGenerator, collapseList, mouseHelper, guiSelection, selection) {
+export function guiGeneratorSetup(guiOptions, guiGenerator, guiSelection) {
     gGuiOptions = guiOptions;
-    gMouseHelper = mouseHelper;
+    gMouseHelper = guiOptions.mouseHelper;
     gGuiSelection = guiSelection;
-    gSelection = selection;
+    gSelection = guiOptions.selectionHelper;
 
     guiOptions.generator = {
         mass: "1",
@@ -235,10 +235,10 @@ export function guiGeneratorSetup(guiOptions, guiGenerator, collapseList, mouseH
     guiGenerator.add(guiOptions.generator, "default").name("Default Values");
     guiGenerator.add(guiOptions.generator, "clear").name("Close");
 
-    collapseList.push(guiGenerator);
-    collapseList.push(guiGenerateCharge);
-    collapseList.push(guiGenerateMass);
-    collapseList.push(guiGenerateVelocity);
+    guiOptions.collapseList.push(guiGenerator);
+    guiOptions.collapseList.push(guiGenerateCharge);
+    guiOptions.collapseList.push(guiGenerateMass);
+    guiOptions.collapseList.push(guiGenerateVelocity);
 }
 
 let hexagonMap = new Map();

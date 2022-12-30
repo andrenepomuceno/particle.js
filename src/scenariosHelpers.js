@@ -1,4 +1,4 @@
-import { random, randomSpheric, randomDisc } from "./helpers";
+import { random } from "./helpers";
 import { Vector3 } from 'three';
 import { GridHelper } from 'three';
 import { Particle, ParticleType } from './particle';

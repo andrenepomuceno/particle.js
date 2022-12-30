@@ -1,4 +1,4 @@
-import { Color, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
 import { decodeVector3 } from './helpers.js';
 import { scenariosList } from './scenarios.js';
@@ -9,7 +9,7 @@ import { FieldGPU } from './gpu/field';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { parseCsv } from './components/csv.js';
 
-let graphics = new GraphicsGPU();
+const graphics = new GraphicsGPU();
 let physics = new Physics();
 
 function log(msg) {
@@ -248,7 +248,6 @@ class Core {
 
             case 'position':
                 {
-                    console.log(value);
                     let v = decodeVector3(value);
                     if (v != undefined) {
                         let vec = new Vector3(v.x, v.y, v.z);

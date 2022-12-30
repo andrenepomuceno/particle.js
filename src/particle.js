@@ -1,6 +1,6 @@
 import { Vector3, Color } from 'three';
 
-let particleId = 0;
+let gParticleId = 0;
 
 export const ParticleType = {
     undefined: -1.0,
@@ -11,7 +11,7 @@ export const ParticleType = {
 
 export class Particle {
     constructor() {
-        this.id = particleId++;
+        this.id = gParticleId++;
         this.type = ParticleType.default;
 
         this.mass = 0.0;

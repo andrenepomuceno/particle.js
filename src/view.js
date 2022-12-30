@@ -9,14 +9,14 @@ import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
-import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './menu/info.js';
-import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
-import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
-import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
-import { guiGeneratorSetup } from './menu/generator.js';
-import { guiSelectionSetup } from './menu/selection.js';
-import { guiControlsSetup, guiControlsRefresh } from './menu/controls.js';
-import { guiAdvancedControlsSetup } from './menu/advancedControls.js';
+import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './gui/info.js';
+import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
+import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
+import { GUIField } from './gui/field.js';
+import { guiGeneratorSetup } from './gui/generator.js';
+import { guiSelectionSetup } from './gui/selection.js';
+import { GUIControls } from './gui/controls.js';
+import { GUIAdvancedControls } from './gui/advancedControls.js';
 
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
@@ -53,11 +53,10 @@ let guiOptions = {
     cameraTargetSet: (pos) => {
         cameraTargetSet(pos);
     },
-
+    
     nextFrame: false,
     statsPanel,
     energyPanel,
-    gui,
     mouseHelper,
     selectionHelper,
     ruler: undefined,
@@ -72,6 +71,9 @@ let guiOptions = {
     parameters: {},
     advancedControls: {},
     field: {},
+
+    guiControls: undefined,
+    guiAdvancedControls: undefined,
 }
 
 guiOptions.keyboard = new KeyboardHelper(mouseHelper, guiOptions);
@@ -85,10 +87,10 @@ function scenarioSetup(idx) {
     core.setup(idx);
 
     guiParametersRefresh();
-    guiControlsRefresh();
+    guiOptions.guiControls.refresh();
     guiInfoRefresh();
     guiOptions.generator.default();
-    guiFieldRefresh();
+    guiOptions.guiField.refresh();
 
     energyPanel.min = 0;
     energyPanel.max = 0;
@@ -120,13 +122,16 @@ export function viewSetup() {
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiInfoSetup(guiOptions, guiInfo);
-    guiControlsSetup(guiOptions, guiControls);
+    guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
+    guiOptions.guiControls.setup();
     guiParticleSetup(guiOptions, guiParticle);
     guiParametersSetup(guiOptions, guiParameters);
     guiSelectionSetup(guiOptions, guiSelection);
     guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
-    guiAdvancedControlsSetup(guiOptions, guiAdvancedControls);
-    guiFieldSetup(guiOptions, guiField);
+    guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
+    guiOptions.guiAdvancedControls.setup();
+    guiOptions.guiField = new GUIField(guiOptions, guiField);
+    guiOptions.guiField.setup();
 
     scenarioSetup();
 
@@ -234,7 +239,7 @@ function animate(time) {
         guiParticleRefresh();
         selectionHelper.guiRefresh();
         guiParametersRefresh();
-        guiControlsRefresh();
+        guiOptions.guiControls.refresh();
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

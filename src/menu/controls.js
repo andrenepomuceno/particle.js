@@ -55,8 +55,8 @@ export function guiControlsSetup(guiOptions, guiControls) {
             uploadCsv((name, content) => {
                 guiOptions.particle.close();
                 core.importCSV(name, content);
-                guiInfoRefresh(guiOptions, guiOptions.energyPanel);
-                guiParametersRefresh(guiOptions);
+                guiInfoRefresh();
+                guiParametersRefresh();
                 guiControlsRefresh();
             });
         },

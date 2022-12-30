@@ -22,6 +22,7 @@ export function guiFieldSetup(guiOptions, guiField) {
 
     gGuiOptions = guiOptions;
     gGuiField = guiField;
+    console.log(gGuiField);
 
     guiOptions.field = {
         enabled: false,
@@ -86,8 +87,8 @@ export function guiFieldSetup(guiOptions, guiField) {
     guiOptions.collapseList.push(guiField);
 }
 
-export function guiFieldRefresh(guiOptions) {
-    let opt = guiOptions.field;
+export function guiFieldRefresh() {
+    let opt = gGuiOptions.field;
     let field = simulation.field;
     opt.enabled = field.enabled;
     opt.m = field.probeParam.m.toExponential(2);

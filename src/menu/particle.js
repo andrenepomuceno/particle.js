@@ -37,7 +37,7 @@ export function guiParticleSetup(guiOptions, guiParticle) {
             //simulation.graphics.controls.target.set(x.x, x.y, x.z);
         },
         close: function (val) {
-            guiParticleClose(guiOptions, val);
+            guiParticleClose(val);
         },
         reset: () => {
             core.updateParticle(guiOptions.particle.obj, "reset", 0);
@@ -110,8 +110,8 @@ export function guiParticleSetup(guiOptions, guiParticle) {
     guiOptions.collapseList.push(guiParticleProperties);
 }
 
-export function guiParticleRefresh(guiOptions) {
-    let particleView = guiOptions.particle;
+export function guiParticleRefresh() {
+    let particleView = gGuiOptions.particle;
     let particle = particleView.obj;
 
     if (particle) {
@@ -139,7 +139,7 @@ export function guiParticleRefresh(guiOptions) {
     }
 }
 
-function guiParticleClose(guiOptions, clear = true) {
+function guiParticleClose(clear = true) {
     gGuiOptions.particle.followParticle = false;
     if (clear) {
         let particleView = gGuiOptions.particle;

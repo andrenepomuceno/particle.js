@@ -256,9 +256,10 @@ const float height = resolution.y;
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 tPos1 = texture2D(texturePosition, uv1);
-    vec3 pos1 = tPos1.xyz;
     float type1 = tPos1.w;
     if (type1 == UNDEFINED) return;
+
+    vec3 pos1 = tPos1.xyz;
     vec4 props1 = texture2D(textureProperties, uv1);
     float id1 = props1.x;
     float m1 = props1.y;
@@ -269,7 +270,7 @@ void main() {
     vec4 consts = vec4(
         0,
         massConstant, 
-        chargeConstant, 
+        -chargeConstant,
         nuclearForceConstant
     );
 
@@ -278,15 +279,16 @@ void main() {
         for (float texX = 0.0; texX < width; texX++) {
             vec2 uv2 = vec2(texX + 0.5, texY + 0.5) / resolution.xy;
             vec4 tPos2 = texture2D(texturePosition, uv2);
-            vec3 pos2 = tPos2.xyz;
             float type2 = tPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
+
             vec4 props2 = texture2D(textureProperties, uv2);
             float id2 = props2.x;
             if (id1 == id2) {
                 continue;
             }
-            
+
+            vec3 pos2 = tPos2.xyz;            
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
             

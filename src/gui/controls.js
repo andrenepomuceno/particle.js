@@ -18,15 +18,17 @@ function log(msg) {
 let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
+let options;
+let controls;
 
 export class GUIControls {
     constructor(guiOptions, guiControls) {
-        this.options = guiOptions;
-        this.controls = guiControls;
+        options = guiOptions;
+        controls = guiControls;
     }
 
     setup() {
-        this.options.controls = {
+        options.controls = {
             pause: false,
             automaticRotation: false,
             rotationSpeed: simulation.graphics.controls.autoRotateSpeed.toString(),
@@ -35,32 +37,32 @@ export class GUIControls {
             radius: '10',
             radiusRange: '0',
             pauseResume: function () {
-                this.options.controls.pause = !this.options.controls.pause;
+                options.controls.pause = !options.controls.pause;
             },
             step: function () {
-                this.options.nextFrame = true;
+                options.nextFrame = true;
             },
             reset: function () {
-                this.options.scenarioSetup();
+                options.scenarioSetup();
             },
             next: function () {
                 if (core.simulationIdx < scenariosList.length - 1)
-                    this.options.scenarioSetup(++core.simulationIdx);
+                    options.scenarioSetup(++core.simulationIdx);
             },
             previous: function () {
                 if (core.simulationIdx > 0)
-                    this.options.scenarioSetup(--core.simulationIdx);
+                    options.scenarioSetup(--core.simulationIdx);
             },
             snapshot: function () {
                 snapshot();
             },
             import: function () {
                 uploadCsv((name, content) => {
-                    this.options.particle.close();
+                    options.particle.close();
                     core.importCSV(name, content);
                     guiInfoRefresh();
                     guiParametersRefresh();
-                    this.options.guiControls.refresh();
+                    options.guiControls.refresh();
                 });
             },
             hideAxis: function () {
@@ -68,12 +70,12 @@ export class GUIControls {
                 simulation.graphics.showAxis(!hideAxis);
             },
             resetCamera: function () {
-                this.options.particle.followParticle = false;
+                options.particle.followParticle = false;
                 simulation.graphics.controls.reset();
             },
             xyCamera: function () {
-                this.options.particle.followParticle = false;
-                this.options.cameraTargetSet(simulation.graphics.controls.target);
+                options.particle.followParticle = false;
+                options.cameraTargetSet(simulation.graphics.controls.target);
             },
             colorMode: function () {
                 (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
@@ -93,7 +95,7 @@ export class GUIControls {
             },
             home: function () {
                 core.simulationIdx = 0;
-                this.options.scenarioSetup(core.simulationIdx);
+                options.scenarioSetup(core.simulationIdx);
             },
             mouseHint: () => {
                 alert(
@@ -111,17 +113,17 @@ export class GUIControls {
             },
             sandbox: () => {
                 core.simulationIdx = core.scenariosList.length - 1;
-                this.options.scenarioSetup(core.simulationIdx);
+                options.scenarioSetup(core.simulationIdx);
             },
             hideOverlay: () => {
                 if (hideOverlay == false) {
-                    this.options.statsPanel.domElement.style.visibility = "hidden";
-                    this.options.gui.hide();
-                    this.options.mouseHelper.overGUI = false;
+                    options.statsPanel.domElement.style.visibility = "hidden";
+                    options.gui.hide();
+                    options.mouseHelper.overGUI = false;
                     hideOverlay = true;
                 } else {
-                    this.options.statsPanel.domElement.style.visibility = "visible";
-                    this.options.gui.show();
+                    options.statsPanel.domElement.style.visibility = "visible";
+                    options.gui.show();
                     hideOverlay = false;
                 }
             },
@@ -129,7 +131,7 @@ export class GUIControls {
                 guiControls.close();
             },
             collapseAll: () => {
-                this.options.collapseList.forEach((obj) => {
+                options.collapseList.forEach((obj) => {
                     obj.close();
                 });
             },
@@ -141,25 +143,25 @@ export class GUIControls {
             },
         };
 
-        this.controls.add(this.options.controls, 'mouseHint').name("Mouse Controls (click for more...)");
-        this.controls.add(this.options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
+        controls.add(options.controls, 'mouseHint').name("Mouse Controls (click for more...)");
+        controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
-        const guiControlsSimulation = this.controls.addFolder("[+] Simulation");
-        guiControlsSimulation.add(this.options.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-        guiControlsSimulation.add(this.options.controls, 'step').name("Step [N] (if paused)");
-        guiControlsSimulation.add(this.options.controls, 'reset').name("Reset [R]");
-        guiControlsSimulation.add(this.options.controls, 'next').name("Next simulation [PAGEDOWN]");
-        guiControlsSimulation.add(this.options.controls, 'previous').name("Previous simulation [PAGEUP]");
-        guiControlsSimulation.add(this.options.controls, 'home').name("First simulation [HOME]");
+        const guiControlsSimulation = controls.addFolder("[+] Simulation");
+        guiControlsSimulation.add(options.controls, 'pauseResume').name("Pause/Resume [SPACE]");
+        guiControlsSimulation.add(options.controls, 'step').name("Step [N] (if paused)");
+        guiControlsSimulation.add(options.controls, 'reset').name("Reset [R]");
+        guiControlsSimulation.add(options.controls, 'next').name("Next simulation [PAGEDOWN]");
+        guiControlsSimulation.add(options.controls, 'previous').name("Previous simulation [PAGEUP]");
+        guiControlsSimulation.add(options.controls, 'home').name("First simulation [HOME]");
 
-        const guiControlsCamera = this.controls.addFolder("[+] Camera");
-        guiControlsCamera.add(this.options.controls, 'resetCamera').name("Reset Camera [C]");
-        guiControlsCamera.add(this.options.controls, 'xyCamera').name("XY Camera [V]");
-        guiControlsCamera.add(this.options.controls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
+        const guiControlsCamera = controls.addFolder("[+] Camera");
+        guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
+        guiControlsCamera.add(options.controls, 'xyCamera').name("XY Camera [V]");
+        guiControlsCamera.add(options.controls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
-                    this.options.controls.automaticRotation = false;
+                    options.controls.automaticRotation = false;
                     simulation.graphics.controls.autoRotate = false;
                     return;
                 }
@@ -169,30 +171,30 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        guiControlsCamera.add(this.options.controls, 'rotationSpeed').name("Rotation Speed").listen().onFinishChange(val => {
+        guiControlsCamera.add(options.controls, 'rotationSpeed').name("Rotation Speed").listen().onFinishChange(val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
-                this.options.controls.rotationSpeed = simulation.graphics.controls.autoRotateSpeed;
+                options.controls.rotationSpeed = simulation.graphics.controls.autoRotateSpeed;
                 return;
             }
             simulation.graphics.controls.autoRotateSpeed = val;
         });
 
-        const guiControlsView = this.controls.addFolder("[+] View");
-        guiControlsView.add(this.options.controls, 'hideAxis').name("Hide/Show Axis [A]");
-        guiControlsView.add(this.options.controls, 'colorMode').name("Color Mode [Q]");
-        guiControlsView.add(this.options.controls, 'hideOverlay').name("Hide Overlay [H]");
-        guiControlsView.add(this.options.controls, 'collapseAll').name("Collapse all folders [M]");
-        guiControlsView.add(this.options.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+        const guiControlsView = controls.addFolder("[+] View");
+        guiControlsView.add(options.controls, 'hideAxis').name("Hide/Show Axis [A]");
+        guiControlsView.add(options.controls, 'colorMode').name("Color Mode [Q]");
+        guiControlsView.add(options.controls, 'hideOverlay').name("Hide Overlay [H]");
+        guiControlsView.add(options.controls, 'collapseAll').name("Collapse all folders [M]");
+        guiControlsView.add(options.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
             if (val == true) {
-                this.options.showCursor();
+                options.showCursor();
             } else {
-                this.options.mouseHelper.hideCursor();
-                this.options.controls.showCursor = false;
+                options.mouseHelper.hideCursor();
+                options.controls.showCursor = false;
             }
         });
-        guiControlsView.add(this.options.controls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
+        guiControlsView.add(options.controls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -203,29 +205,29 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        guiControlsView.add(this.options.controls, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
             core.updatePhysics("radius", val);
         });
-        guiControlsView.add(this.options.controls, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
             core.updatePhysics("radiusRange", val);
         });
 
-        this.controls.add(this.options.controls, 'sandbox').name("Sandbox Mode [S]");
-        this.controls.add(this.options.controls, 'snapshot').name("Export simulation [P]");
-        this.controls.add(this.options.controls, 'import').name("Import simulation [I]");
-        this.controls.add(this.options.controls, 'deleteAll').name("Delete all particles [DEL]");
+        controls.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
+        controls.add(options.controls, 'snapshot').name("Export simulation [P]");
+        controls.add(options.controls, 'import').name("Import simulation [I]");
+        controls.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
 
-        this.controls.add(this.options.controls, 'close').name("Close");
+        controls.add(options.controls, 'close').name("Close");
 
-        this.options.collapseList.push(this.controls);
-        this.options.collapseList.push(guiControlsCamera);
-        this.options.collapseList.push(guiControlsSimulation);
-        this.options.collapseList.push(guiControlsView);
+        options.collapseList.push(controls);
+        options.collapseList.push(guiControlsCamera);
+        options.collapseList.push(guiControlsSimulation);
+        options.collapseList.push(guiControlsView);
     }
 
     refresh() {
-        this.options.controls.radius = simulation.particleRadius.toFixed(3);
-        this.options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
+        options.controls.radius = simulation.particleRadius.toFixed(3);
+        options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
     }
 }
 

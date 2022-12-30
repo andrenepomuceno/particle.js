@@ -4,14 +4,16 @@ import {
 } from '../core.js';
 import { randomSphericVector } from '../helpers.js';
 
+let options, controls;
+
 export class GUIAdvancedControls {
     constructor(guiOptions, guiAdvancedControls) {
-        this.options = guiOptions;
-        this.controls = guiAdvancedControls;
+        options = guiOptions;
+        controls = guiAdvancedControls;
     }
 
     setup() {
-        this.options.advancedControls = {
+        options.advancedControls = {
             dampKickFactor: "0.1",
             randomVelocity: "10",
             cleanupThreshold: "8",
@@ -30,7 +32,7 @@ export class GUIAdvancedControls {
                 simulation.drawParticles();
             },
             particleCleanup: () => {
-                let thresh = parseFloat(this.options.advancedControls.cleanupThreshold);
+                let thresh = parseFloat(options.advancedControls.cleanupThreshold);
                 if (isNaN(thresh)) {
                     alert("Invalid threshold.");
                     return;
@@ -38,7 +40,7 @@ export class GUIAdvancedControls {
                 core.particleAutoCleanup(thresh);
             },
             dampVelocity: () => {
-                let factor = parseFloat(this.options.advancedControls.dampKickFactor);
+                let factor = parseFloat(options.advancedControls.dampKickFactor);
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
                     p.velocity.multiplyScalar(1.0 - factor);
@@ -46,7 +48,7 @@ export class GUIAdvancedControls {
                 simulation.drawParticles();
             },
             kickVelocity: () => {
-                let factor = parseFloat(this.options.advancedControls.dampKickFactor);
+                let factor = parseFloat(options.advancedControls.dampKickFactor);
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
                     p.velocity.multiplyScalar(1.0 + factor);
@@ -56,7 +58,7 @@ export class GUIAdvancedControls {
             addRandomVelocity: () => {
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
-                    let e = parseFloat(this.options.advancedControls.randomVelocity);
+                    let e = parseFloat(options.advancedControls.randomVelocity);
                     if (isNaN(e)) return;
                     p.velocity.add(randomSphericVector(0, e, simulation.mode2D));
                 });
@@ -70,33 +72,33 @@ export class GUIAdvancedControls {
                 simulation.drawParticles();
             },
             close: () => {
-                this.controls.close();
+                controls.close();
             },
         };
     
-        this.controls.add(this.options.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
-        this.controls.add(this.options.advancedControls, 'reverseVelocity').name("Reverse Velocity");
+        controls.add(options.advancedControls, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
+        controls.add(options.advancedControls, 'reverseVelocity').name("Reverse Velocity");
     
-        this.controls.add(this.options.advancedControls, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
-        this.controls.add(this.options.advancedControls, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
-        this.controls.add(this.options.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
+        controls.add(options.advancedControls, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
+        controls.add(options.advancedControls, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
+        controls.add(options.advancedControls, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
             let factor = parseFloat(val);
             if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
                 alert("Factor must be between 0.0 and 1.0.");
-                this.options.advancedControls.dampKickFactor = "0.1";
+                options.advancedControls.dampKickFactor = "0.1";
                 return;
             }
-            this.options.advancedControls.dampKickFactor = factor.toString();
+            options.advancedControls.dampKickFactor = factor.toString();
         });
     
-        this.controls.add(this.options.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
-        this.controls.add(this.options.advancedControls, 'randomVelocity').name("Random Velocity").listen();
+        controls.add(options.advancedControls, 'addRandomVelocity').name("Add Random Velocity");
+        controls.add(options.advancedControls, 'randomVelocity').name("Random Velocity").listen();
     
-        this.controls.add(this.options.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
-        this.controls.add(this.options.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
-        this.controls.add(this.options.advancedControls, 'zeroPosition').name("Zero Position");
-        this.controls.add(this.options.advancedControls, 'close').name("Close");
+        controls.add(options.advancedControls, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
+        controls.add(options.advancedControls, 'cleanupThreshold').name("Cleanup Threshold").listen();
+        controls.add(options.advancedControls, 'zeroPosition').name("Zero Position");
+        controls.add(options.advancedControls, 'close').name("Close");
     
-        this.options.collapseList.push(this.controls);
+        options.collapseList.push(controls);
     }
 }

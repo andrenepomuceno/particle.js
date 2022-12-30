@@ -3,27 +3,29 @@ import {
     core,
 } from '../core.js';
 
+let options, controls;
+
 export class GUIField {
     constructor(guiOptions, guiField) {
-        this.options = guiOptions;
-        this.controls = guiField;
+        options = guiOptions;
+        controls = guiField;
     }
 
     setup() {
         function updateFieldParameter(param, val) {
             val = parseFloat(val);
-            this.options.field[param] = simulation.field.probeParam[param].toExponential(2);
+            options.field[param] = simulation.field.probeParam[param].toExponential(2);
             if (isNaN(val)) {
                 alert("Invalid value.");
                 return;
             }
             if (simulation.field.probeParam[param] == val) return;
             simulation.field.probeParam[param] = val;
-            this.options.field[param] = val.toExponential(2);
-            this.options.field.fieldResize();
+            options.field[param] = val.toExponential(2);
+            options.field.fieldResize();
         }
 
-        this.options.field = {
+        options.field = {
             enabled: false,
             m: '1',
             q: '1',
@@ -36,23 +38,23 @@ export class GUIField {
                 simulation.field.resize(center);
             },
             close: () => {
-                this.controls.close();
+                controls.close();
             },
             enable: () => {
-                this.fieldEnable(this.options.field.enabled);
+                this.fieldEnable(options.field.enabled);
             },
         };
 
-        this.controls.add(this.options.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
+        controls.add(options.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
             this.fieldEnable(val);
         });
-        this.controls.add(this.options.field, 'automaticRefresh').name("Automatic Refresh").listen().onFinishChange(val => {
+        controls.add(options.field, 'automaticRefresh').name("Automatic Refresh").listen().onFinishChange(val => {
             if (val == true) {
-                this.options.field.fieldResize();
+                options.field.fieldResize();
             }
         });
-        this.controls.add(this.options.field, 'grid').name("Grid").listen().onFinishChange(val => {
-            this.options.field.grid = simulation.field.grid[0];
+        controls.add(options.field, 'grid').name("Grid").listen().onFinishChange(val => {
+            options.field.grid = simulation.field.grid[0];
             const grid = Math.round(parseFloat(val));
             if (isNaN(grid)) {
                 alert("Invalid value.");
@@ -69,26 +71,26 @@ export class GUIField {
             if (!fieldInit(grid)) {
                 return;
             }
-            this.options.field.grid = grid;
+            options.field.grid = grid;
         });
-        this.controls.add(this.options.field, 'm').name("Mass").listen().onFinishChange(val => {
+        controls.add(options.field, 'm').name("Mass").listen().onFinishChange(val => {
             updateFieldParameter('m', val);
         });
-        this.controls.add(this.options.field, 'q').name("Charge").listen().onFinishChange(val => {
+        controls.add(options.field, 'q').name("Charge").listen().onFinishChange(val => {
             updateFieldParameter('q', val);
         });
-        this.controls.add(this.options.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
+        controls.add(options.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
             updateFieldParameter('nq', val);
         });
-        this.controls.add(this.options.field, 'fieldResize').name("Refresh [F]");
-        this.controls.add(this.options.field, 'close').name("Close");
+        controls.add(options.field, 'fieldResize').name("Refresh [F]");
+        controls.add(options.field, 'close').name("Close");
 
-        this.options.collapseList.push(this.controls);
+        options.collapseList.push(controls);
 
     }
 
     refresh() {
-        let opt = this.options.field;
+        let opt = options.field;
         let field = simulation.field;
         opt.enabled = field.enabled;
         opt.m = field.probeParam.m.toExponential(2);
@@ -98,13 +100,13 @@ export class GUIField {
     }
 
     fieldEnable(val) {
-        this.options.field.enabled = false;
+        options.field.enabled = false;
         if (val == false) {
             core.deleteParticleList(simulation.field.arrowList);
             simulation.field.cleanup();
-            this.controls.close();
+            controls.close();
         } else {
-            let grid = Math.round(parseFloat(this.options.field.grid));
+            let grid = Math.round(parseFloat(options.field.grid));
             if (isNaN(grid)) {
                 alert("Invalid grid value.");
                 return;
@@ -113,8 +115,8 @@ export class GUIField {
             if (!fieldInit(grid)) {
                 return;
             }
-            this.options.field.enabled = true;
-            this.controls.open();
+            options.field.enabled = true;
+            controls.open();
         }
     }
 }

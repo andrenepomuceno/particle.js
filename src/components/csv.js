@@ -68,7 +68,7 @@ export function parseCsv(simulation, filename, content) {
                 if (values[0] == "") {
                     return true;
                 }
-                if (values.length != particleDataColumns) {
+                if (values.length < particleDataColumns) {
                     log("invalid particle data");
                     log(line);
                     return false;
@@ -90,6 +90,9 @@ export function parseCsv(simulation, filename, content) {
                 particle.velocity.z = parseFloat(values[10]);
                 // parseFloat(values[11]); energy
                 particle.collisions = parseFloat(values[12]);
+                if (values.length >= 13) {
+                    particle.name = values[13];
+                }
 
                 imported.physics.particleList.push(particle);
 
@@ -145,8 +148,8 @@ export function parseCsv(simulation, filename, content) {
 
             case 2:
                 // particle header
-                if (values.length != particleDataColumns) {
-                    log("invalid particle data");
+                if (values.length < particleDataColumns) {
+                    log("invalid particle header");
                     return false;
                 }
                 break;

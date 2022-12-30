@@ -1,6 +1,6 @@
 import { NuclearPotentialType } from "../../physics";
 
-export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = false) {
+export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = true) {
     function define(define, value) {
         if (value) {
             return "#define " + define + " 1\n";
@@ -265,11 +265,14 @@ void main() {
     vec4 tVel1 = texture2D(textureVelocity, uv1);
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
-    vec3 consts = vec3(
+
+    vec4 consts = vec4(
+        0,
         massConstant, 
         chargeConstant, 
         nuclearForceConstant
     );
+
     vec3 rForce = vec3(0.0);
     for (float texY = 0.0; texY < height; texY++) {
         for (float texX = 0.0; texX < width; texX++) {
@@ -296,6 +299,7 @@ void main() {
                     if (m == 0.0) {
                         continue;
                     }
+                    
                     float s = 2.0 * m1 * m2 / m;
                     vec3 dVel = vel2 - vel1;
                     if (distance2 > 0.0) {
@@ -313,6 +317,7 @@ void main() {
                     distance2 = minDistance2;
                 }
             }
+
             #if USE_DISTANCE1
                 float distance1 = sqrt(distance2);
             #endif
@@ -344,18 +349,20 @@ void main() {
                     #endif
                 #endif
             }
+
             #if !USE_DISTANCE1
                 float d12 = 1.0/distance2;
             #else
                 float d12 = 1.0/distance1;
             #endif
-            vec3 props = props1.yzw * props2.yzw;
-            vec3 pot = vec3(d12, d12, x);
-            vec3 result = consts * props * pot;
-            float force = result.x + result.y + result.z;
+            vec4 props = props1 * props2;
+            vec4 pot = vec4(0, d12, d12, x);
+            vec4 result = consts * props * pot;
+            float force = result.y + result.z + result.w;
             rForce += forceConstant * force * normalize(dPos);
         }
     }
+
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);
@@ -384,6 +391,7 @@ void main() {
     } else if (type1 == PROBE) {
         vel1 = rForce;
     }
+
     gl_FragColor = vec4(vel1, collisions);
 }
 `;

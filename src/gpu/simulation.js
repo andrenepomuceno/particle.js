@@ -81,7 +81,7 @@ export class SimulationGPU {
 
         let t1 = performance.now();
         this.computeTime.push(t1 - t0);
-        if (this.computeTime.length > 5*60) this.computeTime.shift();
+        if (this.computeTime.length > 1e3) this.computeTime.shift();
     }
 
     getComputeTime() {

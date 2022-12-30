@@ -24,6 +24,7 @@ let lastAnimateTime = 0;
 
 const statsPanel = new Stats();
 const energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
+const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
 
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
@@ -57,6 +58,7 @@ let guiOptions = {
     nextFrame: false,
     statsPanel,
     energyPanel,
+    computePanel,
     mouseHelper,
     selectionHelper,
     ruler: undefined,

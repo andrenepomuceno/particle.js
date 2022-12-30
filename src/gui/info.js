@@ -146,5 +146,13 @@ export function guiInfoRefresh() {
     if (energy > options.energyPanel.max) options.energyPanel.max = energy;
     options.energyPanel.update(energy, options.energyPanel.max);
 
-    console.log('computeTime = ' + simulation.getComputeTime() + ' ms');
+    let avg = simulation.getComputeTime().toFixed(3);
+    options.computePanel.update(1000 * avg, 1000);
+    /*console.log(realTime + ',' + avg);
+    computeTimeHistory.push({
+        time: realTime,
+        avg: avg,
+    });*/
 }
+
+let computeTimeHistory = [];

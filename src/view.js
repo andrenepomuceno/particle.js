@@ -9,7 +9,7 @@ import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
-import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './gui/info.js';
+import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
@@ -232,7 +232,7 @@ function animate(time) {
     if (time - lastViewUpdate >= viewUpdateDelay) {
         lastViewUpdate = time;
 
-        if (autoRefresh == true) {
+        if (guiOptions.info.autoRefresh == true) {
             simulation.graphics.readbackParticleData();
         }
 

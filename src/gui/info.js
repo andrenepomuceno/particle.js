@@ -8,11 +8,10 @@ import {
     core,
 } from '../core.js';
 
-export let autoRefresh = true;
-let gGuiOptions;
+let options;
 
 export function guiInfoSetup(guiOptions, guiInfo) {
-    gGuiOptions = guiOptions;
+    options = guiOptions;
 
     guiOptions.info = {
         name: "",
@@ -26,7 +25,7 @@ export function guiInfoSetup(guiOptions, guiInfo) {
         charge: "",
         cameraDistance: "",
         cameraPosition: "",
-        autoRefresh: autoRefresh,
+        autoRefresh: true,
         mode2D: false,
         folderName: "",
         velocity: "",
@@ -92,7 +91,7 @@ export function guiInfoSetup(guiOptions, guiInfo) {
         simulation.bidimensionalMode(val);
     });
     guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
-        autoRefresh = val;
+        guiOptions.info.autoRefresh = val;
     });
 
     if (!ENV?.production) {
@@ -112,13 +111,13 @@ export function guiInfoSetup(guiOptions, guiInfo) {
 export function guiInfoRefresh() {
     let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
 
-    gGuiOptions.info.name = name;
-    gGuiOptions.info.folderName = simulation.folderName;
-    gGuiOptions.info.particles = n;
-    gGuiOptions.info.maxParticles = simulation.graphics.maxParticles;
+    options.info.name = name;
+    options.info.folderName = simulation.folderName;
+    options.info.particles = n;
+    options.info.maxParticles = simulation.graphics.maxParticles;
 
     let realTime = new Date(totalTime).toISOString().substring(11, 19);
-    gGuiOptions.info.time = realTime + " (" + t + ")";
+    options.info.time = realTime + " (" + t + ")";
 
     n = (n == 0) ? (1) : (n);
     m = (m == 0) ? (1) : (m);
@@ -129,21 +128,21 @@ export function guiInfoRefresh() {
     simulation.graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
 
     simulation.field.refreshMaxVelocity();
-    gGuiOptions.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
-    gGuiOptions.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
+    options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
+    options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
 
-    gGuiOptions.info.energy = avgEnergy.toExponential(2);
-    gGuiOptions.info.velocity = avgVelocity.toExponential(2);
+    options.info.energy = avgEnergy.toExponential(2);
+    options.info.velocity = avgVelocity.toExponential(2);
 
-    gGuiOptions.info.collisions = c;
-    gGuiOptions.info.mass = m.toExponential(2);
-    gGuiOptions.info.charge = totalCharge.toExponential(2);
-    gGuiOptions.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
+    options.info.collisions = c;
+    options.info.mass = m.toExponential(2);
+    options.info.charge = totalCharge.toExponential(2);
+    options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
     let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
-    gGuiOptions.info.cameraNormal = arrayToString(tmp, 1);
-    gGuiOptions.info.mode2D = simulation.mode2D;
+    options.info.cameraNormal = arrayToString(tmp, 1);
+    options.info.mode2D = simulation.mode2D;
 
     let energy = avgVelocity;
-    if (energy > gGuiOptions.energyPanel.max) gGuiOptions.energyPanel.max = energy;
-    gGuiOptions.energyPanel.update(energy, gGuiOptions.energyPanel.max);
+    if (energy > options.energyPanel.max) options.energyPanel.max = energy;
+    options.energyPanel.update(energy, options.energyPanel.max);
 }

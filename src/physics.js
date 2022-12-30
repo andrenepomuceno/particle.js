@@ -1,4 +1,4 @@
-import { Vector3, VectorKeyframeTrack } from 'three';
+import { Vector3 } from 'three';
 import { ParticleType } from './particle';
 
 export const NuclearPotentialType = {
@@ -8,6 +8,7 @@ export const NuclearPotentialType = {
     potential_exp: 'potential1',
     potential_powAX: 'potential2',
     potential_powAXv2: 'potential3',
+    potential_powAXv3: 'potential4',
 }
 
 export const scaleEPN = {

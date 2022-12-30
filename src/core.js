@@ -248,7 +248,6 @@ class Core {
 
             case 'position':
                 {
-                    console.log(value);
                     let v = decodeVector3(value);
                     if (v != undefined) {
                         let vec = new Vector3(v.x, v.y, v.z);

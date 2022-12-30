@@ -22,13 +22,14 @@ export class KeyboardHelper {
         this.onKeyDownMap.set('pageup', { callback: this.guiOptions.controls.previous });
         this.onKeyDownMap.set('home', { callback: this.guiOptions.controls.home });
         this.onKeyDownMap.set('h', { callback: this.guiOptions.controls.hideOverlay });
-        this.onKeyDownMap.set('z', { callback: this.guiOptions.selection.place });
-        this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });
         this.onKeyDownMap.set('delete', { callback: this.guiOptions.controls.deleteAll });
         this.onKeyDownMap.set('s', { callback: this.guiOptions.controls.sandbox });
         this.onKeyDownMap.set('m', { callback: this.guiOptions.controls.collapseAll });
         this.onKeyDownMap.set('~', { callback: this.guiOptions.controls.debug });
         this.onKeyDownMap.set('*', { callback: this.guiOptions.controls.record });
+
+        this.onKeyDownMap.set('z', { callback: this.guiOptions.selection.place });
+        this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });
 
         this.onKeyDownMap.set('g', { callback: this.guiOptions.generator.generate });
         this.onKeyDownMap.set('G', { callback: this.guiOptions.generator.clear });

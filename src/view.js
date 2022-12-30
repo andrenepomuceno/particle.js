@@ -15,8 +15,8 @@ import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { guiFieldSetup, guiFieldRefresh } from './gui/field.js';
 import { guiGeneratorSetup } from './gui/generator.js';
 import { guiSelectionSetup } from './gui/selection.js';
-import { guiControlsSetup, guiControlsRefresh } from './gui/controls.js';
-import { guiAdvancedControlsSetup } from './gui/advancedControls.js';
+import { guiControlsSetup, guiControlsRefresh, GUIControls } from './gui/controls.js';
+import { GUIAdvancedControls } from './gui/advancedControls.js';
 
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
@@ -71,6 +71,9 @@ let guiOptions = {
     parameters: {},
     advancedControls: {},
     field: {},
+
+    guiControls: undefined,
+    guiAdvancedControls: undefined,
 }
 
 guiOptions.keyboard = new KeyboardHelper(mouseHelper, guiOptions);
@@ -84,7 +87,7 @@ function scenarioSetup(idx) {
     core.setup(idx);
 
     guiParametersRefresh();
-    guiControlsRefresh();
+    guiOptions.guiControls.refresh();
     guiInfoRefresh();
     guiOptions.generator.default();
     guiFieldRefresh();
@@ -119,12 +122,14 @@ export function viewSetup() {
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiInfoSetup(guiOptions, guiInfo);
-    guiControlsSetup(guiOptions, guiControls);
+    guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
+    guiOptions.guiControls.setup();
     guiParticleSetup(guiOptions, guiParticle);
     guiParametersSetup(guiOptions, guiParameters);
     guiSelectionSetup(guiOptions, guiSelection);
     guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
-    guiAdvancedControlsSetup(guiOptions, guiAdvancedControls);
+    guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
+    guiOptions.guiAdvancedControls.setup();
     guiFieldSetup(guiOptions, guiField);
 
     scenarioSetup();
@@ -233,7 +238,7 @@ function animate(time) {
         guiParticleRefresh();
         selectionHelper.guiRefresh();
         guiParametersRefresh();
-        guiControlsRefresh();
+        guiOptions.guiControls.refresh();
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

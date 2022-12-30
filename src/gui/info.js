@@ -145,4 +145,6 @@ export function guiInfoRefresh() {
     let energy = avgVelocity;
     if (energy > options.energyPanel.max) options.energyPanel.max = energy;
     options.energyPanel.update(energy, options.energyPanel.max);
+
+    console.log('computeTime = ' + simulation.getComputeTime() + ' ms');
 }

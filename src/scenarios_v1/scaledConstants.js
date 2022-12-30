@@ -4,7 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
-    bigbang,
+    miniverse,
     essentialElements,
     water_quarkModel,
     air_quarkModel,
@@ -59,14 +59,14 @@ function calcGridSize(graphics, m) {
     return grid;
 }
 
-function bigbang(simulation) {
+function miniverse(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv2;
     //physics.useBoxBoundary = true;
-    //physics.useDistance1 = true;
+    physics.useDistance1 = true;
     simulation.mode2D = true;
 
     const m = 1 * 1e18;
@@ -74,20 +74,19 @@ function bigbang(simulation) {
     const s = 1e27;
     const c = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
     const nuclearForceRange = 1e-15 * m;
-    console.log(nuclearForceRange);
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 1e4 * physics.nuclearForceRange;
-    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1e5 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.9;
     graphics.cameraDistance = 1e2 * physics.nuclearForceRange;
     graphics.cameraSetup();
-    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.25 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.massConstant = 1e39 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 1e1 * 25e3 * kg * m * s**-2; // fine structure
-    physics.forceConstant = 1;
+    physics.nuclearForceConstant = 1e2 * 25e3 * kg * m * s**-2; // fine structure
+    physics.forceConstant = 1/3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1;
@@ -104,7 +103,7 @@ function bigbang(simulation) {
         randomSequence: true,
         randomQSignal: true,
         randomNQSignal: true,
-        v1: 1e-3,
+        v1: 1e-6,
     };
     createParticles(simulation, particles, graphics.maxParticles, options);
 }

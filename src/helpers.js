@@ -363,6 +363,7 @@ export function createParticles(simulation, typeList, n, options) {
         allowZeroQ: true,
 
         nq: 1,
+        randomNQ: false,
         randomNQSignal: true,
 
         r0: 0,
@@ -398,6 +399,7 @@ export function createParticles(simulation, typeList, n, options) {
         if (options.randomNQSignal == true) {
             if (random(0, 1, true) == 1) nq *= -1;
         }
+        if (options.randomNQ == true) nq *= random(0, 1);
         p.nuclearCharge = nq;
 
         p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);

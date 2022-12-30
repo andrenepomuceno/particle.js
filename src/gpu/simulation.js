@@ -1,5 +1,6 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
 import { ParticleType } from '../particle.js';
+import { calcListStatistics } from '../physics';
 
 function log(msg) {
     console.log("SimulationGPU: " + msg);
@@ -68,6 +69,7 @@ export class SimulationGPU {
         this.qMax = -Infinity;
 
         this.computeTime = [];
+        this.stats = {};
     }
 
     step(dt) {
@@ -101,22 +103,13 @@ export class SimulationGPU {
 
     state() {
         // log("state");
-        let particles = this.particleList.length;
-
-        let energy = 0.0;
-        let collisions = 0.0;
-        this.particleList.forEach(p => {
-            energy += p.energy();
-            collisions += p.collisions;
-        })
-        this.energy = energy;
-        this.physics.collisionCounter = collisions;
-
+        this.stats = calcListStatistics(this.particleList);
+        this.physics.collisionCounter = this.stats.collisions;
         return [
             this.name,
-            particles,
+            this.stats.particles,
             this.cycles,
-            this.energy,
+            this.stats.totalEnergy,
             this.physics.collisionCounter,
             this.totalMass,
             this.physics.boundaryDistance,

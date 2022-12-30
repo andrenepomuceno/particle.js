@@ -15,27 +15,32 @@ export function guiInfoSetup(guiOptions, guiInfo) {
 
     guiOptions.info = {
         name: "",
+        folderName: "",
         particles: "",
         maxParticles: "",
-        energy: "",
         time: "",
         collisions: 0,
+
         mass: "",
-        radius: "",
         charge: "",
+        nuclearCharge: '',
+        energy: "",
+        velocity: "",
+        
         cameraDistance: "",
         cameraPosition: "",
+
         autoRefresh: true,
         mode2D: false,
-        folderName: "",
-        velocity: "",
+
+        rulerLen: '0',
+        rulerDelta: '0,0,0',
+        rulerStart: '0,0,0',
+
         // debug
         cameraNormal: '',
         fieldMaxVel: '0',
         fieldAvgVel: '0',
-        rulerLen: '0',
-        rulerDelta: '0,0,0',
-        rulerStart: '0,0,0',
     };
 
     guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
@@ -68,6 +73,9 @@ export function guiInfoSetup(guiOptions, guiInfo) {
     });
     guiInfoMore.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
         core.updateParticleList("charge", val);
+    });
+    guiInfoMore.add(guiOptions.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
+        core.updateParticleList("nuclearCharge", val);
     });
     guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
 
@@ -137,6 +145,7 @@ export function guiInfoRefresh() {
     options.info.collisions = c;
     options.info.mass = m.toExponential(2);
     options.info.charge = totalCharge.toExponential(2);
+    options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
     options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
     let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
     options.info.cameraNormal = arrayToString(tmp, 1);

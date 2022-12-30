@@ -4,7 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
-    bigbang,
+    cosmological,
     miniverse,
     essentialElements,
     water_quarkModel,
@@ -60,7 +60,7 @@ function calcGridSize(graphics, m) {
     return grid;
 }
 
-function bigbang(simulation) {
+function cosmological(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -70,10 +70,10 @@ function bigbang(simulation) {
     physics.useDistance1 = true;
     //simulation.mode2D = false;
 
-    const m = 1e-9;
-    const kg = 1e-30;
-    const s = 1e-3;
-    const c = 1e-21;
+    const m = 1e-15;
+    const kg = 1e-36;
+    const s = 1e-9;
+    const c = 1e-27;
 
     physics.nuclearForceRange = 1e3;
     physics.boundaryDistance = 1e5 * physics.nuclearForceRange;
@@ -89,12 +89,9 @@ function bigbang(simulation) {
     physics.forceConstant = 1/3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    let r0 = 1e3;
+    let r0 = 1;
 
     let particles = [
-        /*{ m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },*/
         {m: 1, q: 1, nq: 1},
     ];
 
@@ -103,9 +100,12 @@ function bigbang(simulation) {
         r0: 0, r1: r0,
         //randomSequence: true,
         randomM: true,
+        //randomMSignal: true,
+        randomQ: true,
         randomQSignal: true,
+        randomNQ: true,
         randomNQSignal: true,
-        v1: 1,
+        v1: 1e-6,
     };
     createParticles(simulation, particles, graphics.maxParticles, options);
 }

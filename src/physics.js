@@ -83,6 +83,7 @@ export function calcListStatistics(list) {
     stats.particles = list.length;
     stats.fixed = 0;
     stats.totalEnergy = 0.0;
+    stats.collisions = 0.0;
 
     list.forEach(p => {
         switch (p.type) {
@@ -98,6 +99,7 @@ export function calcListStatistics(list) {
                 stats.totalCharge += p.charge;
                 stats.totalNuclearCharge += p.nuclearCharge;
                 stats.totalEnergy += p.energy();
+                stats.collisions += p.collisions;
                 break;
 
             case ParticleType.undefined:

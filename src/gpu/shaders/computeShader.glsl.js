@@ -36,11 +36,9 @@ precision highp float;
 #define PROBE 1.0
 #define FIXED 2.0
 
-uniform float uTimeDelta;
 uniform float boundaryDistance;
 
 #define ENABLE_BOUNDARY 0
-#define USE_BOX_BOUNDARY 0
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -54,20 +52,16 @@ void main() {
         vec3 vel = tVel.xyz;
         
         #if ENABLE_BOUNDARY
-            // check boundary colision
+            // check out of boundary
             vec3 nextPos = pos + vel;
-            #if !USE_BOX_BOUNDARY
-                if (length(nextPos) >= boundaryDistance) {
-                    vel = -pos;
-                }
-            #else
-                /*if (abs(nextPos.x) >= boundaryDistance) vel.x = -boundaryDamping * vel1.x;
-                if (abs(nextPos.y) >= boundaryDistance) vel.y = -boundaryDamping * vel1.y;
-                if (abs(nextPos.z) >= boundaryDistance) vel.z = -boundaryDamping * vel1.z;*/
-            #endif
+            if (length(nextPos) < boundaryDistance) {
+                pos += vel;
+            } else {
+                pos = 1e-3 * pos;
+            }
+        #else
+            pos += vel;
         #endif
-
-        pos += vel;
     }
 
     gl_FragColor = vec4(pos, type);

@@ -25,6 +25,7 @@ let lastAnimateTime = 0;
 const statsPanel = new Stats();
 const velocityPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
 const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
+//statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");

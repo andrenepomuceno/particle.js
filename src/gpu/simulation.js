@@ -66,17 +66,37 @@ export class SimulationGPU {
         this.mMax = -Infinity;
         this.qMin = Infinity;
         this.qMax = -Infinity;
+
+        this.computeTime = [];
     }
 
     step(dt) {
         // log("step");
 
+        let t0 = performance.now();
+
         this.graphics.compute();
         ++this.cycles;
-
-        //fieldUpdate();
-
         if (dt < 1e3) this.totalTime += dt;
+
+        let t1 = performance.now();
+        this.computeTime.push(t1 - t0);
+        if (this.computeTime.length > 1e3) this.computeTime.shift();
+    }
+
+    getComputeTime() {
+        if (this.computeTime.length == 0) return { avg: 0, max: 0 };
+
+        let sum = 0;
+        let max = 0;
+        this.computeTime.forEach(v => {
+            sum += v;
+            if (v > max) max = v;
+        });
+        return {
+            avg: sum / this.computeTime.length,
+            max: max,
+        };
     }
 
     state() {

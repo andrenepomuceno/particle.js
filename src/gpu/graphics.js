@@ -218,6 +218,7 @@ export class GraphicsGPU {
     }
 
     /* GPGPU Stuff */
+    
     #initComputeRenderer() {
         log("#initComputeRenderer");
 

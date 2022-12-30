@@ -143,6 +143,16 @@ export function guiInfoRefresh() {
     options.info.mode2D = simulation.mode2D;
 
     let energy = avgVelocity;
-    if (energy > options.energyPanel.max) options.energyPanel.max = energy;
-    options.energyPanel.update(energy, options.energyPanel.max);
+    if (energy > options.velocityPanel.max) options.velocityPanel.max = energy;
+    options.velocityPanel.update(energy, options.velocityPanel.max);
+
+    let computeTime = simulation.getComputeTime();
+    options.computePanel.update(1000 * computeTime.avg, 1000 * computeTime.max);
+    /*console.log(realTime + ',' + avg);
+    computeTimeHistory.push({
+        time: realTime,
+        avg: computeTime.avg,
+    });*/
 }
+
+let computeTimeHistory = [];

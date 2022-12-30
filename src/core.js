@@ -561,6 +561,7 @@ class Core {
         this.internalSetup(imported.physics);
 
         simulation.name = filename;
+        simulation.folderName = 'imported';
         simulation.particleRadius = imported.particleRadius;
         simulation.particleRadiusRange = imported.particleRadiusRange;
         simulation.mode2D = imported.mode2D;

@@ -47,7 +47,7 @@ function nuclearField(simulation) {
     let physics = simulation.physics;
     defaultConfig(simulation);
 
-    simulation.field.probeConfig(0, 0, 5e2);
+    simulation.field.probeConfig(0, 0, 1e2);
     simulation.fieldSetup("2d", grid);
 
     let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);

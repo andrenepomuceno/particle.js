@@ -9,14 +9,14 @@ import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
-import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './menu/info.js';
-import { guiParticleSetup, guiParticleRefresh } from './menu/particle.js';
-import { guiParametersSetup, guiParametersRefresh } from './menu/parameters.js';
-import { guiFieldSetup, guiFieldRefresh } from './menu/field.js';
-import { guiGeneratorSetup } from './menu/generator.js';
-import { guiSelectionSetup } from './menu/selection.js';
-import { guiControlsSetup, guiControlsRefresh } from './menu/controls.js';
-import { guiAdvancedControlsSetup } from './menu/advancedControls.js';
+import { guiInfoSetup, guiInfoRefresh, autoRefresh } from './gui/info.js';
+import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
+import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
+import { guiFieldSetup, guiFieldRefresh } from './gui/field.js';
+import { guiGeneratorSetup } from './gui/generator.js';
+import { guiSelectionSetup } from './gui/selection.js';
+import { guiControlsSetup, guiControlsRefresh } from './gui/controls.js';
+import { guiAdvancedControlsSetup } from './gui/advancedControls.js';
 
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;

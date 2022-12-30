@@ -1,4 +1,4 @@
-import { Color, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
 import { decodeVector3 } from './helpers.js';
 import { scenariosList } from './scenarios.js';

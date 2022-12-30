@@ -23,7 +23,7 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
 const statsPanel = new Stats();
-const energyPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
+const velocityPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
 const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
 
 const gui = new dat.GUI();
@@ -54,10 +54,10 @@ let guiOptions = {
     cameraTargetSet: (pos) => {
         cameraTargetSet(pos);
     },
-    
+
     nextFrame: false,
     statsPanel,
-    energyPanel,
+    velocityPanel,
     computePanel,
     mouseHelper,
     selectionHelper,
@@ -95,8 +95,8 @@ function scenarioSetup(idx) {
     guiOptions.generator.default();
     guiOptions.guiField.refresh();
 
-    energyPanel.min = 0;
-    energyPanel.max = 0;
+    velocityPanel.min = 0;
+    velocityPanel.max = 0;
 
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;

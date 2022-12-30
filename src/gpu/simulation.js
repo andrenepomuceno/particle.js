@@ -85,13 +85,18 @@ export class SimulationGPU {
     }
 
     getComputeTime() {
-        if (this.computeTime.length == 0) return 0.0;
+        if (this.computeTime.length == 0) return { avg: 0, max: 0 };
 
         let sum = 0;
+        let max = 0;
         this.computeTime.forEach(v => {
             sum += v;
+            if (v > max) max = v;
         });
-        return sum/this.computeTime.length;
+        return {
+            avg: sum / this.computeTime.length,
+            max: max,
+        };
     }
 
     state() {

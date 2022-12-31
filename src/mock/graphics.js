@@ -1,23 +1,9 @@
 import {
-    Vector3,
     WebGLRenderer,
     Scene,
     PerspectiveCamera,
-    ArrowHelper,
-    Raycaster,
-    ShaderMaterial,
-    BufferGeometry,
-    Float32BufferAttribute,
-    Points,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-let CanvasCapture = null;
-if (ENV?.record === true) {
-    CanvasCapture = require('canvas-capture').CanvasCapture;
-}
-
-import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
-import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
@@ -39,18 +25,10 @@ export class GraphicsMock {
         this.maxParticles = this.textureWidth * this.textureWidth;
 
         this.renderer = new WebGLRenderer();
-        /*this.renderer.powerPreference = 'high-performance';
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById("container").appendChild(this.renderer.domElement);*/
-
         this.scene = new Scene();
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-        /*this.raycaster = new Raycaster();
-        this.raycaster.params.Points.threshold = 1;*/
 
         this.axisObject = undefined;
         this.showAxis();
@@ -129,27 +107,7 @@ export class GraphicsMock {
     }
 
     capture(name) {
-        if (ENV?.record != true) return;
 
-        if (CanvasCapture.isRecording()) {
-            CanvasCapture.stopRecord();
-            return;
-        }
-
-        let element = this.renderer.domElement;//document.getElementById('container');
-        CanvasCapture.init(
-            element,
-            {
-                showRecDot: true,
-                verbose: true
-            },
-        );
-
-        CanvasCapture.beginVideoRecord({
-            format: CanvasCapture.WEBM,
-            fps: 60,
-            name: exportFilename(name),
-        });
     }
 
     /* GPGPU Stuff */

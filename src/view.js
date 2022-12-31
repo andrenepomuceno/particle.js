@@ -1,4 +1,3 @@
-import * as dat from 'dat.gui';
 import {
     simulation,
     core,
@@ -9,6 +8,7 @@ import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 import Stats from './components/stats';
 
+import * as dat from './gui/dat.gui';
 import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';

@@ -3,18 +3,18 @@ var Stats = function () {
 
     var container = document.createElement('div');
     container.style.cssText = `
-    position:fixed;
-    top:0;
-    left:0;
-    cursor:pointer;
-    opacity:0.9;
-    z-index:10000
+    position: fixed;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    opacity: 0.9;
+    z-index: 10000
     `;
 
-    /*container.addEventListener('click', function (event) {
+    container.addEventListener('click', function (event) {
         event.preventDefault();
         showPanel(++mode % container.children.length);
-    }, false);*/
+    }, false);
 
     function addPanel(panel) {
         container.appendChild(panel.dom);
@@ -31,8 +31,6 @@ var Stats = function () {
     var beginTime = (performance || Date).now(), prevTime = beginTime, frames = 0;
     var fpsPanel = addPanel(new Stats.Panel('FPS'));
     var fpsMax = 0;
-
-    //showPanel(0);
 
     return {
         REVISION: 16,
@@ -67,7 +65,7 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
     var min = Infinity, max = 0, round = Math.round;
     var PR = round(window.devicePixelRatio || 1);
 
-    const WIDTH = 96 * PR, HEIGHT = 64 * PR,
+    const WIDTH = 100 * PR, HEIGHT = 64 * PR,
         TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
         GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
         GRAPH_WIDTH = 74 / 80 * WIDTH * PR, GRAPH_HEIGHT = 30 / 48 * HEIGHT * PR;
@@ -75,7 +73,7 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
     var canvas = document.createElement('canvas');
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
-    canvas.style.cssText = 'width: 96px; height: 64px;';
+    canvas.style.cssText = 'width: 100px; height: 64px;';
 
     var context = canvas.getContext('2d');
     context.font = 'bold ' + (9 * PR) + 'px Helvetica, Arial, sans-serif';

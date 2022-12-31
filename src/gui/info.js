@@ -22,7 +22,7 @@ export class GUIInfo {
         options.info = {
             name: "",
             folderName: "",
-            particles: "",
+            particles: 0,
             maxParticles: "",
             time: "",
             collisions: 0,

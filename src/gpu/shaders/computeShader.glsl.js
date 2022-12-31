@@ -1,14 +1,14 @@
 import { NuclearPotentialType } from "../../physics";
 
-export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = true) {
-    function define(define, value) {
-        if (value) {
-            return "#define " + define + " 1\n";
-        } else {
-            return "#define " + define + " 0\n";
-        }
+function define(define, value) {
+    if (value) {
+        return "#define " + define + " 1\n";
+    } else {
+        return "#define " + define + " 0\n";
     }
+}
 
+export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = true) {
     let config = "";
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
@@ -28,7 +28,15 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
     return shader;
 }
 
-export const computePosition = /* glsl */ `
+export function generateComputePosition(enableBoundary = true) {
+    let config = "";
+    config += define("ENABLE_BOUNDARY", enableBoundary);
+   
+    let shader = config + computePosition;
+    return shader;
+}
+
+const computePosition = /* glsl */ `
 precision highp float;
 
 #define UNDEFINED -1.0
@@ -38,7 +46,7 @@ precision highp float;
 
 uniform float boundaryDistance;
 
-#define ENABLE_BOUNDARY 0
+#define ENABLE_BOUNDARY 1
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
@@ -51,20 +59,20 @@ void main() {
         vec4 tVel = texture2D( textureVelocity, uv );
         vec3 vel = tVel.xyz;
         
+        pos += vel;
+
         #if ENABLE_BOUNDARY
             // check out of boundary
-            vec3 nextPos = pos + vel;
-            if (length(nextPos) < boundaryDistance) {
-                pos += vel;
-            } else {
+            if (length(pos) > boundaryDistance) {
                 pos = 1e-3 * pos;
             }
-        #else
-            pos += vel;
         #endif
+
+        gl_FragColor = vec4(pos, type);
+        return;
     }
 
-    gl_FragColor = vec4(pos, type);
+    discard;
 }
 `;
 

@@ -17,7 +17,7 @@ if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
 }
 
-import { computePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
+import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
 import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
@@ -241,10 +241,11 @@ export class GraphicsGPU {
                 this.physics.useDistance1,
                 this.physics.useBoxBoundary,
                 this.physics.enableBoundary);
+            this.physics.positionShader = generateComputePosition(this.physics.enableBoundary);
         }
 
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
-        this.positionVariable = gpuCompute.addVariable('texturePosition', computePosition, this.dtPosition);
+        this.positionVariable = gpuCompute.addVariable('texturePosition', this.physics.positionShader, this.dtPosition);
 
         gpuCompute.setVariableDependencies(this.velocityVariable, [this.velocityVariable, this.positionVariable]);
         gpuCompute.setVariableDependencies(this.positionVariable, [this.velocityVariable, this.positionVariable]);
@@ -271,6 +272,9 @@ export class GraphicsGPU {
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         uniforms['uTimeDelta'] = { value: physics.timeDelta };
+
+        uniforms = this.positionVariable.material.uniforms;
+        uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
     }
 
     #fillTextures() {

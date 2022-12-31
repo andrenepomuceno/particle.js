@@ -47,6 +47,7 @@ export class Physics {
         this.useBoxBoundary = false;
         this.useDistance1 = false;
         this.velocityShader = undefined;
+        this.positionShader = undefined;
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;

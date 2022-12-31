@@ -120,9 +120,8 @@
 
 .dg li.folder {
     padding: 0;
-    border-left: 4px solid rgba(0, 0, 0, 0);
-    border-bottom: 0;
-    border-left: 10px solid rgba(141, 122, 122, 0.397)
+    border-left: 8px solid rgba(141, 122, 122, 0.397);
+    border-bottom: 0
 }
 
 .dg li.title {

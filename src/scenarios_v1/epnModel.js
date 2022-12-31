@@ -5,8 +5,8 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const epnModel = [
-    periodicTableV2,
-    air_epnModel,
+    periodicTable,
+    air,
     randomElements,
 ];
 
@@ -32,7 +32,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function periodicTableV2(simulation) {
+function periodicTable(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -45,7 +45,7 @@ function periodicTableV2(simulation) {
     const m = 1 * 1e18; // attometer
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
     const s = 1e27; // second, quantum time
-    const C = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
+    const c = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
     const nuclearForceRange = 1e-15 * m;
     const nq = 1.0;
     const v = 1.0;
@@ -59,7 +59,7 @@ function periodicTableV2(simulation) {
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * C ** -2;
+    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
     physics.nuclearForceConstant = 1.0;
     physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
@@ -72,11 +72,11 @@ function periodicTableV2(simulation) {
     if (graphics.maxParticles >= 26334) gridSize = [12, 11, 1];
 
     let nucleusTypes = [
-        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * C, nq: 1 },
-        { m: 1.67492749e-27 * kg, q: 0, nq: 1 },
+        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1, name: 'proton' },
+        { m: 1.67492749e-27 * kg, q: 0, nq: 1, name: 'neutron' },
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * C, nq: -1 / 60 },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: 'electron' },
     ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
@@ -105,7 +105,7 @@ function periodicTableV2(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function air_epnModel(simulation) {
+function air(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -145,11 +145,11 @@ function air_epnModel(simulation) {
     let gridSize = calcGridSize(graphics, 3 * 8);
 
     let nucleusTypes = [
-        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1 },
-        { m: 1.67492749e-27 * kg, q: 0, nq: 1 },
+        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1, name: 'proton' },
+        { m: 1.67492749e-27 * kg, q: 0, nq: 1, name: 'neutron' },
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60 },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: 'electron' },
     ];
 
     let elementsRatios = [
@@ -244,11 +244,11 @@ function randomElements(simulation) {
     //if (!ENV?.production) simulation.field.setup("2d", 50);
 
     let nucleusTypes = [
-        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1 },
-        { m: 1.67492749e-27 * kg, q: 0, nq: 1 },
+        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1, name: 'proton' },
+        { m: 1.67492749e-27 * kg, q: 0, nq: 1, name: 'neutron' },
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60 },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: 'electron' },
     ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {

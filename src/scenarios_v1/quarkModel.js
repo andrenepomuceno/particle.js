@@ -5,13 +5,13 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    water_quarkModel2,
+    water2,
     miniverse2,
     cosmological,
-    miniverse,
+    //miniverse,
     essentialElements,
-    //water_quarkModel,
-    air_quarkModel,
+    //water,
+    air,
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
@@ -36,7 +36,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function water_quarkModel2(simulation) {
+function water2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -112,7 +112,7 @@ function miniverse2(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     //physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
-    //simulation.mode2D = false;
+    simulation.mode2D = false;
 
     const m = 1 * 1e19;
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
@@ -358,7 +358,7 @@ function essentialElements(simulation) {
     console.log(total);
 }
 
-function water_quarkModel(simulation) {
+function water(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -451,7 +451,7 @@ function water_quarkModel(simulation) {
     console.log(total);
 }
 
-function air_quarkModel(simulation) {
+function air(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

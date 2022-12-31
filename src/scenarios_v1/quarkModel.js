@@ -111,7 +111,7 @@ function miniverse3(simulation) {
     defaultParameters(simulation);
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
-    //physics.useBoxBoundary = true;
+    physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
@@ -122,14 +122,14 @@ function miniverse3(simulation) {
     const nuclearForceRange = 1e-15 * m;
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 1e3 * physics.nuclearForceRange;
-    physics.boundaryDamping = 0.5;
+    physics.boundaryDistance = 1e2 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.6;
     graphics.cameraDistance = 1e2 * physics.nuclearForceRange;
     graphics.cameraSetup();
     simulation.particleRadius = 0.25 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 1e40 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg * m ** 3 * s ** -2 * c ** -2;
     physics.nuclearForceConstant = 25e3 * kg * m * s ** -2; // fine structure
     physics.forceConstant = 1 / 3;
@@ -155,7 +155,7 @@ function miniverse3(simulation) {
         randomNQSignal: false,
         v1: 1e-3,
     };
-    createParticles(simulation, particles, graphics.maxParticles, options);
+    createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
 }
 
 

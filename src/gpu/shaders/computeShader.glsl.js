@@ -10,6 +10,8 @@ function define(define, value) {
 
 export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = true) {
     let config = "";
+    config += '#define TOLERANCE 1.01\n';
+
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
 
@@ -30,6 +32,8 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
 
 export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
     let config = "";
+    config += '#define TOLERANCE 1.01\n';
+    
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
    
@@ -61,17 +65,17 @@ void main() {
         pos += vel;
 
         #if ENABLE_BOUNDARY
-            const float tolerance = 1.1;
-            const float penalty = 1e-3;
             #if !USE_BOX_BOUNDARY
                 // check out of boundary
-                if (length(pos) > tolerance * boundaryDistance) {
-                    pos = penalty * pos;
+                if (length(pos) > TOLERANCE * boundaryDistance) {
+                    pos = normalize(pos);
                 }
             #else
-                if (abs(pos.x) > tolerance * boundaryDistance) pos.x = penalty * pos.x;
-                if (abs(pos.y) > tolerance * boundaryDistance) pos.y = penalty * pos.y;
-                if (abs(pos.z) > tolerance * boundaryDistance) pos.z = penalty * pos.z;
+                if (abs(pos.x) > TOLERANCE * boundaryDistance
+                || abs(pos.y) > TOLERANCE * boundaryDistance
+                || abs(pos.z) > TOLERANCE * boundaryDistance) {
+                    pos = normalize(pos);
+                }
             #endif
         #endif
     }
@@ -224,9 +228,7 @@ void main() {
             #if !USE_BOX_BOUNDARY
                 if (length(nextPos) >= boundaryDistance) {
                     vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
-
-                    const float tolerance = 1.1;
-                    if (length(nextPos) >= tolerance * boundaryDistance) {
+                    if (length(nextPos) >= TOLERANCE * boundaryDistance) {
                         vel1 = vec3(0.0);
                     }
                 }

@@ -7,8 +7,6 @@ import {
 } from '../core.js';
 import { scenariosList } from '../scenarios.js';
 import { exportCSV, uploadCsv } from '../components/csv';
-
-import { guiInfoRefresh } from './info.js';
 import { guiParametersRefresh } from './parameters.js';
 
 function log(msg) {
@@ -36,6 +34,7 @@ export class GUIControls {
             showCursor: true,
             radius: '10',
             radiusRange: '0',
+            mode2D: true,
             pauseResume: function () {
                 options.controls.pause = !options.controls.pause;
             },
@@ -60,7 +59,7 @@ export class GUIControls {
                 uploadCsv((name, content) => {
                     options.particle.close();
                     core.importCSV(name, content);
-                    guiInfoRefresh();
+                    options.guiInfo.refresh();
                     guiParametersRefresh();
                     options.guiControls.refresh();
                 });
@@ -153,6 +152,9 @@ export class GUIControls {
         guiControlsSimulation.add(options.controls, 'next').name("Next simulation [PAGEDOWN]");
         guiControlsSimulation.add(options.controls, 'previous').name("Previous simulation [PAGEUP]");
         guiControlsSimulation.add(options.controls, 'home').name("First simulation [HOME]");
+        guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
+            simulation.bidimensionalMode(val);
+        });
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
         guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
@@ -228,6 +230,7 @@ export class GUIControls {
     refresh() {
         options.controls.radius = simulation.particleRadius.toFixed(3);
         options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
+        options.controls.mode2D = simulation.mode2D;
     }
 }
 

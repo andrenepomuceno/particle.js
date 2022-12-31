@@ -95,6 +95,7 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
         context.globalAlpha = 0.9;
         context.fillRect(GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT);
     }
+
     blank();
 
     return {
@@ -102,7 +103,6 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
 
         update: function (value, maxValue) {
             min = Math.min(min, value);
-            //max = Math.max(max, value);
             max = maxValue;
 
             context.fillStyle = bg;

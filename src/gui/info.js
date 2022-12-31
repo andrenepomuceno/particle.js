@@ -8,165 +8,166 @@ import {
     core,
 } from '../core.js';
 
-let options;
+let options, controls;
 let maxAvgVelocity = 0;
 let computeTimeHistory = [];
 
-export function guiInfoSetup(guiOptions, guiInfo) {
-    options = guiOptions;
-
-    guiOptions.info = {
-        name: "",
-        folderName: "",
-        particles: "",
-        maxParticles: "",
-        time: "",
-        collisions: 0,
-
-        mass: "",
-        charge: "",
-        nuclearCharge: '',
-        energy: "",
-        velocity: "",
-        
-        cameraDistance: "",
-        cameraPosition: "",
-
-        autoRefresh: true,
-        mode2D: false,
-
-        rulerLen: '0',
-        rulerDelta: '0,0,0',
-        rulerStart: '0,0,0',
-
-        // debug
-        cameraNormal: '',
-        fieldMaxVel: '0',
-        fieldAvgVel: '0',
-    };
-
-    guiInfo.add(guiOptions.info, 'name').name('Name').listen().onFinishChange((val) => {
-        simulation.name = val;
-    });
-    guiInfo.add(guiOptions.info, 'folderName').name('Folder').listen();
-    guiInfo.add(guiOptions.info, 'particles').name('Particles').listen();
-    guiInfo.add(guiOptions.info, 'maxParticles').name('Max Particles').listen().onFinishChange((val) => {
-        val = parseFloat(val);
-        if (val == simulation.physics.particleList.length) {
-            return;
-        }
-        if (val > simulation.physics.particleList.length) {
-            simulation.graphics.readbackParticleData();
-            simulation.graphics.setMaxParticles(val);
-            simulation.drawParticles();
-            return;
-        }
-        simulation.graphics.setMaxParticles(val);
-        guiOptions.scenarioSetup();
-    });
-    guiInfo.add(guiOptions.info, 'time').name('Time').listen();
-    guiInfo.open();
-
-    const guiInfoMore = guiInfo.addFolder("[+] Statistics");
-    guiInfoMore.add(guiOptions.info, 'energy').name('Energy (avg)').listen();
-    guiInfoMore.add(guiOptions.info, 'velocity').name('Velocity (avg)').listen();
-    guiInfoMore.add(guiOptions.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
-        core.updateParticleList("mass", val);
-    });
-    guiInfoMore.add(guiOptions.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
-        core.updateParticleList("charge", val);
-    });
-    guiInfoMore.add(guiOptions.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
-        core.updateParticleList("nuclearCharge", val);
-    });
-    guiInfoMore.add(guiOptions.info, 'collisions').name('Collisions').listen();
-
-    const guiInfoRuler = guiInfo.addFolder("[+] Ruler");
-    guiInfoRuler.add(guiOptions.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
-        let p = decodeVector3(val);
-        if (p == undefined) {
-            alert("Invalid coordinates!");
-            return;
-        }
-        simulation.graphics.camera.position.set(p.x, p.y, p.z);
-        simulation.graphics.controls.target.set(p.x, p.y, 0);
-        simulation.graphics.controls.update();
-    });
-    guiInfoRuler.add(guiOptions.info, 'rulerLen').name("Length").listen();
-    guiInfoRuler.add(guiOptions.info, 'rulerDelta').name("Delta").listen();
-    guiInfoRuler.add(guiOptions.info, 'rulerStart').name("Start").listen();
-    guiInfoRuler.open();
-
-    guiInfo.add(guiOptions.info, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
-        simulation.bidimensionalMode(val);
-    });
-    guiInfo.add(guiOptions.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
-        guiOptions.info.autoRefresh = val;
-    });
-
-    if (!ENV?.production) {
-        const guiInfoDebug = guiInfo.addFolder('[+] Debug');
-        guiInfoDebug.add(guiOptions.info, 'cameraNormal').name('cameraNormal').listen();
-        guiInfoDebug.add(guiOptions.info, 'fieldMaxVel').name('fieldMaxVel').listen();
-        guiInfoDebug.add(guiOptions.info, 'fieldAvgVel').name('fieldAvgVel').listen();
-        guiInfoDebug.open();
-        guiOptions.collapseList.push(guiInfoDebug);
+export class GUIInfo {
+    constructor(guiOptions, guiInfo) {
+        options = guiOptions;
+        controls = guiInfo;
     }
 
-    //guiOptions.collapseList.push(guiInfo);
-    guiOptions.collapseList.push(guiInfoMore);
-    guiOptions.collapseList.push(guiInfoRuler);
-}
+    setup() {
+        options.info = {
+            name: "",
+            folderName: "",
+            particles: "",
+            maxParticles: "",
+            time: "",
+            collisions: 0,
 
-export function guiInfoRefresh() {
-    let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+            mass: "",
+            charge: "",
+            nuclearCharge: '',
+            energy: "",
+            velocity: "",
 
-    options.info.name = name;
-    options.info.folderName = simulation.folderName;
-    options.info.particles = n;
-    options.info.maxParticles = simulation.graphics.maxParticles;
+            cameraDistance: "",
+            cameraPosition: "",
 
-    let realTime = new Date(totalTime).toISOString().substring(11, 19);
-    options.info.time = realTime + " (" + t + ")";
+            autoRefresh: true,
 
-    n = (n == 0) ? (1) : (n);
-    m = (m == 0) ? (1) : (m);
-    let avgEnergy = simulation.stats.avgEnergy;
-    let avgVelocity = Math.sqrt(e / m);
-    simulation.physics.avgEnergy = avgEnergy;
-    simulation.physics.avgVelocity = avgVelocity;
-    simulation.graphics.updateAvgVelocity(avgVelocity);
+            rulerLen: '0',
+            rulerDelta: '0,0,0',
+            rulerStart: '0,0,0',
 
-    simulation.field.refreshMaxVelocity();
-    options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
-    options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
+            // debug
+            cameraNormal: '',
+            fieldMaxVel: '0',
+            fieldAvgVel: '0',
+        };
 
-    options.info.energy = avgEnergy.toExponential(2);
-    options.info.velocity = avgVelocity.toExponential(2);
+        controls.add(options.info, 'name').name('Name').listen().onFinishChange((val) => {
+            simulation.name = val;
+        });
+        controls.add(options.info, 'folderName').name('Folder').listen();
+        controls.add(options.info, 'particles').name('Particles').listen();
+        controls.add(options.info, 'maxParticles').name('Max Particles').listen().onFinishChange((val) => {
+            val = parseFloat(val);
+            if (val == simulation.physics.particleList.length) {
+                return;
+            }
+            if (val > simulation.physics.particleList.length) {
+                simulation.graphics.readbackParticleData();
+                simulation.graphics.setMaxParticles(val);
+                simulation.drawParticles();
+                return;
+            }
+            simulation.graphics.setMaxParticles(val);
+            options.scenarioSetup();
+        });
+        controls.add(options.info, 'time').name('Time').listen();
+        controls.add(options.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
+            options.info.autoRefresh = val;
+        });
+        controls.open();
 
-    options.info.collisions = c;
-    options.info.mass = m.toExponential(2);
-    options.info.charge = totalCharge.toExponential(2);
-    options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
-    options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
-    let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
-    options.info.cameraNormal = arrayToString(tmp, 1);
-    options.info.mode2D = simulation.mode2D;
+        const guiInfoMore = controls.addFolder("[+] Statistics");
+        guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
+        guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
+        guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
+            core.updateParticleList("mass", val);
+        });
+        guiInfoMore.add(options.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
+            core.updateParticleList("charge", val);
+        });
+        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
+            core.updateParticleList("nuclearCharge", val);
+        });
+        guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
 
-    if (avgVelocity > maxAvgVelocity) maxAvgVelocity = avgVelocity;
-    options.velocityPanel.update(avgVelocity, maxAvgVelocity);
+        const guiInfoRuler = controls.addFolder("[+] Ruler");
+        guiInfoRuler.add(options.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
+            let p = decodeVector3(val);
+            if (p == undefined) {
+                alert("Invalid coordinates!");
+                return;
+            }
+            simulation.graphics.camera.position.set(p.x, p.y, p.z);
+            simulation.graphics.controls.target.set(p.x, p.y, 0);
+            simulation.graphics.controls.update();
+        });
+        guiInfoRuler.add(options.info, 'rulerLen').name("Length").listen();
+        guiInfoRuler.add(options.info, 'rulerDelta').name("Delta").listen();
+        guiInfoRuler.add(options.info, 'rulerStart').name("Start").listen();
+        guiInfoRuler.open();
 
-    let computeTime = simulation.getComputeTime();
-    options.computePanel.update(1000 * computeTime.avg, 1000 * computeTime.max);
+        if (!ENV?.production) {
+            const guiInfoDebug = controls.addFolder('[+] Debug');
+            guiInfoDebug.add(options.info, 'cameraNormal').name('cameraNormal').listen();
+            guiInfoDebug.add(options.info, 'fieldMaxVel').name('fieldMaxVel').listen();
+            guiInfoDebug.add(options.info, 'fieldAvgVel').name('fieldAvgVel').listen();
+            guiInfoDebug.open();
+            options.collapseList.push(guiInfoDebug);
+        }
 
-    //console.log(realTime + ',' + avg);
-    computeTimeHistory.push({
-        time: realTime,
-        avg: computeTime.avg,
-    });
-}
+        //options.collapseList.push(guiInfo);
+        options.collapseList.push(guiInfoMore);
+        options.collapseList.push(guiInfoRuler);
 
-export function guiInfoReset() {
-    maxAvgVelocity = 0;
-    computeTimeHistory = [];
+    }
+
+    refresh() {
+        let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+
+        options.info.name = name;
+        options.info.folderName = simulation.folderName;
+        options.info.particles = n;
+        options.info.maxParticles = simulation.graphics.maxParticles;
+
+        let realTime = new Date(totalTime).toISOString().substring(11, 19);
+        options.info.time = realTime + " (" + t + ")";
+
+        n = (n == 0) ? (1) : (n);
+        m = (m == 0) ? (1) : (m);
+        let avgEnergy = simulation.stats.avgEnergy;
+        let avgVelocity = Math.sqrt(e / m);
+        simulation.physics.avgEnergy = avgEnergy;
+        simulation.physics.avgVelocity = avgVelocity;
+        simulation.graphics.updateAvgVelocity(avgVelocity);
+
+        simulation.field.refreshMaxVelocity();
+        options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
+        options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
+
+        options.info.energy = avgEnergy.toExponential(2);
+        options.info.velocity = avgVelocity.toExponential(2);
+
+        options.info.collisions = c;
+        options.info.mass = m.toExponential(2);
+        options.info.charge = totalCharge.toExponential(2);
+        options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
+        options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
+        let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
+        options.info.cameraNormal = arrayToString(tmp, 1);
+
+        if (avgVelocity > maxAvgVelocity) maxAvgVelocity = avgVelocity;
+        options.velocityPanel.update(avgVelocity, maxAvgVelocity);
+
+        let computeTime = simulation.getComputeTime();
+        options.computePanel.update(1000 * computeTime.avg, 1000 * computeTime.max);
+
+        //console.log(realTime + ',' + avg);
+        computeTimeHistory.push({
+            time: realTime,
+            avg: computeTime.avg,
+        });
+
+    }
+
+    reset() {
+        maxAvgVelocity = 0;
+        computeTimeHistory = [];
+    }
 }

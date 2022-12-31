@@ -9,7 +9,7 @@ import { Ruler } from './components/ruler';
 
 import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
-import { guiInfoSetup, guiInfoRefresh, guiInfoReset } from './gui/info.js';
+import { GUIInfo } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
@@ -91,7 +91,7 @@ function scenarioSetup(idx) {
 
     velocityPanel.cleanup();
     computePanel.cleanup();
-    guiInfoReset();
+    guiOptions.guiInfo.reset();
     guiOptions.generator.default();
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;
@@ -101,7 +101,7 @@ function scenarioSetup(idx) {
 
     core.setup(idx);
 
-    guiInfoRefresh();
+    guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();
     guiParametersRefresh();
     guiOptions.guiField.refresh();
@@ -125,7 +125,8 @@ export function viewSetup() {
     mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
-    guiInfoSetup(guiOptions, guiInfo);
+    guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
+    guiOptions.guiInfo.setup();
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
     guiOptions.guiControls.setup();
     guiParticleSetup(guiOptions, guiParticle);
@@ -240,7 +241,7 @@ function animate(time) {
             simulation.graphics.readbackParticleData();
         }
 
-        guiInfoRefresh();
+        guiOptions.guiInfo.refresh();
         guiParticleRefresh();
         selectionHelper.guiRefresh();
         guiParametersRefresh();

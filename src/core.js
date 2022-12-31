@@ -5,6 +5,7 @@ import { scenariosList } from './scenarios.js';
 import { ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
 import { GraphicsGPU } from './gpu/graphics'
+//import { GraphicsMock as GraphicsGPU } from './mock/graphics'
 import { FieldGPU } from './gpu/field';
 import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { parseCsv } from './components/csv.js';

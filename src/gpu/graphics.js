@@ -491,4 +491,13 @@ export class GraphicsGPU {
 
         this.pointsGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
     }
+
+    updateFieldUniform(maxVelocity, avgVelocity) {
+        this.pointsUniforms['uMaxFieldVel'].value = maxVelocity;
+        this.pointsUniforms['uAvgFieldVel'].value = avgVelocity;
+    }
+
+    updateAvgVelocity(avgVelocity) {
+        this.pointsUniforms['uAvgVelocity'].value = avgVelocity;
+    }
 }

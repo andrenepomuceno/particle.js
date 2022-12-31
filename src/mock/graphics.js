@@ -11,14 +11,11 @@ import {
     Points,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
 let CanvasCapture = null;
 if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
 }
 
-import { computePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
-import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
 import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
 
@@ -28,7 +25,7 @@ function log(msg) {
     console.log("Graphics (Mock): " + msg);
 }
 
-export class GraphicsGPU {
+export class GraphicsMock {
     constructor() {
         log("constructor");
 
@@ -40,6 +37,20 @@ export class GraphicsGPU {
 
         this.textureWidth = textureWidth0;
         this.maxParticles = this.textureWidth * this.textureWidth;
+
+        this.renderer = new WebGLRenderer();
+        /*this.renderer.powerPreference = 'high-performance';
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById("container").appendChild(this.renderer.domElement);*/
+
+        this.scene = new Scene();
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        /*this.raycaster = new Raycaster();
+        this.raycaster.params.Points.threshold = 1;*/
 
         this.axisObject = undefined;
         this.showAxis();
@@ -176,5 +187,13 @@ export class GraphicsGPU {
             log("not initialized");
             return;
         }
+    }
+
+    updateFieldUniform(maxVelocity, avgVelocity) {
+        
+    }
+
+    updateAvgVelocity(avgVelocity) {
+        
     }
 }

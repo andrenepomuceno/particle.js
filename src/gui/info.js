@@ -133,7 +133,7 @@ export function guiInfoRefresh() {
     let avgVelocity = Math.sqrt(e / m);
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
-    simulation.graphics.pointsUniforms['uAvgVelocity'].value = avgVelocity; // TODO FIX THIS
+    simulation.graphics.updateAvgVelocity(avgVelocity);
 
     simulation.field.refreshMaxVelocity();
     options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);

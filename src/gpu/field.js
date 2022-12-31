@@ -260,7 +260,6 @@ export class FieldGPU {
         //log('this.avgVelocity ' + this.avgVelocity);
         log("variance " + varFIR);
 
-        this.graphics.pointsUniforms['uMaxFieldVel'].value = this.maxVelocity;
-        this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;
+        this.graphics.updateFieldUniform(this.maxVelocity, this.avgVelocity);
     }
 }

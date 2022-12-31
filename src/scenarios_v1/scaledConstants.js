@@ -86,7 +86,7 @@ function miniverse2(simulation) {
     simulation.particleRadius = 0.25 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.massConstant = 1e39 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
     physics.nuclearForceConstant = 25e3 * kg * m * s**-2; // fine structure
     physics.forceConstant = 1/3;
@@ -106,7 +106,7 @@ function miniverse2(simulation) {
         randomSequence: true,
         randomQSignal: true,
         randomNQSignal: true,
-        v1: 1,
+        //v1: 1e-6,
     };
     createParticles(simulation, particles, graphics.maxParticles, options);
 }

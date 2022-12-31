@@ -21,6 +21,7 @@ import { generateComputePosition, generateComputeVelocity } from './shaders/comp
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
 import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
+import { core } from '../core.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
@@ -74,12 +75,10 @@ export class GraphicsGPU {
         for (let i = 0; i < intersects.length; i++) {
             let object = intersects[i];
             if (object.object.type != "Points") continue;
-            for (let j = 0; j < this.particleList.length; ++j) {
-                let p = this.particleList[j];
-                if (j == object.index && p.type != ParticleType.probe) {
-                    //if (p.id == object.index) {
-                    return p;
-                }
+
+            let p = core.findParticle(object.index);
+            if (p != undefined && p.type != ParticleType.probe) {
+                return p;
             }
         }
     }
@@ -218,7 +217,7 @@ export class GraphicsGPU {
     }
 
     /* GPGPU Stuff */
-    
+
     #initComputeRenderer() {
         log("#initComputeRenderer");
 

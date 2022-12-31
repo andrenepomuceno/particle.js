@@ -4,11 +4,12 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
+    water_quarkModel2,
     miniverse2,
     cosmological,
     miniverse,
     essentialElements,
-    water_quarkModel,
+    //water_quarkModel,
     air_quarkModel,
     periodicTableV2,
     air_epnModel,
@@ -44,7 +45,7 @@ function calcAvgMass(elementsRatios) {
         totalr += v.r;
         totals += v.r * v.n;
     });
-    let meanMass = totals/totalr;
+    let meanMass = totals / totalr;
     console.log(meanMass);
     return meanMass;
 }
@@ -61,6 +62,75 @@ function calcGridSize(graphics, m) {
     return grid;
 }
 
+
+
+function water_quarkModel2(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.useBoxBoundary = true;
+    //physics.useDistance1 = true;
+    simulation.mode2D = true;
+
+    const m = 1e1 * 1e18;
+    const kg = (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
+    const s = 1e-2 * 1e27; // second, quantum time
+    const c = (1 / 1.602176634) * 1e18; // attocoulomb
+    const nuclearForceRange = 1e-15 * m;
+
+    const nq = 1.0;
+    const v = 1e-3;
+
+    physics.nuclearForceRange = 10 * nuclearForceRange;
+    physics.boundaryDistance = 50 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 5.0 * physics.nuclearForceRange;
+    graphics.cameraSetup();
+    simulation.particleRadius = 0.04 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+
+    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
+    physics.nuclearForceConstant = 25e3 * kg * m * s ** -2;
+    physics.forceConstant = 1 / 3;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
+
+    let r0 = 0.01 * physics.nuclearForceRange;
+    let r1 = 0.5 * physics.nuclearForceRange;
+    let r2 = 0.333 * physics.nuclearForceRange;
+
+    let gridSize = calcGridSize(graphics, 7 * (8 + 2 * 1));
+
+    let nucleusTypes = [
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+    ];
+    let cloudTypes = [
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+    ];
+
+    let index = 0;
+    let offset = new Vector3(r2, 0, 0);
+    cubeGenerator((x, y, z) => {
+        let zNumber = 1;
+
+        let snq = nq * ((random(0, 1) >= 0.1) ? (1) : (-1));
+        //let snq = nq * (index % 2) ? (1) : (-1);
+        let center = new Vector3(x, -y, z);
+
+        zNumber = 8;
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
+
+        zNumber = 1;
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().add(offset), v, zNumber);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().sub(offset), v, zNumber);
+
+        index++;
+    }, 8.0 * r2 * gridSize[0], gridSize);
+    shuffleArray(physics.particleList);
+}
 
 function miniverse2(simulation) {
     let graphics = simulation.graphics;
@@ -88,8 +158,8 @@ function miniverse2(simulation) {
 
     physics.massConstant = 1e39 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 25e3 * kg * m * s**-2; // fine structure
-    physics.forceConstant = 1/3;
+    physics.nuclearForceConstant = 25e3 * kg * m * s ** -2; // fine structure
+    physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1e0 * nuclearForceRange;
@@ -137,13 +207,13 @@ function cosmological(simulation) {
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
     physics.nuclearForceConstant = 1;//25e3 * kg * m * s**-2;
-    physics.forceConstant = 1/3;
+    physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1;
 
     let particles = [
-        {m: 1, q: 1, nq: 1},
+        { m: 1, q: 1, nq: 1 },
     ];
 
     let options = {
@@ -187,8 +257,8 @@ function miniverse(simulation) {
 
     physics.massConstant = 1e39 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 1e2 * 25e3 * kg * m * s**-2; // fine structure
-    physics.forceConstant = 1/3;
+    physics.nuclearForceConstant = 1e2 * 25e3 * kg * m * s ** -2; // fine structure
+    physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1;

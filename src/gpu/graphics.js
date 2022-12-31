@@ -21,7 +21,6 @@ import { generateComputePosition, generateComputeVelocity } from './shaders/comp
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
 import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
 import { ParticleType } from '../particle.js';
-import { core } from '../core.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
@@ -62,7 +61,7 @@ export class GraphicsGPU {
         log("constructor done");
     }
 
-    raycast(pointer) {
+    raycast(core, pointer) {
         let threshold = Math.max(30 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;

@@ -191,7 +191,7 @@ void main() {
                     #elif USE_POTENTIAL3 // "powAXv2"
                         x = sin(6.64541 * (1.0 - pow(0.054507, x)));
                     #elif USE_POTENTIAL4 // "powAXv3"
-                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-2.0 * x);
+                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-3.0 * x);
                     #else
                         x = sin(2.0 * PI * x);
                     #endif

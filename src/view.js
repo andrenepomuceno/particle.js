@@ -199,7 +199,7 @@ function onPointerUp(event) {
         selectionHelper.end(event, guiOptions.ruler.mode);
         guiOptions.ruler.finish(event);
     } else if (event.button == 0 && !mouseHelper.overGUI) {
-        let particle = simulation.graphics.raycast(mouseHelper.position);
+        let particle = simulation.graphics.raycast(core, mouseHelper.position);
         if (particle) {
             guiOptions.particle.obj = particle;
             guiParticleRefresh();

@@ -13,7 +13,6 @@ function log(msg) {
     console.log("menu/controls: " + msg);
 }
 
-let hideAxis = false;
 let colorMode = "charge";
 let hideOverlay = false;
 let options;
@@ -27,6 +26,7 @@ export class GUIControls {
 
     setup() {
         options.controls = {
+            showAxis: true,
             pause: false,
             automaticRotation: false,
             rotationSpeed: simulation.graphics.controls.autoRotateSpeed.toString(),
@@ -65,8 +65,8 @@ export class GUIControls {
                 });
             },
             hideAxis: function () {
-                hideAxis = !hideAxis;
-                simulation.graphics.showAxis(!hideAxis);
+                options.controls.showAxis = !options.controls.showAxis;
+                simulation.graphics.showAxis(options.controls.showAxis);
             },
             resetCamera: function () {
                 options.particle.followParticle = false;

@@ -68,7 +68,7 @@ function fullScaleModel(simulation) {
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    let r0 = 0.5 * nuclearForceRange;
+    let r0 = 0.7 * nuclearForceRange;
 
     let particles = [
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
@@ -89,7 +89,7 @@ function fullScaleModel(simulation) {
     };
     createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
 
-    graphics.showAxis(true, 1e-12 * M);
+    graphics.showAxis(true, 1e-12 * M, undefined, '2d');
 }
 
 function water2(simulation) {

@@ -100,6 +100,7 @@ function scenarioSetup(idx) {
     }
 
     core.setup(idx);
+    simulation.graphics.showAxis(guiOptions.controls.showAxis);
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();

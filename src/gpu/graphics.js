@@ -56,7 +56,6 @@ export class GraphicsGPU {
         this.raycaster.params.Points.threshold = 1;
 
         this.axisObject = undefined;
-        this.showAxis();
 
         log("constructor done");
     }
@@ -105,18 +104,23 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
+    showAxis(show = true, axisLineWidth = 1e3, headLen, mode = '3d') {
         log('showAxis ' + show);
+
+        if (headLen == undefined) headLen = 0.2 * axisLineWidth;
 
         if (show) {
             if (this.axisObject != undefined) {
                 this.showAxis(false);
             }
-
-            this.axisObject = [
+            
+            this.axisObject = mode == '3d' ? [
                 new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
                 new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
                 new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
+            ] : [
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen)
             ]; 
 
             this.axisObject.forEach(key => {
@@ -181,7 +185,6 @@ export class GraphicsGPU {
         if (this.scene) {
             for (let i = this.scene.children.length - 1; i >= 0; i--) {
                 let obj = this.scene.children[i];
-                if (obj.type == "ArrowHelper") continue;
                 this.scene.remove(obj);
             }
         }

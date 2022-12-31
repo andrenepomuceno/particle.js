@@ -31,7 +31,6 @@ export class GraphicsMock {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.axisObject = undefined;
-        this.showAxis();
 
         log("constructor done");
     }

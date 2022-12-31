@@ -23,7 +23,7 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
 const statsPanel = new Stats();
-const velocityPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
+const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL', '#ff8', '#221'));
 const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
 //statsPanel.showPanel(0);
 

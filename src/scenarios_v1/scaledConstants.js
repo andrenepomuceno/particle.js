@@ -497,7 +497,7 @@ function periodicTableV2(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
 
-    let gridSize = [12, 12, 1];
+    let gridSize = [12, 11, 1];
     if (ENV?.production == true) gridSize = [8, 8, 1];
 
     let nucleusTypes = [

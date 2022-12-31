@@ -25,7 +25,7 @@ import { ParticleType } from '../particle.js';
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    //console.log("Graphics (GPU): " + msg);
+    console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {
@@ -48,7 +48,7 @@ export class GraphicsGPU {
         document.getElementById("container").appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-30, 1e30);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -62,7 +62,7 @@ export class GraphicsGPU {
     }
 
     raycast(core, pointer) {
-        let threshold = Math.max(30 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
+        let threshold = Math.max(50 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);
@@ -106,15 +106,28 @@ export class GraphicsGPU {
     }
 
     showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
-        if (this.axisObject == undefined) this.axisObject = [
-            new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
-            new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
-            new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
-        ];
+        log('showAxis ' + show);
 
-        this.axisObject.forEach(key => {
-            show ? this.scene.add(key) : this.scene.remove(key);
-        });
+        if (show) {
+            if (this.axisObject != undefined) {
+                this.showAxis(false);
+            }
+
+            this.axisObject = [
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
+                new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
+            ]; 
+
+            this.axisObject.forEach(key => {
+                this.scene.add(key);
+            });
+        } else {
+            this.axisObject.forEach(key => {
+                this.scene.remove(key);
+                key.dispose();
+            });    
+        }
     }
 
     drawParticles(particleList, physics) {

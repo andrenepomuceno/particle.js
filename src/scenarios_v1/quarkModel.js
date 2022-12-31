@@ -5,7 +5,7 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    miniverse3,
+    fullScaleModel,
     water2,
     miniverse2,
     cosmological,
@@ -105,7 +105,7 @@ function water2(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function miniverse3(simulation) {
+function fullScaleModel(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -115,24 +115,23 @@ function miniverse3(simulation) {
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
-    const m = 1e18;
-    const kg = (1 / 9.1093837015) * 1e33; // kilogram, quantum mass
+    const m = 1e15;
+    const kg = (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
     const s = 1e27;
-    const c = 1e2 * (1 / 1.602176634) * 1e19; // attocoulomb
-    const nuclearForceRange = 1e-15 * m;
+    const c = (1 / 1.602176634) * 1e21; // attocoulomb
 
-    physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 1e2 * physics.nuclearForceRange;
-    physics.boundaryDamping = 0.6;
+    physics.nuclearForceRange = 1e-15 * m;
     graphics.cameraDistance = 1e2 * physics.nuclearForceRange;
     graphics.cameraSetup();
-    simulation.particleRadius = 0.25 * physics.nuclearForceRange;
+    physics.boundaryDistance = 1e-9 * m;
+    physics.boundaryDamping = 0.5;
+    simulation.particleRadius = 1e-16 * m;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 25e3 * kg * m * s ** -2; // fine structure
-    physics.forceConstant = 1 / 3;
+    physics.nuclearForceConstant = 30e3 * kg * m * s ** -2; // fine structure
+    physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1;// * nuclearForceRange;
@@ -156,6 +155,8 @@ function miniverse3(simulation) {
         v1: 1e-3,
     };
     createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
+
+    graphics.showAxis(true, 1e-9 * m);
 }
 
 

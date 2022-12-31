@@ -80,11 +80,12 @@ export class FieldGPU {
         }
     }
 
-    setup(mode, grid, center = new Vector3()) {
+    setup(mode, grid, center) {
         log("setup");
         log("mode = " + mode);
         log("gridPoints = " + grid);
 
+        if (center == undefined) center = this.simulation.graphics.controls.target.clone();
         this.mode = mode;
 
         let ret = this.calcGridSize(grid);

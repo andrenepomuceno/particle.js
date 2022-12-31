@@ -218,14 +218,4 @@ export class SimulationGPU {
             this.graphics.controls.enableRotate = true;
         }
     }
-
-    fieldSetup(mode = "update", grid = 10) {
-        log("fieldSetup");
-        log("mode = " + mode);
-
-        if (this.field) {
-            let center = this.graphics.controls.target.clone();
-            this.field.setup(mode, grid, center);
-        }
-    }
 }

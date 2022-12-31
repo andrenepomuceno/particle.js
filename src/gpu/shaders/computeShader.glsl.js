@@ -74,8 +74,6 @@ void main() {
                 if (abs(pos.z) > tolerance * boundaryDistance) pos.z = penalty * pos.z;
             #endif
         #endif
-
-        
     }
 
     gl_FragColor = vec4(pos, type);

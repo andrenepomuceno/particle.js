@@ -38,8 +38,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     //simulation.field.probeConfig(0, 0, 1e2);
     //simulation.field.probeConfig(1e10, 1e6, 1e2);
 
-    if (mode2d) simulation.fieldSetup("2d", 70);
-    if (!mode2d) simulation.fieldSetup("3d", 16);
+    if (mode2d) simulation.field.setup("2d", 70);
+    if (!mode2d) simulation.field.setup("3d", 16);
 }
 
 function atom(physics, n, center = new Vector3()) {

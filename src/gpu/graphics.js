@@ -129,7 +129,7 @@ export class GraphicsGPU {
         if (this.particleList.length > this.maxParticles) {
             let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", this.particleList.length).replace("{1}", this.maxParticles);
             log(msg);
-            alert("ERROR: too many particles!");
+            alert("Error: too many particles!");
 
             this.particleList = undefined;
             this.physics = undefined;

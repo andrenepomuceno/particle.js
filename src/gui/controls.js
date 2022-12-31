@@ -81,13 +81,13 @@ export class GUIControls {
                 simulation.setColorMode(colorMode);
             },
             placeHint: function () {
-                alert(
-                    'Press "Z" to place a particle selection on the mouse/pointer position.\n' +
-                    'You can get particle selections from various sources:\n' +
-                    '- Select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!\n' +
-                    '- If you want to make clones, press "X" or the "Clone" button on the selection folder.\n' +
-                    '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press "G" then "Z")\n'
-                );
+                alert([
+                    'Press "Z" to place a particle selection on the mouse/pointer position.',
+                    'You can get particle selections from various sources:',
+                    '- Select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!',
+                    '- If you want to make clones, press "X" or the "Clone" button on the selection folder.',
+                    '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press "G" then "Z")',
+                ].join('\n'));
             },
             wip: function () {
                 alert("Work in progress!");
@@ -97,13 +97,13 @@ export class GUIControls {
                 options.scenarioSetup(core.simulationIdx);
             },
             mouseHint: () => {
-                alert(
-                    "LEFT BUTTON: select particle/camera rotation (3D mode only)\n" +
-                    "MIDDLE BUTTON/SCROLL: zoom in/out.\n" +
-                    "RIGHT BUTTON: move camera position (pan).\n" +
-                    "SHIFT+LEFT CLICK/DRAG: select a group of particles.\n" +
-                    "HINT: Keyboard commands do not work when mouse pointer is over the menus!"
-                );
+                alert([
+                    "LEFT BUTTON: select particle/camera rotation (3D mode only)",
+                    "MIDDLE BUTTON/SCROLL: zoom in/out.",
+                    "RIGHT BUTTON: move camera position (pan).",
+                    "SHIFT+LEFT CLICK/DRAG: select a group of particles.",
+                    "HINT: Keyboard commands do not work when mouse pointer is over the menus!",
+                ].join('\n'));
             },
             deleteAll: () => {
                 if (confirm("This will delete all particles.\nAre you sure?")) {

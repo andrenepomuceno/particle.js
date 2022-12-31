@@ -223,10 +223,10 @@ void main() {
             vec3 nextPos = pos1 + vel1;
             #if !USE_BOX_BOUNDARY
                 if (length(nextPos) >= boundaryDistance) {
-                    if (length(vel1) < boundaryDistance) {
-                        vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
-                    } else {
-                        // particle will go out of boundaries
+                    vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
+
+                    const float tolerance = 1.1;
+                    if (length(nextPos) >= tolerance * boundaryDistance) {
                         vel1 = vec3(0.0);
                     }
                 }

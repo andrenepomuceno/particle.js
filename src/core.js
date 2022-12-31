@@ -60,7 +60,7 @@ class Core {
         if (imported == undefined) return;
 
         if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
-            alert("Imported particle physics do not match!");
+            alert("Warning: imported physics constants do not match.");
         }
 
         selection.import(imported);
@@ -94,8 +94,10 @@ class Core {
         if (particleList == undefined || particleList.length == 0) return;
 
         if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
-            alert('maxParticles exceeded!\n' +
-                'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.');
+            alert([
+                'Error: maxParticles exceeded!',
+                'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.'
+            ].join('\n'));
             return;
         }
 
@@ -475,7 +477,7 @@ class Core {
                 {
                     let center = decodeVector3(value);
                     if (center == undefined) {
-                        alert("Invalid center position");
+                        alert("Invalid center position.");
                         return;
                     }
                     let centerVector = new Vector3(center.x, center.y, center.z);

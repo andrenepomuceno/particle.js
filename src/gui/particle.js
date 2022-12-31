@@ -52,7 +52,7 @@ export function guiParticleSetup(guiOptions, guiParticle) {
         if (obj == undefined) {
             if (simulation.physics.particleList == undefined ||
                 simulation.physics.particleList.length == 0) {
-                alert("There's no particle in the simulation!");
+                alert("There's no particles in the simulation!");
             } else {
                 alert("Particle not found!\n" +
                     "Hint: the first one is " + simulation.physics.particleList[0].id);

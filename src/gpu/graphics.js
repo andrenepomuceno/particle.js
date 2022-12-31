@@ -62,7 +62,7 @@ export class GraphicsGPU {
     }
 
     raycast(pointer) {
-        let threshold = Math.max(20 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
+        let threshold = Math.max(30 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
         log("raycast threshold = " + threshold);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);

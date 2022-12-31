@@ -202,6 +202,7 @@ function onPointerUp(event) {
         let particle = simulation.graphics.raycast(mouseHelper.position);
         if (particle) {
             guiOptions.particle.obj = particle;
+            guiParticleRefresh();
             guiParticle.open();
         }
     }

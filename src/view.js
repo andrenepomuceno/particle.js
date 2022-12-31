@@ -6,8 +6,8 @@ import { MouseHelper } from './components/mouseHelper';
 import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
-import Stats from './components/stats';
 
+import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
 import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
@@ -96,8 +96,8 @@ function scenarioSetup(idx) {
     guiOptions.generator.default();
     guiOptions.guiField.refresh();
 
-    velocityPanel.min = 0;
     velocityPanel.max = 0;
+    computePanel.max = 0;
 
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;

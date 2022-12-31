@@ -13,7 +13,7 @@ import { guiInfoSetup, guiInfoRefresh, guiInfoReset } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
-import { guiGeneratorSetup } from './gui/generator.js';
+import { GUIGenerator } from './gui/generator.js';
 import { guiSelectionSetup } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
 import { GUIAdvancedControls } from './gui/advancedControls.js';
@@ -131,7 +131,8 @@ export function viewSetup() {
     guiParticleSetup(guiOptions, guiParticle);
     guiParametersSetup(guiOptions, guiParameters);
     guiSelectionSetup(guiOptions, guiSelection);
-    guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
+    guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
+    guiOptions.guiGenerator.setup();
     guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
     guiOptions.guiAdvancedControls.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);

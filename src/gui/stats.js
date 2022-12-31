@@ -109,7 +109,7 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
             context.globalAlpha = 1;
             context.fillRect(0, 0, WIDTH, GRAPH_Y);
             context.fillStyle = fg;
-            context.fillText(name + ' ' + round(value) + '/' + round(max), TEXT_X, TEXT_Y);
+            context.fillText(name + ' ' + value.toFixed(1) + ' ' + max.toFixed(1), TEXT_X, TEXT_Y);
 
             context.drawImage(canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT);
 

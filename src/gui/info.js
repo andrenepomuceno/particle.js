@@ -156,6 +156,7 @@ export function guiInfoRefresh() {
     options.velocityPanel.update(energy, options.velocityPanel.max);
 
     let computeTime = simulation.getComputeTime();
+    options.computePanel.max = 1000 * computeTime.max;
     options.computePanel.update(1000 * computeTime.avg, 1000 * computeTime.max);
     /*console.log(realTime + ',' + avg);
     computeTimeHistory.push({

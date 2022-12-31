@@ -10,7 +10,7 @@ export const scaledConstants = [
     water_quarkModel,
     air_quarkModel,
     periodicTableV2,
-    air,
+    air_epnModel,
     randomElements,
 ];
 
@@ -534,7 +534,7 @@ function periodicTableV2(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function air(simulation) {
+function air_epnModel(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

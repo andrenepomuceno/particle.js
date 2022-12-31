@@ -23,8 +23,8 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
 const statsPanel = new Stats();
-const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL', '#ff8', '#221'));
-const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
+const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL'));
+const computePanel = statsPanel.addPanel(new Stats.Panel('GPU'));
 //statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
@@ -96,8 +96,8 @@ function scenarioSetup(idx) {
     guiOptions.generator.default();
     guiOptions.guiField.refresh();
 
-    velocityPanel.max = 0;
-    computePanel.max = 0;
+    velocityPanel.cleanup();
+    computePanel.cleanup();
 
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;

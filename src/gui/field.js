@@ -122,8 +122,7 @@ export class GUIField {
 }
 
 function fieldInit(grid) {
-    let center = simulation.graphics.controls.target.clone();
-    if (!simulation.field.setup(simulation.field.mode, grid, center)) {
+    if (!simulation.field.setup(simulation.field.mode, grid)) {
         return false;
     }
     simulation.drawParticles();

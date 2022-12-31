@@ -10,7 +10,7 @@ export const scaledConstants = [
     water_quarkModel,
     air_quarkModel,
     periodicTableV2,
-    air,
+    air_epnModel,
     randomElements,
 ];
 
@@ -497,8 +497,8 @@ function periodicTableV2(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.493 * physics.nuclearForceRange;
 
-    let gridSize = [12, 12, 1];
-    if (ENV?.production == true) gridSize = [8, 8, 1];
+    let gridSize = [8, 8, 1];
+    if (graphics.maxParticles >= 26334) gridSize = [12, 11, 1];
 
     let nucleusTypes = [
         { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * C, nq: 1 },
@@ -534,7 +534,7 @@ function periodicTableV2(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function air(simulation) {
+function air_epnModel(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

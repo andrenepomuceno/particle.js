@@ -38,8 +38,8 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     //simulation.field.probeConfig(1e10, 0, 0);
     //simulation.field.probeConfig(0, 1e9, 0);
 
-    if (mode2d) simulation.fieldSetup("2d", 70);
-    if (!mode2d) simulation.fieldSetup("3d", 16);
+    if (mode2d) simulation.field.setup("2d", 70);
+    if (!mode2d) simulation.field.setup("3d", 16);
 }
 
 function crystal(simulation) {

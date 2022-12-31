@@ -80,11 +80,12 @@ export class FieldGPU {
         }
     }
 
-    setup(mode, grid, center = new Vector3()) {
+    setup(mode, grid, center) {
         log("setup");
         log("mode = " + mode);
         log("gridPoints = " + grid);
 
+        if (center == undefined) center = this.simulation.graphics.controls.target.clone();
         this.mode = mode;
 
         let ret = this.calcGridSize(grid);
@@ -260,7 +261,6 @@ export class FieldGPU {
         //log('this.avgVelocity ' + this.avgVelocity);
         log("variance " + varFIR);
 
-        this.graphics.pointsUniforms['uMaxFieldVel'].value = this.maxVelocity;
-        this.graphics.pointsUniforms['uAvgFieldVel'].value = this.avgVelocity;
+        this.graphics.updateFieldUniform(this.maxVelocity, this.avgVelocity);
     }
 }

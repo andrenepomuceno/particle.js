@@ -1,5 +1,3 @@
-import * as dat from 'dat.gui';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import {
     simulation,
     core,
@@ -9,11 +7,13 @@ import { KeyboardHelper } from './components/keyboardHelper.js';
 import { SelectionHelper } from './components/selectionHelper.js';
 import { Ruler } from './components/ruler';
 
-import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
+import Stats from './gui/stats';
+import * as dat from './gui/dat.gui';
+import { GUIInfo } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
-import { guiGeneratorSetup } from './gui/generator.js';
+import { GUIGenerator } from './gui/generator.js';
 import { guiSelectionSetup } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
 import { GUIAdvancedControls } from './gui/advancedControls.js';
@@ -23,8 +23,9 @@ let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
 const statsPanel = new Stats();
-const velocityPanel = statsPanel.addPanel(new Stats.Panel('V', '#ff8', '#221'));
-const computePanel = statsPanel.addPanel(new Stats.Panel('GPU', '#ff8', '#221'));
+const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL'));
+const computePanel = statsPanel.addPanel(new Stats.Panel('GPU'));
+statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder("INFORMATION");
@@ -84,26 +85,26 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
+
     guiOptions.selectionHelper.clear();
     guiOptions.particle.close();
 
-    core.setup(idx);
-
-    guiParametersRefresh();
-    guiOptions.guiControls.refresh();
-    guiInfoRefresh();
+    velocityPanel.cleanup();
+    computePanel.cleanup();
+    guiOptions.guiInfo.reset();
     guiOptions.generator.default();
-    guiOptions.guiField.refresh();
-
-    velocityPanel.min = 0;
-    velocityPanel.max = 0;
-
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;
-
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
+
+    core.setup(idx);
+
+    guiOptions.guiInfo.refresh();
+    guiOptions.guiControls.refresh();
+    guiParametersRefresh();
+    guiOptions.guiField.refresh();
 }
 
 export function viewSetup() {
@@ -124,13 +125,15 @@ export function viewSetup() {
     mouseHelper.addListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
-    guiInfoSetup(guiOptions, guiInfo);
+    guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
+    guiOptions.guiInfo.setup();
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
     guiOptions.guiControls.setup();
     guiParticleSetup(guiOptions, guiParticle);
     guiParametersSetup(guiOptions, guiParameters);
     guiSelectionSetup(guiOptions, guiSelection);
-    guiGeneratorSetup(guiOptions, guiGenerator, guiSelection);
+    guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
+    guiOptions.guiGenerator.setup();
     guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
     guiOptions.guiAdvancedControls.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);
@@ -238,7 +241,7 @@ function animate(time) {
             simulation.graphics.readbackParticleData();
         }
 
-        guiInfoRefresh();
+        guiOptions.guiInfo.refresh();
         guiParticleRefresh();
         selectionHelper.guiRefresh();
         guiParametersRefresh();

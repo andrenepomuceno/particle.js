@@ -100,9 +100,9 @@ So, the force exerted by a collision is (a lot of omitted calculus here...)
 
 $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
 
-## Code Architecture
+## Code Architecture (first layer)
 
-![structure](img/graph1.svg)
+![first layer](img/simple.svg)
 
 ## Donate
 

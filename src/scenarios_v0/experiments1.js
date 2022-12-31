@@ -9,7 +9,7 @@ export const experiments1 = [
     carbonCrystal,
     superNucleus3D,
     hexagonalCrystal,
-    squareCrystal,
+    tetragonalCrystal,
     standardModel3,
     standardModel2,
     standardModel1,
@@ -333,7 +333,7 @@ function hexagonalCrystal(simulation) {
     shuffleArray(physics.particleList);
 }
 
-function squareCrystal(simulation) {
+function tetragonalCrystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);

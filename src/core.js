@@ -5,8 +5,9 @@ import { scenariosList } from './scenarios.js';
 import { ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
 import { GraphicsGPU } from './gpu/graphics'
+//import { GraphicsMock as GraphicsGPU } from './mock/graphics'
 import { FieldGPU } from './gpu/field';
-import { generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
+import { generateComputePosition, generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 import { parseCsv } from './components/csv.js';
 
 const graphics = new GraphicsGPU();
@@ -198,6 +199,8 @@ class Core {
                 physics.useBoxBoundary,
                 physics.enableBoundary
             );
+            physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
+            
             graphics.readbackParticleData();
             graphics.drawParticles();
         }

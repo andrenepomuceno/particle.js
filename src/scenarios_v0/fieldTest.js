@@ -48,7 +48,7 @@ function nuclearField(simulation) {
     defaultConfig(simulation);
 
     simulation.field.probeConfig(0, 0, 1e2);
-    simulation.fieldSetup("2d", grid);
+    simulation.field.setup("2d", grid);
 
     let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);
     let v = new Vector3(1, 0, 0);
@@ -67,7 +67,7 @@ function electromagneticField(simulation) {
     defaultConfig(simulation);
 
     simulation.field.probeConfig(0, 1e5, 0);
-    simulation.fieldSetup("2d", grid);
+    simulation.field.setup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);
     let v = new Vector3(1, 0, 0);
@@ -87,7 +87,7 @@ function gravityField(simulation) {
     simulation.setParticleRadius(20, 10);
 
     simulation.field.probeConfig(1e4, 0, 0);
-    simulation.fieldSetup("2d", grid);
+    simulation.field.setup("2d", grid);
 
     let x = new Vector3(2e2, 0, 0);
     let v = new Vector3(0, 1, 0);

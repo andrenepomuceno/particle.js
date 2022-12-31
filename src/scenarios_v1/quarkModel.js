@@ -37,6 +37,61 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
+function fullScaleModel(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
+    physics.useBoxBoundary = true;
+    //physics.useDistance1 = true;
+    //simulation.mode2D = false;
+
+    const M = (1/3) * 1e15;
+    const KG = (1 / 9.1093837015) * 1e30;
+    const S = 1e27;
+    const C = (1 / 1.602176634) * 1e21;
+    const nuclearForceRange = 3e-15 * M;
+
+    graphics.cameraDistance = 5 * nuclearForceRange;
+    graphics.cameraSetup();
+
+    physics.nuclearForceRange = nuclearForceRange;
+    physics.boundaryDistance = 1e-12 * M;
+    physics.boundaryDamping = 0.5;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
+    physics.forceConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
+
+    let r0 = 0.5 * nuclearForceRange;
+
+    let particles = [
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
+        { m: 5.347988087839e-30 * KG, q: 2/3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1/3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
+        /*{ m: 9.1093837015e-31 * kg, q: 1 * 1.602176634e-19 * c, nq: 1, name: "anti electron" },
+        { m: 5.347988087839e-30 * kg, q: -2/3 * 1.602176634e-19 * c, nq: -1, name: "anti up quark" },
+        { m: 1.069597617568e-29 * kg, q: 1/3 * 1.602176634e-19 * c, nq: -1, name: "anti down quark" },*/
+    ];
+
+    let options = {
+        //m: 1, q: 1, nq: 1,
+        r0: 0, r1: r0,
+        randomSequence: true,
+        randomQSignal: false,
+        randomNQSignal: false,
+        v1: 1e-3,
+    };
+    createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
+
+    graphics.showAxis(true, 1e-12 * M);
+}
+
 function water2(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
@@ -104,61 +159,6 @@ function water2(simulation) {
     }, 8.0 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);
 }
-
-function fullScaleModel(simulation) {
-    let graphics = simulation.graphics;
-    let physics = simulation.physics;
-    defaultParameters(simulation);
-
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
-    physics.useBoxBoundary = true;
-    //physics.useDistance1 = true;
-    //simulation.mode2D = false;
-
-    const m = 1e15;
-    const kg = (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
-    const s = 1e27;
-    const c = (1 / 1.602176634) * 1e21; // attocoulomb
-
-    physics.nuclearForceRange = 1e-15 * m;
-    graphics.cameraDistance = 1e2 * physics.nuclearForceRange;
-    graphics.cameraSetup();
-    physics.boundaryDistance = 1e-9 * m;
-    physics.boundaryDamping = 0.5;
-    simulation.particleRadius = 1e-16 * m;
-    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
-
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 30e3 * kg * m * s ** -2; // fine structure
-    physics.forceConstant = 1;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
-
-    let r0 = 1;// * nuclearForceRange;
-
-    let particles = [
-        { m: 9.1093837015e-31 * kg, q: -1 * 1.602176634e-19 * c, nq: -1, name: "electron" },
-        { m: 5.347988087839e-30 * kg, q: 2/3 * 1.602176634e-19 * c, nq: 1, name: "up quark" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1/3 * 1.602176634e-19 * c, nq: 1, name: "down quark" }, // 6 MeV
-
-        { m: 9.1093837015e-31 * kg, q: 1 * 1.602176634e-19 * c, nq: 1, name: "anti electron" },
-        { m: 5.347988087839e-30 * kg, q: -2/3 * 1.602176634e-19 * c, nq: -1, name: "anti up quark" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: 1/3 * 1.602176634e-19 * c, nq: -1, name: "anti down quark" }, // 6 MeV
-    ];
-
-    let options = {
-        m: 1, q: 1, nq: 1,
-        r0: 0, r1: r0,
-        randomSequence: true,
-        randomQSignal: false,
-        randomNQSignal: false,
-        v1: 1e-3,
-    };
-    createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
-
-    graphics.showAxis(true, 1e-9 * m);
-}
-
 
 function miniverse2(simulation) {
     let graphics = simulation.graphics;

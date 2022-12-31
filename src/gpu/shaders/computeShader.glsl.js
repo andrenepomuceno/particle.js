@@ -197,9 +197,10 @@ void main() {
             // check boundary colision
             vec3 nextPos = pos1 + vel1;
             #if !USE_BOX_BOUNDARY
-                if (sdSphere(nextPos, boundaryDistance) >= 0) {
-                    vel1 = boundaryDamping * reflect(vel1, -normalize(pos1));
-                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0) {
+                if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
+                    vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
+
+                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
                         vel1 = vec3(0.0);
                     }
                 }
@@ -274,7 +275,7 @@ void main() {
         #if ENABLE_BOUNDARY
             #if !USE_BOX_BOUNDARY
                 // check out of boundary
-                if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0) {
+                if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
                     pos = normalize(pos);
                 }
             #else

@@ -126,7 +126,8 @@ export class GraphicsGPU {
             this.axisObject.forEach(key => {
                 this.scene.remove(key);
                 key.dispose();
-            });    
+            });
+            this.axisObject = undefined;
         }
     }
 

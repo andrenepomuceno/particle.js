@@ -199,7 +199,7 @@ class Core {
                 physics.useBoxBoundary,
                 physics.enableBoundary
             );
-            physics.positionShader = generateComputePosition(physics.enableBoundary);
+            physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
             
             graphics.readbackParticleData();
             graphics.drawParticles();

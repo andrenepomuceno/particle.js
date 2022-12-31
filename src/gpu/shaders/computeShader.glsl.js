@@ -28,9 +28,10 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
     return shader;
 }
 
-export function generateComputePosition(enableBoundary = true) {
+export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
     let config = "";
     config += define("ENABLE_BOUNDARY", enableBoundary);
+    config += define("USE_BOX_BOUNDARY", boxBoundary);
    
     let shader = config + computePosition;
     return shader;
@@ -46,8 +47,6 @@ precision highp float;
 
 uniform float boundaryDistance;
 
-#define ENABLE_BOUNDARY 1
-
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
@@ -62,10 +61,18 @@ void main() {
         pos += vel;
 
         #if ENABLE_BOUNDARY
-            // check out of boundary
-            if (length(pos) > boundaryDistance) {
-                pos = 1e-3 * pos;
-            }
+            const float tolerance = 1.1;
+            const float penalty = 1e-3;
+            #if !USE_BOX_BOUNDARY
+                // check out of boundary
+                if (length(pos) > tolerance * boundaryDistance) {
+                    pos = penalty * pos;
+                }
+            #else
+                if (abs(pos.x) > tolerance * boundaryDistance) pos.x = penalty * pos.x;
+                if (abs(pos.y) > tolerance * boundaryDistance) pos.y = penalty * pos.y;
+                if (abs(pos.z) > tolerance * boundaryDistance) pos.z = penalty * pos.z;
+            #endif
         #endif
 
         gl_FragColor = vec4(pos, type);

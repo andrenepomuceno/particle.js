@@ -74,6 +74,8 @@ export class Physics {
 export function calcListStatistics(list) {
     let stats = {};
 
+    if (list.length == 0) return {};
+
     stats.center = new Vector3();
     stats.totalVelocity = new Vector3();
     stats.avgVelocity = new Vector3();

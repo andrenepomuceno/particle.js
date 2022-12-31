@@ -9,7 +9,7 @@ import { Ruler } from './components/ruler';
 
 import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
-import { guiInfoSetup, guiInfoRefresh } from './gui/info.js';
+import { guiInfoSetup, guiInfoRefresh, guiInfoReset } from './gui/info.js';
 import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
@@ -85,26 +85,26 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
     log("setup " + idx);
+
     guiOptions.selectionHelper.clear();
     guiOptions.particle.close();
 
-    core.setup(idx);
-
-    guiParametersRefresh();
-    guiOptions.guiControls.refresh();
-    guiInfoRefresh();
-    guiOptions.generator.default();
-    guiOptions.guiField.refresh();
-
     velocityPanel.cleanup();
     computePanel.cleanup();
-
+    guiInfoReset();
+    guiOptions.generator.default();
     guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;
-
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
+
+    core.setup(idx);
+
+    guiInfoRefresh();
+    guiOptions.guiControls.refresh();
+    guiParametersRefresh();
+    guiOptions.guiField.refresh();
 }
 
 export function viewSetup() {

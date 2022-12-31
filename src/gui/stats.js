@@ -30,10 +30,7 @@ var Stats = function () {
 
     var beginTime = (performance || Date).now(), prevTime = beginTime, frames = 0;
     var fpsPanel = addPanel(new Stats.Panel('FPS'));
-    /*var msPanel = addPanel(new Stats.Panel('MS', '#0f0', '#020'));
-    if (self.performance && self.performance.memory) {
-        var memPanel = addPanel(new Stats.Panel('MB', '#f08', '#201'));
-    }*/
+    var fpsMax = 0;
 
     //showPanel(0);
 
@@ -48,15 +45,12 @@ var Stats = function () {
         end: function () {
             frames++;
             var time = (performance || Date).now();
-            //msPanel.update(time - beginTime, 200);
             if (time >= prevTime + 1000) {
-                fpsPanel.update((frames * 1000) / (time - prevTime), 100);
+                let fps = (frames * 1000) / (time - prevTime);
+                if (fps > fpsMax) fpsMax = fps;
+                fpsPanel.update(fps, fpsMax);
                 prevTime = time;
                 frames = 0;
-                /*if (memPanel) {
-                    var memory = performance.memory;
-                    memPanel.update(memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576);
-                }*/
             }
             return time;
         },

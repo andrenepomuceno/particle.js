@@ -4,7 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
-    cosmological,
+    //cosmological,
     miniverse,
     essentialElements,
     water_quarkModel,
@@ -118,7 +118,7 @@ function miniverse(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     //physics.useBoxBoundary = true;
     physics.useDistance1 = true;
-    simulation.mode2D = false;
+    //simulation.mode2D = false;
 
     const m = 1 * 1e18;
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass

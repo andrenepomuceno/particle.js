@@ -9,6 +9,8 @@ import {
 } from '../core.js';
 
 let options;
+let maxAvgVelocity = 0;
+let computeTimeHistory = [];
 
 export function guiInfoSetup(guiOptions, guiInfo) {
     options = guiOptions;
@@ -129,7 +131,7 @@ export function guiInfoRefresh() {
 
     n = (n == 0) ? (1) : (n);
     m = (m == 0) ? (1) : (m);
-    let avgEnergy = e / n;
+    let avgEnergy = simulation.stats.avgEnergy;
     let avgVelocity = Math.sqrt(e / m);
     simulation.physics.avgEnergy = avgEnergy;
     simulation.physics.avgVelocity = avgVelocity;
@@ -151,18 +153,20 @@ export function guiInfoRefresh() {
     options.info.cameraNormal = arrayToString(tmp, 1);
     options.info.mode2D = simulation.mode2D;
 
-    let energy = avgVelocity;
-    if (energy > options.velocityPanel.max) options.velocityPanel.max = energy;
-    options.velocityPanel.update(energy, options.velocityPanel.max);
+    if (avgVelocity > maxAvgVelocity) maxAvgVelocity = avgVelocity;
+    options.velocityPanel.update(avgVelocity, maxAvgVelocity);
 
     let computeTime = simulation.getComputeTime();
-    options.computePanel.max = 1000 * computeTime.max;
     options.computePanel.update(1000 * computeTime.avg, 1000 * computeTime.max);
-    /*console.log(realTime + ',' + avg);
+
+    //console.log(realTime + ',' + avg);
     computeTimeHistory.push({
         time: realTime,
         avg: computeTime.avg,
-    });*/
+    });
 }
 
-let computeTimeHistory = [];
+export function guiInfoReset() {
+    maxAvgVelocity = 0;
+    computeTimeHistory = [];
+}

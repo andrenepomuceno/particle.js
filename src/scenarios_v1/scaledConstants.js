@@ -4,6 +4,7 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const scaledConstants = [
+    cosmological,
     miniverse,
     essentialElements,
     water_quarkModel,
@@ -59,15 +60,65 @@ function calcGridSize(graphics, m) {
     return grid;
 }
 
+function cosmological(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
+    //physics.useBoxBoundary = true;
+    physics.useDistance1 = true;
+    //simulation.mode2D = false;
+
+    const m = 1e-15;
+    const kg = 1e-36;
+    const s = 1e-9;
+    const c = 1e-27;
+
+    physics.nuclearForceRange = 1e3;
+    physics.boundaryDistance = 1e5 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 1e2 * physics.nuclearForceRange;
+    graphics.cameraSetup();
+    simulation.particleRadius = 0.25 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+
+    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
+    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
+    physics.nuclearForceConstant = 1;//25e3 * kg * m * s**-2;
+    physics.forceConstant = 1/3;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
+
+    let r0 = 1;
+
+    let particles = [
+        {m: 1, q: 1, nq: 1},
+    ];
+
+    let options = {
+        m: 1, q: 1, nq: 1,
+        r0: 0, r1: r0,
+        //randomSequence: true,
+        randomM: true,
+        //randomMSignal: true,
+        randomQ: true,
+        randomQSignal: true,
+        randomNQ: true,
+        randomNQSignal: true,
+        v1: 1e-6,
+    };
+    createParticles(simulation, particles, graphics.maxParticles, options);
+}
+
 function miniverse(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv2;
+    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     //physics.useBoxBoundary = true;
     physics.useDistance1 = true;
-    simulation.mode2D = true;
+    simulation.mode2D = false;
 
     const m = 1 * 1e18;
     const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
@@ -107,7 +158,6 @@ function miniverse(simulation) {
     };
     createParticles(simulation, particles, graphics.maxParticles, options);
 }
-
 
 function essentialElements(simulation) {
     let graphics = simulation.graphics;

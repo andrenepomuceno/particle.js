@@ -447,6 +447,27 @@ class Core {
                 }
                 break;
 
+            case 'nuclearCharge':
+                {
+                    let ratio = parseFloat(value);
+                    if (isNaN(ratio)) {
+                        alert("Invalid value.");
+                        return;
+                    }
+                    if (ratio.toExponential(1) == totalCharge) return;
+                    if (ratio >= 1e6) {
+                        alert("Value is too big.");
+                        return;
+                    }
+
+                    graphics.readbackParticleData();
+                    list.forEach((p) => {
+                        p.nuclearCharge *= ratio;
+                    });
+                    updateLevel = 2;
+                }
+                break;
+
             case 'center':
                 {
                     let center = decodeVector3(value);

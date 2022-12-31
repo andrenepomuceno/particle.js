@@ -10,7 +10,7 @@ function define(define, value) {
 
 export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true, shaderV2 = true) {
     let config = "";
-    config += '#define TOLERANCE 1.01\n';
+    config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
@@ -32,8 +32,8 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
 
 export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
     let config = "";
-    config += '#define TOLERANCE 1.01\n';
-    
+    config += '#define BOUNDARY_TOLERANCE 1.01\n';
+
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
    
@@ -67,13 +67,13 @@ void main() {
         #if ENABLE_BOUNDARY
             #if !USE_BOX_BOUNDARY
                 // check out of boundary
-                if (length(pos) > TOLERANCE * boundaryDistance) {
+                if (length(pos) > BOUNDARY_TOLERANCE * boundaryDistance) {
                     pos = normalize(pos);
                 }
             #else
-                if (abs(pos.x) > TOLERANCE * boundaryDistance
-                || abs(pos.y) > TOLERANCE * boundaryDistance
-                || abs(pos.z) > TOLERANCE * boundaryDistance) {
+                if (abs(pos.x) > BOUNDARY_TOLERANCE * boundaryDistance
+                || abs(pos.y) > BOUNDARY_TOLERANCE * boundaryDistance
+                || abs(pos.z) > BOUNDARY_TOLERANCE * boundaryDistance) {
                     pos = normalize(pos);
                 }
             #endif
@@ -228,7 +228,7 @@ void main() {
             #if !USE_BOX_BOUNDARY
                 if (length(nextPos) >= boundaryDistance) {
                     vel1 = boundaryDamping * reflect(vel1, normalize(pos1));
-                    if (length(nextPos) >= TOLERANCE * boundaryDistance) {
+                    if (length(nextPos) >= BOUNDARY_TOLERANCE * boundaryDistance) {
                         vel1 = vec3(0.0);
                     }
                 }

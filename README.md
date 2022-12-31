@@ -102,7 +102,7 @@ $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d
 
 ## Code Architecture
 
-![structure](img/graph1.svg)
+![structure](img/simple.svg)
 
 ## Donate
 

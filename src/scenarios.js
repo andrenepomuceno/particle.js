@@ -10,8 +10,8 @@ import { experiments0 } from './scenarios_v0/experiments0.js';
 import { tests } from './scenarios_v0/tests.js';
 import { sandbox } from './scenarios_v0/sandbox.js';
 import { experiments1 } from './scenarios_v0/experiments1.js';
-
-import { scaledConstants } from './scenarios_v1/scaledConstants.js';
+import { epnModel } from './scenarios_v1/epnModel.js';
+import { quarkModel } from './scenarios_v1/quarkModel.js';
 
 export let scenariosList = [];
 function addFolder(name, list) {
@@ -21,7 +21,8 @@ function addFolder(name, list) {
     scenariosList = scenariosList.concat(list);
 }
 
-addFolder('Scaled Metrics', scaledConstants);
+addFolder('Quark Model', quarkModel);
+addFolder('EPN Model', epnModel);
 addFolder('Experiments 1', experiments1);
 addFolder('Experiments 0', experiments0);
 addFolder('Nuclear Force 1', nuclearForce1);

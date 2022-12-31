@@ -231,3 +231,27 @@ export function parseElementRatioList(list) {
         list[i].r /= ratioMax;
     });
 }
+
+export function calcAvgMass(elementsRatios) {
+    let totalr = 0;
+    let totals = 0;
+    elementsRatios.forEach(v => {
+        totalr += v.r;
+        totals += v.r * v.n;
+    });
+    let meanMass = totals / totalr;
+    console.log(meanMass);
+    return meanMass;
+}
+
+export function calcGridSize(graphics, m) {
+    let counter = 0;
+    let grid = [5, 5, 1];
+    while (counter++ < 1e3) {
+        let next = (grid[0] + 1) * (grid[1] + 1) * grid[2];
+        if (m * next > graphics.maxParticles) break;
+        grid[0] += 1;
+        grid[1] += 1;
+    }
+    return grid;
+}

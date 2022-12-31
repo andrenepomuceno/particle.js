@@ -42,26 +42,6 @@ a, button, input, select {
 	pointer-events: auto;
 }
 
-.dg {
-	z-index: 2 !important;
-	/* TODO Solve this in HTML */
-}
-
-.dg li.folder {
-	border-left: 10px solid rgba(141, 122, 122, 0.397) !important;
-}
-
-@media all and (max-width: 640px) {
-	.dg.main {
-		right: auto;
-		top: auto;
-		/* max-height: 100%; */
-		max-width: 80%;
-		bottom: 0;
-		left: 0;
-	}
-}
-
 #overlay {
 	position: absolute;
 	font-size: 16px;

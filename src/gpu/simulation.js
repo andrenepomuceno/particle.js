@@ -1,5 +1,5 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
-import { ParticleType } from '../particle.js';
+import { ParticleType } from '../particle';
 import { calcListStatistics } from '../physics';
 
 function log(msg) {
@@ -83,7 +83,7 @@ export class SimulationGPU {
 
         let t1 = performance.now();
         this.computeTime.push(t1 - t0);
-        if (this.computeTime.length > 1e3) this.computeTime.shift();
+        if (this.computeTime.length > 10 * 60) this.computeTime.shift();
     }
 
     getComputeTime() {

@@ -75,11 +75,10 @@ void main() {
             #endif
         #endif
 
-        gl_FragColor = vec4(pos, type);
-        return;
+        
     }
 
-    discard;
+    gl_FragColor = vec4(pos, type);
 }
 `;
 

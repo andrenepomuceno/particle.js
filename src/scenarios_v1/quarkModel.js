@@ -47,7 +47,7 @@ function fullScaleModel(simulation) {
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
-    const M = (1/3) * 1e15;
+    const M = (1 / 3) * 1e15;
     const KG = (1 / 9.1093837015) * 1e30;
     const S = 1e27;
     const C = (1 / 1.602176634) * 1e21;
@@ -72,8 +72,8 @@ function fullScaleModel(simulation) {
 
     let particles = [
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
-        { m: 5.347988087839e-30 * KG, q: 2/3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
-        { m: 1.069597617568e-29 * KG, q: -1/3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
         /*{ m: 9.1093837015e-31 * kg, q: 1 * 1.602176634e-19 * c, nq: 1, name: "anti electron" },
         { m: 5.347988087839e-30 * kg, q: -2/3 * 1.602176634e-19 * c, nq: -1, name: "anti up quark" },
         { m: 1.069597617568e-29 * kg, q: 1/3 * 1.602176634e-19 * c, nq: -1, name: "anti down quark" },*/
@@ -87,9 +87,9 @@ function fullScaleModel(simulation) {
         randomNQSignal: false,
         v1: 1e-3,
     };
-    createParticles(simulation, particles, -Math.round(80*80*9/16) + graphics.maxParticles, options);
+    createParticles(simulation, particles, -Math.round(80 * 80 * 9 / 16) + graphics.maxParticles, options);
 
-    graphics.showAxis(true, 1e-12 * M, undefined, '2d');
+    graphics.showAxis(true, simulation.mode2D, 1e-12 * M);
 }
 
 function water2(simulation) {

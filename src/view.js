@@ -98,9 +98,9 @@ function scenarioSetup(idx) {
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
-
+    
+    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
     core.setup(idx);
-    simulation.graphics.showAxis(guiOptions.controls.showAxis);
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();

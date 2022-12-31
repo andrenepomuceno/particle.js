@@ -49,7 +49,7 @@ export class GraphicsMock {
         log("distance = " + distance + " phi = " + phi + " theta = " + theta);
     }
 
-    showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
+    showAxis(show, mode2D) {
 
     }
 

@@ -66,7 +66,7 @@ export class GUIControls {
             },
             hideAxis: function () {
                 options.controls.showAxis = !options.controls.showAxis;
-                simulation.graphics.showAxis(options.controls.showAxis);
+                simulation.graphics.showAxis(options.controls.showAxis, simulation.mode2D);
             },
             resetCamera: function () {
                 options.particle.followParticle = false;

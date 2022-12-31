@@ -104,17 +104,17 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, axisLineWidth = 1e3, headLen, mode = '3d') {
-        log('showAxis ' + show);
+    showAxis(show = true, mode2D = false, axisLineWidth = 1e3) {
+        log('showAxis ' + show + ' mode2D ' + mode2D);
 
-        if (headLen == undefined) headLen = 0.2 * axisLineWidth;
+        let headLen = 0.2 * axisLineWidth;
 
         if (show) {
             if (this.axisObject != undefined) {
                 this.showAxis(false);
             }
             
-            this.axisObject = mode == '3d' ? [
+            this.axisObject = !mode2D ? [
                 new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
                 new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
                 new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
@@ -123,13 +123,13 @@ export class GraphicsGPU {
                 new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen)
             ]; 
 
-            this.axisObject.forEach(key => {
-                this.scene.add(key);
+            this.axisObject.forEach(arrow => {
+                this.scene.add(arrow);
             });
         } else {
-            this.axisObject.forEach(key => {
-                this.scene.remove(key);
-                key.dispose();
+            this.axisObject.forEach(arrow => {
+                this.scene.remove(arrow);
+                arrow.dispose();
             });
             this.axisObject = undefined;
         }

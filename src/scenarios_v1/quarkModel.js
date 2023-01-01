@@ -68,7 +68,9 @@ function fullScaleModel(simulation) {
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    let r0 = 1.0 * nuclearForceRange;
+    const density = 6.1e4;
+    const maxParticles = -Math.round(80 * 80 * 9 / 16) + graphics.maxParticles;
+    let r0 = Math.sqrt(maxParticles / (density * Math.PI));
 
     let particles = [
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
@@ -76,8 +78,8 @@ function fullScaleModel(simulation) {
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
 
         { m: 9.1093837015e-31 * KG, q: 1 * 1.602176634e-19 * C, nq: 1, name: "anti electron" },
-        { m: 5.347988087839e-30 * KG, q: -2/3 * 1.602176634e-19 * C, nq: -1, name: "anti up quark" },
-        { m: 1.069597617568e-29 * KG, q: 1/3 * 1.602176634e-19 * C, nq: -1, name: "anti down quark" },
+        { m: 5.347988087839e-30 * KG, q: -2 / 3 * 1.602176634e-19 * C, nq: -1, name: "anti up quark" },
+        { m: 1.069597617568e-29 * KG, q: 1 / 3 * 1.602176634e-19 * C, nq: -1, name: "anti down quark" },
     ];
 
     let options = {
@@ -88,7 +90,7 @@ function fullScaleModel(simulation) {
         randomNQSignal: false,
         v1: 1e-3,
     };
-    createParticles(simulation, particles, -Math.round(80 * 80 * 9 / 16) + graphics.maxParticles, options);
+    createParticles(simulation, particles, maxParticles, options);
 
     graphics.showAxis(true, simulation.mode2D, 1e-12 * M);
 }

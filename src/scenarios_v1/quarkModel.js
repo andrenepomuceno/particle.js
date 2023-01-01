@@ -68,7 +68,7 @@ function fullScaleModel(simulation) {
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    let r0 = 0.7 * nuclearForceRange;
+    let r0 = 0.5 * nuclearForceRange;
 
     let particles = [
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },

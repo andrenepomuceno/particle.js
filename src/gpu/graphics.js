@@ -105,7 +105,7 @@ export class GraphicsGPU {
     }
 
     showAxis(show = true, mode2D = false, axisLineWidth = 1e3) {
-        log('showAxis ' + show + ' mode2D ' + mode2D);
+        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + axisLineWidth);
 
         let headLen = 0.2 * axisLineWidth;
 

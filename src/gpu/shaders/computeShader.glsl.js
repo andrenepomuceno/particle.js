@@ -205,26 +205,11 @@ void main() {
                     }
                 }
             #else
-                float x = abs(nextPos.x);
-                if (x >= boundaryDistance) {
-                    vel1.x = -boundaryDamping * vel1.x;
-                    if (x >= BOUNDARY_TOLERANCE * boundaryDistance) {
-                        vel1 = vec3(0.0);
-                    }
-                }
+                vec3 box = vec3(2.0 * boundaryDistance);
+                if (sdBox(nextPos, box) >= 0.0) {
+                    vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
 
-                float y = abs(nextPos.y);
-                if (y >= boundaryDistance) {
-                    vel1.y = -boundaryDamping * vel1.y;
-                    if (y >= BOUNDARY_TOLERANCE * boundaryDistance) {
-                        vel1 = vec3(0.0);
-                    }
-                }
-
-                float z = abs(nextPos.z);
-                if (abs(nextPos.z) >= boundaryDistance) {
-                    vel1.z = -boundaryDamping * vel1.z;
-                    if (z >= BOUNDARY_TOLERANCE * boundaryDistance) {
+                    if (sdBox(nextPos, BOUNDARY_TOLERANCE * box) >= 0.0) {
                         vel1 = vec3(0.0);
                     }
                 }
@@ -279,9 +264,8 @@ void main() {
                     pos = normalize(pos);
                 }
             #else
-                if (abs(pos.x) > BOUNDARY_TOLERANCE * boundaryDistance
-                || abs(pos.y) > BOUNDARY_TOLERANCE * boundaryDistance
-                || abs(pos.z) > BOUNDARY_TOLERANCE * boundaryDistance) {
+                vec3 box = vec3(2.0 * boundaryDistance);
+                if (sdBox(pos, BOUNDARY_TOLERANCE * box) >= 0.0) {
                     pos = normalize(pos);
                 }
             #endif

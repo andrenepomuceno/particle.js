@@ -68,15 +68,16 @@ function fullScaleModel(simulation) {
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    let r0 = 0.5 * nuclearForceRange;
+    let r0 = 1.0 * nuclearForceRange;
 
     let particles = [
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
-        /*{ m: 9.1093837015e-31 * kg, q: 1 * 1.602176634e-19 * c, nq: 1, name: "anti electron" },
-        { m: 5.347988087839e-30 * kg, q: -2/3 * 1.602176634e-19 * c, nq: -1, name: "anti up quark" },
-        { m: 1.069597617568e-29 * kg, q: 1/3 * 1.602176634e-19 * c, nq: -1, name: "anti down quark" },*/
+
+        { m: 9.1093837015e-31 * KG, q: 1 * 1.602176634e-19 * C, nq: 1, name: "anti electron" },
+        { m: 5.347988087839e-30 * KG, q: -2/3 * 1.602176634e-19 * C, nq: -1, name: "anti up quark" },
+        { m: 1.069597617568e-29 * KG, q: 1/3 * 1.602176634e-19 * C, nq: -1, name: "anti down quark" },
     ];
 
     let options = {

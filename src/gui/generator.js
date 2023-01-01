@@ -8,7 +8,7 @@ import {
     core,
 } from '../core.js';
 import { randomSphericVector } from '../helpers.js';
-import { SelectionHelper, SourceType } from '../components/selectionHelper.js';
+import { Selection, SourceType } from '../components/selection';
 import { createParticle, randomVector } from '../scenariosHelpers.js';
 import { scaleEPN } from '../physics.js';
 

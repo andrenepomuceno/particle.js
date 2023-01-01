@@ -1,7 +1,7 @@
-import { cameraToWorldCoord, mouseToScreenCoord } from "../helpers";
+import { mouseToWorldCoord, mouseToScreenCoord } from "../helpers";
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from "three";
 
-export class MouseHelper {
+export class Mouse {
     constructor() {
         this.position = new Vector2();
         this.velocity = new Vector2();
@@ -69,7 +69,7 @@ export class MouseHelper {
     updateCursor() {
         if (this.cursorMesh == undefined) return;
 
-        let center = cameraToWorldCoord(this.position, this.graphics.camera, 1);
+        let center = mouseToWorldCoord(this.position, this.graphics.camera, 1);
         this.cursorMesh.position.set(center.x, center.y, center.z);
     }
 }

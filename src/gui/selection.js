@@ -4,8 +4,8 @@ import {
     core,
 } from '../core.js';
 import { uploadCsv } from '../components/csv';
-import { SelectionHelper, SourceType } from '../components/selectionHelper.js';
-import { cameraToWorldCoord } from '../helpers.js';
+import { Selection, SourceType } from '../components/selection';
+import { mouseToWorldCoord } from '../helpers.js';
 
 let gGuiOptions = undefined;
 let gGuiSelection = undefined;
@@ -36,7 +36,7 @@ export function guiSelectionSetup(guiOptions, guiSelection) {
         },
         import: () => {
             uploadCsv((name, content) => {
-                //gSelection = new SelectionHelper(simulation.graphics, guiOptions.selection, guiSelection);
+                //gSelection = new Selection(simulation.graphics, guiOptions.selection, guiSelection);
                 gSelection.clear();
                 gSelection.graphics = simulation.graphics;
                 gSelection.options = guiOptions.selection;
@@ -157,7 +157,7 @@ function selectionPlace() {
     if (gMouseHelper.overGUI) return;
     if (gSelection.list == undefined || gSelection.list.length == 0) return;
 
-    let center = cameraToWorldCoord(gMouseHelper.position, simulation.graphics.camera, 0);
+    let center = mouseToWorldCoord(gMouseHelper.position, simulation.graphics.camera, 0);
     if (simulation.mode2D) {
         center.z = 0;
     }

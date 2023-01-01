@@ -57,7 +57,7 @@ function fullScaleModel(simulation) {
     graphics.cameraSetup();
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 1e-12 * M;
+    physics.boundaryDistance = 1e-9 * M;
     physics.boundaryDamping = 0.5;
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
@@ -69,17 +69,15 @@ function fullScaleModel(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     const density = 6.1e4;
-    const maxParticles = -Math.round(80 * 80 * 9 / 16) + graphics.maxParticles;
+    let maxParticles = graphics.maxParticles;
+    //maxParticles -= Math.round(80 * 80 * 9 / 16);
     let r0 = Math.sqrt(maxParticles / (density * Math.PI));
 
     let particles = [
+        { m: 4.99145554865e-37 * KG , q: 0, nq: -1, name: "netrino" },
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
-
-        { m: 9.1093837015e-31 * KG, q: 1 * 1.602176634e-19 * C, nq: 1, name: "anti electron" },
-        { m: 5.347988087839e-30 * KG, q: -2 / 3 * 1.602176634e-19 * C, nq: -1, name: "anti up quark" },
-        { m: 1.069597617568e-29 * KG, q: 1 / 3 * 1.602176634e-19 * C, nq: -1, name: "anti down quark" },
     ];
 
     let options = {

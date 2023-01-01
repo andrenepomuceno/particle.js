@@ -19,7 +19,7 @@ if (ENV?.record === true) {
 
 import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
-import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
+import { exportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
 import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
@@ -61,8 +61,11 @@ export class GraphicsGPU {
     }
 
     raycast(core, pointer) {
-        let threshold = Math.max(50 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
-        log("raycast threshold = " + threshold);
+        log('raycast');
+        /*let cc = getCameraConstant(this.camera);
+        let threshold = 1199 * this.controls.getDistance() / cc;
+        log("threshold = " + threshold);
+        log("cc = " + cc);
         this.raycaster.params.Points.threshold = threshold;
         this.raycaster.setFromCamera(pointer, this.camera);
 
@@ -78,7 +81,25 @@ export class GraphicsGPU {
             if (p != undefined && p.type != ParticleType.probe) {
                 return p;
             }
-        }
+        }*/
+        
+        console.log(pointer);
+        let coord = mouseToWorldCoord(pointer, this.camera);
+        console.log(coord);
+        let particle = undefined;
+
+        this.readbackParticleData();
+        this.particleList.every(p => {
+            let dp = coord.sub(p.position);
+            let d = dp.length() - p.radius;
+            if (d <= 0) {
+                particle = p;
+                return false;
+            }
+            return true;
+        });
+        console.log(particle);
+        return particle;
     }
 
     cameraDefault() {

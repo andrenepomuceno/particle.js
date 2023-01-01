@@ -2,6 +2,18 @@
 
 ![banner](img/hexagonalCrystal_2022_12_21T01_35_24.213Z.png)
 
+## Table of Contents  
+
+[About](#about)
+
+[Build](#build)
+
+[Features](#features)
+
+[Mathematical Model](#mathematical-model)
+
+[Code Architecture](#code-architecture)
+
 ## About
 
 A JavaScript 3D n-body particle simulator using a simplified model of Physics.
@@ -11,7 +23,25 @@ Try to simulate 3 forces on point-like particles:
 - Electromagnetic
 - Nuclear force (an analogy to the Strong Force)
 
-Live demo: [particle.js](https://andrenepomuceno.github.io/particle.js/)
+### Live Demo
+
+[particle.js](https://andrenepomuceno.github.io/particle.js/)
+
+### Media
+
+[Youtube Playlist](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
+
+[Photo Gallery](https://photos.app.goo.gl/1x41ZhipNKr5yrYa7)
+
+### Donate
+
+**BTC:** 187JHUUqszdB9fC6Nn52CpP7UsEeD8GsNh
+
+**Github Sponsor:** https://github.com/sponsors/andrenepomuceno
+
+### Special Thanks
+
+Big thanks to [three.js](https://threejs.org/) guys who made this amazing WebGL library, making the entire process a lot easier and fun.
 
 ## Build
 
@@ -40,12 +70,6 @@ npm run build
 - Interactive simulation and particles. Almost everything is editable!
 - Sandbox Mode
 - And much more...
-
-## Media
-
-[Youtube Playlist](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
-
-[Photo Gallery](https://photos.app.goo.gl/1x41ZhipNKr5yrYa7)
 
 ## Mathematical Model
 Main considerations:
@@ -102,16 +126,8 @@ So, the force exerted by a collision is (a lot of omitted calculus here...)
 
 $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
 
-## Code Architecture (first layer)
+## Code Architecture
+
+Simplified diagram, first layer only.
 
 ![first layer](img/simple.svg)
-
-## Donate
-
-**BTC:** 187JHUUqszdB9fC6Nn52CpP7UsEeD8GsNh
-
-**Github Sponsor:** https://github.com/sponsors/andrenepomuceno
-
-## Special Thanks
-
-Big thanks to [three.js](https://threejs.org/) guys who made this amazing WebGL library, making the entire process a lot easier and fun.

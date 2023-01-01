@@ -12,6 +12,7 @@ import { parseCsv } from './components/csv.js';
 
 const graphics = new GraphicsGPU();
 let physics = new Physics();
+export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
     console.log("Core: " + msg)
@@ -22,6 +23,8 @@ class Core {
         this.scenariosList = scenariosList;
         this.particleSetup = scenariosList[0];
         this.simulationIdx = 0;
+        this.simulation = undefined;
+
         log("simulations loaded: " + scenariosList.length);
     }
 
@@ -29,6 +32,8 @@ class Core {
         physics = (newPhysics || new Physics());
         simulation = new SimulationGPU(graphics, physics);
         simulation.field = new FieldGPU(simulation);
+
+        this.simulation = simulation;
     }
 
     setup(idx) {
@@ -603,4 +608,3 @@ class Core {
 }
 
 export let core = new Core();
-export let simulation = new SimulationGPU(graphics, physics);

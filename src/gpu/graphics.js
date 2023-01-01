@@ -48,7 +48,7 @@ export class GraphicsGPU {
         document.getElementById("container").appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-30, 1e30);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-3, 1e12);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -62,35 +62,15 @@ export class GraphicsGPU {
 
     raycast(core, pointer) {
         log('raycast');
-        /*let cc = getCameraConstant(this.camera);
-        let threshold = 1199 * this.controls.getDistance() / cc;
-        log("threshold = " + threshold);
-        log("cc = " + cc);
-        this.raycaster.params.Points.threshold = threshold;
-        this.raycaster.setFromCamera(pointer, this.camera);
-
-        this.readbackParticleData();
-
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        log("intersects: " + intersects.length);
-        for (let i = 0; i < intersects.length; i++) {
-            let object = intersects[i];
-            if (object.object.type != "Points") continue;
-
-            let p = core.findParticle(object.index);
-            if (p != undefined && p.type != ParticleType.probe) {
-                return p;
-            }
-        }*/
         
-        console.log(pointer);
-        let coord = mouseToWorldCoord(pointer, this.camera);
-        console.log(coord);
-        let particle = undefined;
-
+        if (core.simulation.mode2D == false) return; //3d not supported for now
+        
+        const coord = mouseToWorldCoord(pointer, this.camera);
         this.readbackParticleData();
+
+        let particle = undefined;
         this.particleList.every(p => {
-            let dp = coord.sub(p.position);
+            let dp = coord.clone().sub(p.position);
             let d = dp.length() - p.radius;
             if (d <= 0) {
                 particle = p;
@@ -98,7 +78,7 @@ export class GraphicsGPU {
             }
             return true;
         });
-        console.log(particle);
+        
         return particle;
     }
 

@@ -31,7 +31,6 @@ export class GraphicsMock {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
         this.axisObject = undefined;
-        this.showAxis();
 
         log("constructor done");
     }
@@ -50,7 +49,7 @@ export class GraphicsMock {
         log("distance = " + distance + " phi = " + phi + " theta = " + theta);
     }
 
-    showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
+    showAxis(show, mode2D) {
 
     }
 
@@ -64,7 +63,7 @@ export class GraphicsMock {
         if (this.particleList.length > this.maxParticles) {
             let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", this.particleList.length).replace("{1}", this.maxParticles);
             log(msg);
-            alert("ERROR: too many particles!");
+            alert("Error: too many particles!");
 
             this.particleList = undefined;
             this.physics = undefined;

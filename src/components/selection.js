@@ -1,4 +1,4 @@
-import { arrayToString, cameraToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "../helpers";
+import { arrayToString, mouseToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "../helpers";
 import { calcListStatistics } from "../physics";
 import { ParticleType } from "../particle";
 const { Image } = require('image-js');
@@ -6,7 +6,7 @@ import { exportCSV } from "./csv";
 import { Vector3 } from "three";
 
 function log(msg) {
-    console.log("SelectionHelper: " + msg);
+    console.log("Selection: " + msg);
 }
 
 export const SourceType = {
@@ -18,7 +18,7 @@ export const SourceType = {
     clone: "Clone",
 }
 
-export class SelectionHelper {
+export class Selection {
     constructor(graphics, options, guiSelection) {
         log("constructor");
         this.graphics = graphics;
@@ -45,7 +45,7 @@ export class SelectionHelper {
             x: event.clientX,
             y: event.clientY
         };
-        this.p0 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.p0 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         this.list = [];
 
         this.startPoint.x = event.clientX;
@@ -69,7 +69,7 @@ export class SelectionHelper {
             x: event.clientX,
             y: event.clientY
         };
-        this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
         if (this.#readParticleData(mode) > 0) {

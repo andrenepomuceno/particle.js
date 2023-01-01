@@ -1,6 +1,6 @@
 import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
 import { simulation } from "../core.js";
-import { mouseToScreenCoord, cameraToWorldCoord, floatArrayToString } from '../helpers.js';
+import { mouseToScreenCoord, mouseToWorldCoord, floatArrayToString } from '../helpers.js';
 
 const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;
@@ -20,7 +20,7 @@ export class Ruler {
     start(graphics, event) {
         this.graphics = graphics;
 
-        this.p0 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.p0 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
 
         if (this.arrow != undefined) {
             this.graphics.scene.remove(this.arrow);
@@ -65,7 +65,7 @@ export class Ruler {
     update(event) {
         if (!this.started) return;
 
-        this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
 
         let diff = this.p1.clone().sub(this.p0);
         let dir = diff.clone().normalize();
@@ -95,7 +95,7 @@ export class Ruler {
     }
 
     finish(event) {
-        this.p1 = cameraToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         this.ruler = this.p1.clone().sub(this.p0);
 
         this.graphics.scene.remove(this.arrow);

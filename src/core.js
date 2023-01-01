@@ -12,6 +12,7 @@ import { parseCsv } from './components/csv.js';
 
 const graphics = new GraphicsGPU();
 let physics = new Physics();
+export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
     console.log("Core: " + msg)
@@ -22,6 +23,8 @@ class Core {
         this.scenariosList = scenariosList;
         this.particleSetup = scenariosList[0];
         this.simulationIdx = 0;
+        this.simulation = undefined;
+
         log("simulations loaded: " + scenariosList.length);
     }
 
@@ -29,6 +32,8 @@ class Core {
         physics = (newPhysics || new Physics());
         simulation = new SimulationGPU(graphics, physics);
         simulation.field = new FieldGPU(simulation);
+
+        this.simulation = simulation;
     }
 
     setup(idx) {
@@ -60,7 +65,7 @@ class Core {
         if (imported == undefined) return;
 
         if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
-            alert("Imported particle physics do not match!");
+            alert("Warning: imported physics constants do not match.");
         }
 
         selection.import(imported);
@@ -94,8 +99,10 @@ class Core {
         if (particleList == undefined || particleList.length == 0) return;
 
         if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
-            alert('maxParticles exceeded!\n' +
-                'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.');
+            alert([
+                'Error: maxParticles exceeded!',
+                'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.'
+            ].join('\n'));
             return;
         }
 
@@ -475,7 +482,7 @@ class Core {
                 {
                     let center = decodeVector3(value);
                     if (center == undefined) {
-                        alert("Invalid center position");
+                        alert("Invalid center position.");
                         return;
                     }
                     let centerVector = new Vector3(center.x, center.y, center.z);
@@ -601,4 +608,3 @@ class Core {
 }
 
 export let core = new Core();
-export let simulation = new SimulationGPU(graphics, physics);

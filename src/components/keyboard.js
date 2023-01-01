@@ -1,4 +1,4 @@
-export class KeyboardHelper {
+export class Keyboard {
     constructor(mouseHelper, guiOptions) {
         this.mouseHelper = mouseHelper;
         this.guiOptions = guiOptions;

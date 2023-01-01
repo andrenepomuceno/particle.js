@@ -74,8 +74,6 @@ export class GUIInfo {
         controls.open();
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
-        guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
-        guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
         guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
             core.updateParticleList("mass", val);
         });
@@ -85,6 +83,8 @@ export class GUIInfo {
         guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
             core.updateParticleList("nuclearCharge", val);
         });
+        guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
+        guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
         guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
 
         const guiInfoRuler = controls.addFolder("[+] Ruler");

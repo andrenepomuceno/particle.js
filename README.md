@@ -41,9 +41,11 @@ npm run build
 - Sandbox Mode
 - And much more...
 
-## Youtube Playlist
+## Media
 
-[Click Here](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
+[Youtube Playlist](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
+
+[Photo Gallery](https://photos.app.goo.gl/1x41ZhipNKr5yrYa7)
 
 ## Mathematical Model
 Main considerations:

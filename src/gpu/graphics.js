@@ -19,13 +19,13 @@ if (ENV?.record === true) {
 
 import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
-import { exportFilename, sphericalToCartesian, getCameraConstant } from '../helpers';
+import { exportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
 import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    //console.log("Graphics (GPU): " + msg);
+    console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {
@@ -48,7 +48,7 @@ export class GraphicsGPU {
         document.getElementById("container").appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-3, 1e12);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -56,32 +56,30 @@ export class GraphicsGPU {
         this.raycaster.params.Points.threshold = 1;
 
         this.axisObject = undefined;
-        this.showAxis();
 
         log("constructor done");
     }
 
-    raycast(pointer) {
-        let threshold = Math.max(20 * this.controls.getDistance() / getCameraConstant(this.camera), 1.0);
-        log("raycast threshold = " + threshold);
-        this.raycaster.params.Points.threshold = threshold;
-        this.raycaster.setFromCamera(pointer, this.camera);
-
+    raycast(core, pointer) {
+        log('raycast');
+        
+        if (core.simulation.mode2D == false) return; //3d not supported for now
+        
+        const coord = mouseToWorldCoord(pointer, this.camera);
         this.readbackParticleData();
 
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        log("intersects: " + intersects.length);
-        for (let i = 0; i < intersects.length; i++) {
-            let object = intersects[i];
-            if (object.object.type != "Points") continue;
-            for (let j = 0; j < this.particleList.length; ++j) {
-                let p = this.particleList[j];
-                if (j == object.index && p.type != ParticleType.probe) {
-                    //if (p.id == object.index) {
-                    return p;
-                }
+        let particle = undefined;
+        this.particleList.every(p => {
+            let dp = coord.clone().sub(p.position);
+            let d = dp.length() - p.radius;
+            if (d <= 0) {
+                particle = p;
+                return false;
             }
-        }
+            return true;
+        });
+        
+        return particle;
     }
 
     cameraDefault() {
@@ -107,16 +105,35 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, axisLineWidth = 1e3, headLen = 0.2 * axisLineWidth) {
-        if (this.axisObject == undefined) this.axisObject = [
-            new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
-            new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
-            new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
-        ];
+    showAxis(show = true, mode2D = false, axisLineWidth = 1e3) {
+        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + axisLineWidth);
 
-        this.axisObject.forEach(key => {
-            show ? this.scene.add(key) : this.scene.remove(key);
-        });
+        let headLen = 0.2 * axisLineWidth;
+
+        if (show) {
+            if (this.axisObject != undefined) {
+                this.showAxis(false);
+            }
+            
+            this.axisObject = !mode2D ? [
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
+                new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
+            ] : [
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen)
+            ]; 
+
+            this.axisObject.forEach(arrow => {
+                this.scene.add(arrow);
+            });
+        } else {
+            this.axisObject.forEach(arrow => {
+                this.scene.remove(arrow);
+                arrow.dispose();
+            });
+            this.axisObject = undefined;
+        }
     }
 
     drawParticles(particleList, physics) {
@@ -129,7 +146,7 @@ export class GraphicsGPU {
         if (this.particleList.length > this.maxParticles) {
             let msg = "particleList.length {0} > maxParticles {1}".replace("{0}", this.particleList.length).replace("{1}", this.maxParticles);
             log(msg);
-            alert("ERROR: too many particles!");
+            alert("Error: too many particles!");
 
             this.particleList = undefined;
             this.physics = undefined;
@@ -169,7 +186,6 @@ export class GraphicsGPU {
         if (this.scene) {
             for (let i = this.scene.children.length - 1; i >= 0; i--) {
                 let obj = this.scene.children[i];
-                if (obj.type == "ArrowHelper") continue;
                 this.scene.remove(obj);
             }
         }
@@ -218,7 +234,7 @@ export class GraphicsGPU {
     }
 
     /* GPGPU Stuff */
-    
+
     #initComputeRenderer() {
         log("#initComputeRenderer");
 

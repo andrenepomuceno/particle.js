@@ -303,7 +303,7 @@ export function shuffleArray(array) {
     }
 }
 
-export function cameraToWorldCoord(pointer, camera, targetZ = 0) {
+export function mouseToWorldCoord(pointer, camera, targetZ = 0) {
     let point = new Vector3(pointer.x, pointer.y, 0.5).unproject(camera);
     point.sub(camera.position).normalize();
     let d = (targetZ - camera.position.z) / point.z;

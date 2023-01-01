@@ -1,6 +1,10 @@
 import { mouseToWorldCoord, mouseToScreenCoord } from "../helpers";
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from "three";
 
+function log(msg) {
+    console.log("Mouse: " + msg);
+}
+
 export class Mouse {
     constructor() {
         this.position = new Vector2();
@@ -49,6 +53,8 @@ export class Mouse {
     }
 
     showCursor(graphics, radius = 100, thickness = 10) {
+        log(['showCursor',radius,thickness].join(' '));
+
         this.hideCursor();
 
         this.graphics = graphics;
@@ -69,7 +75,7 @@ export class Mouse {
     updateCursor() {
         if (this.cursorMesh == undefined) return;
 
-        let center = mouseToWorldCoord(this.position, this.graphics.camera, 1);
+        let center = mouseToWorldCoord(this.position, this.graphics.camera, 0);
         this.cursorMesh.position.set(center.x, center.y, center.z);
     }
 }

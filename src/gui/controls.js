@@ -163,7 +163,6 @@ export class GUIControls {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
-                    options.controls.automaticRotation = false;
                     simulation.graphics.controls.autoRotate = false;
                     return;
                 }

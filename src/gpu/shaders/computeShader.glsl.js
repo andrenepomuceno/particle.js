@@ -145,7 +145,7 @@ void main() {
                 float distance1 = sqrt(distance2);
             #endif
             float x = 0.0;
-            if (distance2 <= nuclearForceRange2) {
+            if (distance2 <= 2.0*nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
@@ -166,7 +166,8 @@ void main() {
                     #elif USE_POTENTIAL3 // "powAXv2"
                         x = sin(6.64541 * (1.0 - pow(0.054507, x)));
                     #elif USE_POTENTIAL4 // "powAXv3"
-                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-3.0 * x);
+                        const float a = 3.0;
+                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
                     #else
                         x = sin(2.0 * PI * x);
                     #endif

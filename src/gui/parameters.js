@@ -73,13 +73,13 @@ export function guiParametersSetup(guiOptions, guiParameters) {
 
     const guiParametersInteractions = guiParameters.addFolder("[+] Interactions");
     const potentialType = {
-        'Sin[a x]': NuclearPotentialType.default,
+        'Sin[ax]': NuclearPotentialType.default,
         'Hooks Law': NuclearPotentialType.hooksLaw,
-        'Sin[a (1 - b^x)]': NuclearPotentialType.potential_powAX,
-        'Sin[a (1 - b^x)] v2': NuclearPotentialType.potential_powAXv2,
-        'Sin[a (1 - b^x)] Exp[-cx]': NuclearPotentialType.potential_powAXv3,
-        'Sin[-Exp[-a x]]': NuclearPotentialType.potential_exp,
-        'Sin[a x^b]': NuclearPotentialType.potential_powXR,
+        'Sin[a(1-b^x)]': NuclearPotentialType.potential_powAX,
+        'Sin[a(1-b^x)] v2': NuclearPotentialType.potential_powAXv2,
+        'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
+        'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
+        'Sin[ax^b]': NuclearPotentialType.potential_powXR,
     }
     guiParametersInteractions.add(guiOptions.parameters, 'nuclearPotential', potentialType).name("Nuclear Potential").listen().onFinishChange((val) => {
         core.updatePhysics("potential", val);

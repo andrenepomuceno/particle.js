@@ -20,13 +20,28 @@ export class SimulationGPU {
 
         this.field = undefined;
 
-        this.cleanup();
+        this.name = "untitled";
+        this.mode2D = false;
+
+        this.cycles = 0;
+        this.energy = 0.0;
+        this.particleRadius = 20;
+        this.particleRadiusRange = 10;
+        this.totalMass = 0.0;
+        this.totalTime = 0.0;
+        this.totalCharge = 0.0;
+
+        this.mMin = Infinity;
+        this.mMax = -Infinity;
+        this.qMin = Infinity;
+        this.qMax = -Infinity;
+
+        this.computeTime = [];
+        this.stats = {};
     }
 
     setup(populateSimulationCallback) {
         log("setup");
-
-        this.graphics.cleanup();
 
         if (populateSimulationCallback != undefined) {
             this.populateSimulationCallback = populateSimulationCallback;
@@ -47,29 +62,6 @@ export class SimulationGPU {
         }
 
         this.drawParticles();
-    }
-
-    cleanup() {
-        log("cleanup");
-
-        this.name = "untitled";
-        this.mode2D = false;
-
-        this.cycles = 0;
-        this.energy = 0.0;
-        this.particleRadius = 20;
-        this.particleRadiusRange = 10;
-        this.totalMass = 0.0;
-        this.totalTime = 0.0;
-        this.totalCharge = 0.0;
-
-        this.mMin = Infinity;
-        this.mMax = -Infinity;
-        this.qMin = Infinity;
-        this.qMax = -Infinity;
-
-        this.computeTime = [];
-        this.stats = {};
     }
 
     step(dt) {

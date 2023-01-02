@@ -164,7 +164,7 @@ export class GraphicsGPU {
         this.initialized = true;
     }
 
-    update() {
+    render() {
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
         if (ENV?.record && CanvasCapture.isRecording()) CanvasCapture.recordFrame();

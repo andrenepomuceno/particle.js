@@ -6,7 +6,7 @@ import { randomSphericVector } from '../helpers.js';
 
 let options, controls;
 
-export class GUIAdvancedControls {
+export class GUIAdvanced {
     constructor(guiOptions, guiAdvancedControls) {
         options = guiOptions;
         controls = guiAdvancedControls;

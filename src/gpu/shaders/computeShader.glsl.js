@@ -166,7 +166,8 @@ void main() {
                     #elif USE_POTENTIAL3 // "powAXv2"
                         x = sin(6.64541 * (1.0 - pow(0.054507, x)));
                     #elif USE_POTENTIAL4 // "powAXv3"
-                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-3.0 * x);
+                        const float a = 3.0;
+                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
                     #else
                         x = sin(2.0 * PI * x);
                     #endif
@@ -205,11 +206,13 @@ void main() {
                     }
                 }
             #else
-                vec3 box = vec3(2.0 * boundaryDistance);
+                vec3 box = vec3(boundaryDistance);
                 if (sdBox(nextPos, box) >= 0.0) {
-                    vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
-
-                    if (sdBox(nextPos, BOUNDARY_TOLERANCE * box) >= 0.0) {
+                    if (sdBox(nextPos, BOUNDARY_TOLERANCE * box) < 0.0) {
+                        if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
+                        if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
+                        if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
+                    } else {
                         vel1 = vec3(0.0);
                     }
                 }
@@ -264,7 +267,7 @@ void main() {
                     pos = normalize(pos);
                 }
             #else
-                vec3 box = vec3(2.0 * boundaryDistance);
+                vec3 box = vec3(boundaryDistance);
                 if (sdBox(pos, BOUNDARY_TOLERANCE * box) >= 0.0) {
                     pos = normalize(pos);
                 }

@@ -10,13 +10,13 @@ import { Ruler } from './components/ruler';
 import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
 import { GUIInfo } from './gui/info.js';
-import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
-import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
+import { GUIParticle } from './gui/particle.js';
+import { GUIParameters } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
 import { GUIGenerator } from './gui/generator.js';
-import { guiSelectionSetup } from './gui/selection.js';
+import { GUISelection } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
-import { GUIAdvancedControls } from './gui/advancedControls.js';
+import { GUIAdvanced } from './gui/advanced.js';
 
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
@@ -34,7 +34,7 @@ const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder("SELECTION");
 const guiGenerator = gui.addFolder("GENERATOR");
 const guiField = gui.addFolder("FIELD");
-const guiAdvancedControls = gui.addFolder("ADVANCED");
+const guiAdvanced = gui.addFolder("ADVANCED");
 const guiParameters = gui.addFolder("PARAMETERS");
 
 const mouse = new Mouse();
@@ -80,6 +80,7 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 function scenarioSetup(idx) {
     log("setup " + idx);
 
+    simulation.graphics.cleanup();
     velocityPanel.cleanup();
     computePanel.cleanup();
 
@@ -88,17 +89,17 @@ function scenarioSetup(idx) {
     guiOptions.particle.close();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
+    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     core.setup(idx);
 
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
-    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();
-    guiParametersRefresh();
+    guiOptions.guiParameters.refresh();
     guiOptions.guiField.refresh();
 }
 
@@ -113,23 +114,26 @@ export function viewSetup() {
 
     //stats overlay
     document.getElementById("container").appendChild(statsPanel.domElement);
-    mouse.addListener(statsPanel.domElement);
+    mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = "visible";
 
     //gui menu overlay
-    mouse.addListener(gui.domElement);
+    mouse.addOverListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
     guiOptions.guiInfo.setup();
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
     guiOptions.guiControls.setup();
-    guiParticleSetup(guiOptions, guiParticle);
-    guiParametersSetup(guiOptions, guiParameters);
-    guiSelectionSetup(guiOptions, guiSelection);
+    guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
+    guiOptions.guiParticle.setup();
+    guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
+    guiOptions.guiParameters.setup();
+    guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
+    guiOptions.guiSelection.setup();
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
     guiOptions.guiGenerator.setup();
-    guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
+    guiOptions.guiAdvancedControls = new GUIAdvanced(guiOptions, guiAdvanced);
     guiOptions.guiAdvancedControls.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);
     guiOptions.guiField.setup();
@@ -197,7 +201,7 @@ function onPointerUp(event) {
         let particle = simulation.graphics.raycast(core, mouse.position);
         if (particle) {
             guiOptions.particle.obj = particle;
-            guiParticleRefresh();
+            guiOptions.guiParticle.refresh();
             guiParticle.open();
         }
     }
@@ -211,7 +215,7 @@ function onFinishMove(event) {
 function animate(time) {
     requestAnimationFrame(animate);
 
-    simulation.graphics.update();
+    simulation.graphics.render();
     statsPanel.update();
 
     if (guiOptions.particle.followParticle && guiOptions.particle.obj) {
@@ -238,9 +242,9 @@ function animate(time) {
         }
 
         guiOptions.guiInfo.refresh();
-        guiParticleRefresh();
+        guiOptions.guiParticle.refresh();
         selection.guiRefresh();
-        guiParametersRefresh();
+        guiOptions.guiParameters.refresh();
         guiOptions.guiControls.refresh();
     }
 

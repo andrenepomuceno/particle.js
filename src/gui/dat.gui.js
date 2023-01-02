@@ -1529,7 +1529,7 @@ function requestAnimationFrame(callback) {
 var requestAnimationFrame$1 = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || requestAnimationFrame;
 
 var CSS_NAMESPACE = 'dg';
-var HIDE_KEY_CODE = 72;
+//var HIDE_KEY_CODE = 72; //'h'
 var CLOSE_BUTTON_HEIGHT = 20;
 var DEFAULT_DEFAULT_PRESET_NAME = 'Default';
 var SUPPORTS_LOCAL_STORAGE = function () {
@@ -1787,12 +1787,12 @@ GUI.CLASS_DRAG = 'drag';
 GUI.DEFAULT_WIDTH = 245;
 GUI.TEXT_CLOSED = 'Close Controls';
 GUI.TEXT_OPEN = 'Open Controls';
-GUI._keydownHandler = function (e) {
-    if (document.activeElement.type !== 'text' && (e.which === HIDE_KEY_CODE || e.keyCode === HIDE_KEY_CODE)) {
-        GUI.toggleHide();
-    }
-};
-dom.bind(window, 'keydown', GUI._keydownHandler, false);
+// GUI._keydownHandler = function (e) {
+//     if (document.activeElement.type !== 'text' && (e.which === HIDE_KEY_CODE || e.keyCode === HIDE_KEY_CODE)) {
+//         GUI.toggleHide();
+//     }
+// };
+//dom.bind(window, 'keydown', GUI._keydownHandler, false);
 Common.extend(GUI.prototype,
     {
         add: function add(object, property) {
@@ -1824,7 +1824,7 @@ Common.extend(GUI.prototype,
             Common.each(this.__folders, function (subfolder) {
                 _this.removeFolder(subfolder);
             });
-            dom.unbind(window, 'keydown', GUI._keydownHandler, false);
+            //dom.unbind(window, 'keydown', GUI._keydownHandler, false);
             removeListeners(this);
         },
         addFolder: function addFolder(name) {
@@ -2267,7 +2267,7 @@ var controllers = {
     FunctionController: FunctionController,
     ColorController: ColorController
 };
-var dom$1 = { dom: dom };
+
 var gui = { GUI: GUI };
 
 var index = {
@@ -2280,7 +2280,7 @@ var index = {
 
 exports.color = color;
 exports.controllers = controllers;
-exports.dom = dom$1;
+exports.dom = { dom: dom };
 exports.gui = gui;
 exports.GUI = GUI;
 exports['default'] = index;

@@ -28,14 +28,14 @@ const computePanel = statsPanel.addPanel(new Stats.Panel('GPU'));
 //statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
-const guiInfo = gui.addFolder("INFORMATION");
+const guiInfo = gui.addFolder('INFORMATION');
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
-const guiSelection = gui.addFolder("SELECTION");
-const guiGenerator = gui.addFolder("GENERATOR");
-const guiField = gui.addFolder("FIELD");
-const guiAdvanced = gui.addFolder("ADVANCED");
-const guiParameters = gui.addFolder("PARAMETERS");
+const guiSelection = gui.addFolder('SELECTION');
+const guiGenerator = gui.addFolder('GENERATOR');
+const guiField = gui.addFolder('FIELD');
+const guiAdvanced = gui.addFolder('ADVANCED');
+const guiParameters = gui.addFolder('PARAMETERS');
 
 const mouse = new Mouse();
 const selection = new Selection();
@@ -83,7 +83,7 @@ guiOptions.keyboard = new Keyboard(mouse, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 
 function scenarioSetup(idx) {
-    log("setup " + idx);
+    log('setup ' + idx);
 
     simulation.graphics.cleanup();
     velocityPanel.cleanup();
@@ -110,17 +110,17 @@ function scenarioSetup(idx) {
 
 export function viewSetup() {
     window.onresize = onWindowResize;
-    document.addEventListener("keydown", e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
-    document.addEventListener("keyup", e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
+    document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
+    document.addEventListener('keyup', e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
 
     window.addEventListener('pointermove', onPointerMove);
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("pointerup", onPointerUp);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointerup', onPointerUp);
 
     //stats overlay
-    document.getElementById("container").appendChild(statsPanel.domElement);
+    document.getElementById('container').appendChild(statsPanel.domElement);
     mouse.addOverListener(statsPanel.domElement);
-    statsPanel.domElement.style.visibility = "visible";
+    statsPanel.domElement.style.visibility = 'visible';
 
     //gui menu overlay
     mouse.addOverListener(gui.domElement);
@@ -164,7 +164,7 @@ function showCursor() {
 /* CALLBACKS */
 
 function onWindowResize() {
-    log("window.onresize " + window.innerWidth + "x" + window.innerHeight);
+    log('window.onresize ' + window.innerWidth + 'x' + window.innerHeight);
     simulation.graphics.onWindowResize(window);
     if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
 }

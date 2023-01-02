@@ -9,8 +9,8 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true) {
-    let config = "";
+export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true) {
+    let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
@@ -30,7 +30,7 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
 }
 
 export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
-    let config = "";
+    let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
@@ -153,19 +153,19 @@ void main() {
                     x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
                 #else
                     x = distance1/nuclearForceRange;
-                    #if USE_POTENTIAL0 // "powXR"
+                    #if USE_POTENTIAL0 // 'powXR'
                         const float r = 1.0/3.0, log2 = log(2.0);
                         x = pow(x, -log2 / log(r));
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL1 // "exp"
+                    #elif USE_POTENTIAL1 // 'exp'
                         const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
                         x = -exp(-log2 * x * r2 / r1);
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL2 // "powAX"
+                    #elif USE_POTENTIAL2 // 'powAX'
                         x = sin(7.22423 * (1.0 - pow(0.13026, x)));
-                    #elif USE_POTENTIAL3 // "powAXv2"
+                    #elif USE_POTENTIAL3 // 'powAXv2'
                         x = sin(6.64541 * (1.0 - pow(0.054507, x)));
-                    #elif USE_POTENTIAL4 // "powAXv3"
+                    #elif USE_POTENTIAL4 // 'powAXv3'
                         const float a = 3.0;
                         x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
                     #else

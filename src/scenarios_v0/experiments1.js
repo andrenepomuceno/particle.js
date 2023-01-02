@@ -63,7 +63,7 @@ function randomElements(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    //if (!ENV?.production) simulation.field.setup("2d", 50);
+    //if (!ENV?.production) simulation.field.setup('2d', 50);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },
@@ -134,7 +134,7 @@ function periodicTable(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    //if (!ENV?.production) simulation.field.setup("2d", 50);
+    //if (!ENV?.production) simulation.field.setup('2d', 50);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },
@@ -209,7 +209,7 @@ function carbonCrystal(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    //if (!ENV?.production) simulation.field.setup("2d", 50);
+    //if (!ENV?.production) simulation.field.setup('2d', 50);
 
     let nucleusTypes = [
         { m: 1.007276466583, q: 1, nq: 1 },

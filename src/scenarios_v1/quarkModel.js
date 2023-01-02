@@ -74,10 +74,10 @@ function fullScaleModel(simulation) {
     let r0 = Math.sqrt(maxParticles / (density * Math.PI));
 
     let particles = [
-        { m: (1e3) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: "neutrino" },
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
+        { m: (1e3) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'up quark' }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'down quark' }, // 6 MeV
     ];
 
     let options = {
@@ -134,11 +134,11 @@ function water2(simulation) {
     let gridSize = calcGridSize(graphics, (2 * (3 + 1) + 8 * (2 * 3 + 1)));
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down' }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * KG, q: -1.602176634e-19 * C, nq: -1, name: "electron" },
+        { m: 9.1093837015e-31 * KG, q: -1.602176634e-19 * C, nq: -1, name: 'electron' },
     ];
 
     let index = 0;
@@ -200,9 +200,9 @@ function miniverse2(simulation) {
     let r0 = 1e0 * nuclearForceRange;
 
     let particles = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
     ];
 
     let options = {
@@ -299,9 +299,9 @@ function miniverse(simulation) {
     let r0 = 1;
 
     let particles = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
     ];
 
     let options = {
@@ -353,23 +353,23 @@ function essentialElements(simulation) {
     let r2 = 0.493 * physics.nuclearForceRange;
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
     ];
     let elementsRatios = [
-        { r: 100, n: 1, name: "H" },
-        { r: 30, n: 6, name: "C" },
-        { r: 30, n: 7, name: "N" },
-        { r: 10, n: 8, name: "O" },
-        { r: 1, n: 12, name: "Mg" },
-        { r: 1, n: 15, name: "P" },
-        { r: 1, n: 16, name: "S" },
-        { r: 1, n: 26, name: "Fe" },
-        { r: 1, n: 29, name: "Cu" },
-        { r: 1, n: 30, name: "Zn" },
+        { r: 100, n: 1, name: 'H' },
+        { r: 30, n: 6, name: 'C' },
+        { r: 30, n: 7, name: 'N' },
+        { r: 10, n: 8, name: 'O' },
+        { r: 1, n: 12, name: 'Mg' },
+        { r: 1, n: 15, name: 'P' },
+        { r: 1, n: 16, name: 'S' },
+        { r: 1, n: 26, name: 'Fe' },
+        { r: 1, n: 29, name: 'Cu' },
+        { r: 1, n: 30, name: 'Zn' },
     ];
     parseElementRatioList(elementsRatios);
     console.log(elementsRatios);
@@ -461,16 +461,16 @@ function water(simulation) {
     let gridSize = calcGridSize(graphics, 7 * 5);
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
     ];
 
     let elementsRatios = [
-        { r: 3, n: 1, name: "H" },
-        { r: 1, n: 8, name: "O" },
+        { r: 3, n: 1, name: 'H' },
+        { r: 1, n: 8, name: 'O' },
     ];
     parseElementRatioList(elementsRatios);
     console.log(elementsRatios);
@@ -554,26 +554,26 @@ function air(simulation) {
     let gridSize = calcGridSize(graphics, 7 * 8);
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
     ];
 
     let elementsRatios = [
-        { r: 2 * 78.084, n: 7, name: "N2" }, // N2
-        { r: 2 * 20.946, n: 8, name: "O2" }, // O2
-        { r: 0.9340, n: 33, name: "Ar" }, // Ar
+        { r: 2 * 78.084, n: 7, name: 'N2' }, // N2
+        { r: 2 * 20.946, n: 8, name: 'O2' }, // O2
+        { r: 0.9340, n: 33, name: 'Ar' }, // Ar
         // CO2
         { r: 0.0417, n: 6, name: "C (CO2)" }, // C
         { r: 2 * 0.0417, n: 8, name: "O2 (CO2)" }, // O2
-        { r: 0.001818, n: 10, name: "Ne" }, // Ne
-        { r: 0.000524, n: 2, name: "He" }, // He
+        { r: 0.001818, n: 10, name: 'Ne' }, // Ne
+        { r: 0.000524, n: 2, name: 'He' }, // He
         // CH4
         { r: 0.0417, n: 6, name: "C (CH4)" }, // C
         { r: 4 * 0.0417, n: 1, name: "H4 (CH4)" }, // H4
-        { r: 0.000114, n: 36, name: "Kr" }, // Kr
+        { r: 0.000114, n: 36, name: 'Kr' }, // Kr
     ];
     parseElementRatioList(elementsRatios);
     console.log(elementsRatios);

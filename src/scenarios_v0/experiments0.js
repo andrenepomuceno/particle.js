@@ -65,7 +65,7 @@ function hexagon3d(simulation) {
     graphics.cameraSetup();
 
     simulation.field.probeConfig(0, 0, 10);
-    //simulation.field.setup("2d", 100);
+    //simulation.field.setup('2d', 100);
 
     let m = 1;
     let q = 1;
@@ -147,7 +147,7 @@ function hexagon3(simulation) {
     graphics.cameraSetup();
 
     simulation.field.probeConfig(0, 0, 10);
-    //simulation.field.setup("2d", 100);
+    //simulation.field.setup('2d', 100);
 
     let m = 1;
     let q = 1;
@@ -233,7 +233,7 @@ function hexagon2(simulation) {
     graphics.cameraSetup();
 
     simulation.field.probeConfig(0, 0, 10);
-    //simulation.field.setup("2d", 100);
+    //simulation.field.setup('2d', 100);
 
     let m = 1;
     let q = 1;
@@ -277,7 +277,7 @@ function hexagon1(simulation) {
     graphics.cameraSetup();
 
     simulation.field.probeConfig(0, 0, 10);
-    //simulation.field.setup("2d", 100);
+    //simulation.field.setup('2d', 100);
 
     let m = 1;
     let q = 1;
@@ -347,7 +347,7 @@ function hexagon0(simulation) {
     graphics.cameraSetup();
 
     simulation.field.probeConfig(0, 0, 10);
-    //simulation.field.setup("2d", 100);
+    //simulation.field.setup('2d', 100);
 
     let m = 1;
     let q = 1;
@@ -513,7 +513,7 @@ function magnecticForce(simulation) {
     physics.minDistance2 = Math.pow(1e-6, 2);
 
     simulation.field.probeConfig(0, 50, 0);
-    simulation.field.setup("2d", 40);
+    simulation.field.setup('2d', 40);
 
     let m = 1e30;
     let q = 1e3;

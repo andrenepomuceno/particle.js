@@ -46,7 +46,7 @@ class Core {
             } else if (idx == -1) {
                 this.particleSetup = scenariosList[scenariosList.length - 1];
             } else {
-                log("invalid simulationList index");
+                log('invalid simulationList index');
                 return;
             }
         }
@@ -55,11 +55,11 @@ class Core {
 
         simulation.setup(this.particleSetup);
 
-        log("simulationSetup done");
+        log('simulationSetup done');
     }
 
     importParticleList(selection, filename, content) {
-        log("Importing selection " + filename);
+        log('Importing selection ' + filename);
 
         let imported = parseCsv(simulation, filename, content);
         if (imported == undefined) return;
@@ -94,7 +94,7 @@ class Core {
     }
 
     createParticleList(particleList, center = new Vector3()) {
-        log("createParticleList " + particleList.length + " " + center.toArray());
+        log('createParticleList ' + particleList.length + ' ' + center.toArray());
 
         if (particleList == undefined || particleList.length == 0) return;
 
@@ -118,9 +118,9 @@ class Core {
     }
 
     updatePhysics(key, value) {
-        log("updatePhysics key " + key + " val " + value);
+        log('updatePhysics key ' + key + ' val ' + value);
 
-        if (value == undefined || value === "") return;
+        if (value == undefined || value === '') return;
 
         let updatePhysics = true;
         let updateShader = false;
@@ -233,7 +233,7 @@ class Core {
         log("updateParticle key = " + key + " val = " + value + " particle = " + particle);
 
         if (particle == undefined) return;
-        if (value == undefined || value === "") return;
+        if (value == undefined || value === '') return;
 
         let simpleUpdate = false;
         let fullUpdate = false;
@@ -298,7 +298,7 @@ class Core {
                         particle.velocity = vec;
                         particle.velocity.multiplyScalar(abs);
                     } else {
-                        alert("Invalid value.");
+                        alert('Invalid value.');
                         return;
                     }
                     simpleUpdate = true;
@@ -339,7 +339,7 @@ class Core {
     }
 
     deleteParticleList(list) {
-        log("deleteParticleList " + list.length);
+        log('deleteParticleList ' + list.length);
 
         if (list == undefined) return;
 
@@ -410,7 +410,7 @@ class Core {
             totalMass = stats.totalMass.toExponential(1);
             totalCharge = stats.totalCharge.toExponential(1);
         }
-        log("updateParticleList " + parameter + " " + value + " " + list.length);
+        log('updateParticleList ' + parameter + ' ' + value + ' ' + list.length);
 
         let updateLevel = 0;
 
@@ -419,12 +419,12 @@ class Core {
                 {
                     let ratio = parseFloat(value);
                     if (isNaN(ratio)) {
-                        alert("Invalid value.");
+                        alert('Invalid value.');
                         return;
                     }
                     if (ratio.toExponential(1) == totalMass) return;
                     if (ratio > 1e6) {
-                        alert("Value is too big.");
+                        alert('Value is too big.');
                         return;
                     }
 
@@ -440,12 +440,12 @@ class Core {
                 {
                     let ratio = parseFloat(value);
                     if (isNaN(ratio)) {
-                        alert("Invalid value.");
+                        alert('Invalid value.');
                         return;
                     }
                     if (ratio.toExponential(1) == totalCharge) return;
                     if (ratio >= 1e6) {
-                        alert("Value is too big.");
+                        alert('Value is too big.');
                         return;
                     }
 
@@ -461,12 +461,12 @@ class Core {
                 {
                     let ratio = parseFloat(value);
                     if (isNaN(ratio)) {
-                        alert("Invalid value.");
+                        alert('Invalid value.');
                         return;
                     }
                     if (ratio.toExponential(1) == totalCharge) return;
                     if (ratio >= 1e6) {
-                        alert("Value is too big.");
+                        alert('Value is too big.');
                         return;
                     }
 
@@ -482,12 +482,12 @@ class Core {
                 {
                     let center = decodeVector3(value);
                     if (center == undefined) {
-                        alert("Invalid center position.");
+                        alert('Invalid center position.');
                         return;
                     }
                     let centerVector = new Vector3(center.x, center.y, center.z);
                     if (centerVector.length() >= physics.boundaryDistance) {
-                        alert("Value out of boundaries.");
+                        alert('Value out of boundaries.');
                         return;
                     }
 
@@ -505,7 +505,7 @@ class Core {
                 {
                     let newVelocityAbs = parseFloat(value);
                     if (Math.abs(newVelocityAbs) >= physics.boundaryDistance) {
-                        alert("Value is too big.");
+                        alert('Value is too big.');
                         return;
                     }
 
@@ -529,7 +529,7 @@ class Core {
                 {
                     let newDir = decodeVector3(value);
                     if (newDir == undefined) {
-                        alert("Invalid value.");
+                        alert('Invalid value.');
                         return;
                     }
 
@@ -563,7 +563,7 @@ class Core {
                 break;
 
             default:
-                log("invalid parameter");
+                log('invalid parameter');
                 return;
         }
 
@@ -582,7 +582,7 @@ class Core {
     }
 
     importCSV(filename, content) {
-        log("importCSV " + filename);
+        log('importCSV ' + filename);
 
         let graphics = simulation.graphics;
 

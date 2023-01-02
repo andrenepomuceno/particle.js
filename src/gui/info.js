@@ -22,21 +22,21 @@ export class GUIInfo {
 
     setup() {
         options.info = {
-            name: "",
-            folderName: "",
+            name: '',
+            folderName: '',
             particles: 0,
-            maxParticles: "",
-            time: "",
+            maxParticles: '',
+            time: '',
             collisions: 0,
 
-            mass: "",
-            charge: "",
+            mass: '',
+            charge: '',
             nuclearCharge: '',
-            energy: "",
-            velocity: "",
+            energy: '',
+            velocity: '',
 
-            cameraDistance: "",
-            cameraPosition: "",
+            cameraDistance: '',
+            cameraPosition: '',
 
             autoRefresh: true,
 
@@ -77,13 +77,13 @@ export class GUIInfo {
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
         guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("mass", val);
+            core.updateParticleList('mass', val);
         });
         guiInfoMore.add(options.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("charge", val);
+            core.updateParticleList('charge', val);
         });
         guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("nuclearCharge", val);
+            core.updateParticleList('nuclearCharge', val);
         });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
         guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
@@ -100,9 +100,9 @@ export class GUIInfo {
             simulation.graphics.controls.target.set(p.x, p.y, 0);
             simulation.graphics.controls.update();
         });
-        guiInfoRuler.add(options.info, 'rulerLen').name("Length").listen();
-        guiInfoRuler.add(options.info, 'rulerDelta').name("Delta").listen();
-        guiInfoRuler.add(options.info, 'rulerStart').name("Start").listen();
+        guiInfoRuler.add(options.info, 'rulerLen').name('Length').listen();
+        guiInfoRuler.add(options.info, 'rulerDelta').name('Delta').listen();
+        guiInfoRuler.add(options.info, 'rulerStart').name('Start').listen();
         guiInfoRuler.open();
 
         if (!ENV?.production) {

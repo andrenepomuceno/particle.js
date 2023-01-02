@@ -1,4 +1,4 @@
-import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from "three";
+import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from 'three';
 import { simulation } from "../core.js";
 import { mouseToScreenCoord, mouseToWorldCoord, floatArrayToString } from '../helpers.js';
 

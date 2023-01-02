@@ -17,7 +17,7 @@ export class GUIField {
             val = parseFloat(val);
             options.field[param] = simulation.field.probeParam[param].toExponential(2);
             if (isNaN(val)) {
-                alert("Invalid value.");
+                alert('Invalid value.');
                 return;
             }
             if (simulation.field.probeParam[param] == val) return;
@@ -49,16 +49,16 @@ export class GUIField {
         controls.add(options.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
             this.fieldEnable(val);
         });
-        controls.add(options.field, 'automaticRefresh').name("Automatic Refresh").listen().onFinishChange(val => {
+        controls.add(options.field, 'automaticRefresh').name('Automatic Refresh').listen().onFinishChange(val => {
             if (val == true) {
                 options.field.fieldResize();
             }
         });
-        controls.add(options.field, 'grid').name("Grid").listen().onFinishChange(val => {
+        controls.add(options.field, 'grid').name('Grid').listen().onFinishChange(val => {
             options.field.grid = simulation.field.grid[0];
             const grid = Math.round(parseFloat(val));
             if (isNaN(grid)) {
-                alert("Invalid value.");
+                alert('Invalid value.');
                 return;
             }
             if (val == simulation.field.grid[0]) return;
@@ -74,17 +74,17 @@ export class GUIField {
             }
             options.field.grid = grid;
         });
-        controls.add(options.field, 'm').name("Mass").listen().onFinishChange(val => {
+        controls.add(options.field, 'm').name('Mass').listen().onFinishChange(val => {
             updateFieldParameter('m', val);
         });
-        controls.add(options.field, 'q').name("Charge").listen().onFinishChange(val => {
+        controls.add(options.field, 'q').name('Charge').listen().onFinishChange(val => {
             updateFieldParameter('q', val);
         });
-        controls.add(options.field, 'nq').name("Nuclear Charge").listen().onFinishChange(val => {
+        controls.add(options.field, 'nq').name('Nuclear Charge').listen().onFinishChange(val => {
             updateFieldParameter('nq', val);
         });
         controls.add(options.field, 'fieldResize').name("Refresh [F]");
-        controls.add(options.field, 'close').name("Close");
+        controls.add(options.field, 'close').name('Close');
 
         options.collapseList.push(controls);
 
@@ -109,7 +109,7 @@ export class GUIField {
         } else {
             let grid = Math.round(parseFloat(options.field.grid));
             if (isNaN(grid)) {
-                alert("Invalid grid value.");
+                alert('Invalid grid value.');
                 return;
             }
             simulation.graphics.readbackParticleData();

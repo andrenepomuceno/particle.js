@@ -30,7 +30,7 @@ function log(msg) {
 
 export class GraphicsGPU {
     constructor() {
-        log("constructor");
+        log('constructor');
 
         this.cleanup();
 
@@ -45,19 +45,42 @@ export class GraphicsGPU {
         this.renderer.powerPreference = 'high-performance';
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById("container").appendChild(this.renderer.domElement);
+        document.getElementById('container').appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-3, 1e12);
-
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
         this.raycaster = new Raycaster();
-        this.raycaster.params.Points.threshold = 1;
+
+        log('constructor done');
+    }
+
+    cleanup() {
+        log('cleanup');
+
+        this.initialized = false;
+
+        if (this.scene) {
+            for (let i = this.scene.children.length - 1; i >= 0; i--) {
+                let obj = this.scene.children[i];
+                this.scene.remove(obj);
+                obj.dispose();
+            }
+        }
+
+        this.physics = undefined;
+        this.particleList = undefined;
+
+        this.gpuCompute = undefined;
+        this.positionVariable = undefined;
+        this.velocityVariable = undefined;
+        this.renderTarget = 0;
+
+        this.pointsObject = undefined;
+        this.pointsUniforms = undefined;
+        this.pointsGeometry = undefined;
 
         this.axisObject = undefined;
-
-        log("constructor done");
     }
 
     raycast(core, pointer) {
@@ -85,13 +108,13 @@ export class GraphicsGPU {
     }
 
     cameraDefault() {
-        log("cameraDefault");
+        log('cameraDefault');
         this.controls.enableRotate = true;
         this.cameraSetup(3000, 30, 45);
     }
 
     cameraSetup(distance, phi, theta) {
-        log("cameraSetup");
+        log('cameraSetup');
         log("distance = " + distance + " phi = " + phi + " theta = " + theta);
 
         this.cameraDistance = (distance || this.cameraDistance);
@@ -139,7 +162,7 @@ export class GraphicsGPU {
     }
 
     drawParticles(particleList, physics) {
-        log("drawParticles");
+        log('drawParticles');
         log("textureWidth = " + this.textureWidth);
 
         this.particleList = (particleList || this.particleList);
@@ -180,33 +203,8 @@ export class GraphicsGPU {
         }
     }
 
-    cleanup() {
-        log("cleanup");
-
-        this.initialized = false;
-
-        if (this.scene) {
-            for (let i = this.scene.children.length - 1; i >= 0; i--) {
-                let obj = this.scene.children[i];
-                this.scene.remove(obj);
-            }
-        }
-
-        this.physics = undefined;
-        this.particleList = undefined;
-
-        this.gpuCompute = undefined;
-        this.positionVariable = undefined;
-        this.velocityVariable = undefined;
-        this.renderTarget = 0;
-
-        this.pointsObject = undefined;
-        this.pointsUniforms = undefined;
-        this.pointsGeometry = undefined;
-    }
-
     setMaxParticles(n) {
-        log("setMaxParticles");
+        log('setMaxParticles');
         this.textureWidth = Math.round(Math.sqrt(n) / 16) * 16;
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
@@ -385,7 +383,7 @@ export class GraphicsGPU {
     }
 
     fillPointColors() {
-        log("fillPointColors");
+        log('fillPointColors');
 
         if (!this.particleList) {
             log("particle list not loaded!");
@@ -480,10 +478,10 @@ export class GraphicsGPU {
     }
 
     readbackParticleData() {
-        log("readbackParticleData");
+        log('readbackParticleData');
 
         if (!this.initialized) {
-            log("not initialized");
+            log('not initialized');
             return;
         }
 

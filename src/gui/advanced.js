@@ -15,9 +15,9 @@ export class GUIAdvanced {
 
     setup() {
         options.advanced = {
-            dampKickFactor: "0.1",
-            randomVelocity: "10",
-            cleanupThreshold: "8",
+            dampKickFactor: '0.1',
+            randomVelocity: '10',
+            cleanupThreshold: '8',
             reverseVelocity: () => {
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
@@ -35,7 +35,7 @@ export class GUIAdvanced {
             particleCleanup: () => {
                 let thresh = parseFloat(options.advanced.cleanupThreshold);
                 if (isNaN(thresh)) {
-                    alert("Invalid threshold.");
+                    alert('Invalid threshold.');
                     return;
                 }
                 core.particleAutoCleanup(thresh);
@@ -78,27 +78,27 @@ export class GUIAdvanced {
         };
     
         controls.add(options.advanced, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
-        controls.add(options.advanced, 'reverseVelocity').name("Reverse Velocity");
+        controls.add(options.advanced, 'reverseVelocity').name('Reverse Velocity');
     
         controls.add(options.advanced, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
         controls.add(options.advanced, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
         controls.add(options.advanced, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
             let factor = parseFloat(val);
             if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
-                alert("Factor must be between 0.0 and 1.0.");
-                options.advanced.dampKickFactor = "0.1";
+                alert('Factor must be between 0.0 and 1.0.');
+                options.advanced.dampKickFactor = '0.1';
                 return;
             }
             options.advanced.dampKickFactor = factor.toString();
         });
     
-        controls.add(options.advanced, 'addRandomVelocity').name("Add Random Velocity");
-        controls.add(options.advanced, 'randomVelocity').name("Random Velocity").listen();
+        controls.add(options.advanced, 'addRandomVelocity').name('Add Random Velocity');
+        controls.add(options.advanced, 'randomVelocity').name('Random Velocity').listen();
     
         controls.add(options.advanced, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
-        controls.add(options.advanced, 'cleanupThreshold').name("Cleanup Threshold").listen();
-        controls.add(options.advanced, 'zeroPosition').name("Zero Position");
-        controls.add(options.advanced, 'close').name("Close");
+        controls.add(options.advanced, 'cleanupThreshold').name('Cleanup Threshold').listen();
+        controls.add(options.advanced, 'zeroPosition').name('Zero Position');
+        controls.add(options.advanced, 'close').name('Close');
     
         options.collapseList.push(controls);
     }

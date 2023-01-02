@@ -7,12 +7,12 @@ export function generateParticleShader(particle3d, field3d, type) {
         }
     }
 
-    let config = "";
+    let config = '';
     config += define("USE_3D_ARROW", particle3d);
     config += define("USE_3D_SPHERE", field3d);
-    config += define("USE_PARTICLE_SPHERE", type == "sphere");
-    config += define("USE_PARTICLE_ARROW", type == "arrow");
-    config += define("USE_PARTICLE_SPHEROW", type == "spherow");
+    config += define("USE_PARTICLE_SPHERE", type == 'sphere');
+    config += define("USE_PARTICLE_ARROW", type == 'arrow');
+    config += define("USE_PARTICLE_SPHEROW", type == 'spherow');
     let shader = config + particleFragmentShader;
     return shader;
 }

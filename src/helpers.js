@@ -149,7 +149,7 @@ export function generateHexagon(cx, cy, radius, map) {
         let y = radius * Math.sin(theta) + cy;
 
         let vertex = { x, y, i };
-        let tag = x.toFixed(3) + " " + y.toFixed(3);
+        let tag = x.toFixed(3) + ' ' + y.toFixed(3);
         if (!map.has(tag)) {
             map.set(tag, vertex);
         }
@@ -181,7 +181,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset') {
 }
 
 export function arrayToString(array, precision) {
-    let str = "";
+    let str = '';
     array.forEach((v, idx) => {
         str += v.toFixed(precision) + ", ";
     });
@@ -189,7 +189,7 @@ export function arrayToString(array, precision) {
 }
 
 export function floatArrayToString(array, precision) {
-    let str = "";
+    let str = '';
     array.forEach((v, idx) => {
         str += v.toExponential(precision) + ", ";
     });
@@ -250,7 +250,7 @@ export function generateParticleColor(p, absCharge) {
 
 export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {
     if (particleList == undefined || particleList.length == 0) {
-        console.log("empty particle list");
+        console.log('empty particle list');
         return;
     }
 
@@ -275,7 +275,7 @@ export function fillParticleRadius(particleList, particleRadius, particleRadiusR
 
 export function fillParticleColor(particleList, qMin, qMax, enableChargeColor) {
     if (particleList == undefined || particleList.length == 0) {
-        console.log("empty particle list");
+        console.log('empty particle list');
         return;
     }
 
@@ -324,12 +324,12 @@ export function mouseToScreenCoord(event) {
 export function decodeVector3(value) {
     let split = value.split(",");
     if (split.length != 3) {
-        console.log("error decoding position");
+        console.log('error decoding position');
         return undefined;
     }
     for (let i = 0; i < split.length; ++i) {
         if (isNaN(parseFloat(split[i])) == true) {
-            console.log("error decoding position");
+            console.log('error decoding position');
             return undefined;
         }
     }
@@ -344,7 +344,7 @@ export function decodeVector3(value) {
 export function exportFilename(prefix = 'particles') {
     let timestamp = new Date().toISOString();
     let finalName = prefix + "_" + timestamp;
-    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, '');
     return finalName;
 }
 

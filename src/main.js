@@ -10,7 +10,7 @@ if (ENV?.production === true) {
 
 if (ENV?.version != false) {
     let dom = document.getElementById('info');
-    dom.innerHTML = dom.innerHTML.replace("loading...", ENV?.version);
+    dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
 }
 
 if (WebGL.isWebGLAvailable()) {

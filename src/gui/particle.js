@@ -21,17 +21,17 @@ export class GUIParticle {
         options.particle = {
             obj: undefined,
             followParticle: false,
-            id: "",
+            id: '',
             name: '',
-            mass: "",
-            charge: "",
-            nuclearCharge: "",
-            position: "",
-            velocityDir: "",
-            velocityAbs: "",
+            mass: '',
+            charge: '',
+            nuclearCharge: '',
+            position: '',
+            velocityDir: '',
+            velocityAbs: '',
             color: "#000000",
             fixed: false,
-            energy: "",
+            energy: '',
             follow: function () {
                 options.particle.followParticle = !options.particle.followParticle;
             },
@@ -42,7 +42,7 @@ export class GUIParticle {
             },
             close: guiParticleClose,
             reset: () => {
-                core.updateParticle(options.particle.obj, "reset", 0);
+                core.updateParticle(options.particle.obj, 'reset', 0);
             },
             delete: () => {
                 // TODO
@@ -75,28 +75,28 @@ export class GUIParticle {
 
         const guiParticleProperties = controls.addFolder("[+] Properties");
         guiParticleProperties.add(options.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "mass", val);
+            core.updateParticle(options.particle.obj, 'mass', val);
         });
         guiParticleProperties.add(options.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "charge", val);
+            core.updateParticle(options.particle.obj, 'charge', val);
         });
         guiParticleProperties.add(options.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "nuclearCharge", val);
+            core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
         guiParticleProperties.open();
 
         const guiParticleVariables = controls.addFolder("[+] Variables");
         guiParticleVariables.add(options.particle, 'position').name('Position').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "position", val);
+            core.updateParticle(options.particle.obj, 'position', val);
         });
         guiParticleVariables.add(options.particle, 'velocityAbs').name('Velocity').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "velocityAbs", val);
+            core.updateParticle(options.particle.obj, 'velocityAbs', val);
         });
         guiParticleVariables.add(options.particle, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "velocityDir", val);
+            core.updateParticle(options.particle.obj, 'velocityDir', val);
         });
         guiParticleVariables.add(options.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
-            core.updateParticle(options.particle.obj, "fixed", val);
+            core.updateParticle(options.particle.obj, 'fixed', val);
         });
         //guiParticleVariables.open();
 
@@ -147,15 +147,15 @@ function guiParticleClose(clear = true) {
     if (clear) {
         let particleView = options.particle;
         particleView.obj = undefined;
-        particleView.id = "";
-        particleView.mass = "";
-        particleView.charge = "";
-        particleView.nuclearCharge = "";
-        particleView.color = "";
-        particleView.position = "";
-        particleView.velocityDir = "";
-        particleView.velocityAbs = "";
-        particleView.energy = "";
+        particleView.id = '';
+        particleView.mass = '';
+        particleView.charge = '';
+        particleView.nuclearCharge = '';
+        particleView.color = '';
+        particleView.position = '';
+        particleView.velocityDir = '';
+        particleView.velocityAbs = '';
+        particleView.energy = '';
         particleView.fixed = false;
     }
     controls.close();

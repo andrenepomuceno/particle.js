@@ -3,24 +3,24 @@ import { calcListStatistics } from "../physics";
 import { ParticleType } from "../particle";
 const { Image } = require('image-js');
 import { exportCSV } from "./csv";
-import { Vector3 } from "three";
+import { Vector3 } from 'three';
 
 function log(msg) {
     console.log("Selection: " + msg);
 }
 
 export const SourceType = {
-    none: "None",
-    selection: "Selection",
-    simulation: "Simulation",
-    imported: "Imported",
-    generated: "Generated",
-    clone: "Clone",
+    none: 'None',
+    selection: 'Selection',
+    simulation: 'Simulation',
+    imported: 'Imported',
+    generated: 'Generated',
+    clone: 'Clone',
 }
 
 export class Selection {
     constructor(graphics, options, guiSelection) {
-        log("constructor");
+        log('constructor');
         this.graphics = graphics;
         this.options = options;
         this.guiSelection = guiSelection;
@@ -38,7 +38,7 @@ export class Selection {
     }
 
     start(event) {
-        log("start");
+        log('start');
         this.started = true;
         this.graphics.controls.enabled = false;
         this.mouse0 = {
@@ -63,7 +63,7 @@ export class Selection {
     }
 
     end(event, mode = 'box') {
-        log("end");
+        log('end');
 
         this.mouse1 = {
             x: event.clientX,
@@ -134,25 +134,25 @@ export class Selection {
     }
 
     export(simulation) {
-        log("export");
+        log('export');
         if (this.list == undefined || this.list.length == 0) {
             alert("Please select particles first!");
             return;
         }
         let finalName = exportFilename("selection_" + this.source);
-        if (this.blob != undefined) downloadFile(this.blob, finalName + ".png", "image/png");
-        downloadFile(exportCSV(simulation, this.list), finalName + ".csv", "text/plain;charset=utf-8");
+        if (this.blob != undefined) downloadFile(this.blob, finalName + '.png', "image/png");
+        downloadFile(exportCSV(simulation, this.list), finalName + '.csv', "text/plain;charset=utf-8");
     }
 
     import(imported) {
         this.importedData = imported;
         this.list = imported.physics.particleList;
-        this.source = SourceType.imported + " from " + filename;
+        this.source = SourceType.imported + ' from ' + filename;
         this.guiRefresh();
     }
 
     clear() {
-        log("clear");
+        log('clear');
         this.list = [];
         this.importedData = {};
         this.blob = undefined;
@@ -160,18 +160,18 @@ export class Selection {
         let view = this.options;
         if (view != undefined) {
             view.particles = 0;
-            view.mass = "";
-            view.charge = "";
-            view.nuclearCharge = "";
-            view.velocity = "";
-            view.velocityDir = "";
-            view.center = "";
+            view.mass = '';
+            view.charge = '';
+            view.nuclearCharge = '';
+            view.velocity = '';
+            view.velocityDir = '';
+            view.center = '';
             view.source = SourceType.none;
         }
     }
 
     clone() {
-        log("clone");
+        log('clone');
         if (this.list.length == 0) return;
         this.list.forEach((val, idx) => {
             this.list[idx] = val.clone();
@@ -234,7 +234,7 @@ export class Selection {
     }
 
     guiRefresh() {
-        //log("updateView");
+        //log('updateView');
         let particles = this.list.length;
         if (particles > 0) {
             this.stats = calcListStatistics(this.list);

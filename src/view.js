@@ -80,6 +80,7 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 function scenarioSetup(idx) {
     log("setup " + idx);
 
+    simulation.graphics.cleanup();
     velocityPanel.cleanup();
     computePanel.cleanup();
 
@@ -88,13 +89,13 @@ function scenarioSetup(idx) {
     guiOptions.particle.close();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
+    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     core.setup(idx);
 
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
-    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();

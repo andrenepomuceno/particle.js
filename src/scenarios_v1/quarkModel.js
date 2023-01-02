@@ -68,13 +68,13 @@ function fullScaleModel(simulation) {
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
-    const density = 2e33 * M ** -2;
+    const density = 0.5e33 * M ** -2;
     let maxParticles = graphics.maxParticles;
     //maxParticles -= Math.round(80 * 80 * 9 / 16);
     let r0 = Math.sqrt(maxParticles / (density * Math.PI));
 
     let particles = [
-        { m: (1e0) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: "neutrino" },
+        { m: (1e3) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: "neutrino" },
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
@@ -91,7 +91,7 @@ function fullScaleModel(simulation) {
     };
     createParticles(simulation, particles, maxParticles, options);
 
-    graphics.showAxis(true, simulation.mode2D, 1e-12 * M);
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M);
 }
 
 function water2(simulation) {

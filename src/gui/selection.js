@@ -40,12 +40,7 @@ export class GUISelection {
             },
             import: () => {
                 uploadCsv((name, content) => {
-                    //gSelection = new Selection(simulation.graphics, options.selection, guiSelection);
-                    selection.clear();
-                    //selection.graphics = simulation.graphics;
-                    //selection.options = options.selection;
-                    //selection.guiSelection = controls;
-    
+                    selection.clear();    
                     core.importParticleList(selection, name, content);
                 });
             },

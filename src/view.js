@@ -181,12 +181,7 @@ function onPointerMove(event) {
 
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
-        //selection = new Selection(simulation.graphics, guiOptions.selection, guiSelection);
         selection.clear();
-        //selection.graphics = simulation.graphics;
-        //selection.options = guiOptions.guiSelection;
-        //selection.guiSelection = guiSelection;
-
         selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
     }

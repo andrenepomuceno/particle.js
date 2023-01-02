@@ -430,9 +430,6 @@ function particleGenerator(input) {
     }
 
     selection.clear();
-    //selection.graphics = simulation.graphics;
-    //selection.options = options.selection;
-    //selection.guiSelection = options.guiSelection;
     selection.source = SourceType.generated;
     selection.list = dummySimulation.physics.particleList;
     selection.guiRefresh();

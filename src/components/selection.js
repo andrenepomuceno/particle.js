@@ -71,7 +71,6 @@ export class Selection {
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
-        console.log(this.options);
         if (this.#readParticleData(mode) > 0) {
             this.#snapshot(mode);
             this.source = SourceType.simulation;

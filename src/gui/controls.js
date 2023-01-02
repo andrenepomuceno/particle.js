@@ -13,7 +13,7 @@ function log(msg) {
     console.log("menu/controls: " + msg);
 }
 
-let colorMode = "charge";
+let colorMode = 'charge';
 let hideOverlay = false;
 let options;
 let controls;
@@ -22,6 +22,7 @@ export class GUIControls {
     constructor(guiOptions, guiControls) {
         options = guiOptions;
         controls = guiControls;
+        this.setup();
     }
 
     setup() {
@@ -77,16 +78,16 @@ export class GUIControls {
                 options.cameraTargetSet(simulation.graphics.controls.target);
             },
             colorMode: function () {
-                (colorMode == "charge") ? (colorMode = "random") : (colorMode = "charge");
+                (colorMode == 'charge') ? (colorMode = 'random') : (colorMode = 'charge');
                 simulation.setColorMode(colorMode);
             },
             placeHint: function () {
                 alert([
-                    'Press "Z" to place a particle selection on the mouse/pointer position.',
+                    'Press Z to place a particle selection on the mouse/pointer position.',
                     'You can get particle selections from various sources:',
-                    '- Select particles with SHIFT + CLICK + DRAG, then press "Z" to move the particles!',
-                    '- If you want to make clones, press "X" or the "Clone" button on the selection folder.',
-                    '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press "G" then "Z")',
+                    '- Select particles with SHIFT + CLICK + DRAG, then press Z to move the particles!',
+                    '- If you want to make clones, press X or the "Clone" button on the selection folder.',
+                    '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press G then Z)',
                 ].join('\n'));
             },
             wip: function () {
@@ -116,12 +117,12 @@ export class GUIControls {
             },
             hideOverlay: () => {
                 if (hideOverlay == false) {
-                    options.statsPanel.domElement.style.visibility = "hidden";
+                    options.statsPanel.domElement.style.visibility = 'hidden';
                     options.gui.hide();
                     options.mouseHelper.overGUI = false;
                     hideOverlay = true;
                 } else {
-                    options.statsPanel.domElement.style.visibility = "visible";
+                    options.statsPanel.domElement.style.visibility = 'visible';
                     options.gui.show();
                     hideOverlay = false;
                 }
@@ -159,7 +160,7 @@ export class GUIControls {
         const guiControlsCamera = controls.addFolder("[+] Camera");
         guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
         guiControlsCamera.add(options.controls, 'xyCamera').name("XY Camera [V]");
-        guiControlsCamera.add(options.controls, 'automaticRotation').name("Automatic Rotation").listen().onFinishChange(val => {
+        guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation').listen().onFinishChange(val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
@@ -172,7 +173,7 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        guiControlsCamera.add(options.controls, 'rotationSpeed').name("Rotation Speed").listen().onFinishChange(val => {
+        guiControlsCamera.add(options.controls, 'rotationSpeed').name('Rotation Speed').listen().onFinishChange(val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
@@ -187,7 +188,7 @@ export class GUIControls {
         guiControlsView.add(options.controls, 'colorMode').name("Color Mode [Q]");
         guiControlsView.add(options.controls, 'hideOverlay').name("Hide Overlay [H]");
         guiControlsView.add(options.controls, 'collapseAll').name("Collapse all folders [M]");
-        guiControlsView.add(options.controls, 'showCursor').name("Show Cursor").listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'showCursor').name('Show Cursor').listen().onFinishChange((val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -195,7 +196,7 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });
-        guiControlsView.add(options.controls, 'shader3d').name("3D Shader").listen().onFinishChange(val => {
+        guiControlsView.add(options.controls, 'shader3d').name('3D Shader').listen().onFinishChange(val => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -206,11 +207,11 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        guiControlsView.add(options.controls, 'radius').name("Particle Radius").listen().onFinishChange((val) => {
-            core.updatePhysics("radius", val);
+        guiControlsView.add(options.controls, 'radius').name('Particle Radius').listen().onFinishChange((val) => {
+            core.updatePhysics('radius', val);
         });
-        guiControlsView.add(options.controls, 'radiusRange').name("Particle Radius Range").listen().onFinishChange((val) => {
-            core.updatePhysics("radiusRange", val);
+        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range').listen().onFinishChange((val) => {
+            core.updatePhysics('radiusRange', val);
         });
 
         controls.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
@@ -218,7 +219,7 @@ export class GUIControls {
         controls.add(options.controls, 'import').name("Import simulation [I]");
         controls.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
 
-        controls.add(options.controls, 'close').name("Close");
+        controls.add(options.controls, 'close').name('Close');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiControlsCamera);
@@ -234,13 +235,13 @@ export class GUIControls {
 }
 
 function snapshot() {
-    let name = simulation.state()[0];
+    let name = simulation.name;
     let finalName = exportFilename(name)
-    log("snapshot " + finalName);
+    log('snapshot ' + finalName);
 
     simulation.graphics.update();
     simulation.graphics.renderer.domElement.toBlob((blob) => {
-        downloadFile(blob, finalName + ".png", "image/png");
+        downloadFile(blob, finalName + '.png', "image/png");
     }, 'image/png', 1);
-    downloadFile(exportCSV(simulation), finalName + ".csv", "text/plain;charset=utf-8");
+    downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
 }

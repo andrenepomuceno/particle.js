@@ -13,7 +13,7 @@ function log(msg) {
 
 export class GraphicsMock {
     constructor() {
-        log("constructor");
+        log('constructor');
 
         this.cleanup();
 
@@ -32,7 +32,7 @@ export class GraphicsMock {
 
         this.axisObject = undefined;
 
-        log("constructor done");
+        log('constructor done');
     }
 
     raycast(pointer) {
@@ -40,12 +40,12 @@ export class GraphicsMock {
     }
 
     cameraDefault() {
-        log("cameraDefault");
+        log('cameraDefault');
         this.cameraSetup(3000, 30, 45);
     }
 
     cameraSetup(distance, phi, theta) {
-        log("cameraSetup");
+        log('cameraSetup');
         log("distance = " + distance + " phi = " + phi + " theta = " + theta);
     }
 
@@ -54,7 +54,7 @@ export class GraphicsMock {
     }
 
     drawParticles(particleList, physics) {
-        log("drawParticles");
+        log('drawParticles');
         log("textureWidth = " + this.textureWidth);
 
         this.particleList = (particleList || this.particleList);
@@ -73,7 +73,7 @@ export class GraphicsMock {
         this.initialized = true;
     }
 
-    update() {
+    render() {
 
     }
 
@@ -82,7 +82,7 @@ export class GraphicsMock {
     }
 
     cleanup() {
-        log("cleanup");
+        log('cleanup');
 
         this.initialized = false;
 
@@ -100,7 +100,7 @@ export class GraphicsMock {
     }
 
     setMaxParticles(n) {
-        log("setMaxParticles");
+        log('setMaxParticles');
         this.textureWidth = Math.round(Math.sqrt(n) / 16) * 16;
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
@@ -116,7 +116,7 @@ export class GraphicsMock {
     }
 
     fillPointColors() {
-        log("fillPointColors");
+        log('fillPointColors');
 
         if (!this.particleList) {
             log("particle list not loaded!");
@@ -138,10 +138,10 @@ export class GraphicsMock {
     }
 
     readbackParticleData() {
-        log("readbackParticleData");
+        log('readbackParticleData');
 
         if (!this.initialized) {
-            log("not initialized");
+            log('not initialized');
             return;
         }
     }

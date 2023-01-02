@@ -10,7 +10,7 @@ const arrowPadding = 0.9;
 
 export class FieldGPU {
     constructor(simulation) {
-        log("constructor");
+        log('constructor');
 
         this.simulation = simulation;
         this.graphics = simulation.graphics;
@@ -72,7 +72,7 @@ export class FieldGPU {
     }
 
     probeConfig(m = 1, q = 1, nq = 1) {
-        log("probeConfig");
+        log('probeConfig');
         this.probeParam = {
             m: m,
             q: q,
@@ -81,7 +81,7 @@ export class FieldGPU {
     }
 
     setup(mode, grid, center) {
-        log("setup");
+        log('setup');
         log("mode = " + mode);
         log("gridPoints = " + grid);
 
@@ -93,7 +93,7 @@ export class FieldGPU {
         this.grid = ret.grid;
 
         if (!this.#populateField(center)) {
-            log("setup failed");
+            log('setup failed');
             return false;
         }
 
@@ -103,7 +103,7 @@ export class FieldGPU {
     }
 
     resize(center) {
-        log("resize");
+        log('resize');
         //console.log(center);
 
         if (this.arrowList.length == 0) return;
@@ -113,13 +113,13 @@ export class FieldGPU {
 
         let idx = 0;
         switch (this.populateMode) {
-            case "sphere":
+            case 'sphere':
                 sphereGenerator((x, y, z) => {
                     this.#updateFieldElement(this.arrowList[idx++], x, y, z, center);
                 }, this.size, this.grid);
                 break;
 
-            case "cube":
+            case 'cube':
             default:
                 cubeGenerator((x, y, z) => {
                     this.#updateFieldElement(this.arrowList[idx++], x, y, z, center);
@@ -132,7 +132,7 @@ export class FieldGPU {
     }
 
     cleanup() {
-        log("cleanup");
+        log('cleanup');
         this.arrowList = [];
         this.enabled = false;
     }
@@ -151,7 +151,7 @@ export class FieldGPU {
         return true;
     }
 
-    #populateField(center = new Vector3(), mode = "cube") {
+    #populateField(center = new Vector3(), mode = 'cube') {
         log("#populateField");
 
         if (!this.checkGridSize(this.grid[0])) {
@@ -165,13 +165,13 @@ export class FieldGPU {
         this.populateMode = mode;
 
         switch (this.populateMode) {
-            case "sphere":
+            case 'sphere':
                 sphereGenerator((x, y, z) => {
                     this.#createFieldElement(new Vector3(x, y, z).add(center));
                 }, this.size, this.grid);
                 break;
 
-            case "cube":
+            case 'cube':
             default:
                 cubeGenerator((x, y, z) => {
                     this.#createFieldElement(new Vector3(x, y, z).add(center));
@@ -259,7 +259,7 @@ export class FieldGPU {
         
         //log('this.maxVelocity ' + this.maxVelocity);
         //log('this.avgVelocity ' + this.avgVelocity);
-        log("variance " + varFIR);
+        log('variance ' + varFIR);
 
         this.graphics.updateFieldUniform(this.maxVelocity, this.avgVelocity);
     }

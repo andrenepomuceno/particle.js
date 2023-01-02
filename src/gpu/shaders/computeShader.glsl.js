@@ -9,8 +9,8 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = "default", useDistance1 = false, boxBoundary = false, enableBoundary = true) {
-    let config = "";
+export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true) {
+    let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
@@ -30,7 +30,7 @@ export function generateComputeVelocity(nuclearPotential = "default", useDistanc
 }
 
 export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
-    let config = "";
+    let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
@@ -54,9 +54,6 @@ uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
-
-const float width = resolution.x;
-const float height = resolution.y;
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -82,41 +79,38 @@ void main() {
 
     vec3 pos1 = tPos1.xyz;
     vec4 props1 = texture2D(textureProperties, uv1);
-    float id1 = props1.x;
-    float m1 = props1.y;
+    float m1 = props1.x;
     vec4 tVel1 = texture2D(textureVelocity, uv1);
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
 
     vec4 consts = vec4(
-        0,
         massConstant, 
         -chargeConstant,
-        nuclearForceConstant
+        nuclearForceConstant,
+        0
     );
 
     vec3 rForce = vec3(0.0);
-    for (float texY = 0.0; texY < height; texY++) {
-        for (float texX = 0.0; texX < width; texX++) {
-            vec2 uv2 = vec2(texX + 0.5, texY + 0.5) / resolution.xy;
+    for (float texY = 0.5; texY < resolution.y; texY++) {
+        for (float texX = 0.5; texX < resolution.x; texX++) {
+            vec2 uv2 = vec2(texX, texY) / resolution.xy;
+            if (uv1 == uv2) continue;
+
             vec4 tPos2 = texture2D(texturePosition, uv2);
             float type2 = tPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
 
-            vec4 props2 = texture2D(textureProperties, uv2);
-            float id2 = props2.x;
-            if (id1 == id2) {
-                continue;
-            }
-
             vec3 pos2 = tPos2.xyz;            
+            vec4 props2 = texture2D(textureProperties, uv2);
+
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
-            
+
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    float m2 = props2.y;
+                    float m2 = props2.x;
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
                     float m = m1 + m2; // precision loss if m1 >> m2
                     if (m == 0.0) {
@@ -144,28 +138,30 @@ void main() {
             #if USE_DISTANCE1
                 float distance1 = sqrt(distance2);
             #endif
+            
             float x = 0.0;
             if (distance2 <= nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
+
                 #if USE_HOOKS_LAW
                     x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
                 #else
                     x = distance1/nuclearForceRange;
-                    #if USE_POTENTIAL0 // "powXR"
+                    #if USE_POTENTIAL0 // 'powXR'
                         const float r = 1.0/3.0, log2 = log(2.0);
                         x = pow(x, -log2 / log(r));
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL1 // "exp"
+                    #elif USE_POTENTIAL1 // 'exp'
                         const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
                         x = -exp(-log2 * x * r2 / r1);
                         x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL2 // "powAX"
+                    #elif USE_POTENTIAL2 // 'powAX'
                         x = sin(7.22423 * (1.0 - pow(0.13026, x)));
-                    #elif USE_POTENTIAL3 // "powAXv2"
+                    #elif USE_POTENTIAL3 // 'powAXv2'
                         x = sin(6.64541 * (1.0 - pow(0.054507, x)));
-                    #elif USE_POTENTIAL4 // "powAXv3"
+                    #elif USE_POTENTIAL4 // 'powAXv3'
                         const float a = 3.0;
                         x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
                     #else
@@ -180,12 +176,14 @@ void main() {
                 float d12 = 1.0/distance1;
             #endif
             vec4 props = props1 * props2;
-            vec4 pot = vec4(0, d12, d12, x);
+            vec4 pot = vec4(d12, d12, x, 0);
             vec4 result = consts * props * pot;
-            float force = result.y + result.z + result.w;
-            rForce += forceConstant * force * normalize(dPos);
+            float force = result.x + result.y + result.z;
+            rForce += force * normalize(dPos);
         }
     }
+
+    rForce *= forceConstant;
 
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
@@ -199,9 +197,9 @@ void main() {
             vec3 nextPos = pos1 + vel1;
             #if !USE_BOX_BOUNDARY
                 if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
-                    vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
-
-                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
+                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
+                        vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
+                    } else {
                         vel1 = vec3(0.0);
                     }
                 }

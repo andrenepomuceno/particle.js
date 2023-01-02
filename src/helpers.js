@@ -35,7 +35,9 @@ export function randomColor(mode = 'hue') {
         case 'hue':
         default:
             let h = random(0, 360, true);
-            color = "hsl(" + h + ",100%,50%)";
+            let s = random(50, 100, true);
+            let v = 50;
+            color = "hsl(" + h + "," + s + "%," + v + "%)";
             break;
     }
 
@@ -147,7 +149,7 @@ export function generateHexagon(cx, cy, radius, map) {
         let y = radius * Math.sin(theta) + cy;
 
         let vertex = { x, y, i };
-        let tag = x.toFixed(3) + " " + y.toFixed(3);
+        let tag = x.toFixed(3) + ' ' + y.toFixed(3);
         if (!map.has(tag)) {
             map.set(tag, vertex);
         }
@@ -179,7 +181,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset') {
 }
 
 export function arrayToString(array, precision) {
-    let str = "";
+    let str = '';
     array.forEach((v, idx) => {
         str += v.toFixed(precision) + ", ";
     });
@@ -187,7 +189,7 @@ export function arrayToString(array, precision) {
 }
 
 export function floatArrayToString(array, precision) {
-    let str = "";
+    let str = '';
     array.forEach((v, idx) => {
         str += v.toExponential(precision) + ", ";
     });
@@ -248,7 +250,7 @@ export function generateParticleColor(p, absCharge) {
 
 export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {
     if (particleList == undefined || particleList.length == 0) {
-        console.log("empty particle list");
+        console.log('empty particle list');
         return;
     }
 
@@ -273,7 +275,7 @@ export function fillParticleRadius(particleList, particleRadius, particleRadiusR
 
 export function fillParticleColor(particleList, qMin, qMax, enableChargeColor) {
     if (particleList == undefined || particleList.length == 0) {
-        console.log("empty particle list");
+        console.log('empty particle list');
         return;
     }
 
@@ -322,12 +324,12 @@ export function mouseToScreenCoord(event) {
 export function decodeVector3(value) {
     let split = value.split(",");
     if (split.length != 3) {
-        console.log("error decoding position");
+        console.log('error decoding position');
         return undefined;
     }
     for (let i = 0; i < split.length; ++i) {
         if (isNaN(parseFloat(split[i])) == true) {
-            console.log("error decoding position");
+            console.log('error decoding position');
             return undefined;
         }
     }
@@ -342,7 +344,7 @@ export function decodeVector3(value) {
 export function exportFilename(prefix = 'particles') {
     let timestamp = new Date().toISOString();
     let finalName = prefix + "_" + timestamp;
-    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, "");
+    finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, '');
     return finalName;
 }
 
@@ -363,12 +365,17 @@ export function createParticles(simulation, typeList, n, options) {
         allowZeroQ: true,
 
         nq: 1,
-        randomNQ: false,
         randomNQSignal: true,
+        randomNQ: false,
+        roundNQ: false,
+        allowZeroNQ: true,
 
-        r0: 0,
-        r1: 1, 
         center: new Vector3(),
+
+        randomVelocity: true,
+        
+        r0: 0,
+        r1: 1,
         v1: 0,
     };
     options = { ...defaultOptions, ...options };
@@ -396,16 +403,17 @@ export function createParticles(simulation, typeList, n, options) {
 
         let nq = options.nq;
         nq *= typeList[type].nq;
-        if (options.randomNQSignal == true) {
-            if (random(0, 1, true) == 1) nq *= -1;
-        }
+        if (options.randomNQSignal == true) if (random(0, 1, true) == 1) nq *= -1;
         if (options.randomNQ == true) nq *= random(0, 1);
+        if (options.roundNQ == true) nq = Math.round(nq);
+        if (options.allowZeroNQ == false && nq == 0) nq = options.nq * typeList[type].nq;
         p.nuclearCharge = nq;
 
         p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
         p.position.add(options.center);
 
-        p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+        if (options.randomVelocity) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+        else p.velocity = options.v1;
 
         p.name = typeList[type].name;
 

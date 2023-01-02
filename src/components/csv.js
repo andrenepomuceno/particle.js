@@ -14,7 +14,7 @@ export function exportCSV(simulation, list) {
         list = physics.particleList;
     }
 
-    const csvVersion = "1.2";
+    const csvVersion = '1.3';
 
     graphics.readbackParticleData();
 
@@ -65,11 +65,11 @@ export function parseCsv(simulation, filename, content) {
         switch (index) {
             default:
                 // particle data
-                if (values[0] == "") {
+                if (values[0] == '') {
                     return true;
                 }
                 if (values.length < particleDataColumns) {
-                    log("invalid particle data");
+                    log('invalid particle data');
                     log(line);
                     return false;
                 }
@@ -101,7 +101,7 @@ export function parseCsv(simulation, filename, content) {
             case 0:
                 // physics header
                 if (values.length < simulationDataColumns) {
-                    log("invalid physics header");
+                    log('invalid physics header');
                     return false;
                 }
                 break;
@@ -109,7 +109,7 @@ export function parseCsv(simulation, filename, content) {
             case 1:
                 // physics data
                 if (values.length < simulationDataColumns) {
-                    log("invalid physics data");
+                    log('invalid physics data');
                     return false;
                 }
                 imported.version = values[0];
@@ -149,7 +149,7 @@ export function parseCsv(simulation, filename, content) {
             case 2:
                 // particle header
                 if (values.length < particleDataColumns) {
-                    log("invalid particle header");
+                    log('invalid particle header');
                     return false;
                 }
                 break;
@@ -158,8 +158,8 @@ export function parseCsv(simulation, filename, content) {
     });
 
     if (!result) {
-        log("failed to import CSV");
-        alert("Failed to import CSV.")
+        log('failed to import CSV');
+        alert('Failed to import CSV.')
         return undefined;
     }
 
@@ -170,7 +170,7 @@ export function parseCsv(simulation, filename, content) {
 export function uploadCsv(callback) {
     let input = document.createElement('input');
     input.type = 'file';
-    input.accept = ".csv";
+    input.accept = '.csv';
     input.onchange = e => {
         let file = e.target.files[0];
         let reader = new FileReader();

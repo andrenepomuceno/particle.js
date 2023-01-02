@@ -8,7 +8,7 @@ function log(msg) {
 
 export class SimulationGPU {
     constructor(graphics, physics) {
-        log("constructor");
+        log('constructor');
 
         this.graphics = graphics;
         this.physics = physics;
@@ -20,7 +20,7 @@ export class SimulationGPU {
 
         this.field = undefined;
 
-        this.name = "untitled";
+        this.name = 'untitled';
         this.mode2D = false;
 
         this.cycles = 0;
@@ -41,7 +41,7 @@ export class SimulationGPU {
     }
 
     setup(populateSimulationCallback) {
-        log("setup");
+        log('setup');
 
         if (populateSimulationCallback != undefined) {
             this.populateSimulationCallback = populateSimulationCallback;
@@ -50,9 +50,9 @@ export class SimulationGPU {
 
             this.graphics.cameraDefault();
 
-            log("Populating " + populateSimulationCallback.name + "...");
+            log('Populating ' + populateSimulationCallback.name + '...');
             populateSimulationCallback(this);
-            log("Populating done.");
+            log('Populating done.');
 
             this.graphics.cameraSetup();
             this.bidimensionalMode();
@@ -65,7 +65,7 @@ export class SimulationGPU {
     }
 
     step(dt) {
-        // log("step");
+        // log('step');
 
         let t0 = performance.now();
 
@@ -93,32 +93,15 @@ export class SimulationGPU {
         };
     }
 
-    state() {
-        // log("state");
-        this.stats = calcListStatistics(this.particleList);
-        this.physics.collisionCounter = this.stats.collisions;
-        return [
-            this.name,
-            this.stats.particles,
-            this.cycles,
-            this.stats.totalEnergy,
-            this.physics.collisionCounter,
-            this.totalMass,
-            this.physics.boundaryDistance,
-            this.totalTime,
-            this.totalCharge,
-        ];
-    }
-
     setColorMode(mode) {
         log("setColorMode mode = " + mode);
 
         switch (mode) {
-            case "random":
+            case 'random':
                 this.enableChargeColor = false;
                 break;
 
-            case "charge":
+            case 'charge':
             default:
                 this.enableChargeColor = true;
                 break;
@@ -129,7 +112,7 @@ export class SimulationGPU {
     }
 
     setParticleRadius(radius, range) {
-        log("setParticleRadius " + radius + " " + range);
+        log('setParticleRadius ' + radius + ' ' + range);
 
         if (radius == undefined) radius = this.particleRadius;
         if (range == undefined) range = this.particleRadiusRange;
@@ -144,10 +127,10 @@ export class SimulationGPU {
     }
 
     drawParticles() {
-        log("drawParticles");
+        log('drawParticles');
 
         if (this.particleList == undefined) {
-            log("undefined particle list!");
+            log("Undefined particle list!");
             return;
         }
 
@@ -163,7 +146,7 @@ export class SimulationGPU {
         this.totalCharge = 0.0;
 
         this.particleList.forEach((p, idx) => {
-            if (p.type == ParticleType.probe) return;
+            if (p.type == ParticleType.probe || p.type == ParticleType.undefined) return;
 
             if (p.mass > this.mMax) {
                 this.mMax = p.mass;
@@ -200,7 +183,7 @@ export class SimulationGPU {
     }
 
     bidimensionalMode(enable) {
-        log("bidimensionalMode " + enable);
+        log('bidimensionalMode ' + enable);
 
         if (enable != undefined) this.mode2D = enable;
 

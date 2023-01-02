@@ -153,18 +153,18 @@ function air(simulation) {
     ];
 
     let elementsRatios = [
-        { r: 2 * 78.084, n: 7, name: "N2" }, // N2
-        { r: 2 * 20.946, n: 8, name: "O2" }, // O2
-        { r: 0.9340, n: 33, name: "Ar" }, // Ar
+        { r: 2 * 78.084, n: 7, name: 'N2' }, // N2
+        { r: 2 * 20.946, n: 8, name: 'O2' }, // O2
+        { r: 0.9340, n: 33, name: 'Ar' }, // Ar
         // CO2
         { r: 0.0417, n: 6, name: "C (CO2)" }, // C
         { r: 2 * 0.0417, n: 8, name: "O2 (CO2)" }, // O2
-        { r: 0.001818, n: 10, name: "Ne" }, // Ne
-        { r: 0.000524, n: 2, name: "He" }, // He
+        { r: 0.001818, n: 10, name: 'Ne' }, // Ne
+        { r: 0.000524, n: 2, name: 'He' }, // He
         // CH4
         { r: 0.0417, n: 6, name: "C (CH4)" }, // C
         { r: 4 * 0.0417, n: 1, name: "H4 (CH4)" }, // H4
-        { r: 0.000114, n: 36, name: "Kr" }, // Kr
+        { r: 0.000114, n: 36, name: 'Kr' }, // Kr
     ];
     parseElementRatioList(elementsRatios);
     console.log(elementsRatios);
@@ -241,7 +241,7 @@ function randomElements(simulation) {
     let gridSize = calcGridSize(graphics, 3 * 15);
 
     simulation.field.probeConfig(0, 1e3, 0);
-    //if (!ENV?.production) simulation.field.setup("2d", 50);
+    //if (!ENV?.production) simulation.field.setup('2d', 50);
 
     let nucleusTypes = [
         { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1, name: 'proton' },

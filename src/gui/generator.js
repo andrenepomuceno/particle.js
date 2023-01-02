@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
 import {
     decodeVector3, random, floatArrayToString,
-    generateHexagon
+    generateHexagon,
+    createParticles
 } from '../helpers.js';
 import {
     simulation,
@@ -16,32 +17,32 @@ function log(msg) {
     console.log("menu/generator: " + msg);
 }
 
-let options, controls, selection, mouse, guiSelection, hexagonMap;
+let options, controls, selection, mouse, hexagonMap;
 
 export class GUIGenerator {
-    constructor(guiOptions, guiGenerator, guiSelection) {
+    constructor(guiOptions, guiGenerator) {
         options = guiOptions;
         controls = guiGenerator;
         mouse = options.mouseHelper;
-        guiSelection = guiSelection;
         selection = options.selectionHelper;
         hexagonMap = new Map();
+        this.setup();
     }
 
     setup() {
         options.generator = {
-            mass: "1",
+            mass: '1',
             randomMass: false,
             enableZeroMass: false,
             roundMass: true,
 
-            charge: "1",
+            charge: '1',
             randomCharge: false,
             chargeRandomSignal: true,
             enableZeroCharge: false,
             roundCharge: true,
 
-            nuclearCharge: "1",
+            nuclearCharge: '1',
             randomNuclearCharge: false,
             nuclearChargeRandomSignal: true,
             enableZeroNuclearCharge: false,
@@ -50,10 +51,10 @@ export class GUIGenerator {
             velocity: "1,0,0",
             randomVelocity: true,
 
-            radius: "1",
-            quantity: "1",
-            pattern: "circle",
-            preset: "default",
+            radius: '1',
+            quantity: '1',
+            pattern: 'circle',
+            preset: 'default',
             fixed: false,
             generate: () => {
                 particleGenerator(options.generator);
@@ -64,18 +65,18 @@ export class GUIGenerator {
             },
             default: () => {
                 let clean = {
-                    mass: "1",
+                    mass: '1',
                     randomMass: false,
                     enableZeroMass: false,
                     roundMass: true,
 
-                    charge: "1",
+                    charge: '1',
                     randomCharge: false,
                     chargeRandomSignal: true,
                     enableZeroCharge: false,
                     roundCharge: true,
 
-                    nuclearCharge: "1",
+                    nuclearCharge: '1',
                     randomNuclearCharge: false,
                     nuclearChargeRandomSignal: true,
                     enableZeroNuclearCharge: false,
@@ -84,36 +85,36 @@ export class GUIGenerator {
                     velocity: "1,0,0",
                     randomVelocity: true,
 
-                    radius: "1",
-                    quantity: "1",
-                    pattern: "circle",
-                    preset: "default",
+                    radius: '1',
+                    quantity: '1',
+                    pattern: 'circle',
+                    preset: 'default',
                     fixed: false,
                 };
                 Object.assign(options.generator, clean);
             },
         };
 
-        controls.add(options.generator, "quantity").name("Particles").listen().onFinishChange((val) => {
+        controls.add(options.generator, 'quantity').name('Particles').listen().onFinishChange((val) => {
             options.generator.quantity = Math.round(parseFloat(val));
         });
-        controls.add(options.generator, "radius").name("Brush radius").listen().onFinishChange((val) => {
+        controls.add(options.generator, 'radius').name('Brush radius').listen().onFinishChange((val) => {
             options.generator.radius = parseFloat(val);
         });
 
         function defaultTemplate() {
-            options.generator.mass = "1";
+            options.generator.mass = '1';
             options.generator.randomMass = false;
             options.generator.enableZeroMass = false;
             options.generator.roundMass = false;
 
-            options.generator.charge = "1";
+            options.generator.charge = '1';
             options.generator.randomCharge = false;
             options.generator.chargeRandomSignal = false;
             options.generator.enableZeroCharge = true;
             options.generator.roundCharge = false;
 
-            options.generator.nuclearCharge = "1";
+            options.generator.nuclearCharge = '1';
             options.generator.randomNuclearCharge = false;
             options.generator.nuclearChargeRandomSignal = true;
             options.generator.enableZeroNuclearCharge = false;
@@ -126,14 +127,14 @@ export class GUIGenerator {
         }
 
         const patternList = {
-            Circle: "circle",
-            Square: "square",
-            Hexagon: "hexagon",
-            Beam: "beam",
+            Circle: 'circle',
+            Square: 'square',
+            Hexagon: 'hexagon',
+            Beam: 'beam',
         };
-        controls.add(options.generator, "pattern", patternList).name("Brush pattern").listen().onFinishChange((val) => {
+        controls.add(options.generator, 'pattern', patternList).name('Brush pattern').listen().onFinishChange((val) => {
             switch (val) {
-                case "beam":
+                case 'beam':
                     let v = 10 * parseFloat(options.info.velocity);
                     if (isNaN(v) || v < 1e2) v = 1e2;
                     beamTemplate(v);
@@ -146,37 +147,37 @@ export class GUIGenerator {
         });
 
         const presetList = {
-            'Default': "default",
-            'Random Clone': "randomClone",
-            'E Beam': "eBeam",
-            'Alpha Beam': "alphaBeam",
-            'Quark Model': "stdModel0",
-            'EPN': "epnModel",
-            'EPN Model (Scale)': "epnModelScaled",
-            'Quark Model (Scale)': "stdModel0Scaled",
+            'Default': 'default',
+            'Random Clone': 'randomClone',
+            'E Beam': 'eBeam',
+            'Alpha Beam': 'alphaBeam',
+            'Quark Model': 'stdModel0',
+            'EPN': 'epnModel',
+            'EPN Model (Scale)': 'epnModelScaled',
+            'Quark Model (Scale)': 'stdModel0Scaled',
         };
-        controls.add(options.generator, "preset", presetList).name("Particle preset").listen().onFinishChange((val) => {
+        controls.add(options.generator, 'preset', presetList).name('Particle preset').listen().onFinishChange((val) => {
             let v = 10 * parseFloat(options.info.velocity);
             if (isNaN(v) || v < 1e2) v = 1e2;
             switch (val) {
-                case "eBeam":
+                case 'eBeam':
                     defaultTemplate();
                     beamTemplate(v);
-                    options.generator.quantity = "32";
+                    options.generator.quantity = '32';
                     break;
 
-                case "alphaBeam":
+                case 'alphaBeam':
                     defaultTemplate();
                     beamTemplate(v);
-                    options.generator.quantity = "24";
+                    options.generator.quantity = '24';
                     options.generator.nuclearChargeRandomSignal = false;
                     break;
 
-                case "epnModel":
-                case "stdModel0":
-                case "randomClone":
-                case "stdModel0Scaled":
-                case "epnModelScaled":
+                case 'epnModel':
+                case 'stdModel0':
+                case 'randomClone':
+                case 'stdModel0Scaled':
+                case 'epnModelScaled':
                     defaultTemplate();
                     break;
 
@@ -187,35 +188,35 @@ export class GUIGenerator {
         });
 
         const guiGenerateMass = controls.addFolder("[+] Mass");
-        guiGenerateMass.add(options.generator, "mass").name("Mass").listen().onFinishChange((val) => {
+        guiGenerateMass.add(options.generator, 'mass').name('Mass').listen().onFinishChange((val) => {
             options.generator.mass = parseFloat(val);
         });
-        guiGenerateMass.add(options.generator, "randomMass").name("Randomize value?").listen();
-        guiGenerateMass.add(options.generator, "enableZeroMass").name("Allow zero?").listen();
-        guiGenerateMass.add(options.generator, "roundMass").name("Round?").listen();
+        guiGenerateMass.add(options.generator, 'randomMass').name("Randomize value?").listen();
+        guiGenerateMass.add(options.generator, 'enableZeroMass').name("Allow zero?").listen();
+        guiGenerateMass.add(options.generator, 'roundMass').name("Round?").listen();
         //guiGenerateMass.open();
 
         const guiGenerateCharge = controls.addFolder("[+] Charge");
-        guiGenerateCharge.add(options.generator, "charge").name("Charge").listen().onFinishChange((val) => {
+        guiGenerateCharge.add(options.generator, 'charge').name('Charge').listen().onFinishChange((val) => {
             options.generator.charge = parseFloat(val);
         });
-        guiGenerateCharge.add(options.generator, "randomCharge").name("Randomize value?").listen();
-        guiGenerateCharge.add(options.generator, "chargeRandomSignal").name("Randomize signal?").listen();
-        guiGenerateCharge.add(options.generator, "enableZeroCharge").name("Allow zero?").listen();
-        guiGenerateCharge.add(options.generator, "roundCharge").name("Round?").listen();
+        guiGenerateCharge.add(options.generator, 'randomCharge').name("Randomize value?").listen();
+        guiGenerateCharge.add(options.generator, 'chargeRandomSignal').name("Randomize signal?").listen();
+        guiGenerateCharge.add(options.generator, 'enableZeroCharge').name("Allow zero?").listen();
+        guiGenerateCharge.add(options.generator, 'roundCharge').name("Round?").listen();
         //guiGenerateCharge.open();
 
         const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge");
-        guiGenerateNuclearCharge.add(options.generator, "nuclearCharge").name("Nuclear Charge").listen().onFinishChange((val) => {
+        guiGenerateNuclearCharge.add(options.generator, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
             options.generator.nuclearCharge = parseFloat(val);
         });
-        guiGenerateNuclearCharge.add(options.generator, "randomNuclearCharge").name("Randomize value?").listen();
-        guiGenerateNuclearCharge.add(options.generator, "nuclearChargeRandomSignal").name("Randomize signal?").listen();
-        guiGenerateNuclearCharge.add(options.generator, "enableZeroNuclearCharge").name("Allow zero?").listen();
-        guiGenerateNuclearCharge.add(options.generator, "roundNuclearCharge").name("Round?").listen();
+        guiGenerateNuclearCharge.add(options.generator, 'randomNuclearCharge').name("Randomize value?").listen();
+        guiGenerateNuclearCharge.add(options.generator, 'nuclearChargeRandomSignal').name("Randomize signal?").listen();
+        guiGenerateNuclearCharge.add(options.generator, 'enableZeroNuclearCharge').name("Allow zero?").listen();
+        guiGenerateNuclearCharge.add(options.generator, 'roundNuclearCharge').name("Round?").listen();
 
         const guiGenerateVelocity = controls.addFolder("[+] Velocity");
-        guiGenerateVelocity.add(options.generator, "velocity").name("Velocity").listen().onFinishChange((val) => {
+        guiGenerateVelocity.add(options.generator, 'velocity').name('Velocity').listen().onFinishChange((val) => {
             const precision = 2;
             let velocity = decodeVector3(val);
             if (velocity != undefined) {
@@ -224,18 +225,18 @@ export class GUIGenerator {
             }
             velocity = parseFloat(val);
             if (isNaN(velocity)) {
-                alert("Invalid velocity.");
+                alert('Invalid velocity.');
                 options.generator.velocity = '0';
                 return;
             }
             options.generator.velocity = floatArrayToString([velocity, 0, 0], precision);
         });
-        guiGenerateVelocity.add(options.generator, "randomVelocity").name("Randomize?").listen();
+        guiGenerateVelocity.add(options.generator, 'randomVelocity').name("Randomize?").listen();
 
-        controls.add(options.generator, "fixed").name("Fixed position?").listen();
-        controls.add(options.generator, "generate").name("Generate [G]");
-        controls.add(options.generator, "default").name("Default Values");
-        controls.add(options.generator, "clear").name("Close");
+        controls.add(options.generator, 'fixed').name("Fixed position?").listen();
+        controls.add(options.generator, 'generate').name("Generate [G]");
+        controls.add(options.generator, 'default').name('Default Values');
+        controls.add(options.generator, 'clear').name('Close');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiGenerateCharge);
@@ -253,48 +254,17 @@ export class GUIGenerator {
 }
 
 function particleGenerator(input) {
-    log("generateParticles");
-
-    function generateMass() {
-        let m = presetList[presetIdx].m;
-        m *= mass;
-        if (options.generator.randomMass) m *= random(0, 1);
-        if (options.generator.roundMass) m = Math.round(m);
-        if (!options.generator.enableZeroMass && m == 0) m = mass;
-        return m;
-    }
-
-    function generateCharge() {
-        let s = 1;
-        let q = presetList[presetIdx].q;
-        q *= charge;
-        if (options.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (options.generator.randomCharge) q *= random(0, 1);
-        if (options.generator.roundCharge) q = Math.round(q);
-        if (!options.generator.enableZeroCharge && q == 0) q = charge;
-        return s * q;
-    }
-
-    function generateNuclearCharge() {
-        let s = 1;
-        let nq = presetList[presetIdx].nq;
-        nq *= nuclearCharge;
-        if (options.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (options.generator.randomNuclearCharge) nq *= random(0, 1);
-        if (options.generator.roundNuclearCharge) nq = Math.round(nq);
-        if (!options.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
-        return s * nq;
-    }
+    log('generateParticles');
 
     function generatePosition() {
         switch (input.pattern) {
-            case "circle":
+            case 'circle':
                 return randomSphericVector(0, radius);
 
-            case "square":
+            case 'square':
                 return randomVector(radius);
 
-            case "hexagon":
+            case 'hexagon':
                 {
                     log(hexagonMap.size);
                     if (hexagonMap.size == 0) {
@@ -322,7 +292,7 @@ function particleGenerator(input) {
     function generateVelocity() {
         let v = velocity;
         switch (input.pattern) {
-            case "beam":
+            case 'beam':
                 break;
 
             default:
@@ -365,7 +335,7 @@ function particleGenerator(input) {
     let presetIdx = 0;
     let preset = input.preset;
     switch (preset) {
-        case "stdModel0":
+        case 'stdModel0':
             presetList = [
                 { m: 0.01, q: 0, nq: 1 },
                 { m: 0.511, q: -1, nq: 1 },
@@ -374,7 +344,7 @@ function particleGenerator(input) {
             ];
             break;
 
-        case "epnModel":
+        case 'epnModel':
             presetList = [
                 { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
                 { m: 1.007276466583, q: 1, nq: 1 },
@@ -382,23 +352,23 @@ function particleGenerator(input) {
             ];
             break;
 
-        case "epnModelScaled":
+        case 'epnModelScaled':
             presetList = [
-                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60, name: "electron" },
-                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1, name: "proton" },
-                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1, name: "netron" },
+                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1 / 60, name: 'electron' },
+                { m: 1.67262192e-27 * scaleEPN.kg, q: 1.602176634e-19 * scaleEPN.c, nq: 1, name: 'proton' },
+                { m: 1.67492749e-27 * scaleEPN.kg, q: 0, nq: 1, name: 'netron' },
             ];
             break;
 
         case 'quarkModelScaled':
             presetList = [
-                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1, name: "electron" },
-                { m: 5.347988087839e-30 * scaleEPN.kg, q: 2 / 3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark up" }, // 3 MeV
-                { m: 1.069597617568e-29 * scaleEPN.kg, q: -1 / 3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: "quark down" }, // 6 MeV
+                { m: 9.1093837015e-31 * scaleEPN.kg, q: -1.602176634e-19 * scaleEPN.c, nq: -1, name: 'electron' },
+                { m: 5.347988087839e-30 * scaleEPN.kg, q: 2 / 3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: 'quark up' }, // 3 MeV
+                { m: 1.069597617568e-29 * scaleEPN.kg, q: -1 / 3 * 1.602176634e-19 * scaleEPN.c, nq: 1, name: 'quark down' }, // 6 MeV
             ];
             break;
 
-        case "randomClone":
+        case 'randomClone':
             {
                 presetList = [];
                 for (let i = 0; i < quantity; ++i) {
@@ -411,13 +381,13 @@ function particleGenerator(input) {
             }
             break;
 
-        case "eBeam":
+        case 'eBeam':
             presetList = [
                 { m: 0.511, q: -1, nq: 1 },
             ];
             break;
 
-        case "alphaBeam":
+        case 'alphaBeam':
             presetList = [
                 { m: 3, q: 1 / 3, nq: 1 },
                 { m: 6, q: -2 / 3, nq: 1 },
@@ -431,27 +401,39 @@ function particleGenerator(input) {
             break;
     }
 
-    let newParticleList = [];
-    //if (input.pattern == "hexagon") quantity *= 6;
+    let dummySimulation = { mode2D: simulation.mode2D, physics: { particleList: [] } };
+    //if (input.pattern == 'hexagon') quantity *= 6;
     for (let i = 0; i < quantity; ++i) {
-        presetIdx = random(0, presetList.length - 1, true);
-        createParticle(
-            newParticleList,
-            generateMass(),
-            generateCharge(),
-            generateNuclearCharge(),
-            generatePosition(),
-            generateVelocity(),
-            options.generator.fixed
-        );
+        const opt = {
+            randomSequence: true,
+
+            randomM: options.generator.randomMass,
+            roundM: options.generator.roundMass,
+            allowZeroM: options.generator.enableZeroMass,
+
+            randomQSignal: options.generator.chargeRandomSignal,
+            randomQ: options.generator.randomCharge,
+            roundQ: options.generator.roundCharge,
+            allowZeroQ: options.generator.enableZeroCharge,
+
+            randomNQSignal: options.generator.nuclearChargeRandomSignal,
+            randomNQ: options.generator.randomNuclearCharge,
+            roundNQ: options.generator.roundNuclearCharge,
+            allowZeroNQ: options.generator.enableZeroNuclearCharge,
+
+            center: generatePosition(),
+
+            randomVelocity: false,
+            v1: generateVelocity(),
+        };
+        createParticles(dummySimulation, presetList, 1, opt);
     }
 
     selection.clear();
     selection.graphics = simulation.graphics;
     selection.options = options.selection;
-    selection.guiSelection = options.selection;
+    selection.guiSelection = options.guiSelection;
     selection.source = SourceType.generated;
-    selection.list = newParticleList;
+    selection.list = dummySimulation.physics.particleList;
     selection.guiRefresh();
-    guiSelection.open();
 }

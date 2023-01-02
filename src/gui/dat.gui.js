@@ -4,7 +4,7 @@
  *
  * Copyright 2011 Data Arts Team, Google Creative Lab
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -455,16 +455,16 @@ var ColorMath = {
     }
 };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+var _typeof = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ? function (obj) {
     return typeof obj;
 } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    return obj && typeof Symbol === 'function' && obj.constructor === Symbol && obj !== Symbol.prototype ? 'symbol' : typeof obj;
 };
 
 
 var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
-        throw new TypeError("Cannot call a class as a function");
+        throw new TypeError('Cannot call a class as a function');
     }
 };
 
@@ -474,7 +474,7 @@ var createClass = function () {
             var descriptor = props[i];
             descriptor.enumerable = descriptor.enumerable || false;
             descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
+            if ('value' in descriptor) descriptor.writable = true;
             Object.defineProperty(target, descriptor.key, descriptor);
         }
     }
@@ -499,7 +499,7 @@ var get = function get(object, property, receiver) {
         } else {
             return get(parent, property, receiver);
         }
-    } else if ("value" in desc) {
+    } else if ('value' in desc) {
         return desc.value;
     } else {
         var getter = desc.get;
@@ -513,7 +513,7 @@ var get = function get(object, property, receiver) {
 };
 
 var inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
+    if (typeof superClass !== 'function' && superClass !== null) {
         throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
     }
 
@@ -534,7 +534,7 @@ var possibleConstructorReturn = function (self, call) {
         throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
 
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+    return call && (typeof call === 'object' || typeof call === 'function') ? call : self;
 };
 
 var Color = function () {

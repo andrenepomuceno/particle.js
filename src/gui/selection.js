@@ -16,6 +16,7 @@ export class GUISelection {
     constructor(guiOptions, guiSelection) {
         options = guiOptions;
         controls = guiSelection;
+        this.setup();
     }
 
     setup() {
@@ -26,14 +27,14 @@ export class GUISelection {
     
         options.selection = {
             pattern: 'box',
-            source: "None",
+            source: 'None',
             particles: 0,
-            mass: "",
-            charge: "",
-            nuclearCharge: "",
-            velocity: "",
-            velocityDir: "",
-            center: "",
+            mass: '',
+            charge: '',
+            nuclearCharge: '',
+            velocity: '',
+            velocityDir: '',
+            center: '',
             fixedPosition: false,
             export: () => {
                 selection.export(simulation);
@@ -86,7 +87,7 @@ export class GUISelection {
             Box: 'box',
             Circle: 'circle',
         };
-        controls.add(options.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
+        controls.add(options.selection, 'pattern', patternList).name('Pattern').listen().onFinishChange(val => {
             switch (val) {
                 case 'box':
                 default:
@@ -98,45 +99,45 @@ export class GUISelection {
                     break
             }
         });
-        controls.add(options.selection, 'source').name("Source").listen();
-        controls.add(options.selection, 'particles').name("Particles").listen();
+        controls.add(options.selection, 'source').name('Source').listen();
+        controls.add(options.selection, 'particles').name('Particles').listen();
     
         const guiSelectionProperties = controls.addFolder("[+] Properties");
         controls.guiSelectionProperties = guiSelectionProperties;
         guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
-            selectionListUpdate("mass", val);
+            selectionListUpdate('mass', val);
         });
         guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
-            selectionListUpdate("charge", val);
+            selectionListUpdate('charge', val);
         });
         guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
-            selectionListUpdate("nuclearCharge", val);
+            selectionListUpdate('nuclearCharge', val);
         });
     
         const guiSelectionVariables = controls.addFolder("[+] Variables");
-        guiSelectionVariables.add(options.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
-            selectionListUpdate("velocityAbs", val);
+        guiSelectionVariables.add(options.selection, 'velocity').name('Velocity').listen().onFinishChange((val) => {
+            selectionListUpdate('velocityAbs', val);
         });
-        guiSelectionVariables.add(options.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
-            selectionListUpdate("velocityDir", val);
+        guiSelectionVariables.add(options.selection, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
+            selectionListUpdate('velocityDir', val);
         });
-        guiSelectionVariables.add(options.selection, 'center').name("Center").listen().onFinishChange((val) => {
-            selectionListUpdate("center", val);
+        guiSelectionVariables.add(options.selection, 'center').name('Center').listen().onFinishChange((val) => {
+            selectionListUpdate('center', val);
         });
-        guiSelectionVariables.add(options.selection, 'fixedPosition').name("Fixed Position").listen().onFinishChange((val) => {
-            selectionListUpdate("fixed", val);
+        guiSelectionVariables.add(options.selection, 'fixedPosition').name('Fixed Position').listen().onFinishChange((val) => {
+            selectionListUpdate('fixed', val);
             options.selection.fixedPosition = val;
         });
     
         const guiSelectionActions = controls.addFolder("[+] Controls");
         guiSelectionActions.add(options.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
-        guiSelectionActions.add(options.selection, 'lookAt').name("Look At");
-        guiSelectionActions.add(options.selection, 'export').name("Export");
-        guiSelectionActions.add(options.selection, 'import').name("Import");
+        guiSelectionActions.add(options.selection, 'lookAt').name('Look At');
+        guiSelectionActions.add(options.selection, 'export').name('Export');
+        guiSelectionActions.add(options.selection, 'import').name('Import');
     
         controls.add(options.selection, 'clone').name("Clone [X]");
         controls.add(options.selection, 'place').name("Place [Z]");
-        controls.add(options.selection, 'clear').name("Close");
+        controls.add(options.selection, 'clear').name('Close');
     
         options.collapseList.push(controls);
         options.collapseList.push(guiSelectionActions);
@@ -172,7 +173,7 @@ function selectionPlace() {
     }
 
     if (selection.source == SourceType.simulation) {
-        core.updateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
+        core.updateParticleList('center', [center.x, center.y, center.z].toString(), selection.list);
     } else {
         core.createParticleList(selection.list, center);
     }

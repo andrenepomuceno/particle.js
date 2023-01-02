@@ -7,6 +7,7 @@ import {
     simulation,
     core,
 } from '../core.js';
+import { calcListStatistics } from '../physics.js';
 
 let options, controls;
 let maxAvgVelocity = 0;
@@ -16,25 +17,26 @@ export class GUIInfo {
     constructor(guiOptions, guiInfo) {
         options = guiOptions;
         controls = guiInfo;
+        this.setup();
     }
 
     setup() {
         options.info = {
-            name: "",
-            folderName: "",
+            name: '',
+            folderName: '',
             particles: 0,
-            maxParticles: "",
-            time: "",
+            maxParticles: '',
+            time: '',
             collisions: 0,
 
-            mass: "",
-            charge: "",
+            mass: '',
+            charge: '',
             nuclearCharge: '',
-            energy: "",
-            velocity: "",
+            energy: '',
+            velocity: '',
 
-            cameraDistance: "",
-            cameraPosition: "",
+            cameraDistance: '',
+            cameraPosition: '',
 
             autoRefresh: true,
 
@@ -75,13 +77,13 @@ export class GUIInfo {
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
         guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("mass", val);
+            core.updateParticleList('mass', val);
         });
         guiInfoMore.add(options.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("charge", val);
+            core.updateParticleList('charge', val);
         });
         guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
-            core.updateParticleList("nuclearCharge", val);
+            core.updateParticleList('nuclearCharge', val);
         });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
         guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
@@ -98,9 +100,9 @@ export class GUIInfo {
             simulation.graphics.controls.target.set(p.x, p.y, 0);
             simulation.graphics.controls.update();
         });
-        guiInfoRuler.add(options.info, 'rulerLen').name("Length").listen();
-        guiInfoRuler.add(options.info, 'rulerDelta').name("Delta").listen();
-        guiInfoRuler.add(options.info, 'rulerStart').name("Start").listen();
+        guiInfoRuler.add(options.info, 'rulerLen').name('Length').listen();
+        guiInfoRuler.add(options.info, 'rulerDelta').name('Delta').listen();
+        guiInfoRuler.add(options.info, 'rulerStart').name('Start').listen();
         guiInfoRuler.open();
 
         if (!ENV?.production) {
@@ -119,34 +121,33 @@ export class GUIInfo {
     }
 
     refresh() {
-        let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+        simulation.stats = calcListStatistics(simulation.particleList);
 
-        options.info.name = name;
-        options.info.folderName = simulation.folderName;
-        options.info.particles = n;
-        options.info.maxParticles = simulation.graphics.maxParticles;
-
-        let realTime = new Date(totalTime).toISOString().substring(11, 19);
-        options.info.time = realTime + " (" + t + ")";
-
-        n = (n == 0) ? (1) : (n);
-        m = (m == 0) ? (1) : (m);
+        simulation.physics.collisionCounter = simulation.stats.collisions;
         let avgEnergy = simulation.stats.avgEnergy;
-        let avgVelocity = Math.sqrt(e / m);
+        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
         simulation.physics.avgEnergy = avgEnergy;
         simulation.physics.avgVelocity = avgVelocity;
         simulation.graphics.updateAvgVelocity(avgVelocity);
-
         simulation.field.refreshMaxVelocity();
+
+        options.info.name = simulation.name;
+        options.info.folderName = simulation.folderName;
+        options.info.particles = simulation.stats.particles;
+        options.info.maxParticles = simulation.graphics.maxParticles;
+
+        let realTime = new Date(simulation.totalTime).toISOString().substring(11, 19);
+        options.info.time = realTime + " (" + simulation.cycles + ")";
+
         options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
         options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
 
         options.info.energy = avgEnergy.toExponential(2);
         options.info.velocity = avgVelocity.toExponential(2);
 
-        options.info.collisions = c;
-        options.info.mass = m.toExponential(2);
-        options.info.charge = totalCharge.toExponential(2);
+        options.info.collisions = simulation.physics.collisionCounter;
+        options.info.mass = simulation.totalMass.toExponential(2);
+        options.info.charge = simulation.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
         options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
         let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
@@ -163,7 +164,6 @@ export class GUIInfo {
             time: realTime,
             avg: computeTime.avg,
         });
-
     }
 
     reset() {

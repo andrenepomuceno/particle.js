@@ -145,7 +145,7 @@ void main() {
                 float distance1 = sqrt(distance2);
             #endif
             float x = 0.0;
-            if (distance2 <= 2.0*nuclearForceRange2) {
+            if (distance2 <= nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif

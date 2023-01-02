@@ -16,6 +16,7 @@ export class GUISelection {
     constructor(guiOptions, guiSelection) {
         options = guiOptions;
         controls = guiSelection;
+        this.setup();
     }
 
     setup() {

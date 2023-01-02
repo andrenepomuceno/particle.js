@@ -14,6 +14,7 @@ export class GUIParticle {
     constructor(guiOptions, guiParticle) {
         options = guiOptions;
         controls = guiParticle;
+        this.setup();
     }
 
     setup() {

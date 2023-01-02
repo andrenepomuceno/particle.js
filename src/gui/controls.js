@@ -22,6 +22,7 @@ export class GUIControls {
     constructor(guiOptions, guiControls) {
         options = guiOptions;
         controls = guiControls;
+        this.setup();
     }
 
     setup() {

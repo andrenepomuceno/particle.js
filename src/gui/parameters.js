@@ -11,6 +11,7 @@ export class GUIParameters {
     constructor(guiOptions, guiParameters) { 
         options = guiOptions;
         controls = guiParameters;
+        this.setup();
      }
 
 

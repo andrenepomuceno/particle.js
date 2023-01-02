@@ -10,6 +10,7 @@ export class GUIAdvanced {
     constructor(guiOptions, guiadvanced) {
         options = guiOptions;
         controls = guiadvanced;
+        this.setup();
     }
 
     setup() {

@@ -16,6 +16,7 @@ export class GUIInfo {
     constructor(guiOptions, guiInfo) {
         options = guiOptions;
         controls = guiInfo;
+        this.setup();
     }
 
     setup() {

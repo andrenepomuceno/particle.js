@@ -26,6 +26,7 @@ export class GUIGenerator {
         guiSelection = guiSelection;
         selection = options.selectionHelper;
         hexagonMap = new Map();
+        this.setup();
     }
 
     setup() {

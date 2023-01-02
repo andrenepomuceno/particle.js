@@ -9,6 +9,7 @@ export class GUIField {
     constructor(guiOptions, guiField) {
         options = guiOptions;
         controls = guiField;
+        this.setup();
     }
 
     setup() {

@@ -127,21 +127,13 @@ export function viewSetup() {
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
-    guiOptions.guiInfo.setup();
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
-    guiOptions.guiControls.setup();
     guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
-    guiOptions.guiParticle.setup();
     guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
-    guiOptions.guiParameters.setup();
     guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
-    guiOptions.guiSelection.setup();
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
-    guiOptions.guiGenerator.setup();
     guiOptions.guiadvanced = new GUIAdvanced(guiOptions, guiAdvanced);
-    guiOptions.guiadvanced.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);
-    guiOptions.guiField.setup();
 
     scenarioSetup();
 

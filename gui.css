@@ -75,31 +75,6 @@
     overflow-y: visible
 }
 
-.dg.a.has-save>ul.close-top {
-    margin-top: 0
-}
-
-.dg.a.has-save>ul.close-bottom {
-    margin-top: 27px
-}
-
-.dg.a.has-save>ul.closed {
-    margin-top: 0
-}
-
-.dg.a .save-row {
-    top: 0;
-    z-index: 1002
-}
-
-.dg.a .save-row.close-top {
-    position: relative
-}
-
-.dg.a .save-row.close-bottom {
-    position: fixed
-}
-
 .dg li {
     -webkit-transition: height .1s ease-out;
     -o-transition: height .1s ease-out;
@@ -120,7 +95,7 @@
 
 .dg li.folder {
     padding: 0;
-    border-left: 8px solid rgba(141, 122, 122, 0.397);
+    border-left: 8px solid rgba(255, 255, 255, 0.25);
     border-bottom: 0
 }
 

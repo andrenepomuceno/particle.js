@@ -19,10 +19,11 @@ export const SourceType = {
 }
 
 export class Selection {
-    constructor(graphics, guiSelection) {
+    constructor(graphics, guiSelection, guiOptions) {
         log('constructor');
         this.graphics = graphics;
         this.guiSelection = guiSelection;
+        this.guiOptions = guiOptions;
         this.started = false;
         this.p0 = undefined;
         this.p1 = undefined;
@@ -155,7 +156,7 @@ export class Selection {
         this.importedData = {};
         this.blob = undefined;
         this.stats = {};
-        let view = this.guiSelection;
+        let view = this.guiOptions.selection;
         if (view != undefined) {
             view.particles = 0;
             view.mass = '';
@@ -237,7 +238,7 @@ export class Selection {
         let particles = this.list.length;
         if (particles > 0) {
             this.stats = calcListStatistics(this.list);
-            let view = this.guiSelection;
+            let view = this.guiOptions.selection;
             view.source = this.source;
             view.particles = particles;
             view.mass = this.stats.totalMass.toExponential(2);
@@ -251,8 +252,6 @@ export class Selection {
             })
             view.center = center;
             view.fixedPosition = (this.stats.fixed > 0);
-
-            console.log(view);
         }
     }
 }

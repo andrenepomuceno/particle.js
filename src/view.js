@@ -80,7 +80,8 @@ let guiOptions = {
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
-guiOptions.selectionHelper = new Selection(simulation.graphics, guiSelection);
+const selection = new Selection(simulation.graphics, guiSelection, guiOptions);
+guiOptions.selectionHelper = selection;
 
 function scenarioSetup(idx) {
     log('setup ' + idx);
@@ -181,8 +182,8 @@ function onPointerMove(event) {
 
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
-        guiOptions.selectionHelper.clear();
-        guiOptions.selectionHelper.start(event);
+        selection.clear();
+        selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
     }
 }

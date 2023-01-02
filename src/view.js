@@ -10,13 +10,13 @@ import { Ruler } from './components/ruler';
 import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
 import { GUIInfo } from './gui/info.js';
-import { guiParticleSetup, guiParticleRefresh } from './gui/particle.js';
+import { GUIParticle } from './gui/particle.js';
 import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
 import { GUIGenerator } from './gui/generator.js';
 import { guiSelectionSetup } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
-import { GUIAdvancedControls } from './gui/advancedControls.js';
+import { GUIAdvanced } from './gui/advanced.js';
 
 const viewUpdateDelay = 1000;
 let lastViewUpdate = 0;
@@ -34,7 +34,7 @@ const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder("SELECTION");
 const guiGenerator = gui.addFolder("GENERATOR");
 const guiField = gui.addFolder("FIELD");
-const guiAdvancedControls = gui.addFolder("ADVANCED");
+const guiAdvanced = gui.addFolder("ADVANCED");
 const guiParameters = gui.addFolder("PARAMETERS");
 
 const mouse = new Mouse();
@@ -124,12 +124,13 @@ export function viewSetup() {
     guiOptions.guiInfo.setup();
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
     guiOptions.guiControls.setup();
-    guiParticleSetup(guiOptions, guiParticle);
+    guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
+    guiOptions.guiParticle.setup();
     guiParametersSetup(guiOptions, guiParameters);
     guiSelectionSetup(guiOptions, guiSelection);
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
     guiOptions.guiGenerator.setup();
-    guiOptions.guiAdvancedControls = new GUIAdvancedControls(guiOptions, guiAdvancedControls);
+    guiOptions.guiAdvancedControls = new GUIAdvanced(guiOptions, guiAdvanced);
     guiOptions.guiAdvancedControls.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);
     guiOptions.guiField.setup();
@@ -197,7 +198,7 @@ function onPointerUp(event) {
         let particle = simulation.graphics.raycast(core, mouse.position);
         if (particle) {
             guiOptions.particle.obj = particle;
-            guiParticleRefresh();
+            guiOptions.guiParticle.refresh();
             guiParticle.open();
         }
     }
@@ -238,7 +239,7 @@ function animate(time) {
         }
 
         guiOptions.guiInfo.refresh();
-        guiParticleRefresh();
+        guiOptions.guiParticle.refresh();
         selection.guiRefresh();
         guiParametersRefresh();
         guiOptions.guiControls.refresh();

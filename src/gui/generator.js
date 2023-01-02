@@ -1,7 +1,8 @@
 import { Vector3 } from 'three';
 import {
     decodeVector3, random, floatArrayToString,
-    generateHexagon
+    generateHexagon,
+    createParticles
 } from '../helpers.js';
 import {
     simulation,
@@ -16,14 +17,13 @@ function log(msg) {
     console.log("menu/generator: " + msg);
 }
 
-let options, controls, selection, mouse, guiSelection, hexagonMap;
+let options, controls, selection, mouse, hexagonMap;
 
 export class GUIGenerator {
-    constructor(guiOptions, guiGenerator, guiSelection) {
+    constructor(guiOptions, guiGenerator) {
         options = guiOptions;
         controls = guiGenerator;
         mouse = options.mouseHelper;
-        guiSelection = guiSelection;
         selection = options.selectionHelper;
         hexagonMap = new Map();
         this.setup();
@@ -256,37 +256,6 @@ export class GUIGenerator {
 function particleGenerator(input) {
     log('generateParticles');
 
-    function generateMass() {
-        let m = presetList[presetIdx].m;
-        m *= mass;
-        if (options.generator.randomMass) m *= random(0, 1);
-        if (options.generator.roundMass) m = Math.round(m);
-        if (!options.generator.enableZeroMass && m == 0) m = mass;
-        return m;
-    }
-
-    function generateCharge() {
-        let s = 1;
-        let q = presetList[presetIdx].q;
-        q *= charge;
-        if (options.generator.chargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (options.generator.randomCharge) q *= random(0, 1);
-        if (options.generator.roundCharge) q = Math.round(q);
-        if (!options.generator.enableZeroCharge && q == 0) q = charge;
-        return s * q;
-    }
-
-    function generateNuclearCharge() {
-        let s = 1;
-        let nq = presetList[presetIdx].nq;
-        nq *= nuclearCharge;
-        if (options.generator.nuclearChargeRandomSignal) s = random(0, 1, true) ? -1 : 1;
-        if (options.generator.randomNuclearCharge) nq *= random(0, 1);
-        if (options.generator.roundNuclearCharge) nq = Math.round(nq);
-        if (!options.generator.enableZeroNuclearCharge && nq == 0) nq = nuclearCharge;
-        return s * nq;
-    }
-
     function generatePosition() {
         switch (input.pattern) {
             case 'circle':
@@ -432,27 +401,39 @@ function particleGenerator(input) {
             break;
     }
 
-    let newParticleList = [];
+    let dummySimulation = { mode2D: simulation.mode2D, physics: { particleList: [] } };
     //if (input.pattern == 'hexagon') quantity *= 6;
     for (let i = 0; i < quantity; ++i) {
-        presetIdx = random(0, presetList.length - 1, true);
-        createParticle(
-            newParticleList,
-            generateMass(),
-            generateCharge(),
-            generateNuclearCharge(),
-            generatePosition(),
-            generateVelocity(),
-            options.generator.fixed
-        );
+        const opt = {
+            randomSequence: true,
+
+            randomM: options.generator.randomMass,
+            roundM: options.generator.roundMass,
+            allowZeroM: options.generator.enableZeroMass,
+
+            randomQSignal: options.generator.chargeRandomSignal,
+            randomQ: options.generator.randomCharge,
+            roundQ: options.generator.roundCharge,
+            allowZeroQ: options.generator.enableZeroCharge,
+
+            randomNQSignal: options.generator.nuclearChargeRandomSignal,
+            randomNQ: options.generator.randomNuclearCharge,
+            roundNQ: options.generator.roundNuclearCharge,
+            allowZeroNQ: options.generator.enableZeroNuclearCharge,
+
+            center: generatePosition(),
+
+            randomVelocity: false,
+            v1: generateVelocity(),
+        };
+        createParticles(dummySimulation, presetList, 1, opt);
     }
 
     selection.clear();
     selection.graphics = simulation.graphics;
     selection.options = options.selection;
-    selection.guiSelection = options.selection;
+    selection.guiSelection = options.guiSelection;
     selection.source = SourceType.generated;
-    selection.list = newParticleList;
+    selection.list = dummySimulation.physics.particleList;
     selection.guiRefresh();
-    guiSelection.open();
 }

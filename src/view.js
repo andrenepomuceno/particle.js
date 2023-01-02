@@ -38,7 +38,7 @@ const guiAdvanced = gui.addFolder('ADVANCED');
 const guiParameters = gui.addFolder('PARAMETERS');
 
 const mouse = new Mouse();
-const selection = new Selection();
+const selection = new Selection(simulation.graphics, guiSelection);
 
 function log(msg) {
     console.log("View: " + msg);
@@ -131,8 +131,8 @@ export function viewSetup() {
     guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
     guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
     guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
-    guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
-    guiOptions.guiadvanced = new GUIAdvanced(guiOptions, guiAdvanced);
+    guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator);
+    guiOptions.guiAdvanced = new GUIAdvanced(guiOptions, guiAdvanced);
     guiOptions.guiField = new GUIField(guiOptions, guiField);
 
     scenarioSetup();

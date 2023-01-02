@@ -73,8 +73,6 @@ export class Physics {
 export function calcListStatistics(list) {
     let stats = {};
 
-    if (list.length == 0) return {};
-
     stats.center = new Vector3();
     stats.totalVelocity = new Vector3();
     stats.avgVelocity = new Vector3();
@@ -110,9 +108,11 @@ export function calcListStatistics(list) {
         }    
     });
 
-    stats.center.divideScalar(list.length);
-    stats.avgVelocity.add(stats.totalVelocity).divideScalar(list.length);
-    stats.avgEnergy = stats.totalEnergy/list.length;
+    let n = list.length;
+    if (n == 0) n = 1;
+    stats.center.divideScalar(n);
+    stats.avgVelocity.add(stats.totalVelocity).divideScalar(n);
+    stats.avgEnergy = stats.totalEnergy/n;
 
     return stats;
 }

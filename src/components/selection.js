@@ -19,11 +19,10 @@ export const SourceType = {
 }
 
 export class Selection {
-    constructor(graphics, options, guiSelection) {
+    constructor(graphics, options) {
         log('constructor');
         this.graphics = graphics;
         this.options = options;
-        this.guiSelection = guiSelection;
         this.started = false;
         this.p0 = undefined;
         this.p1 = undefined;
@@ -76,11 +75,11 @@ export class Selection {
             this.#snapshot(mode);
             this.source = SourceType.simulation;
             this.guiRefresh();
-            this.guiSelection.open();
-            this.guiSelection.guiSelectionProperties.open();
+            this.options.open();
+            this.options.guiSelectionProperties.open();
         } else {
             this.clear();
-            this.guiSelection.close();
+            this.options.close();
         }
 
         this.graphics.controls.enabled = true;
@@ -89,7 +88,7 @@ export class Selection {
 
     #snapshot(mode) {
         log("#snapshot");
-        this.graphics.update();
+        this.graphics.render();
         this.graphics.renderer.domElement.toBlob((blob) => {
             blob.arrayBuffer().then((dataBuffer) => {
                 Image.load(dataBuffer).then((image) => {

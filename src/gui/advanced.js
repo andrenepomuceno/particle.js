@@ -7,9 +7,9 @@ import { randomSphericVector } from '../helpers.js';
 let options, controls;
 
 export class GUIAdvanced {
-    constructor(guiOptions, guiadvanced) {
+    constructor(guiOptions, guiAdvanced) {
         options = guiOptions;
-        controls = guiadvanced;
+        controls = guiAdvanced;
         this.setup();
     }
 

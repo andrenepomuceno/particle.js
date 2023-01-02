@@ -365,12 +365,17 @@ export function createParticles(simulation, typeList, n, options) {
         allowZeroQ: true,
 
         nq: 1,
-        randomNQ: false,
         randomNQSignal: true,
+        randomNQ: false,
+        roundNQ: false,
+        allowZeroNQ: true,
 
+        center: new Vector3(),
+
+        randomVelocity: true,
+        
         r0: 0,
         r1: 1,
-        center: new Vector3(),
         v1: 0,
     };
     options = { ...defaultOptions, ...options };
@@ -398,16 +403,17 @@ export function createParticles(simulation, typeList, n, options) {
 
         let nq = options.nq;
         nq *= typeList[type].nq;
-        if (options.randomNQSignal == true) {
-            if (random(0, 1, true) == 1) nq *= -1;
-        }
+        if (options.randomNQSignal == true) if (random(0, 1, true) == 1) nq *= -1;
         if (options.randomNQ == true) nq *= random(0, 1);
+        if (options.roundNQ == true) nq = Math.round(nq);
+        if (options.allowZeroNQ == false && nq == 0) nq = options.nq * typeList[type].nq;
         p.nuclearCharge = nq;
 
         p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
         p.position.add(options.center);
 
-        p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+        if (options.randomVelocity) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+        else p.velocity = options.v1;
 
         p.name = typeList[type].name;
 

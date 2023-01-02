@@ -117,6 +117,8 @@ export function viewSetup() {
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointerup', onPointerUp);
 
+    selection.graphics = simulation.graphics;
+
     //stats overlay
     document.getElementById('container').appendChild(statsPanel.domElement);
     mouse.addOverListener(statsPanel.domElement);
@@ -181,9 +183,9 @@ function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
         //selection = new Selection(simulation.graphics, guiOptions.selection, guiSelection);
         selection.clear();
-        selection.graphics = simulation.graphics;
-        selection.options = guiOptions.selection;
-        selection.guiSelection = guiSelection;
+        //selection.graphics = simulation.graphics;
+        //selection.options = guiOptions.guiSelection;
+        //selection.guiSelection = guiSelection;
 
         selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);

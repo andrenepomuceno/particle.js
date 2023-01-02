@@ -16,14 +16,13 @@ export class GUISelection {
     constructor(guiOptions, guiSelection) {
         options = guiOptions;
         controls = guiSelection;
+        selection = options.selectionHelper;
+        mouse = options.mouseHelper;
         this.setup();
     }
 
     setup() {
         console.log('guiSelectionSetup');
-    
-        selection = options.selectionHelper;
-        mouse = options.mouseHelper;
     
         options.selection = {
             pattern: 'box',
@@ -43,9 +42,9 @@ export class GUISelection {
                 uploadCsv((name, content) => {
                     //gSelection = new Selection(simulation.graphics, options.selection, guiSelection);
                     selection.clear();
-                    selection.graphics = simulation.graphics;
-                    selection.options = options.selection;
-                    selection.guiSelection = guiSelection;
+                    //selection.graphics = simulation.graphics;
+                    //selection.options = options.selection;
+                    //selection.guiSelection = controls;
     
                     core.importParticleList(selection, name, content);
                 });
@@ -103,7 +102,6 @@ export class GUISelection {
         controls.add(options.selection, 'particles').name('Particles').listen();
     
         const guiSelectionProperties = controls.addFolder("[+] Properties");
-        controls.guiSelectionProperties = guiSelectionProperties;
         guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
             selectionListUpdate('mass', val);
         });

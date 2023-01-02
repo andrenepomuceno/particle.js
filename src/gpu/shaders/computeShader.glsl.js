@@ -55,9 +55,6 @@ uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
 
-const float width = resolution.x;
-const float height = resolution.y;
-
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
@@ -95,21 +92,21 @@ void main() {
     );
 
     vec3 rForce = vec3(0.0);
-    for (float texY = 0.0; texY < height; texY++) {
-        for (float texX = 0.0; texX < width; texX++) {
-            vec2 uv2 = vec2(texX + 0.5, texY + 0.5) / resolution.xy;
+    for (float texY = 0.5; texY < resolution.y; texY++) {
+        for (float texX = 0.5; texX < resolution.x; texX++) {
+            vec2 uv2 = vec2(texX, texY) / resolution.xy;
             if (uv1 == uv2) continue;
 
             vec4 tPos2 = texture2D(texturePosition, uv2);
             float type2 = tPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
 
+            vec3 pos2 = tPos2.xyz;            
             vec4 props2 = texture2D(textureProperties, uv2);
 
-            vec3 pos2 = tPos2.xyz;            
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
-            
+
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
@@ -141,11 +138,13 @@ void main() {
             #if USE_DISTANCE1
                 float distance1 = sqrt(distance2);
             #endif
+            
             float x = 0.0;
             if (distance2 <= nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
+
                 #if USE_HOOKS_LAW
                     x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
                 #else
@@ -184,11 +183,13 @@ void main() {
         }
     }
 
+    rForce *= forceConstant;
+
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
-            vel1 += forceConstant * rForce / abs(m1);
+            vel1 += rForce / abs(m1);
         } else {
-            vel1 += forceConstant * rForce;
+            vel1 += rForce;
         }
         
         #if ENABLE_BOUNDARY

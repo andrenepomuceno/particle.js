@@ -35,7 +35,9 @@ export function randomColor(mode = 'hue') {
         case 'hue':
         default:
             let h = random(0, 360, true);
-            color = "hsl(" + h + ",100%,50%)";
+            let s = random(50, 100, true);
+            let v = 50;
+            color = "hsl(" + h + "," + s + "%," + v + "%)";
             break;
     }
 
@@ -367,7 +369,7 @@ export function createParticles(simulation, typeList, n, options) {
         randomNQSignal: true,
 
         r0: 0,
-        r1: 1, 
+        r1: 1,
         center: new Vector3(),
         v1: 0,
     };

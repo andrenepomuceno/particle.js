@@ -122,7 +122,14 @@ export class GUIInfo {
 
     refresh() {
         simulation.stats = calcListStatistics(simulation.particleList);
+
         simulation.physics.collisionCounter = simulation.stats.collisions;
+        let avgEnergy = simulation.stats.avgEnergy;
+        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
+        simulation.physics.avgEnergy = avgEnergy;
+        simulation.physics.avgVelocity = avgVelocity;
+        simulation.graphics.updateAvgVelocity(avgVelocity);
+        simulation.field.refreshMaxVelocity();
 
         options.info.name = simulation.name;
         options.info.folderName = simulation.folderName;
@@ -132,15 +139,6 @@ export class GUIInfo {
         let realTime = new Date(simulation.totalTime).toISOString().substring(11, 19);
         options.info.time = realTime + " (" + simulation.cycles + ")";
 
-        simulation.stats.particles = (simulation.stats.particles == 0) ? (1) : (simulation.stats.particles);
-        simulation.totalMass = (simulation.totalMass == 0) ? (1) : (simulation.totalMass);
-        let avgEnergy = simulation.stats.avgEnergy;
-        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
-        simulation.physics.avgEnergy = avgEnergy;
-        simulation.physics.avgVelocity = avgVelocity;
-        simulation.graphics.updateAvgVelocity(avgVelocity);
-
-        simulation.field.refreshMaxVelocity();
         options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
         options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
 
@@ -166,7 +164,6 @@ export class GUIInfo {
             time: realTime,
             avg: computeTime.avg,
         });
-
     }
 
     reset() {

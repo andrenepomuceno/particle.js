@@ -11,10 +11,10 @@ import Stats from './gui/stats';
 import * as dat from './gui/dat.gui';
 import { GUIInfo } from './gui/info.js';
 import { GUIParticle } from './gui/particle.js';
-import { guiParametersSetup, guiParametersRefresh } from './gui/parameters.js';
+import { GUIParameters } from './gui/parameters.js';
 import { GUIField } from './gui/field.js';
 import { GUIGenerator } from './gui/generator.js';
-import { guiSelectionSetup } from './gui/selection.js';
+import { GUISelection } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
 import { GUIAdvanced } from './gui/advanced.js';
 
@@ -99,7 +99,7 @@ function scenarioSetup(idx) {
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();
-    guiParametersRefresh();
+    guiOptions.guiParameters.refresh();
     guiOptions.guiField.refresh();
 }
 
@@ -127,8 +127,10 @@ export function viewSetup() {
     guiOptions.guiControls.setup();
     guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
     guiOptions.guiParticle.setup();
-    guiParametersSetup(guiOptions, guiParameters);
-    guiSelectionSetup(guiOptions, guiSelection);
+    guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
+    guiOptions.guiParameters.setup();
+    guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
+    guiOptions.guiSelection.setup();
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
     guiOptions.guiGenerator.setup();
     guiOptions.guiAdvancedControls = new GUIAdvanced(guiOptions, guiAdvanced);
@@ -242,7 +244,7 @@ function animate(time) {
         guiOptions.guiInfo.refresh();
         guiOptions.guiParticle.refresh();
         selection.guiRefresh();
-        guiParametersRefresh();
+        guiOptions.guiParameters.refresh();
         guiOptions.guiControls.refresh();
     }
 

@@ -7,168 +7,173 @@ import { uploadCsv } from '../components/csv';
 import { Selection, SourceType } from '../components/selection';
 import { mouseToWorldCoord } from '../helpers.js';
 
-let gGuiOptions = undefined;
-let gGuiSelection = undefined;
-let gSelection = undefined;
-let gMouseHelper = undefined;
+let options = undefined;
+let controls = undefined;
+let selection = undefined;
+let mouse = undefined;
 
-export function guiSelectionSetup(guiOptions, guiSelection) {
-    console.log('guiSelectionSetup');
+export class GUISelection {
+    constructor(guiOptions, guiSelection) {
+        options = guiOptions;
+        controls = guiSelection;
+    }
 
-    gGuiOptions = guiOptions;
-    gGuiSelection = guiSelection;
-    gSelection = guiOptions.selectionHelper;
-    gMouseHelper = guiOptions.mouseHelper;
-
-    guiOptions.selection = {
-        pattern: 'box',
-        source: "None",
-        particles: 0,
-        mass: "",
-        charge: "",
-        nuclearCharge: "",
-        velocity: "",
-        velocityDir: "",
-        center: "",
-        fixedPosition: false,
-        export: () => {
-            gSelection.export(simulation);
-        },
-        import: () => {
-            uploadCsv((name, content) => {
-                //gSelection = new Selection(simulation.graphics, guiOptions.selection, guiSelection);
-                gSelection.clear();
-                gSelection.graphics = simulation.graphics;
-                gSelection.options = guiOptions.selection;
-                gSelection.guiSelection = guiSelection;
-
-                core.importParticleList(gSelection, name, content);
-            });
-        },
-        clone: () => {
-            gSelection.clone();
-            gSelection.guiRefresh();
-        },
-        clear: () => {
-            guiSelectionClose();
-        },
-        delete: () => {
-            if (gSelection.list == undefined || gSelection.list.length == 0) return;
-            if (gSelection.source != SourceType.simulation) {
-                alert('Selection source must be "simulation".\nSelect particles first.');
-                return;
+    setup() {
+        console.log('guiSelectionSetup');
+    
+        selection = options.selectionHelper;
+        mouse = options.mouseHelper;
+    
+        options.selection = {
+            pattern: 'box',
+            source: "None",
+            particles: 0,
+            mass: "",
+            charge: "",
+            nuclearCharge: "",
+            velocity: "",
+            velocityDir: "",
+            center: "",
+            fixedPosition: false,
+            export: () => {
+                selection.export(simulation);
+            },
+            import: () => {
+                uploadCsv((name, content) => {
+                    //gSelection = new Selection(simulation.graphics, options.selection, guiSelection);
+                    selection.clear();
+                    selection.graphics = simulation.graphics;
+                    selection.options = options.selection;
+                    selection.guiSelection = guiSelection;
+    
+                    core.importParticleList(selection, name, content);
+                });
+            },
+            clone: () => {
+                selection.clone();
+                selection.guiRefresh();
+            },
+            clear: () => {
+                guiSelectionClose();
+            },
+            delete: () => {
+                if (selection.list == undefined || selection.list.length == 0) return;
+                if (selection.source != SourceType.simulation) {
+                    alert('Selection source must be "simulation".\nSelect particles first.');
+                    return;
+                }
+                core.deleteParticleList(selection.list);
+                guiSelectionClose();
+            },
+            lookAt: () => {
+                if (selection.list.length == 0) return;
+    
+                let center = new Vector3();
+                selection.list.forEach((particle) => {
+                    center.add(particle.position);
+                });
+                center.divideScalar(selection.list.length);
+    
+                options.cameraTargetSet(center);
+            },
+            place: () => {
+                //options.controls.placeHint();
+                selectionPlace();
+            },
+        };
+    
+        const patternList = {
+            Box: 'box',
+            Circle: 'circle',
+        };
+        controls.add(options.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
+            switch (val) {
+                case 'box':
+                default:
+                    options.ruler.mode = 'box';
+                    break;
+    
+                case 'circle':
+                    options.ruler.mode = 'circle';
+                    break
             }
-            core.deleteParticleList(gSelection.list);
-            guiSelectionClose();
-        },
-        lookAt: () => {
-            if (gSelection.list.length == 0) return;
-
-            let center = new Vector3();
-            gSelection.list.forEach((particle) => {
-                center.add(particle.position);
-            });
-            center.divideScalar(gSelection.list.length);
-
-            guiOptions.cameraTargetSet(center);
-        },
-        place: () => {
-            //guiOptions.controls.placeHint();
-            selectionPlace();
-        },
-    };
-
-    const patternList = {
-        Box: 'box',
-        Circle: 'circle',
-    };
-    guiSelection.add(guiOptions.selection, 'pattern', patternList).name("Pattern").listen().onFinishChange(val => {
-        switch (val) {
-            case 'box':
-            default:
-                guiOptions.ruler.mode = 'box';
-                break;
-
-            case 'circle':
-                guiOptions.ruler.mode = 'circle';
-                break
-        }
-    });
-    guiSelection.add(guiOptions.selection, 'source').name("Source").listen();
-    guiSelection.add(guiOptions.selection, 'particles').name("Particles").listen();
-
-    const guiSelectionProperties = guiSelection.addFolder("[+] Properties");
-    guiSelection.guiSelectionProperties = guiSelectionProperties;
-    guiSelectionProperties.add(guiOptions.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("mass", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("charge", val);
-    });
-    guiSelectionProperties.add(guiOptions.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
-        selectionListUpdate("nuclearCharge", val);
-    });
-
-    const guiSelectionVariables = guiSelection.addFolder("[+] Variables");
-    guiSelectionVariables.add(guiOptions.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
-        selectionListUpdate("velocityAbs", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
-        selectionListUpdate("velocityDir", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'center').name("Center").listen().onFinishChange((val) => {
-        selectionListUpdate("center", val);
-    });
-    guiSelectionVariables.add(guiOptions.selection, 'fixedPosition').name("Fixed Position").listen().onFinishChange((val) => {
-        selectionListUpdate("fixed", val);
-        guiOptions.selection.fixedPosition = val;
-    });
-
-    const guiSelectionActions = guiSelection.addFolder("[+] Controls");
-    guiSelectionActions.add(guiOptions.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
-    guiSelectionActions.add(guiOptions.selection, 'lookAt').name("Look At");
-    guiSelectionActions.add(guiOptions.selection, 'export').name("Export");
-    guiSelectionActions.add(guiOptions.selection, 'import').name("Import");
-
-    guiSelection.add(guiOptions.selection, 'clone').name("Clone [X]");
-    guiSelection.add(guiOptions.selection, 'place').name("Place [Z]");
-    guiSelection.add(guiOptions.selection, 'clear').name("Close");
-
-    guiOptions.collapseList.push(guiSelection);
-    guiOptions.collapseList.push(guiSelectionActions);
-    guiOptions.collapseList.push(guiSelectionProperties);
-    guiOptions.collapseList.push(guiSelectionVariables);
-
-    console.log('guiSelectionSetup done');
+        });
+        controls.add(options.selection, 'source').name("Source").listen();
+        controls.add(options.selection, 'particles').name("Particles").listen();
+    
+        const guiSelectionProperties = controls.addFolder("[+] Properties");
+        controls.guiSelectionProperties = guiSelectionProperties;
+        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+            selectionListUpdate("mass", val);
+        });
+        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+            selectionListUpdate("charge", val);
+        });
+        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+            selectionListUpdate("nuclearCharge", val);
+        });
+    
+        const guiSelectionVariables = controls.addFolder("[+] Variables");
+        guiSelectionVariables.add(options.selection, 'velocity').name("Velocity").listen().onFinishChange((val) => {
+            selectionListUpdate("velocityAbs", val);
+        });
+        guiSelectionVariables.add(options.selection, 'velocityDir').name("Direction").listen().onFinishChange((val) => {
+            selectionListUpdate("velocityDir", val);
+        });
+        guiSelectionVariables.add(options.selection, 'center').name("Center").listen().onFinishChange((val) => {
+            selectionListUpdate("center", val);
+        });
+        guiSelectionVariables.add(options.selection, 'fixedPosition').name("Fixed Position").listen().onFinishChange((val) => {
+            selectionListUpdate("fixed", val);
+            options.selection.fixedPosition = val;
+        });
+    
+        const guiSelectionActions = controls.addFolder("[+] Controls");
+        guiSelectionActions.add(options.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
+        guiSelectionActions.add(options.selection, 'lookAt').name("Look At");
+        guiSelectionActions.add(options.selection, 'export').name("Export");
+        guiSelectionActions.add(options.selection, 'import').name("Import");
+    
+        controls.add(options.selection, 'clone').name("Clone [X]");
+        controls.add(options.selection, 'place').name("Place [Z]");
+        controls.add(options.selection, 'clear').name("Close");
+    
+        options.collapseList.push(controls);
+        options.collapseList.push(guiSelectionActions);
+        options.collapseList.push(guiSelectionProperties);
+        options.collapseList.push(guiSelectionVariables);
+    
+        console.log('guiSelectionSetup done');
+    }
 }
 
 function guiSelectionClose(clear = true) {
-    console.log(gSelection);
-    if (clear) gSelection.clear();
-    gGuiSelection.close();
+    console.log(selection);
+    if (clear) selection.clear();
+    controls.close();
 }
 
 function selectionListUpdate(param, val) {
-    core.updateParticleList(param, val, gSelection.list);
-    gSelection.guiRefresh();
+    core.updateParticleList(param, val, selection.list);
+    selection.guiRefresh();
 }
 
 function selectionPlace() {
-    if (gMouseHelper.overGUI) return;
-    if (gSelection.list == undefined || gSelection.list.length == 0) return;
+    if (mouse.overGUI) return;
+    if (selection.list == undefined || selection.list.length == 0) return;
 
-    let center = mouseToWorldCoord(gMouseHelper.position, simulation.graphics.camera, 0);
+    let center = mouseToWorldCoord(mouse.position, simulation.graphics.camera, 0);
     if (simulation.mode2D) {
         center.z = 0;
     }
 
-    if (gSelection.source == SourceType.generated) {
-        gGuiOptions.generator.generate();
+    if (selection.source == SourceType.generated) {
+        options.generator.generate();
     }
 
-    if (gSelection.source == SourceType.simulation) {
-        core.updateParticleList("center", [center.x, center.y, center.z].toString(), gSelection.list);
+    if (selection.source == SourceType.simulation) {
+        core.updateParticleList("center", [center.x, center.y, center.z].toString(), selection.list);
     } else {
-        core.createParticleList(gSelection.list, center);
+        core.createParticleList(selection.list, center);
     }
 }

@@ -60,7 +60,7 @@ export class GUIControls {
                     options.particle.close();
                     core.importCSV(name, content);
                     options.guiInfo.refresh();
-                    guiParametersRefresh();
+                    guiOptions.guiParameters.refresh();
                     options.guiControls.refresh();
                 });
             },

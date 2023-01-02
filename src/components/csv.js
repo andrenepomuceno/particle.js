@@ -14,7 +14,7 @@ export function exportCSV(simulation, list) {
         list = physics.particleList;
     }
 
-    const csvVersion = "1.2";
+    const csvVersion = "1.3";
 
     graphics.readbackParticleData();
 

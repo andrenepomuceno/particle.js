@@ -183,15 +183,15 @@ void main() {
             vec4 pot = vec4(0, d12, d12, x);
             vec4 result = consts * props * pot;
             float force = result.y + result.z + result.w;
-            rForce += forceConstant * force * normalize(dPos);
+            rForce += force * normalize(dPos);
         }
     }
 
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
-            vel1 += rForce / abs(m1);
+            vel1 += forceConstant * rForce / abs(m1);
         } else {
-            vel1 += rForce;
+            vel1 += forceConstant * rForce;
         }
         
         #if ENABLE_BOUNDARY

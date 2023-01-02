@@ -60,18 +60,23 @@ let guiOptions = {
     keyboard: undefined,
     collapseList,
 
+    gui,
+    guiInfo: undefined,
+    guiControls: undefined,
+    guiSelection: undefined,
+    guiGenerator: undefined,
+    guiField: undefined,
+    guiAdvanced: undefined,
+    guiParameters: undefined,
+
     info: {},
     controls: {},
     particle: {},
     selection: {},
     generator: {},
     parameters: {},
-    advancedControls: {},
+    advanced: {},
     field: {},
-
-    gui,
-    guiControls: undefined,
-    guiAdvancedControls: undefined,
 }
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
@@ -133,8 +138,8 @@ export function viewSetup() {
     guiOptions.guiSelection.setup();
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator, guiSelection);
     guiOptions.guiGenerator.setup();
-    guiOptions.guiAdvancedControls = new GUIAdvanced(guiOptions, guiAdvanced);
-    guiOptions.guiAdvancedControls.setup();
+    guiOptions.guiadvanced = new GUIAdvanced(guiOptions, guiAdvanced);
+    guiOptions.guiadvanced.setup();
     guiOptions.guiField = new GUIField(guiOptions, guiField);
     guiOptions.guiField.setup();
 

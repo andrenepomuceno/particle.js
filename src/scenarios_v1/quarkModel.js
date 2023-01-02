@@ -74,7 +74,7 @@ function fullScaleModel(simulation) {
     let r0 = Math.sqrt(maxParticles / (density * Math.PI));
 
     let particles = [
-        { m: 4.99145554865e-37 * KG , q: 0, nq: -1, name: "netrino" },
+        { m: 4.99145554865e-37 * KG , q: 0, nq: -1, name: "neutrino" },
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: "electron" },
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "up quark" }, // 3 MeV
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "down quark" }, // 6 MeV
@@ -103,14 +103,14 @@ function water2(simulation) {
     //physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    const m = 1e1 * 1e18;
-    const kg = (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
-    const s = 1e-2 * 1e27; // second, quantum time
-    const c = (1 / 1.602176634) * 1e18; // attocoulomb
-    const nuclearForceRange = 1e-15 * m;
+    const M = 1e1 * 1e18;
+    const KG = (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
+    const S = 1e-2 * 1e27; // second, quantum time
+    const C = (1 / 1.602176634) * 1e18; // attocoulomb
+    const nuclearForceRange = 1e-15 * M;
 
     const nq = 1.0;
-    const v = 1e-3;
+    const v = 1e-9;
 
     physics.nuclearForceRange = 10 * nuclearForceRange;
     physics.boundaryDistance = 50 * physics.nuclearForceRange;
@@ -120,9 +120,9 @@ function water2(simulation) {
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 25e3 * kg * m * s ** -2;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 25e3 * KG * M * S ** -2;
     physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
@@ -130,14 +130,14 @@ function water2(simulation) {
     let r1 = 0.5 * physics.nuclearForceRange;
     let r2 = 0.333 * physics.nuclearForceRange;
 
-    let gridSize = calcGridSize(graphics, 7 * (8 + 2 * 1));
+    let gridSize = calcGridSize(graphics, (2*(3+2)+8*(2*3+2)));
 
     let nucleusTypes = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark up" }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: "quark down" }, // 6 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark up" }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark down" }, // 6 MeV
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: "electron" },
+        { m: 9.1093837015e-31 * KG, q: -1.602176634e-19 * C, nq: -1, name: "electron" },
     ];
 
     let index = 0;
@@ -145,7 +145,7 @@ function water2(simulation) {
     cubeGenerator((x, y, z) => {
         let zNumber = 1;
 
-        let snq = nq * ((random(0, 1) >= 0.1) ? (1) : (-1));
+        let snq = nq * ((random(0, 1) >= 0.001) ? (1) : (-1));
         //let snq = nq * (index % 2) ? (1) : (-1);
         let center = new Vector3(x, -y, z);
 
@@ -153,8 +153,13 @@ function water2(simulation) {
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, snq, r0, r1, center, v, zNumber);
 
         zNumber = 1;
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().add(offset), v, zNumber);
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, 3 * zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().sub(offset), v, zNumber);
+        let hydrogen = [
+            { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark up" },
+            { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark up" },
+            { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: "quark down" },
+        ];
+        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().add(offset), v, zNumber);
+        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().sub(offset), v, zNumber);
 
         index++;
     }, 8.0 * r2 * gridSize[0], gridSize);

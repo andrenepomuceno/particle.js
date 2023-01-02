@@ -235,7 +235,7 @@ export class GUIControls {
 }
 
 function snapshot() {
-    let name = simulation.state()[0];
+    let name = simulation.name;
     let finalName = exportFilename(name)
     log("snapshot " + finalName);
 

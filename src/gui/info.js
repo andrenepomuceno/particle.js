@@ -7,6 +7,7 @@ import {
     simulation,
     core,
 } from '../core.js';
+import { calcListStatistics } from '../physics.js';
 
 let options, controls;
 let maxAvgVelocity = 0;
@@ -120,20 +121,21 @@ export class GUIInfo {
     }
 
     refresh() {
-        let [name, n, t, e, c, m, r, totalTime, totalCharge] = simulation.state();
+        simulation.stats = calcListStatistics(simulation.particleList);
+        simulation.physics.collisionCounter = simulation.stats.collisions;
 
-        options.info.name = name;
+        options.info.name = simulation.name;
         options.info.folderName = simulation.folderName;
-        options.info.particles = n;
+        options.info.particles = simulation.stats.particles;
         options.info.maxParticles = simulation.graphics.maxParticles;
 
-        let realTime = new Date(totalTime).toISOString().substring(11, 19);
-        options.info.time = realTime + " (" + t + ")";
+        let realTime = new Date(simulation.totalTime).toISOString().substring(11, 19);
+        options.info.time = realTime + " (" + simulation.cycles + ")";
 
-        n = (n == 0) ? (1) : (n);
-        m = (m == 0) ? (1) : (m);
+        simulation.stats.particles = (simulation.stats.particles == 0) ? (1) : (simulation.stats.particles);
+        simulation.totalMass = (simulation.totalMass == 0) ? (1) : (simulation.totalMass);
         let avgEnergy = simulation.stats.avgEnergy;
-        let avgVelocity = Math.sqrt(e / m);
+        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
         simulation.physics.avgEnergy = avgEnergy;
         simulation.physics.avgVelocity = avgVelocity;
         simulation.graphics.updateAvgVelocity(avgVelocity);
@@ -145,9 +147,9 @@ export class GUIInfo {
         options.info.energy = avgEnergy.toExponential(2);
         options.info.velocity = avgVelocity.toExponential(2);
 
-        options.info.collisions = c;
-        options.info.mass = m.toExponential(2);
-        options.info.charge = totalCharge.toExponential(2);
+        options.info.collisions = simulation.physics.collisionCounter;
+        options.info.mass = simulation.totalMass.toExponential(2);
+        options.info.charge = simulation.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
         options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
         let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();

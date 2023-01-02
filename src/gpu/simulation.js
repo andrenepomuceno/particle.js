@@ -93,23 +93,6 @@ export class SimulationGPU {
         };
     }
 
-    state() {
-        // log("state");
-        this.stats = calcListStatistics(this.particleList);
-        this.physics.collisionCounter = this.stats.collisions;
-        return [
-            this.name,
-            this.stats.particles,
-            this.cycles,
-            this.stats.totalEnergy,
-            this.physics.collisionCounter,
-            this.totalMass,
-            this.physics.boundaryDistance,
-            this.totalTime,
-            this.totalCharge,
-        ];
-    }
-
     setColorMode(mode) {
         log("setColorMode mode = " + mode);
 

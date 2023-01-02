@@ -82,32 +82,29 @@ void main() {
 
     vec3 pos1 = tPos1.xyz;
     vec4 props1 = texture2D(textureProperties, uv1);
-    float id1 = props1.x;
-    float m1 = props1.y;
+    float m1 = props1.x;
     vec4 tVel1 = texture2D(textureVelocity, uv1);
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
 
     vec4 consts = vec4(
-        0,
         massConstant, 
         -chargeConstant,
-        nuclearForceConstant
+        nuclearForceConstant,
+        0
     );
 
     vec3 rForce = vec3(0.0);
     for (float texY = 0.0; texY < height; texY++) {
         for (float texX = 0.0; texX < width; texX++) {
             vec2 uv2 = vec2(texX + 0.5, texY + 0.5) / resolution.xy;
+            if (uv1 == uv2) continue;
+
             vec4 tPos2 = texture2D(texturePosition, uv2);
             float type2 = tPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
 
             vec4 props2 = texture2D(textureProperties, uv2);
-            float id2 = props2.x;
-            if (id1 == id2) {
-                continue;
-            }
 
             vec3 pos2 = tPos2.xyz;            
             vec3 dPos = pos2 - pos1;
@@ -116,7 +113,7 @@ void main() {
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    float m2 = props2.y;
+                    float m2 = props2.x;
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
                     float m = m1 + m2; // precision loss if m1 >> m2
                     if (m == 0.0) {
@@ -180,9 +177,9 @@ void main() {
                 float d12 = 1.0/distance1;
             #endif
             vec4 props = props1 * props2;
-            vec4 pot = vec4(0, d12, d12, x);
+            vec4 pot = vec4(d12, d12, x, 0);
             vec4 result = consts * props * pot;
-            float force = result.y + result.z + result.w;
+            float force = result.x + result.y + result.z;
             rForce += force * normalize(dPos);
         }
     }
@@ -199,9 +196,9 @@ void main() {
             vec3 nextPos = pos1 + vel1;
             #if !USE_BOX_BOUNDARY
                 if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
-                    vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
-
-                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
+                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
+                        vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
+                    } else {
                         vel1 = vec3(0.0);
                     }
                 }

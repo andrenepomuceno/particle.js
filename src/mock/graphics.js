@@ -73,7 +73,7 @@ export class GraphicsMock {
         this.initialized = true;
     }
 
-    update() {
+    render() {
 
     }
 

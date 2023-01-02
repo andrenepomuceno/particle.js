@@ -48,7 +48,7 @@ export class GraphicsGPU {
         document.getElementById('container').appendChild(this.renderer.domElement);
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-3, 1e12);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-6, 1e12);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.raycaster = new Raycaster();
 
@@ -64,7 +64,7 @@ export class GraphicsGPU {
             for (let i = this.scene.children.length - 1; i >= 0; i--) {
                 let obj = this.scene.children[i];
                 this.scene.remove(obj);
-                obj.dispose();
+                //obj.dispose();
             }
         }
 
@@ -309,10 +309,10 @@ export class GraphicsGPU {
 
         this.particleList.forEach((p, i) => {
             let offset4 = 4 * i;
-            propsArray[offset4 + 0] = p.id;
-            propsArray[offset4 + 1] = p.mass;
-            propsArray[offset4 + 2] = p.charge;
-            propsArray[offset4 + 3] = p.nuclearCharge;
+            propsArray[offset4 + 0] = p.mass;
+            propsArray[offset4 + 1] = p.charge;
+            propsArray[offset4 + 2] = p.nuclearCharge;
+            propsArray[offset4 + 3] = 0;
 
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;

@@ -21,7 +21,7 @@ A JavaScript 3D n-body particle simulator using a simplified model of Physics.
 Try to simulate 3 forces on point-like particles:
 - Gravity
 - Electromagnetic
-- Nuclear force (an analogy to the Strong Force)
+- Nuclear force
 
 ### Live Demo
 

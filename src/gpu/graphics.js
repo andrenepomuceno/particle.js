@@ -69,14 +69,16 @@ export class GraphicsGPU {
         this.readbackParticleData();
 
         let particle = undefined;
-        this.particleList.every(p => {
+        let dMin = 0;
+        this.particleList.forEach(p => {
             let dp = coord.clone().sub(p.position);
-            let d = dp.length() - p.radius;
+            let d = dp.length() - 0.75 * p.radius;
             if (d <= 0) {
-                particle = p;
-                return false;
+                if (d < dMin) {
+                    dMin = d;
+                    particle = p;
+                }
             }
-            return true;
         });
         
         return particle;

@@ -46,15 +46,9 @@ function log(msg) {
 
 let collapseList = [];
 let guiOptions = {
-    scenarioSetup: (idx) => {
-        scenarioSetup(idx);
-    },
-    showCursor: () => {
-        showCursor();
-    },
-    cameraTargetSet: (pos) => {
-        cameraTargetSet(pos);
-    },
+    scenarioSetup,
+    showCursor,
+    cameraTargetSet,
 
     nextFrame: false,
     statsPanel,
@@ -86,21 +80,21 @@ guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
 function scenarioSetup(idx) {
     log("setup " + idx);
 
-    guiOptions.selectionHelper.clear();
-    guiOptions.particle.close();
-
     velocityPanel.cleanup();
     computePanel.cleanup();
+
     guiOptions.guiInfo.reset();
+    guiOptions.selectionHelper.clear();
+    guiOptions.particle.close();
     guiOptions.generator.default();
-    guiOptions.advancedControls.automaticRotation = false;
     simulation.graphics.controls.autoRotate = false;
+
+    core.setup(idx);
+
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
-    
     simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
-    core.setup(idx);
 
     guiOptions.guiInfo.refresh();
     guiOptions.guiControls.refresh();
@@ -161,8 +155,8 @@ function cameraTargetSet(pos) {
 
 function showCursor() {
     guiOptions.controls.showCursor = true;
-    let radius = Math.max(2 * simulation.particleRadius, 10);
-    let thick = Math.max(0.1 * radius, 1);
+    let radius = Math.max(2 * simulation.particleRadius, 1e-3);
+    let thick = Math.max(0.1 * radius, 1e-4);
     mouse.showCursor(simulation.graphics, radius, thick);
 }
 

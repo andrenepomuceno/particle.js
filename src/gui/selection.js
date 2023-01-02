@@ -18,6 +18,7 @@ export class GUISelection {
         controls = guiSelection;
         selection = options.selectionHelper;
         mouse = options.mouseHelper;
+
         this.setup();
     }
 

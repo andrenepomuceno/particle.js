@@ -19,10 +19,10 @@ export const SourceType = {
 }
 
 export class Selection {
-    constructor(graphics, options) {
+    constructor(graphics, guiSelection) {
         log('constructor');
         this.graphics = graphics;
-        this.options = options;
+        this.guiSelection = guiSelection;
         this.started = false;
         this.p0 = undefined;
         this.p1 = undefined;
@@ -75,10 +75,10 @@ export class Selection {
             this.#snapshot(mode);
             this.source = SourceType.simulation;
             this.guiRefresh();
-            this.options.open();
+            this.guiSelection.open();
         } else {
             this.clear();
-            this.options.close();
+            this.guiSelection.close();
         }
 
         this.graphics.controls.enabled = true;
@@ -155,7 +155,7 @@ export class Selection {
         this.importedData = {};
         this.blob = undefined;
         this.stats = {};
-        let view = this.options;
+        let view = this.guiSelection;
         if (view != undefined) {
             view.particles = 0;
             view.mass = '';
@@ -228,6 +228,7 @@ export class Selection {
             }
         });
 
+        console.log(this.list.length);
         return this.list.length;
     }
 
@@ -236,7 +237,7 @@ export class Selection {
         let particles = this.list.length;
         if (particles > 0) {
             this.stats = calcListStatistics(this.list);
-            let view = this.options;
+            let view = this.guiSelection;
             view.source = this.source;
             view.particles = particles;
             view.mass = this.stats.totalMass.toExponential(2);
@@ -250,6 +251,8 @@ export class Selection {
             })
             view.center = center;
             view.fixedPosition = (this.stats.fixed > 0);
+
+            console.log(view);
         }
     }
 }

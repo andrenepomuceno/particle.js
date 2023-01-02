@@ -332,7 +332,6 @@ function particleGenerator(input) {
     velocity = new Vector3(velocity.x, velocity.y, velocity.z);
 
     let presetList = [];
-    let presetIdx = 0;
     let preset = input.preset;
     switch (preset) {
         case 'stdModel0':

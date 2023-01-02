@@ -90,9 +90,6 @@ export class GUIControls {
                     '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press G then Z)',
                 ].join('\n'));
             },
-            wip: function () {
-                alert("Work in progress!");
-            },
             home: function () {
                 core.simulationIdx = 0;
                 options.scenarioSetup(core.simulationIdx);
@@ -239,7 +236,7 @@ function snapshot() {
     let finalName = exportFilename(name)
     log('snapshot ' + finalName);
 
-    simulation.graphics.update();
+    simulation.graphics.render();
     simulation.graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + '.png', "image/png");
     }, 'image/png', 1);

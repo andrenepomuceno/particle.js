@@ -114,11 +114,11 @@ export function viewSetup() {
 
     //stats overlay
     document.getElementById("container").appendChild(statsPanel.domElement);
-    mouse.addListener(statsPanel.domElement);
+    mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = "visible";
 
     //gui menu overlay
-    mouse.addListener(gui.domElement);
+    mouse.addOverListener(gui.domElement);
     gui.width = Math.max(0.2 * window.innerWidth, 320);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
@@ -213,7 +213,7 @@ function onFinishMove(event) {
 function animate(time) {
     requestAnimationFrame(animate);
 
-    simulation.graphics.update();
+    simulation.graphics.render();
     statsPanel.update();
 
     if (guiOptions.particle.followParticle && guiOptions.particle.obj) {

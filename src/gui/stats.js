@@ -65,18 +65,20 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
     var min = Infinity, max = 0, round = Math.round;
     var PR = round(window.devicePixelRatio || 1);
 
-    const WIDTH = 100 * PR, HEIGHT = 64 * PR,
+    const W = 80, H = 60;
+    const FONT_H = 10 * PR;
+    const WIDTH = W * PR, HEIGHT = H * PR,
         TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
-        GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
-        GRAPH_WIDTH = 74 / 80 * WIDTH * PR, GRAPH_HEIGHT = 30 / 48 * HEIGHT * PR;
+        GRAPH_X = TEXT_X, GRAPH_Y = 2 * TEXT_Y + FONT_H,
+        GRAPH_WIDTH = WIDTH - 2 * TEXT_X, GRAPH_HEIGHT = HEIGHT - GRAPH_Y - TEXT_Y;
 
     var canvas = document.createElement('canvas');
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
-    canvas.style.cssText = 'width: 100px; height: 64px;';
+    canvas.style.cssText = 'width: ' + W + 'px; height: ' + H + 'px;';
 
     var context = canvas.getContext('2d');
-    context.font = 'bold ' + (9 * PR) + 'px Helvetica, Arial, sans-serif';
+    context.font = 'bold ' + FONT_H + 'px Helvetica, Arial, sans-serif';
     context.textBaseline = 'top';
 
     function blank() {

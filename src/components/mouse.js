@@ -34,7 +34,7 @@ export class Mouse {
         this.updateCursor();
     }
 
-    addListener(domElement) {
+    addOverListener(domElement) {
         domElement.addEventListener("mouseover", () => {
             this.overGUI = true;
         });

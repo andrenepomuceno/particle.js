@@ -38,7 +38,6 @@ const guiAdvanced = gui.addFolder('ADVANCED');
 const guiParameters = gui.addFolder('PARAMETERS');
 
 const mouse = new Mouse();
-const selection = new Selection(simulation.graphics, guiSelection);
 
 function log(msg) {
     console.log("View: " + msg);
@@ -55,7 +54,7 @@ let guiOptions = {
     velocityPanel,
     computePanel,
     mouseHelper: mouse,
-    selectionHelper: selection,
+    selectionHelper: undefined,
     ruler: undefined,
     keyboard: undefined,
     collapseList,
@@ -81,6 +80,8 @@ let guiOptions = {
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
+const selection = new Selection(simulation.graphics, guiSelection, guiOptions);
+guiOptions.selectionHelper = selection;
 
 function scenarioSetup(idx) {
     log('setup ' + idx);
@@ -117,7 +118,7 @@ export function viewSetup() {
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('pointerup', onPointerUp);
 
-    selection.graphics = simulation.graphics;
+    guiOptions.selectionHelper.graphics = simulation.graphics;
 
     //stats overlay
     document.getElementById('container').appendChild(statsPanel.domElement);
@@ -173,28 +174,23 @@ function onWindowResize() {
 
 function onPointerMove(event) {
     mouse.move(event);
-    if (selection.started) {
-        selection.update(event);
+    if (guiOptions.selectionHelper.started) {
+        guiOptions.selectionHelper.update(event);
         guiOptions.ruler.update(event);
     }
 }
 
 function onPointerDown(event) {
     if (event.button == 0 && event.shiftKey) {
-        //selection = new Selection(simulation.graphics, guiOptions.selection, guiSelection);
         selection.clear();
-        //selection.graphics = simulation.graphics;
-        //selection.options = guiOptions.guiSelection;
-        //selection.guiSelection = guiSelection;
-
         selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
     }
 }
 
 function onPointerUp(event) {
-    if (event.button == 0 && selection.started) {
-        selection.end(event, guiOptions.ruler.mode);
+    if (event.button == 0 && guiOptions.selectionHelper.started) {
+        guiOptions.selectionHelper.end(event, guiOptions.ruler.mode);
         guiOptions.ruler.finish(event);
     } else if (event.button == 0 && !mouse.overGUI) {
         let particle = simulation.graphics.raycast(core, mouse.position);
@@ -242,7 +238,7 @@ function animate(time) {
 
         guiOptions.guiInfo.refresh();
         guiOptions.guiParticle.refresh();
-        selection.guiRefresh();
+        guiOptions.selectionHelper.guiRefresh();
         guiOptions.guiParameters.refresh();
         guiOptions.guiControls.refresh();
     }

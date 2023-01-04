@@ -114,7 +114,7 @@ function water2(simulation) {
     const v = 1e-9;
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 50 * physics.nuclearForceRange;
+    physics.boundaryDistance = 100 * physics.nuclearForceRange;
     physics.boundaryDamping = 0.9;
     graphics.cameraDistance = 5.0 * physics.nuclearForceRange;
     graphics.cameraSetup();
@@ -129,7 +129,7 @@ function water2(simulation) {
 
     let r0 = 0.01 * physics.nuclearForceRange;
     let r1 = 0.5 * physics.nuclearForceRange;
-    let r2 = 0.333 * physics.nuclearForceRange;
+    let r2 = 1.1 * physics.nuclearForceRange;
 
     let gridSize = calcGridSize(graphics, (2 * (3 + 1) + 8 * (2 * 3 + 1)));
 
@@ -142,11 +142,12 @@ function water2(simulation) {
     ];
 
     let index = 0;
-    let offset = new Vector3(r2, 0, 0);
+    
     cubeGenerator((x, y, z) => {
         let zNumber = 1;
 
-        let snq = nq * ((random(0, 1) >= 0.001) ? (1) : (-1));
+        let snq = nq;
+        //let snq = nq * ((random(0, 1) >= 0.001) ? (1) : (-1));
         //let snq = nq * (index % 2) ? (1) : (-1);
         let center = new Vector3(x, -y, z);
 
@@ -159,11 +160,13 @@ function water2(simulation) {
             nucleusTypes[0],
             nucleusTypes[1]
         ];
-        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().add(offset), v, zNumber);
-        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, -snq, r0, r1, center.clone().sub(offset), v, zNumber);
+        let offset = new Vector3(r2 * Math.cos(30 * Math.PI/180), r2 * Math.sin(30 * Math.PI/180), 0);
+        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, snq, r0, r1, center.clone().add(offset), v, zNumber);
+        offset = new Vector3(-r2 * Math.cos(30 * Math.PI/180), r2 * Math.sin(30 * Math.PI/180), 0);
+        createNucleiFromList(simulation, hydrogen, cloudTypes, zNumber, 1.0, 1.0, snq, r0, r1, center.clone().add(offset), v, zNumber);
 
         index++;
-    }, 8.0 * r2 * gridSize[0], gridSize);
+    }, 4.0 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);
 }
 

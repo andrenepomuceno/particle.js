@@ -40,15 +40,15 @@ void main() {
     vec4 tPos = texture2D( texturePosition, uv );
     vec3 pos = tPos.xyz;
     float r = radius;
+    
     vParticleType = tPos.w;
+    vParticlePos = pos;
+    vParticleVel = texture2D( textureVelocity, uv ).xyz;    
+    vParticleColor = vec4(color, 1.0);
 
     vec4 mvParticlePosition = modelViewMatrix * vec4(pos, 1.0);
     gl_PointSize = r * uCameraConstant / (- mvParticlePosition.z);
     gl_Position = projectionMatrix * mvParticlePosition;
-
-    vParticleVel = texture2D( textureVelocity, uv ).xyz;
-    vParticlePos = pos;
-    vParticleColor = vec4(color, 1.0);
 }
 `;
 

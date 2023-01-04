@@ -389,6 +389,7 @@ export function createParticles(simulation, typeList, n, options) {
         m *= typeList[type].m;
         if ((options.randomMSignal == true) && (random(0, 1) >= options.randomMThresh)) m *= -1;
         if (options.randomM == true) m *= random(0, 1);
+        if (options.randomMr2 == true) m = Math.pow(m, 2);
         if (options.roundM == true) m = Math.round(m);
         if (options.allowZeroM == false && m == 0) m = options.m * typeList[type].m;
         p.mass = m;

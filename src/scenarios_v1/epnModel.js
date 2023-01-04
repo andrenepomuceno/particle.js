@@ -6,7 +6,7 @@ import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const epnModel = [
     periodicTable,
-    randomElements,
+    //randomElements,
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
@@ -36,18 +36,20 @@ function periodicTable(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = true;
 
-    const m = 1 * 1e18; // attometer
-    const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
-    const s = 1e27; // second, quantum time
-    const c = 100.0 * (1 / 1.602176634) * 1e18; // attocoulomb
-    const nuclearForceRange = 1e-15 * m;
-    const nq = 1.0;
-    const v = 1.0;
+    const M = 1e18;
+    const KG = 1e30;
+    const S = 1e26;
+    const C = (1 / 1.602176634) * 1e21;
+    const nuclearForceRange = 3e-15 * M;
+
+    const q = 1;
+    const nq = 1/3;
+    const v = 1e3 * M / S;
 
     physics.nuclearForceRange = nuclearForceRange;
     physics.boundaryDistance = 40 * physics.nuclearForceRange;
@@ -57,10 +59,10 @@ function periodicTable(simulation) {
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 1.0;
-    physics.forceConstant = 1 / 3;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
+    physics.forceConstant = 1/3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -68,14 +70,15 @@ function periodicTable(simulation) {
     let r2 = 0.493 * physics.nuclearForceRange;
 
     let gridSize = [8, 8, 1];
-    if (graphics.maxParticles >= 26334) gridSize = [12, 11, 1];
+    if (graphics.maxParticles >= (3 * 10 ** 4 / 2)) gridSize = [10, 10, 1];
+    //let gridSize = calcGridSize(graphics, 3*50);
 
     let nucleusTypes = [
-        { m: 1.67262192e-27 * kg, q: 1.602176634e-19 * c, nq: 1, name: 'proton' },
-        { m: 1.67492749e-27 * kg, q: 0, nq: 1, name: 'neutron' },
+        { m: 1.67262192e-27 * KG, q: 1.602176634e-19 * C, nq: 3, name: 'proton' },
+        { m: 1.67492749e-27 * KG, q: 0, nq: 3, name: 'neutron' },
     ];
     let cloudTypes = [
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1 / 60, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1.602176634e-19 * C, nq: -1, name: 'electron' },
     ];
 
     function createNucleiFromList(simulation, nucleusList, cloudList, n, m, q, nq, r0, r1, center, velocity) {
@@ -95,10 +98,10 @@ function periodicTable(simulation) {
     let n = 1;
     cubeGenerator((x, y, z) => {
         //let s = ((n % 2 == 0) ? (1) : (-1));
-        let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
-        //let s = 1;
+        //let s = ((random(0, 1) >= 0.5) ? (1) : (-1));
+        let s = 1;
         let center = new Vector3(x, -y, z);
-        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, 1.0, s * nq, r0, r1, center, v);
+        createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, q, s * nq, r0, r1, center, v);
         n++;
     }, 6 * r2 * gridSize[0], gridSize);
     shuffleArray(physics.particleList);

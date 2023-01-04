@@ -21,7 +21,7 @@ function addFolder(name, list) {
     scenariosList = scenariosList.concat(list);
 }
 
-//addFolder('Quark Model', quarkModel);
+addFolder('Quark Model', quarkModel);
 addFolder('EPN Model', epnModel);
 addFolder('Experiments 1', experiments1);
 addFolder('Experiments 0', experiments0);

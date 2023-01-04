@@ -95,10 +95,10 @@ function scenarioSetup(idx) {
     guiOptions.particle.close();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
-    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     core.setup(idx);
 
+    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D, simulation.graphics.axisWidth);
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }

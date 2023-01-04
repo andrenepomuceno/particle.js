@@ -87,7 +87,9 @@ export class GraphicsGPU {
         this.pointsUniforms = undefined;
         this.pointsGeometry = undefined;
 
+        this.axisWidth = 1e3;
         this.axisObject = undefined;
+        this.labelMesh = undefined;
     }
 
     raycast(core, pointer) {
@@ -137,10 +139,12 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, mode2D = false, axisLineWidth = 1e3, label = true) {
-        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + axisLineWidth);
+    showAxis(show = true, mode2D = false, width, label = true) {
+        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + width);
 
-        let headLen = 0.2 * axisLineWidth;
+        if (width == undefined) width = this.axisWidth;
+        else this.axisWidth = width;
+        let headLen = 0.25 * width;
 
         if (show) {
             if (this.axisObject != undefined) {
@@ -148,12 +152,12 @@ export class GraphicsGPU {
             }
 
             this.axisObject = !mode2D ? [
-                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
-                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
-                new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), width, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), width, 0x00ff00, headLen),
+                new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), width, 0x0000ff, headLen)
             ] : [
-                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
-                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
+                new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), width, 0xff0000, headLen),
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), width, 0x00ff00, headLen),
             ];
 
             this.axisObject.forEach(arrow => {
@@ -161,72 +165,30 @@ export class GraphicsGPU {
             });
 
             if (label == true) {
-                this.fontLoader.load('fonts/default.typeface.json', (font) => {
-                    this.font = font;
-
-                    if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
-                        this.scene.remove(label);
+                if (this.font == undefined) {
+                    this.fontLoader.load('fonts/default.typeface.json', (font) => {
+                        this.font = font;
+                        this.drawAxisLabel(mode2D, width);
                     });
-
-                    this.labelMesh = [
-                        new Mesh(
-                            new TextGeometry('X', {
-                                font: this.font,
-                                size: axisLineWidth * 0.05,
-                                height: 1,
-                            }),
-                            new MeshBasicMaterial({
-                                color: 0xff0000,
-                            })
-                        ),
-                        new Mesh(
-                            new TextGeometry('Y', {
-                                font: this.font,
-                                size: axisLineWidth * 0.05,
-                                height: 1,
-                            }),
-                            new MeshBasicMaterial({
-                                color: 0x00ff00,
-                            })
-                        )
-                    ];
-
-                    this.labelMesh[0].translateOnAxis(new Vector3(1, 0, 0), 10 + axisLineWidth);
-                    this.labelMesh[1].translateOnAxis(new Vector3(0, 1, 0), 10 + axisLineWidth);
-
-                    if (mode2D == false) {
-                        this.labelMesh.push(
-                            new Mesh(
-                                new TextGeometry('Z', {
-                                    font: this.font,
-                                    size: axisLineWidth * 0.05,
-                                    height: 1,
-                                }),
-                                new MeshBasicMaterial({
-                                    color: 0x0000ff,
-                                })
-                            )
-                        );
-                        this.labelMesh[2].translateOnAxis(new Vector3(0, 0, 1), 10 + axisLineWidth);
-                    }
-
-                    this.labelMesh.forEach(label => {
-                        this.scene.add(label);
-                    });
-                });
+                } else {
+                    this.drawAxisLabel(mode2D, width);
+                }
             }
         } else {
-            this.axisObject.forEach(arrow => {
-                this.scene.remove(arrow);
-                arrow.dispose();
-            });
-            this.axisObject = undefined;
+            if (this.axisObject != undefined) {
+                this.axisObject.forEach(arrow => {
+                    this.scene.remove(arrow);
+                    arrow.dispose();
+                });
+                this.axisObject = undefined;
+            }
 
-            if (this.labelMesh == undefined) return;
-            this.labelMesh.forEach(label => {
-                this.scene.remove(label);
-            });
-            this.labelMesh = undefined;
+            if (this.labelMesh != undefined) {
+                this.labelMesh.forEach(label => {
+                    this.scene.remove(label);
+                });
+                this.labelMesh = undefined;
+            }
         }
     }
 
@@ -299,6 +261,87 @@ export class GraphicsGPU {
             format: CanvasCapture.WEBM,
             fps: 60,
             name: exportFilename(name),
+        });
+    }
+
+    drawAxisLabel(mode2D, width) {
+        if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
+            this.scene.remove(label);
+        });
+
+        this.labelMesh = [
+            new Mesh(
+                new TextGeometry('X (' + width.toFixed(1) + 'u)', {
+                    font: this.font,
+                    size: width * 0.05,
+                    height: 1,
+                }),
+                new MeshBasicMaterial({
+                    color: 0xff0000,
+                })
+            ),
+            new Mesh(
+                new TextGeometry('Y', {
+                    font: this.font,
+                    size: width * 0.05,
+                    height: 1,
+                }),
+                new MeshBasicMaterial({
+                    color: 0x00ff00,
+                })
+            )
+        ];
+
+        const spacing = 0.02 * width;
+        this.labelMesh[0].translateOnAxis(new Vector3(1, 0, 0), spacing + width);
+        this.labelMesh[1].translateOnAxis(new Vector3(0, 1, 0), spacing + width);
+
+        if (mode2D == false) {
+            this.labelMesh.push(
+                new Mesh(
+                    new TextGeometry('Z', {
+                        font: this.font,
+                        size: width * 0.05,
+                        height: 1,
+                    }),
+                    new MeshBasicMaterial({
+                        color: 0x0000ff,
+                    })
+                )
+            );
+            this.labelMesh[2].translateOnAxis(new Vector3(0, 0, 1), spacing + width);
+
+            this.labelMesh.push(
+                new Mesh(
+                    new TextGeometry('(0,0,0)', {
+                        font: this.font,
+                        size: width * 0.05,
+                        height: 1,
+                    }),
+                    new MeshBasicMaterial({
+                        color: 0xffffff,
+                    })
+                )
+            );
+            this.labelMesh[3].translateOnAxis(new Vector3(1, 1, 0), spacing);
+        } else {
+            this.labelMesh.push(
+                new Mesh(
+                    new TextGeometry('(0,0)', {
+                        font: this.font,
+                        size: width * 0.05,
+                        height: 1,
+                    }),
+                    new MeshBasicMaterial({
+                        color: 0xffffff,
+                    })
+                )
+            );
+            this.labelMesh[2].translateOnAxis(new Vector3(1, 1, 0), spacing);
+        }
+
+        this.labelMesh.forEach(label => {
+            this.scene.add(label);
         });
     }
 

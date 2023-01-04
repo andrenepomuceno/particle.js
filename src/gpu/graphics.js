@@ -46,9 +46,10 @@ export class GraphicsGPU {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('container').appendChild(this.renderer.domElement);
+        //this.renderer.logarithmicDepthBuffer = true;
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1e-6, 1e12);
+        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.raycaster = new Raycaster();
 
@@ -251,7 +252,7 @@ export class GraphicsGPU {
 
         this.#fillTextures();
 
-        if (this.physics.velocityShader == undefined) {
+        if (this.physics.velocityShader == undefined || this.physics.positionShader == undefined) {
             this.physics.velocityShader = generateComputeVelocity(
                 this.physics.nuclearPotential,
                 this.physics.useDistance1,

@@ -2,10 +2,13 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { viewSetup } from './view';
 
 if (ENV?.production === true) {
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-STP92EN2LF');
+    function analytics() {
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-STP92EN2LF');
+    }
+    new Promise(analytics);
 }
 
 if (ENV?.version != false) {

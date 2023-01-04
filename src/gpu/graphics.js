@@ -9,9 +9,13 @@ import {
     BufferGeometry,
     Float32BufferAttribute,
     Points,
+    Mesh,
+    MeshBasicMaterial,
 } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 let CanvasCapture = null;
 if (ENV?.record === true) {
     CanvasCapture = require('canvas-capture').CanvasCapture;
@@ -53,6 +57,8 @@ export class GraphicsGPU {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.raycaster = new Raycaster();
 
+        this.fontLoader = new FontLoader();
+
         log('constructor done');
     }
 
@@ -86,9 +92,9 @@ export class GraphicsGPU {
 
     raycast(core, pointer) {
         log('raycast');
-        
+
         if (core.simulation.mode2D == false) return; //3d not supported for now
-        
+
         const coord = mouseToWorldCoord(pointer, this.camera);
         this.readbackParticleData();
 
@@ -104,7 +110,7 @@ export class GraphicsGPU {
                 }
             }
         });
-        
+
         return particle;
     }
 
@@ -131,7 +137,7 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, mode2D = false, axisLineWidth = 1e3) {
+    showAxis(show = true, mode2D = false, axisLineWidth = 1e3, label = true) {
         log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + axisLineWidth);
 
         let headLen = 0.2 * axisLineWidth;
@@ -140,25 +146,87 @@ export class GraphicsGPU {
             if (this.axisObject != undefined) {
                 this.showAxis(false);
             }
-            
+
             this.axisObject = !mode2D ? [
                 new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
                 new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
                 new ArrowHelper(new Vector3(0, 0, 1), new Vector3(), axisLineWidth, 0x0000ff, headLen)
             ] : [
                 new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), axisLineWidth, 0xff0000, headLen),
-                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen)
-            ]; 
+                new ArrowHelper(new Vector3(0, 1, 0), new Vector3(), axisLineWidth, 0x00ff00, headLen),
+            ];
 
             this.axisObject.forEach(arrow => {
                 this.scene.add(arrow);
             });
+
+            if (label == true) {
+                this.fontLoader.load('fonts/default.typeface.json', (font) => {
+                    this.font = font;
+
+                    if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
+                        this.scene.remove(label);
+                    });
+
+                    this.labelMesh = [
+                        new Mesh(
+                            new TextGeometry('X', {
+                                font: this.font,
+                                size: axisLineWidth * 0.05,
+                                height: 1,
+                            }),
+                            new MeshBasicMaterial({
+                                color: 0xff0000,
+                            })
+                        ),
+                        new Mesh(
+                            new TextGeometry('Y', {
+                                font: this.font,
+                                size: axisLineWidth * 0.05,
+                                height: 1,
+                            }),
+                            new MeshBasicMaterial({
+                                color: 0x00ff00,
+                            })
+                        )
+                    ];
+
+                    this.labelMesh[0].translateOnAxis(new Vector3(1, 0, 0), 10 + axisLineWidth);
+                    this.labelMesh[1].translateOnAxis(new Vector3(0, 1, 0), 10 + axisLineWidth);
+
+                    if (mode2D == false) {
+                        this.labelMesh.push(
+                            new Mesh(
+                                new TextGeometry('Z', {
+                                    font: this.font,
+                                    size: axisLineWidth * 0.05,
+                                    height: 1,
+                                }),
+                                new MeshBasicMaterial({
+                                    color: 0x0000ff,
+                                })
+                            )
+                        );
+                        this.labelMesh[2].translateOnAxis(new Vector3(0, 0, 1), 10 + axisLineWidth);
+                    }
+
+                    this.labelMesh.forEach(label => {
+                        this.scene.add(label);
+                    });
+                });
+            }
         } else {
             this.axisObject.forEach(arrow => {
                 this.scene.remove(arrow);
                 arrow.dispose();
             });
             this.axisObject = undefined;
+
+            if (this.labelMesh == undefined) return;
+            this.labelMesh.forEach(label => {
+                this.scene.remove(label);
+            });
+            this.labelMesh = undefined;
         }
     }
 

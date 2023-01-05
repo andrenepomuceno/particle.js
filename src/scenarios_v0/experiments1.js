@@ -105,7 +105,7 @@ function randomElements(simulation) {
         let n = random(1, 64, true);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, snq, r0, r1, center, v);
         n++;
-    }, 4 * r2 * gridSize[0], gridSize);
+    }, 4 * r2, gridSize);
     shuffleArray(physics.particleList);
 }
 
@@ -180,7 +180,7 @@ function periodicTable(simulation) {
         let center = new Vector3(x, -y, z);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, m, q, s * nq, r0, r1, center, v);
         n++;
-    }, 6 * r2 * gridSize[0], gridSize);
+    }, 6 * r2, gridSize);
     shuffleArray(physics.particleList);
 }
 
@@ -366,7 +366,6 @@ function tetragonalCrystal(simulation) {
     if (size % 2 == 0) size -= 1;
     console.log(size);
     const gridSize = [size, size, 1];
-    const gridWidth = r1 * gridSize[0];
     let aux = 0;
     cubeGenerator((x, y, z) => {
         createNuclei(
@@ -378,7 +377,7 @@ function tetragonalCrystal(simulation) {
             n, n
         );
         ++aux;
-    }, gridWidth, gridSize);
+    }, r1, gridSize);
     shuffleArray(physics.particleList);
 }
 

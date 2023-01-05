@@ -177,7 +177,6 @@ function hexagon3(simulation) {
     w = (w % 2 == 0) ? (w - 1) : (w);
     grid = [2*w - 1, w/2, 1];
     let theta = 45 * Math.PI / 180;
-    let width = grid[0] * r1;
     let aux = 0;
     cubeGenerator((x, y, z) => {
         let s = ((aux % 2 == 0) ? (1) : (-1));
@@ -186,7 +185,7 @@ function hexagon3(simulation) {
         );
         createNuclei(physics.particleList, an, m, q, s * nq, r0, r1, v, center, 0, 0);
         ++aux;
-    }, width, grid);*/
+    }, r1, grid);*/
 
     shuffleArray(simulation.particleList);
 

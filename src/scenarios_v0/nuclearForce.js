@@ -83,7 +83,7 @@ function crystal(simulation) {
             }
         );
         ++aux;
-    }, grid[0] * r1, grid);
+    }, r1, grid);
 }
 
 function randomBlob(simulation) {

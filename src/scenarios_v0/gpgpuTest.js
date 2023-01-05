@@ -419,7 +419,7 @@ function GPU_nucleiGrid(simulation) {
             true
         );
         ++aux;
-    }, grid[0] * r1, grid);
+    }, r1, grid);
 }
 
 function GPU_shootedBarrier(simulation) {
@@ -468,6 +468,6 @@ function GPU_shootedBarrier(simulation) {
             }
         );
         ++aux;
-    }, grid[0] * r1, grid);
+    }, r1, grid);
 }
 

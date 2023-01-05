@@ -238,6 +238,8 @@ function water2(simulation) {
         index++;
     }, 4.0 * r2, gridSize);
     shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
 
 function miniverse2(simulation) {
@@ -250,11 +252,11 @@ function miniverse2(simulation) {
     //physics.useDistance1 = true;
     simulation.mode2D = false;
 
-    const m = 1 * 1e19;
-    const kg = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
-    const s = 1e26;
-    const c = 100.0 * (1 / 1.602176634) * 1e19; // attocoulomb
-    const nuclearForceRange = 1e-15 * m;
+    const M = 1 * 1e19;
+    const KG = 1.0 * (1 / 9.1093837015) * 1e30; // kilogram, quantum mass
+    const S = 1e26;
+    const C = 100.0 * (1 / 1.602176634) * 1e19; // attocoulomb
+    const nuclearForceRange = 1e-15 * M;
 
     physics.nuclearForceRange = nuclearForceRange;
     physics.boundaryDistance = 1e5 * physics.nuclearForceRange;
@@ -264,18 +266,18 @@ function miniverse2(simulation) {
     simulation.particleRadius = 0.25 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.massConstant = 1e39 * 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
-    physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
-    physics.nuclearForceConstant = 25e3 * kg * m * s ** -2; // fine structure
+    physics.massConstant = 1e39 * 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 25e3 * KG * M * S ** -2; // fine structure
     physics.forceConstant = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1e0 * nuclearForceRange;
 
     let particles = [
-        { m: 5.347988087839e-30 * kg, q: 2 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark up' }, // 3 MeV
-        { m: 1.069597617568e-29 * kg, q: -1 / 3 * 1.602176634e-19 * c, nq: 1, name: 'quark down' }, // 6 MeV
-        { m: 9.1093837015e-31 * kg, q: -1.602176634e-19 * c, nq: -1, name: 'electron' },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up' }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down' }, // 6 MeV
+        { m: 9.1093837015e-31 * KG, q: -1.602176634e-19 * C, nq: -1, name: 'electron' },
     ];
 
     let options = {
@@ -445,6 +447,8 @@ function essentialElements(simulation) {
         total += v.count;
     });
     console.log(total);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
 
 function air(simulation) {
@@ -548,4 +552,6 @@ function air(simulation) {
         total += v.count;
     });
     console.log(total);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }

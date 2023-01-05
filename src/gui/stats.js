@@ -28,7 +28,7 @@ var Stats = function () {
         mode = id;
     }
 
-    var beginTime = (performance || Date).now(), prevTime = beginTime, frames = 0;
+    var beginTime = Date.now(), prevTime = beginTime, frames = 0;
     var fpsPanel = addPanel(new Stats.Panel('FPS'));
     var fpsMax = 0;
 
@@ -38,11 +38,11 @@ var Stats = function () {
         addPanel: addPanel,
         showPanel: showPanel,
         begin: function () {
-            beginTime = (performance || Date).now();
+            beginTime = Date.now();
         },
         end: function () {
             frames++;
-            var time = (performance || Date).now();
+            var time = Date.now();
             if (time >= prevTime + 1000) {
                 let fps = (frames * 1000) / (time - prevTime);
                 if (fps > fpsMax) fpsMax = fps;
@@ -57,7 +57,8 @@ var Stats = function () {
         },
         // Backwards Compatibility
         domElement: container,
-        setMode: showPanel
+        setMode: showPanel,
+        fpsPanel
     };
 };
 

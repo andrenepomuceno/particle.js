@@ -89,6 +89,7 @@ function scenarioSetup(idx) {
     simulation.graphics.cleanup();
     velocityPanel.cleanup();
     computePanel.cleanup();
+    statsPanel.fpsPanel.cleanup();
 
     guiOptions.guiInfo.reset();
     guiOptions.selectionHelper.clear();

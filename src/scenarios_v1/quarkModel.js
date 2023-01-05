@@ -102,7 +102,7 @@ function crystal(simulation) {
         let center = new Vector3(vertex.x, vertex.y, 0);
 
         createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
-    }, r2, grid, 'offset', true);
+    }, r2, grid, 'offset', false);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }

@@ -141,7 +141,7 @@ function axialHexToPixel(q, r, size) {
     return [x, y];
 }
 
-export function generateHexagon(cx, cy, radius, map) {
+export function generateHexagon(cx, cy, radius, map, addCenter = false) {
     for (let i = 0; i < 6; ++i) {
         let theta = (30 + 60 * i) * Math.PI / 180;
         let x = radius * Math.cos(theta) + cx;
@@ -153,9 +153,17 @@ export function generateHexagon(cx, cy, radius, map) {
             map.set(tag, vertex);
         }
     }
+
+    if (addCenter == true) {
+        let vertex = { x: cx, y: cy, i: 6 };
+        let tag = cx.toFixed(3) + ' ' + cy.toFixed(3);
+        if (!map.has(tag)) {
+            map.set(tag, vertex);
+        }
+    }
 }
 
-export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset') {
+export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset', addCenter = false) {
     let hexToPixel = (mode == 'offset') ? offsetHexToPixel : axialHexToPixel;
 
     let vertexMap = new Map();
@@ -169,7 +177,7 @@ export function hexagonGenerator(callback, cellRadius, grid, mode = 'offset') {
     for (let i = -height / 2; i <= height / 2; ++i) {
         for (let j = -width / 2; j <= width / 2; ++j) {
             let [cx, cy] = hexToPixel(i, j, cellRadius);
-            generateHexagon(cx, cy, cellRadius, vertexMap);
+            generateHexagon(cx, cy, cellRadius, vertexMap, addCenter);
         }
     }
 
@@ -372,7 +380,7 @@ export function createParticles(simulation, typeList, n, options) {
         center: new Vector3(),
 
         randomVelocity: true,
-        
+
         r0: 0,
         r1: 1,
         v1: 0,

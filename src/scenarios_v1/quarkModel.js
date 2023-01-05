@@ -52,12 +52,13 @@ function crystal(simulation) {
     const C = (1 / 1.602176634) * 1e21;
     const nuclearForceRange = 3e-15 * M;
 
-    graphics.cameraDistance = 9 * nuclearForceRange;
+    physics.boundaryDistance = 100 * 1e-15 * M;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 0.25 * physics.boundaryDistance;
     graphics.cameraSetup();
 
     physics.nuclearForceRange = nuclearForceRange;
-    physics.boundaryDistance = 100 * 1e-15 * M;
-    physics.boundaryDamping = 0.9;
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
@@ -69,7 +70,7 @@ function crystal(simulation) {
 
     let r0 = 0.05 * physics.nuclearForceRange;
     let r1 = 0.5 * physics.nuclearForceRange;
-    let r2 = 0.59 * physics.nuclearForceRange;
+    let r2 = 2e3;// * physics.nuclearForceRange;
 
     let nucleusList = [
         // proton
@@ -89,22 +90,22 @@ function crystal(simulation) {
     ]
 
     let zNumber = 6;
-    let electrons = 8 * zNumber;
-    let grid = calcGridSize(graphics, zNumber * (nucleusList.length + 10 * cloudList.length));
+    let electrons = 10 * zNumber;
+    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 10 * cloudList.length));
     let nq = 1;
-    let v = 1e3 * M * S ** -2;
-    cubeGenerator((x, y, z) => {
+    let v = 1e1 * M * S ** -2;
+    hexagonGenerator((vertex, totalLen) => {
         let snq = nq;
         //let snq = nq * ((random(0, 1) >= 0.001) ? (1) : (-1));
         //let snq = nq * (index % 2) ? (1) : (-1);
-        let center = new Vector3(x, y, z);
+        //let center = new Vector3(x, y, z);
+        let center = new Vector3(vertex.x, vertex.y, 0);
 
         createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
-    }, r2, grid);
+    }, r2, grid, 'offset', true);
 
-    graphics.showAxis(true, simulation.mode2D, 1e-15 * M);
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
-
 
 function fullScaleModel(simulation) {
     let graphics = simulation.graphics;
@@ -159,7 +160,7 @@ function fullScaleModel(simulation) {
     };
     createParticles(simulation, particles, maxParticles, options);
 
-    graphics.showAxis(true, simulation.mode2D, 1e-15 * M);
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
 
 function water2(simulation) {

@@ -90,6 +90,7 @@ export class GraphicsGPU {
         this.axisWidth = 1e3;
         this.axisObject = undefined;
         this.labelMesh = undefined;
+        this.labelText = this.axisWidth.toFixed(1) + 'u';
     }
 
     raycast(core, pointer) {
@@ -139,8 +140,8 @@ export class GraphicsGPU {
         this.controls.saveState();
     }
 
-    showAxis(show = true, mode2D = false, width, label = true) {
-        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + width);
+    showAxis(show = true, mode2D = false, width, label = true, labelText) {
+        log('showAxis ' + show + ' mode2D ' + mode2D + ' width ' + width + ' label ' + label + ' labelText "' + labelText + '"');
 
         if (width == undefined) width = this.axisWidth;
         else this.axisWidth = width;
@@ -165,13 +166,16 @@ export class GraphicsGPU {
             });
 
             if (label == true) {
+                if (labelText == undefined) labelText = this.labelText;
+                else this.labelText = labelText;
+
                 if (this.font == undefined) {
                     this.fontLoader.load('fonts/default.typeface.json', (font) => {
                         this.font = font;
-                        this.drawAxisLabel(mode2D, width);
+                        this.drawAxisLabel(mode2D, width, labelText);
                     });
                 } else {
-                    this.drawAxisLabel(mode2D, width);
+                    this.drawAxisLabel(mode2D, width, labelText);
                 }
             }
         } else {
@@ -264,14 +268,14 @@ export class GraphicsGPU {
         });
     }
 
-    drawAxisLabel(mode2D, width) {
+    drawAxisLabel(mode2D, width, labelText) {
         if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
             this.scene.remove(label);
         });
 
         this.labelMesh = [
             new Mesh(
-                new TextGeometry('X (' + width.toFixed(1) + 'u)', {
+                new TextGeometry('X (' + labelText + ')', {
                     font: this.font,
                     size: width * 0.05,
                     height: 1,

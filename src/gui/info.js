@@ -73,7 +73,16 @@ export class GUIInfo {
         controls.add(options.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
         });
-        controls.open();
+        controls.add(options.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
+            let p = decodeVector3(val);
+            if (p == undefined) {
+                alert("Invalid coordinates!");
+                return;
+            }
+            simulation.graphics.camera.position.set(p.x, p.y, p.z);
+            simulation.graphics.controls.target.set(p.x, p.y, 0);
+            simulation.graphics.controls.update();
+        });
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
         guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
@@ -90,20 +99,10 @@ export class GUIInfo {
         guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
 
         const guiInfoRuler = controls.addFolder("[+] Ruler");
-        guiInfoRuler.add(options.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
-            let p = decodeVector3(val);
-            if (p == undefined) {
-                alert("Invalid coordinates!");
-                return;
-            }
-            simulation.graphics.camera.position.set(p.x, p.y, p.z);
-            simulation.graphics.controls.target.set(p.x, p.y, 0);
-            simulation.graphics.controls.update();
-        });
         guiInfoRuler.add(options.info, 'rulerLen').name('Length').listen();
         guiInfoRuler.add(options.info, 'rulerDelta').name('Delta').listen();
         guiInfoRuler.add(options.info, 'rulerStart').name('Start').listen();
-        guiInfoRuler.open();
+        //guiInfoRuler.open();
 
         if (!ENV?.production) {
             const guiInfoDebug = controls.addFolder('[+] Debug');
@@ -117,6 +116,8 @@ export class GUIInfo {
         //options.collapseList.push(guiInfo);
         options.collapseList.push(guiInfoMore);
         options.collapseList.push(guiInfoRuler);
+
+        controls.open();
 
     }
 

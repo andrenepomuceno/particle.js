@@ -389,6 +389,7 @@ export function createParticles(simulation, typeList, n, options) {
         m *= typeList[type].m;
         if ((options.randomMSignal == true) && (random(0, 1) >= options.randomMThresh)) m *= -1;
         if (options.randomM == true) m *= random(0, 1);
+        if (options.randomMr2 == true) m = Math.pow(m, 2);
         if (options.roundM == true) m = Math.round(m);
         if (options.allowZeroM == false && m == 0) m = options.m * typeList[type].m;
         p.mass = m;
@@ -412,7 +413,7 @@ export function createParticles(simulation, typeList, n, options) {
         p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
         p.position.add(options.center);
 
-        if (options.randomVelocity) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
+        if (options.randomVelocity == true) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
         else p.velocity = options.v1;
 
         p.name = typeList[type].name;

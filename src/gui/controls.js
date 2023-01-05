@@ -61,7 +61,7 @@ export class GUIControls {
                     options.particle.close();
                     core.importCSV(name, content);
                     options.guiInfo.refresh();
-                    guiOptions.guiParameters.refresh();
+                    options.guiParameters.refresh();
                     options.guiControls.refresh();
                 });
             },
@@ -125,7 +125,7 @@ export class GUIControls {
                 }
             },
             close: () => {
-                guiControls.close();
+                controls.close();
             },
             collapseAll: () => {
                 options.collapseList.forEach((obj) => {
@@ -139,9 +139,6 @@ export class GUIControls {
                 console.log(exportCSV(simulation));
             },
         };
-
-        controls.add(options.controls, 'mouseHint').name("Mouse Controls (click for more...)");
-        controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
 
         const guiControlsSimulation = controls.addFolder("[+] Simulation");
         guiControlsSimulation.add(options.controls, 'pauseResume').name("Pause/Resume [SPACE]");
@@ -211,11 +208,12 @@ export class GUIControls {
             core.updatePhysics('radiusRange', val);
         });
 
+        controls.add(options.controls, 'mouseHint').name("Mouse Controls (click for more...)");
+        controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
         controls.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
         controls.add(options.controls, 'snapshot').name("Export simulation [P]");
         controls.add(options.controls, 'import').name("Import simulation [I]");
         controls.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
-
         controls.add(options.controls, 'close').name('Close');
 
         options.collapseList.push(controls);

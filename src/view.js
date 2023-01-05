@@ -95,10 +95,10 @@ function scenarioSetup(idx) {
     guiOptions.particle.close();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
-    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D);
 
     core.setup(idx);
 
+    simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D, simulation.graphics.axisWidth);
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
@@ -193,12 +193,14 @@ function onPointerUp(event) {
         guiOptions.selectionHelper.end(event, guiOptions.ruler.mode);
         guiOptions.ruler.finish(event);
     } else if (event.button == 0 && !mouse.overGUI) {
-        let particle = simulation.graphics.raycast(core, mouse.position);
-        if (particle) {
-            guiOptions.particle.obj = particle;
-            guiOptions.guiParticle.refresh();
-            guiParticle.open();
-        }
+        new Promise(() => {
+            let particle = simulation.graphics.raycast(core, mouse.position);
+            if (particle) {
+                guiOptions.particle.obj = particle;
+                guiOptions.guiParticle.refresh();
+                guiParticle.open();
+            }
+        });
     }
 }
 
@@ -230,17 +232,19 @@ function animate(time) {
     }
 
     if (time - lastViewUpdate >= viewUpdateDelay) {
-        lastViewUpdate = time;
+        new Promise(() => {
+            lastViewUpdate = time;
 
-        if (guiOptions.info.autoRefresh == true) {
-            simulation.graphics.readbackParticleData();
-        }
+            if (guiOptions.info.autoRefresh == true) {
+                simulation.graphics.readbackParticleData();
+            }
 
-        guiOptions.guiInfo.refresh();
-        guiOptions.guiParticle.refresh();
-        guiOptions.selectionHelper.guiRefresh();
-        guiOptions.guiParameters.refresh();
-        guiOptions.guiControls.refresh();
+            guiOptions.guiInfo.refresh();
+            guiOptions.guiParticle.refresh();
+            guiOptions.selectionHelper.guiRefresh();
+            guiOptions.guiParameters.refresh();
+            guiOptions.guiControls.refresh();
+        });
     }
 
     if (!isNaN(time)) lastAnimateTime = time;

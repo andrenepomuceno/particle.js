@@ -17,6 +17,7 @@ export class Particle {
         this.mass = 0.0;
         this.charge = 0.0;
         this.nuclearCharge = 0.0;
+        this.colorCharge = 0.0;
 
         this.position = new Vector3();
         this.velocity = new Vector3();

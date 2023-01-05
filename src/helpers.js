@@ -424,6 +424,7 @@ export function createParticles(simulation, typeList, n, options) {
         else p.velocity = options.v1;
 
         p.name = typeList[type].name;
+        p.colorCharge = (typeList[type].colorCharge != undefined) ? typeList[type].colorCharge : 0.0;
 
         simulation.physics.particleList.push(p);
     }

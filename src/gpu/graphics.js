@@ -428,7 +428,7 @@ export class GraphicsGPU {
             propsArray[offset4 + 0] = p.mass;
             propsArray[offset4 + 1] = p.charge;
             propsArray[offset4 + 2] = p.nuclearCharge;
-            propsArray[offset4 + 3] = 0;
+            propsArray[offset4 + 3] = p.colorCharge;
 
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;

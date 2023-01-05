@@ -60,6 +60,8 @@ uniform sampler2D textureProperties;
 #define PROBE 1.0
 #define FIXED 2.0
 
+#define ENABLE_COLOR_CHARGE 1
+
 float sdBox( vec3 p, vec3 b )
 {
     vec3 q = abs(p) - b;
@@ -167,6 +169,22 @@ void main() {
                     #else
                         x = sin(2.0 * PI * x);
                     #endif
+                #endif
+
+                #if ENABLE_COLOR_CHARGE
+                    const vec3 c1[4] = vec3[](
+                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.5, 1.0, -1.0),
+                        vec3(-1.0, 0.5, 1.0),
+                        vec3(1.0, -1.0, 0.5)
+                    );
+                    const vec3 c2[4] = vec3[](
+                        vec3(1.0, 0.0, 0.0),
+                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 1.0, 0.0),
+                        vec3(0.0, 0.0, 1.0)
+                    );
+                    x *= dot(c1[uint(props1.z)], c2[uint(props2.z)]);
                 #endif
             }
 

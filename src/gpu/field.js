@@ -123,7 +123,7 @@ export class FieldGPU {
             default:
                 cubeGenerator((x, y, z) => {
                     this.#updateFieldElement(this.arrowList[idx++], x, y, z, center);
-                }, this.size, this.grid);
+                }, this.size/this.grid[0], this.grid);
                 break;
         }
 
@@ -175,7 +175,7 @@ export class FieldGPU {
             default:
                 cubeGenerator((x, y, z) => {
                     this.#createFieldElement(new Vector3(x, y, z).add(center));
-                }, this.size, this.grid);
+                }, this.size/this.grid[0], this.grid);
                 break;
         }
 

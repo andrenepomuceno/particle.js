@@ -107,16 +107,16 @@ void main() {
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
 
-            vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+            /*vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
             float rng = 23.0 + 29.0 * vel1.x + 67.0 * vel1.y + 101.0 * vel2.x + 223.0 * vel2.y + 331.0 * dPos.x + 991.0 * dPos.y;
             rng = mod(rng, 3.0);
-            if (rng == 0.0) continue;
+            if (rng == 0.0) continue;*/
 
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
                     float m2 = props2.x;
-                    //vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+                    vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
                     float m = m1 + m2; // precision loss if m1 >> m2
                     if (m == 0.0) {
                         continue;

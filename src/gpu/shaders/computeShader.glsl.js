@@ -9,14 +9,14 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true) {
+export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, enableColorCharge = true) {
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
     config += define("ENABLE_BOUNDARY", enableBoundary);
     config += define("USE_BOX_BOUNDARY", boxBoundary);
-
     config += define("USE_DISTANCE1", useDistance1);
+    config += define("ENABLE_COLOR_CHARGE", enableColorCharge);
 
     config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
     config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
@@ -84,7 +84,7 @@ void main() {
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
 
-    vec4 consts = vec4(
+    vec4 forceConts = vec4( // TODO move this to uniform
         massConstant, 
         -chargeConstant,
         nuclearForceConstant,
@@ -106,6 +106,11 @@ void main() {
 
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
+
+            /*vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+            float rng = 23.0 + 29.0 * vel1.x + 67.0 * vel1.y + 101.0 * vel2.x + 223.0 * vel2.y + 331.0 * dPos.x + 991.0 * dPos.y;
+            rng = mod(rng, 3.0);
+            if (rng == 0.0) continue;*/
 
             // check collision
             if (distance2 <= minDistance2) {
@@ -168,6 +173,25 @@ void main() {
                         x = sin(2.0 * PI * x);
                     #endif
                 #endif
+
+                #if ENABLE_COLOR_CHARGE
+                    const vec3 color1[4] = vec3[](
+                        vec3(1.0, 0.0, 0.0),
+
+                        vec3(1.0, 2.0, -3.0)/3.0,
+                        vec3(-3.0, 1.0, 2.0)/3.0,
+                        vec3(2.0, -3.0, 1.0)/3.0
+                    );
+                    const vec3 color2[4] = vec3[](
+                        vec3(1.0, 0.0, 0.0),
+                        
+                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 1.0, 0.0),
+                        vec3(0.0, 0.0, 1.0)
+                    );
+
+                    x *= dot(color1[uint(props1.z)], color2[uint(props2.z)]);
+                #endif
             }
 
             #if !USE_DISTANCE1
@@ -177,7 +201,7 @@ void main() {
             #endif
             vec4 props = props1 * props2;
             vec4 pot = vec4(d12, d12, x, 0);
-            vec4 result = consts * props * pot;
+            vec4 result = forceConts * props * pot;
             float force = result.x + result.y + result.z;
             rForce += force * normalize(dPos);
         }

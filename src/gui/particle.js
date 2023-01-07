@@ -26,6 +26,7 @@ export class GUIParticle {
             mass: '',
             charge: '',
             nuclearCharge: '',
+            colorCharge: '',
             position: '',
             velocityDir: '',
             velocityAbs: '',
@@ -83,6 +84,7 @@ export class GUIParticle {
         guiParticleProperties.add(options.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
+        guiParticleProperties.add(options.particle, 'colorCharge').name('Color Charge').listen();
         guiParticleProperties.open();
 
         const guiParticleVariables = controls.addFolder("[+] Variables");
@@ -123,6 +125,7 @@ export class GUIParticle {
             particleView.mass = particle.mass.toExponential(3);
             particleView.charge = particle.charge.toExponential(3);
             particleView.nuclearCharge = particle.nuclearCharge;
+            particleView.colorCharge = particle.colorCharge;
             particleView.fixed = (particle.type == ParticleType.fixed);
 
             let color = particle.color;

@@ -103,7 +103,7 @@ function periodicTable(simulation) {
         let center = new Vector3(x, -y, z);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, q, s * nq, r0, r1, center, v);
         n++;
-    }, 6 * r2 * gridSize[0], gridSize);
+    }, 6 * r2, gridSize);
     shuffleArray(physics.particleList);
 }
 
@@ -178,6 +178,6 @@ function randomElements(simulation) {
         let n = random(1, 26, true);
         createNucleiFromList(simulation, nucleusTypes, cloudTypes, n, 1.0, 1.0, snq, r0, r1, center, v);
         index++;
-    }, 2.5 * r2 * gridSize[0], gridSize);
+    }, 2.5 * r2, gridSize);
     shuffleArray(physics.particleList);
 }

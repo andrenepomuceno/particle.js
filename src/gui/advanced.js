@@ -28,7 +28,7 @@ export class GUIAdvanced {
             zeroVelocity: () => {
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
-                    p.velocity.set(0, 0, 0);
+                    p.velocity.multiplyScalar(0.01);
                 });
                 simulation.drawParticles();
             },

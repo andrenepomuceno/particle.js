@@ -225,7 +225,7 @@ function nucleiGrid(simulation) {
             true
         );
         ++aux;
-    }, grid[0] * r1, grid);
+    }, r1, grid);
 }
 
 function shootedBarrier(simulation) {
@@ -272,7 +272,7 @@ function shootedBarrier(simulation) {
             }
         );
         ++aux;
-    }, grid[0] * r1, grid);
+    }, r1, grid);
 }
 
 function standardModelBlob2(simulation) {

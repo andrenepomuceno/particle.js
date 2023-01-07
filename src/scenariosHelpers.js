@@ -205,7 +205,7 @@ export function drawGrid(simulation, divisions = 10) {
     simulation.graphics.scene.add(gridHelper);
 }
 
-export function createNucleiFromList(simulation, nucleusList, cloudList, zNumber, m, q, nq, r0, r1, center, velocity, electrons = zNumber, neutrons = zNumber) {
+export function createNucleiFromList(simulation, nucleusList, cloudList, nucleusN, m, q, nq, r0, r1, center, velocity, cloudN = nucleusN) {
     let options = {
         m, q, nq,
         r0: 0, r1: r0,
@@ -214,9 +214,9 @@ export function createNucleiFromList(simulation, nucleusList, cloudList, zNumber
         v1: velocity,
         center
     };
-    createParticles(simulation, nucleusList, zNumber * nucleusList.length, options);
+    createParticles(simulation, nucleusList, nucleusN * nucleusList.length, options);
     options = { ...options, r0, r1 };
-    createParticles(simulation, cloudList, electrons * cloudList.length, options);
+    createParticles(simulation, cloudList, cloudN * cloudList.length, options);
 }
 
 export function parseElementRatioList(list) {

@@ -1,11 +1,11 @@
 import { Vector3 } from 'three';
-import { createNuclei, createNucleiFromList, parseElementRatioList, randomVector } from '../scenariosHelpers';
+import { createNuclei, createNucleiFromList, createParticle, createParticlesList, parseElementRatioList, randomVector } from '../scenariosHelpers';
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
 import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    crystal2,
+    colorCharge,
     crystal,
     fullScaleModel,
     water2,
@@ -37,7 +37,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     simulation.bidimensionalMode(true);
 }
 
-function crystal2(simulation) {
+function colorCharge(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
@@ -56,12 +56,12 @@ function crystal2(simulation) {
     physics.boundaryDistance = 100 * 1e-15 * M;
     physics.boundaryDamping = 0.9;
 
-    graphics.cameraDistance = 2 * nuclearForceRange;
+    graphics.cameraDistance = 0.25 * physics.boundaryDistance;
     graphics.cameraSetup();
 
     physics.nuclearForceRange = nuclearForceRange;
-    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
+    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
@@ -90,9 +90,9 @@ function crystal2(simulation) {
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
     ]
 
-    let zNumber = 1;
+    let zNumber = 6;
     let electrons = 10 * zNumber;
-    let grid = [1,1,1];//calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 10 * cloudList.length));
+    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 10 * cloudList.length));
     let nq = 1;
     let v = 1e1 * M * S ** -2;
     hexagonGenerator((vertex, totalLen) => {
@@ -104,6 +104,8 @@ function crystal2(simulation) {
 
         createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
     }, r2, grid, 'offset', false);
+
+    shuffleArray(physics.particleList);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
@@ -176,6 +178,8 @@ function crystal(simulation) {
         createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
     }, r2, grid, 'offset', false);
 
+    shuffleArray(physics.particleList);
+
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 }
 
@@ -218,8 +222,12 @@ function fullScaleModel(simulation) {
     let particles = [
         { m: (1e2) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up' }, // 3 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down' }, // 6 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 }, // 3 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 2.0 }, // 3 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 3.0 }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 1.0 }, // 6 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 2.0 }, // 6 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 }, // 6 MeV
     ];
 
     let options = {

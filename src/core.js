@@ -101,7 +101,7 @@ class Core {
         if (particleList.length + graphics.particleList.length > graphics.maxParticles) {
             alert([
                 'Error: maxParticles exceeded!',
-                'You can adjust maxParticles on the "SIMULATION PARAMETERS" menu.'
+                'You can adjust maxParticles on the "INFORMATION" menu.'
             ].join('\n'));
             return;
         }

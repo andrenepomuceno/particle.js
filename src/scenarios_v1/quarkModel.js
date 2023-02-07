@@ -44,6 +44,7 @@ function colorCharge(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
+    physics.enableColorCharge = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 

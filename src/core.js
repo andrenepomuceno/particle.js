@@ -204,7 +204,8 @@ class Core {
                 physics.nuclearPotential,
                 physics.useDistance1,
                 physics.useBoxBoundary,
-                physics.enableBoundary
+                physics.enableBoundary,
+                physics.enableColorCharge
             );
             physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
             

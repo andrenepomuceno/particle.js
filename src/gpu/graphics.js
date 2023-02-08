@@ -372,7 +372,8 @@ export class GraphicsGPU {
                 this.physics.nuclearPotential,
                 this.physics.useDistance1,
                 this.physics.useBoxBoundary,
-                this.physics.enableBoundary);
+                this.physics.enableBoundary,
+                this.physics.enableColorCharge);
             this.physics.positionShader = generateComputePosition(this.physics.enableBoundary, this.physics.useBoxBoundary);
         }
 

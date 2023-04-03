@@ -25,7 +25,7 @@
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
     "image-js": "^0.35.2",
-    "three": "^0.147.0"
+    "three": "^0.151.3"
   },
   "devDependencies": {
     "canvas-capture": "^2.0.5",

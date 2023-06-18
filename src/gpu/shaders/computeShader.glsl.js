@@ -209,6 +209,8 @@ void main() {
 
     rForce *= forceConstant;
 
+    //rForce -= 1e-1 * vel1;
+
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);

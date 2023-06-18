@@ -25,6 +25,7 @@
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
     "image-js": "^0.35.2",
+    "madge": "^6.1.0",
     "three": "^0.147.0"
   },
   "devDependencies": {

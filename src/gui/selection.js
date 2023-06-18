@@ -124,11 +124,11 @@ export class GUISelection {
         });
     
         const guiSelectionActions = controls.addFolder("[+] Controls");
-        guiSelectionActions.add(options.selection, 'delete').name("Delete [D]"); // [BACKSPACE]
         guiSelectionActions.add(options.selection, 'lookAt').name('Look At');
         guiSelectionActions.add(options.selection, 'export').name('Export');
         guiSelectionActions.add(options.selection, 'import').name('Import');
-    
+        
+        controls.add(options.selection, 'delete').name("Delete [D]");
         controls.add(options.selection, 'clone').name("Clone [X]");
         controls.add(options.selection, 'place').name("Place [Z]");
         controls.add(options.selection, 'clear').name('Close');

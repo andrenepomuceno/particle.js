@@ -84,10 +84,11 @@ export class GUIControls {
             placeHint: function () {
                 alert([
                     'Press Z to place a particle selection on the mouse/pointer position.',
-                    'You can get particle selections from various sources:',
-                    '- Select particles with SHIFT + CLICK + DRAG, then press Z to move the particles!',
-                    '- If you want to make clones, press X or the "Clone" button on the selection folder.',
-                    '- If you want to generate new particles, use the "SELECTION GENERATOR" menu. (or press G then Z)',
+                    'You get particle selections from various sources:',
+                    '- Select particles with SHIFT + CLICK + DRAG',
+                    '- Press Z to move the selected particles to the mouse pointer position.',
+                    '- Press X to generate clones of the selection, then Z to place.',
+                    '- If you want to generate any kind of particles, use the "GENERATOR" menu (try G then Z to place a random particle).',
                 ].join('\n'));
             },
             home: function () {
@@ -96,11 +97,11 @@ export class GUIControls {
             },
             mouseHint: () => {
                 alert([
-                    "LEFT BUTTON: select particle/camera rotation (3D mode only)",
+                    "LEFT BUTTON: select particle/camera rotation (when 3D mode is enabled)",
                     "MIDDLE BUTTON/SCROLL: zoom in/out.",
                     "RIGHT BUTTON: move camera position (pan).",
-                    "SHIFT+LEFT CLICK/DRAG: select a group of particles.",
-                    "HINT: Keyboard commands do not work when mouse pointer is over the menus!",
+                    "SHIFT+LEFT CLICK/DRAG: select a group of particles. Also act as a ruler (see INFORMATION/Ruler).",
+                    "Hint: Keyboard commands do not work when mouse pointer is over the menus!",
                 ].join('\n'));
             },
             deleteAll: () => {
@@ -153,7 +154,7 @@ export class GUIControls {
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
         guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
-        guiControlsCamera.add(options.controls, 'xyCamera').name("XY Camera [V]");
+        guiControlsCamera.add(options.controls, 'xyCamera').name("Orthogonal Camera [V]");
         guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation').listen().onFinishChange(val => {
             if (val == true) {
                 if (simulation.mode2D == true) {

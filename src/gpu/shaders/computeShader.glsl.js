@@ -190,7 +190,7 @@ void main() {
                         vec3(0.0, 0.0, 1.0)
                     );
 
-                    x *= dot(color1[uint(props1.z)], color2[uint(props2.z)]);
+                    x *= dot(color1[uint(props1.w)], color2[uint(props2.w)]);
                 #endif
             }
 
@@ -209,7 +209,14 @@ void main() {
 
     rForce *= forceConstant;
 
-    //rForce -= 1e-1 * vel1;
+    /*float velAbs = dot(vel1,vel1);
+    if (velAbs > 0.0) {
+        vec3 f = -1.0e-5 * normalize(vel1);
+        //f *= sqrt(velAbs);
+        f *= velAbs;
+        //f *= m1;
+        rForce += f;
+    }*/
 
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {

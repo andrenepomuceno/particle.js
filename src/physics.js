@@ -46,9 +46,13 @@ export class Physics {
         this.nuclearPotential = NuclearPotentialType.default;
         this.useBoxBoundary = false;
         this.useDistance1 = false;
-        this.enableColorCharge = false;
         this.velocityShader = undefined;
         this.positionShader = undefined;
+
+        this.enableColorCharge = false;
+
+        this.enableDrift = false;
+        this.driftConstant = 1e-3;
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;

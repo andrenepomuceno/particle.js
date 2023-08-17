@@ -5,8 +5,8 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    //colorTests,
-    //colorCharge,
+    colorTests,
+    colorCharge,
     //crystal,
     air,
     fullScaleModel,
@@ -45,7 +45,7 @@ function colorTests(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
-    //physics.enableColorCharge = true;
+    physics.enableColorCharge = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
@@ -77,14 +77,14 @@ function colorTests(simulation) {
 
     let nucleusList = [
         // proton
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 2.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up r', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up g ', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down b', colorCharge: 3.0 },
 
         // neutron
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 2.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up r', colorCharge: 1.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down g', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down b', colorCharge: 3.0 },
     ]
 
     let cloudList = [
@@ -111,7 +111,7 @@ function colorCharge(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
-    //physics.enableColorCharge = true;
+    physics.enableColorCharge = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 

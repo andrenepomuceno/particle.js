@@ -9,7 +9,8 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, enableColorCharge = true) {
+export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true,
+    enableColorCharge = true, enableDrift = false) {
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
@@ -17,6 +18,7 @@ export function generateComputeVelocity(nuclearPotential = 'default', useDistanc
     config += define("USE_BOX_BOUNDARY", boxBoundary);
     config += define("USE_DISTANCE1", useDistance1);
     config += define("ENABLE_COLOR_CHARGE", enableColorCharge);
+    config += define("ENABLE_DRIFT", enableDrift);
 
     config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
     config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
@@ -54,6 +56,7 @@ uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
+uniform float driftConstant;
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -144,6 +147,7 @@ void main() {
                 float distance1 = sqrt(distance2);
             #endif
             
+            float force = 0.0;
             float x = 0.0;
             if (distance2 <= nuclearForceRange2) {
                 #if !USE_DISTANCE1
@@ -176,21 +180,27 @@ void main() {
 
                 #if ENABLE_COLOR_CHARGE
                     const vec3 color1[4] = vec3[](
-                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 0.0, 0.0),
 
-                        vec3(1.0, 2.0, -3.0)/3.0,
+                        /*vec3(1.0, 2.0, -3.0)/3.0,
                         vec3(-3.0, 1.0, 2.0)/3.0,
-                        vec3(2.0, -3.0, 1.0)/3.0
+                        vec3(2.0, -3.0, 1.0)/3.0*/
+
+                        vec3(0.0, 1.0, -1.0),
+                        vec3(-1.0, 0.0, 1.0),
+                        vec3(1.0, -1.0, 0.0)
                     );
                     const vec3 color2[4] = vec3[](
-                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 0.0, 0.0),
                         
                         vec3(1.0, 0.0, 0.0),
                         vec3(0.0, 1.0, 0.0),
                         vec3(0.0, 0.0, 1.0)
                     );
 
-                    x *= dot(color1[uint(props1.w)], color2[uint(props2.w)]);
+                    float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
+                    float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+                    force += nuclearForceConstant * c * d;
                 #endif
             }
 
@@ -202,21 +212,23 @@ void main() {
             vec4 props = props1 * props2;
             vec4 pot = vec4(d12, d12, x, 0);
             vec4 result = forceConts * props * pot;
-            float force = result.x + result.y + result.z;
+            force += result.x + result.y + result.z;
             rForce += force * normalize(dPos);
         }
     }
 
-    rForce *= forceConstant;
+    #if ENABLE_DRIFT
+        float velAbs = dot(vel1,vel1);
+        if (velAbs > 0.0) {
+            vec3 f = -driftConstant * normalize(vel1);
+            //f *= sqrt(velAbs);
+            f *= velAbs;
+            //f *= m1;
+            rForce += f;
+        }
+    #endif
 
-    /*float velAbs = dot(vel1,vel1);
-    if (velAbs > 0.0) {
-        vec3 f = -1.0e-5 * normalize(vel1);
-        //f *= sqrt(velAbs);
-        f *= velAbs;
-        //f *= m1;
-        rForce += f;
-    }*/
+    rForce *= forceConstant;
 
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {

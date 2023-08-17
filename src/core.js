@@ -205,7 +205,8 @@ class Core {
                 physics.useDistance1,
                 physics.useBoxBoundary,
                 physics.enableBoundary,
-                physics.enableColorCharge
+                physics.enableColorCharge,
+                physics.enableDrift
             );
             physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
             

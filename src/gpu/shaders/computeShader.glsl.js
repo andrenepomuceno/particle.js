@@ -9,8 +9,10 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true,
-    enableColorCharge = true, enableDrift = false) {
+export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, 
+enableColorCharge = true, enableDrift = false) {
+    nuclearPotential = NuclearPotentialType.potential_forceMap1
+
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
@@ -26,6 +28,7 @@ export function generateComputeVelocity(nuclearPotential = 'default', useDistanc
     config += define("USE_POTENTIAL2", nuclearPotential === NuclearPotentialType.potential_powAX);
     config += define("USE_POTENTIAL3", nuclearPotential === NuclearPotentialType.potential_powAXv2);
     config += define("USE_POTENTIAL4", nuclearPotential === NuclearPotentialType.potential_powAXv3);
+    config += define("USE_FMAP1", nuclearPotential === NuclearPotentialType.potential_forceMap1);
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -149,10 +152,31 @@ void main() {
             
             float force = 0.0;
             float x = 0.0;
-            if (distance2 <= nuclearForceRange2) {
+            if (distance2 < nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
+
+                //const int len = 17;
+                //const float fMap[len] = float[len](0.0, 5.0, 2.5, 2.0, 1.0, 0.0, -2.5, -2.0, -1.5, -1.0, -0.5, -0.25, -0.125, -0.0625, -0.03, -0.01, -0.001);
+                //const int len = 16;
+                //const float fMap[len] = float[len](0.1, 3.0, 2.0, 1.0, 0.0, -1.0, -0.5, -0.25, -0.125, -0.0625, -0.03, -0.01, -0.001, -0.0001, -0.00001, 0.0);
+                /*const int len = 16;
+                const float fMap[len] = float[len](
+                    0.001, 1.0, 3.0, 1.0, 
+                    -0.5, -1.0, -0.5, -0.25, 
+                    -0.125, -0.0625, -0.03125, -0.015625, 
+                    -0.007, -0.004, -0.002, -0.001);*/
+                // const int len = 16;
+                // const float fMap[16] = float[](2.22201, 1.85183, 0.582077, -0.409102, -0.864334, -0.930755, -0.805339, -0.621257, -0.445287, -0.302056, -0.195089, -0.119463, -0.0680965, -0.0343807, -0.0130022, 4.97365e-7);
+                //const int len = 32;
+                //const float fMap[32] = float[](1.49133, 2.22201, 2.26424, 1.85183, 1.22947, 0.582077, 0.0198657, -0.409102, -0.698361, -0.864334, -0.932824, -0.930755, -0.881916, -0.805339, -0.715169, -0.621257, -0.53002, -0.445287, -0.369051, -0.302056, -0.244247, -0.195089, -0.153793, -0.119463, -0.0911864, -0.0680965, -0.0493976, -0.0343807, -0.0224266, -0.0130022, -0.00565391, 4.97365e-7);
+                // const int len = 64;
+                // const float fMap[64] = float[](0.833196, 1.49133, 1.95337, 2.22201, 2.31617, 2.26424, 2.09865, 1.85183, 1.55357, 1.22947, 0.900336, 0.582077, 0.286098, 0.0198657, -0.212411, -0.409102, -0.570519, -0.698361, -0.795246, -0.864334, -0.909042, -0.932824, -0.93902, -0.930755, -0.910874, -0.881916, -0.846101, -0.805339, -0.761246, -0.715169, -0.66821, -0.621257, -0.575014, -0.53002, -0.48668, -0.445287, -0.406037, -0.369051, -0.334387, -0.302056, -0.272028, -0.244247, -0.218632, -0.195089, -0.173513, -0.153793, -0.135815, -0.119463, -0.104623, -0.0911864, -0.0790448, -0.0680965, -0.0582446, -0.0493976, -0.0414696, -0.0343807, -0.0280561, -0.0224266, -0.0174283, -0.0130022, -0.00909398, -0.00565391, -0.00263633, 4.97365e-7);
+
+
+                // const float a = 3.0;
+                // x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
 
                 #if USE_HOOKS_LAW
                     x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
@@ -173,6 +197,24 @@ void main() {
                     #elif USE_POTENTIAL4 // 'powAXv3'
                         const float a = 3.0;
                         x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
+                    #elif USE_FMAP1 // 'forceMap1'
+                        // const float fMap[2] = float[2](1.0, 0.0);
+                        // int idx = int(2.0 * x);
+                        // const float fMap[3] = float[](3.0, 0.0, -1.0);
+                        // int idx = int(3.0 * x);
+                        // const float fMap[4] = float[](2.0, 0.0, -1.0, -1.0);
+                        // int idx = int(4.0 * x);
+                        // const float fMap[6] = float[](1.0, 3.0, 0.0, -1.0, -0.5, -0.25);
+                        // int idx = int(6.0 * x);
+                        const float fMap[8] = float[](1.0, 3.0, -3.0, -1.0, -0.5, -0.25, -0.125, 0.1);
+                        int idx = int(8.0 * x);
+                        // const float fMap[16] = float[16](
+                        //     3.0, 2.0, 1.0, -0.4,
+                        //     -0.9, -0.9, -0.8, -0.6, 
+                        //     -0.4, -0.3, -0.2, -0.1, 
+                        //     -0.06, -0.03, -0.01, 0.0);
+                        // int idx = int(16.0 * x);
+                        x = fMap[idx];
                     #else
                         x = sin(2.0 * PI * x);
                     #endif
@@ -181,10 +223,6 @@ void main() {
                 #if ENABLE_COLOR_CHARGE
                     const vec3 color1[4] = vec3[](
                         vec3(0.0, 0.0, 0.0),
-
-                        /*vec3(1.0, 2.0, -3.0)/3.0,
-                        vec3(-3.0, 1.0, 2.0)/3.0,
-                        vec3(2.0, -3.0, 1.0)/3.0*/
 
                         vec3(0.0, 1.0, -1.0),
                         vec3(-1.0, 0.0, 1.0),
@@ -201,6 +239,7 @@ void main() {
                     float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
                     float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
                     force += nuclearForceConstant * c * d;
+                    // x = x * c;
                 #endif
             }
 

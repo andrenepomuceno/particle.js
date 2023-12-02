@@ -47,7 +47,7 @@ function colorTests(simulation) {
     physics.useBoxBoundary = true;
     physics.enableColorCharge = true;
     //physics.useDistance1 = true;
-    //simulation.mode2D = false;
+    simulation.mode2D = false;
 
     const M = 1e18;
     const KG = 1e30;
@@ -258,7 +258,7 @@ function fullScaleModel(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
-    //physics.enableColorCharge = true;
+    physics.enableColorCharge = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
@@ -291,12 +291,12 @@ function fullScaleModel(simulation) {
     let particles = [
         { m: (1e2) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
         { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 }, // 3 MeV
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 2.0 }, // 3 MeV
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 3.0 }, // 3 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 1.0 }, // 6 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 2.0 }, // 6 MeV
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 }, // 6 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up r', colorCharge: 1.0 }, // 3 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up g', colorCharge: 2.0 }, // 3 MeV
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up b', colorCharge: 3.0 }, // 3 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down r', colorCharge: 1.0 }, // 6 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down g', colorCharge: 2.0 }, // 6 MeV
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down b', colorCharge: 3.0 }, // 6 MeV
     ];
 
     let options = {

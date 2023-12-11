@@ -49,12 +49,12 @@ export class GUIField {
         controls.add(options.field, 'enabled').name("Enable [J]").listen().onFinishChange(val => {
             this.fieldEnable(val);
         });
-        controls.add(options.field, 'automaticRefresh').name('Automatic Refresh').listen().onFinishChange(val => {
+        controls.add(options.field, 'automaticRefresh').name('Automatic Refresh ✏️').listen().onFinishChange(val => {
             if (val == true) {
                 options.field.fieldResize();
             }
         });
-        controls.add(options.field, 'grid').name('Grid').listen().onFinishChange(val => {
+        controls.add(options.field, 'grid').name('Grid ✏️').listen().onFinishChange(val => {
             options.field.grid = simulation.field.grid[0];
             const grid = Math.round(parseFloat(val));
             if (isNaN(grid)) {
@@ -74,17 +74,17 @@ export class GUIField {
             }
             options.field.grid = grid;
         });
-        controls.add(options.field, 'm').name('Mass').listen().onFinishChange(val => {
+        controls.add(options.field, 'm').name('Mass ✏️').listen().onFinishChange(val => {
             updateFieldParameter('m', val);
         });
-        controls.add(options.field, 'q').name('Charge').listen().onFinishChange(val => {
+        controls.add(options.field, 'q').name('Charge ✏️').listen().onFinishChange(val => {
             updateFieldParameter('q', val);
         });
-        controls.add(options.field, 'nq').name('Nuclear Charge').listen().onFinishChange(val => {
+        controls.add(options.field, 'nq').name('Nuclear Charge ✏️').listen().onFinishChange(val => {
             updateFieldParameter('nq', val);
         });
         controls.add(options.field, 'fieldResize').name("Refresh [F]");
-        controls.add(options.field, 'close').name('Close');
+        controls.add(options.field, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
 

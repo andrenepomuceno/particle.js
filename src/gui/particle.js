@@ -50,7 +50,7 @@ export class GUIParticle {
             },
         };
 
-        controls.add(options.particle, 'id').name('ID').listen().onFinishChange((val) => {
+        controls.add(options.particle, 'id').name('ID 🔍').listen().onFinishChange((val) => {
             let obj = core.findParticle(parseInt(val));
             if (obj == undefined) {
                 if (simulation.physics.particleList == undefined ||
@@ -64,30 +64,30 @@ export class GUIParticle {
             }
             options.particle.obj = obj;
         });
-        controls.add(options.particle, 'name').name('Name').listen().onFinishChange((val) => {
+        controls.add(options.particle, 'name').name('Name ✏️').listen().onFinishChange((val) => {
             if (options.particle.obj != undefined) {
                 options.particle.obj.name = val;
             }
         });
-        controls.addColor(options.particle, 'color').name('Color').listen().onFinishChange(val => {
+        controls.addColor(options.particle, 'color').name('Color ✏️').listen().onFinishChange(val => {
             core.updateParticle(options.particle.obj, 'color', val);
         });
         controls.add(options.particle, 'energy').name('Energy').listen();
 
         const guiParticleProperties = controls.addFolder("[+] Properties");
-        guiParticleProperties.add(options.particle, 'mass').name('Mass').listen().onFinishChange((val) => {
+        guiParticleProperties.add(options.particle, 'mass').name('Mass ✏️').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'mass', val);
         });
-        guiParticleProperties.add(options.particle, 'charge').name('Charge').listen().onFinishChange((val) => {
+        guiParticleProperties.add(options.particle, 'charge').name('Charge ✏️').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'charge', val);
         });
-        guiParticleProperties.add(options.particle, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
+        guiParticleProperties.add(options.particle, 'nuclearCharge').name('Nuclear Charge ✏️').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
         guiParticleProperties.add(options.particle, 'colorCharge').name('Color Charge').listen();
         guiParticleProperties.open();
 
-        const guiParticleVariables = controls.addFolder("[+] Variables");
+        const guiParticleVariables = controls.addFolder("[+] Variables ✏️");
         guiParticleVariables.add(options.particle, 'position').name('Position').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'position', val);
         });
@@ -106,7 +106,7 @@ export class GUIParticle {
         controls.add(options.particle, 'follow').name('Follow/Unfollow');
         controls.add(options.particle, 'lookAt').name('Look At');
         controls.add(options.particle, 'reset').name('Reset Attributes');
-        controls.add(options.particle, 'close').name('Close');
+        controls.add(options.particle, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
         //gGuiOptions.collapseList.push(guiParticleActions);

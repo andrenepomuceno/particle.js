@@ -619,6 +619,31 @@ class Core {
 
         simulation.cycles = imported.cycles;
     }
+
+    importJson(filename, content) {
+        log('importJson ' + filename);
+
+        let graphics = simulation.graphics;
+
+        let imported = JSON.parse(content);
+        if (imported == undefined) return;
+
+        this.internalSetup(imported.physics);
+
+        simulation.name = filename;
+        simulation.folderName = 'imported';
+        simulation.particleRadius = imported.particleRadius;
+        simulation.particleRadiusRange = imported.particleRadiusRange;
+        simulation.mode2D = imported.mode2D;
+
+        graphics.camera.position.set(imported.camera.x, imported.camera.y, imported.camera.z);
+        graphics.controls.target.set(imported.target.x, imported.target.y, imported.target.z);
+        graphics.controls.update();
+
+        simulation.setup();
+
+        simulation.cycles = imported.cycles;
+    }
 }
 
 export let core = new Core();

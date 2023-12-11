@@ -59,7 +59,8 @@ export class GUIControls {
             import: function () {
                 uploadCsv((name, content) => {
                     options.particle.close();
-                    core.importCSV(name, content);
+                    //core.importCSV(name, content);
+                    core.importJson(name, content);
                     options.guiInfo.refresh();
                     options.guiParameters.refresh();
                     options.guiControls.refresh();
@@ -148,14 +149,14 @@ export class GUIControls {
         guiControlsSimulation.add(options.controls, 'next').name("Next simulation [PAGEDOWN]");
         guiControlsSimulation.add(options.controls, 'previous').name("Previous simulation [PAGEUP]");
         guiControlsSimulation.add(options.controls, 'home').name("First simulation [HOME]");
-        guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode').listen().onFinishChange((val) => {
+        guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode ✏️').listen().onFinishChange((val) => {
             simulation.bidimensionalMode(val);
         });
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
         guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
         guiControlsCamera.add(options.controls, 'xyCamera').name("Orthogonal Camera [V]");
-        guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation').listen().onFinishChange(val => {
+        guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation ✏️').listen().onFinishChange(val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
@@ -168,7 +169,7 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        guiControlsCamera.add(options.controls, 'rotationSpeed').name('Rotation Speed').listen().onFinishChange(val => {
+        guiControlsCamera.add(options.controls, 'rotationSpeed').name('Rotation Speed ✏️').listen().onFinishChange(val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
@@ -183,7 +184,7 @@ export class GUIControls {
         guiControlsView.add(options.controls, 'colorMode').name("Color Mode [Q]");
         guiControlsView.add(options.controls, 'hideOverlay').name("Hide Overlay [H]");
         guiControlsView.add(options.controls, 'collapseAll').name("Collapse all folders [M]");
-        guiControlsView.add(options.controls, 'showCursor').name('Show Cursor').listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'showCursor').name('Show Cursor ✏️').listen().onFinishChange((val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -191,7 +192,7 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });
-        guiControlsView.add(options.controls, 'shader3d').name('3D Shader').listen().onFinishChange(val => {
+        guiControlsView.add(options.controls, 'shader3d').name('3D Shader ✏️').listen().onFinishChange(val => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -202,10 +203,10 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        guiControlsView.add(options.controls, 'radius').name('Particle Radius').listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'radius').name('Particle Radius ✏️').listen().onFinishChange((val) => {
             core.updatePhysics('radius', val);
         });
-        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range').listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range ✏️').listen().onFinishChange((val) => {
             core.updatePhysics('radiusRange', val);
         });
 
@@ -215,7 +216,7 @@ export class GUIControls {
         controls.add(options.controls, 'snapshot').name("Export simulation [P]");
         controls.add(options.controls, 'import').name("Import simulation [I]");
         controls.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
-        controls.add(options.controls, 'close').name('Close');
+        controls.add(options.controls, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiControlsCamera);
@@ -239,5 +240,37 @@ function snapshot() {
     simulation.graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + '.png', "image/png");
     }, 'image/png', 1);
-    downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
+    //downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
+    downloadFile(exportJsonSnapshot(simulation), finalName + '.particlejs.json', "text/plain;charset=utf-8");
+}
+
+function exportJsonSnapshot(simulation) {
+    simulation.graphics.readbackParticleData();
+    snapshot = {
+        name: simulation.name,
+        folder: simulation.folderName,
+        cycles: simulation.cycles,
+        physics: simulation.physics,
+        particleRadius: simulation.particleRadius,
+        particleRadiusRange: simulation.particleRadiusRange,
+        mode2D: simulation.mode2D,
+        target: simulation.graphics.controls.target,
+        camera: simulation.graphics.camera.position,
+    }
+    return JSON.stringify(snapshot, (key, value) => {
+        switch (key) {
+            case 'velocityShader':
+            case 'positionShader':
+            //case 'particleList':
+            case 'force':
+                return undefined;
+
+            default:
+                return value;
+        }
+    });
+}
+
+function importJsonSnapshot(simulation) {
+
 }

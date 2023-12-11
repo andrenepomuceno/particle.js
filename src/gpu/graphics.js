@@ -240,7 +240,9 @@ export class GraphicsGPU {
 
     setMaxParticles(n) {
         log('setMaxParticles');
-        this.textureWidth = Math.round(Math.sqrt(n) / 16) * 16;
+        n = Math.max(n, 1e3);
+        n = Math.min(n, 1e6);
+        this.textureWidth = Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
 
@@ -397,15 +399,16 @@ export class GraphicsGPU {
         let physics = this.physics;
         let uniforms = this.velocityVariable.material.uniforms;
         uniforms['minDistance2'] = { value: physics.minDistance2 };
-        uniforms['massConstant'] = { value: physics.massConstant };
-        uniforms['chargeConstant'] = { value: physics.chargeConstant };
-        uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
+        // uniforms['massConstant'] = { value: physics.massConstant };
+        // uniforms['chargeConstant'] = { value: physics.chargeConstant };
+        // uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
         uniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
         uniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         uniforms['frictionConstant'] = { value: physics.frictionConstant };
+        uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
 
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };

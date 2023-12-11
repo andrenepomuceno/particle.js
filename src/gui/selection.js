@@ -97,18 +97,18 @@ export class GUISelection {
         controls.add(options.selection, 'source').name('Source').listen();
         controls.add(options.selection, 'particles').name('Particles').listen();
     
-        const guiSelectionProperties = controls.addFolder("[+] Properties");
-        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+        const guiSelectionProperties = controls.addFolder("[+] Properties ✏️");
+        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('mass', val);
         });
-        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('charge', val);
         });
-        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('nuclearCharge', val);
         });
     
-        const guiSelectionVariables = controls.addFolder("[+] Variables");
+        const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");
         guiSelectionVariables.add(options.selection, 'velocity').name('Velocity').listen().onFinishChange((val) => {
             selectionListUpdate('velocityAbs', val);
         });
@@ -131,7 +131,7 @@ export class GUISelection {
         controls.add(options.selection, 'delete').name("Delete [D]");
         controls.add(options.selection, 'clone').name("Clone [X]");
         controls.add(options.selection, 'place').name("Place [Z]");
-        controls.add(options.selection, 'clear').name('Close');
+        controls.add(options.selection, 'clear').name('Close 🔺');
     
         options.collapseList.push(controls);
         options.collapseList.push(guiSelectionActions);

@@ -128,7 +128,7 @@ export function viewSetup() {
 
     //gui menu overlay
     mouse.addOverListener(gui.domElement);
-    gui.width = Math.max(0.2 * window.innerWidth, 320);
+    gui.width = Math.max(0.2 * window.innerWidth, 420);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);

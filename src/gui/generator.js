@@ -95,10 +95,10 @@ export class GUIGenerator {
             },
         };
 
-        controls.add(options.generator, 'quantity').name('Particles').listen().onFinishChange((val) => {
+        controls.add(options.generator, 'quantity').name('Particles ✏️').listen().onFinishChange((val) => {
             options.generator.quantity = Math.round(parseFloat(val));
         });
-        controls.add(options.generator, 'radius').name('Brush radius').listen().onFinishChange((val) => {
+        controls.add(options.generator, 'radius').name('Brush radius ✏️').listen().onFinishChange((val) => {
             options.generator.radius = parseFloat(val);
         });
 
@@ -187,7 +187,7 @@ export class GUIGenerator {
             }
         });
 
-        const guiGenerateMass = controls.addFolder("[+] Mass");
+        const guiGenerateMass = controls.addFolder("[+] Mass ✏️");
         guiGenerateMass.add(options.generator, 'mass').name('Mass').listen().onFinishChange((val) => {
             options.generator.mass = parseFloat(val);
         });
@@ -196,7 +196,7 @@ export class GUIGenerator {
         guiGenerateMass.add(options.generator, 'roundMass').name("Round?").listen();
         //guiGenerateMass.open();
 
-        const guiGenerateCharge = controls.addFolder("[+] Charge");
+        const guiGenerateCharge = controls.addFolder("[+] Charge ✏️");
         guiGenerateCharge.add(options.generator, 'charge').name('Charge').listen().onFinishChange((val) => {
             options.generator.charge = parseFloat(val);
         });
@@ -206,7 +206,7 @@ export class GUIGenerator {
         guiGenerateCharge.add(options.generator, 'roundCharge').name("Round?").listen();
         //guiGenerateCharge.open();
 
-        const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge");
+        const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge ✏️");
         guiGenerateNuclearCharge.add(options.generator, 'nuclearCharge').name('Nuclear Charge').listen().onFinishChange((val) => {
             options.generator.nuclearCharge = parseFloat(val);
         });
@@ -215,7 +215,7 @@ export class GUIGenerator {
         guiGenerateNuclearCharge.add(options.generator, 'enableZeroNuclearCharge').name("Allow zero?").listen();
         guiGenerateNuclearCharge.add(options.generator, 'roundNuclearCharge').name("Round?").listen();
 
-        const guiGenerateVelocity = controls.addFolder("[+] Velocity");
+        const guiGenerateVelocity = controls.addFolder("[+] Velocity ✏️");
         guiGenerateVelocity.add(options.generator, 'velocity').name('Velocity').listen().onFinishChange((val) => {
             const precision = 2;
             let velocity = decodeVector3(val);
@@ -236,7 +236,7 @@ export class GUIGenerator {
         controls.add(options.generator, 'fixed').name("Fixed position?").listen();
         controls.add(options.generator, 'generate').name("Generate [G]");
         controls.add(options.generator, 'default').name('Default Values');
-        controls.add(options.generator, 'clear').name('Close');
+        controls.add(options.generator, 'clear').name('Close 🔺');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiGenerateCharge);

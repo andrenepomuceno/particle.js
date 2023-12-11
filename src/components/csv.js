@@ -170,7 +170,7 @@ export function parseCsv(simulation, filename, content) {
 export function uploadCsv(callback) {
     let input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.csv';
+    input.accept = '.json';
     input.onchange = e => {
         let file = e.target.files[0];
         let reader = new FileReader();

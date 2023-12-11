@@ -50,8 +50,8 @@ const computeVelocityV2 = /* glsl */ `
 precision highp float;
 
 uniform float minDistance2;
-uniform float massConstant;
-uniform float chargeConstant;
+/*uniform float massConstant;
+uniform float chargeConstant;*/
 uniform float nuclearForceConstant;
 uniform float nuclearForceRange;
 uniform float nuclearForceRange2;
@@ -60,6 +60,13 @@ uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
 uniform float frictionConstant;
+uniform vec4 forceConstants;
+/*vec4 forceConstants = vec4(
+    massConstant, 
+    -chargeConstant,
+    nuclearForceConstant,
+    0
+);*/
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -89,13 +96,6 @@ void main() {
     vec4 tVel1 = texture2D(textureVelocity, uv1);
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
-
-    vec4 forceConstants = vec4( // TODO move this to uniform
-        massConstant, 
-        -chargeConstant,
-        nuclearForceConstant,
-        0
-    );
 
     vec3 rForce = vec3(0.0);
     for (float texY = 0.5; texY < resolution.y; texY++) {
@@ -157,27 +157,6 @@ void main() {
                     float distance1 = sqrt(distance2);
                 #endif
 
-                //const int len = 17;
-                //const float fMap[len] = float[len](0.0, 5.0, 2.5, 2.0, 1.0, 0.0, -2.5, -2.0, -1.5, -1.0, -0.5, -0.25, -0.125, -0.0625, -0.03, -0.01, -0.001);
-                //const int len = 16;
-                //const float fMap[len] = float[len](0.1, 3.0, 2.0, 1.0, 0.0, -1.0, -0.5, -0.25, -0.125, -0.0625, -0.03, -0.01, -0.001, -0.0001, -0.00001, 0.0);
-                /*const int len = 16;
-                const float fMap[len] = float[len](
-                    0.001, 1.0, 3.0, 1.0, 
-                    -0.5, -1.0, -0.5, -0.25, 
-                    -0.125, -0.0625, -0.03125, -0.015625, 
-                    -0.007, -0.004, -0.002, -0.001);*/
-                // const int len = 16;
-                // const float fMap[16] = float[](2.22201, 1.85183, 0.582077, -0.409102, -0.864334, -0.930755, -0.805339, -0.621257, -0.445287, -0.302056, -0.195089, -0.119463, -0.0680965, -0.0343807, -0.0130022, 4.97365e-7);
-                //const int len = 32;
-                //const float fMap[32] = float[](1.49133, 2.22201, 2.26424, 1.85183, 1.22947, 0.582077, 0.0198657, -0.409102, -0.698361, -0.864334, -0.932824, -0.930755, -0.881916, -0.805339, -0.715169, -0.621257, -0.53002, -0.445287, -0.369051, -0.302056, -0.244247, -0.195089, -0.153793, -0.119463, -0.0911864, -0.0680965, -0.0493976, -0.0343807, -0.0224266, -0.0130022, -0.00565391, 4.97365e-7);
-                // const int len = 64;
-                // const float fMap[64] = float[](0.833196, 1.49133, 1.95337, 2.22201, 2.31617, 2.26424, 2.09865, 1.85183, 1.55357, 1.22947, 0.900336, 0.582077, 0.286098, 0.0198657, -0.212411, -0.409102, -0.570519, -0.698361, -0.795246, -0.864334, -0.909042, -0.932824, -0.93902, -0.930755, -0.910874, -0.881916, -0.846101, -0.805339, -0.761246, -0.715169, -0.66821, -0.621257, -0.575014, -0.53002, -0.48668, -0.445287, -0.406037, -0.369051, -0.334387, -0.302056, -0.272028, -0.244247, -0.218632, -0.195089, -0.173513, -0.153793, -0.135815, -0.119463, -0.104623, -0.0911864, -0.0790448, -0.0680965, -0.0582446, -0.0493976, -0.0414696, -0.0343807, -0.0280561, -0.0224266, -0.0174283, -0.0130022, -0.00909398, -0.00565391, -0.00263633, 4.97365e-7);
-
-
-                // const float a = 3.0;
-                // x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
-
                 #if USE_HOOKS_LAW
                     x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
                 #else
@@ -227,15 +206,11 @@ void main() {
                         // const float fMap[8] = float[](0.1, 2.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
                         // int idx = int(8.0 * x);
 
-                        const float fMap[7] = float[](3.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
-                        int idx = int(7.0 * x);
-
-                        // const float fMap[16] = float[16](
-                        //     3.0, 2.0, 1.0, -0.4,
-                        //     -0.9, -0.9, -0.8, -0.6, 
-                        //     -0.4, -0.3, -0.2, -0.1, 
-                        //     -0.06, -0.03, -0.01, 0.0);
-                        // int idx = int(16.0 * x);
+                        const float fMap[12] = float[](
+                            1.0, 2.0, 0.0, -2.0, 
+                            0.0, 0.5, 0.0, -1.0, 
+                            0.0, 0.25, 0.0, -0.5);
+                        int idx = int(8.0 * x);
                         
                         x = fMap[idx];
                     #else
@@ -280,18 +255,19 @@ void main() {
     }
 
     #if ENABLE_FRICTION
-        float velAbs = min(dot(vel1, vel1), m1/frictionConstant);
+        float velAbs = dot(vel1, vel1);
         if (velAbs > 0.0) {
+            //velAbs = min(velAbs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
             vec3 f = -frictionConstant * normalize(vel1);
-            //f *= sqrt(velAbs);
+            velAbs = sqrt(velAbs);
             f *= velAbs;
-            //f *= m1;
             rForce += f;
         }
     #endif
 
     rForce *= forceConstant;
-
+    
+    // update velocity
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);
@@ -327,10 +303,15 @@ void main() {
         vel1 = rForce;
     }
 
+    // velocity clamp / sanity checks
     #if ENABLE_BOUNDARY
         vel1 = min(vel1, vec3(boundaryDistance, boundaryDistance, boundaryDistance));
     #else
         vel1 = min(vel1, vec3(1e12, 1e12, 1e12));
+    #endif
+
+    #ifdef ROUND_VELOCITY
+        vel1 = round(vel1);
     #endif
 
     gl_FragColor = vec4(vel1, collisions);
@@ -383,8 +364,14 @@ void main() {
                     pos = normalize(pos);
                 }
             #endif
+        #else
+            // clamp pos?
         #endif
     }
+
+    #ifdef ROUND_POS
+        pos = round(pos);
+    #endif
 
     gl_FragColor = vec4(pos, type);
 }

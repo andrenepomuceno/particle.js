@@ -32,6 +32,8 @@ export class GUIParameters {
             boxBoundary: false,
             distance1: false,
             enableBoundary: true,
+            enableFriction: false,
+            frictionConstant: '',
             close: () => {
                 controls.close();
             },
@@ -85,6 +87,7 @@ export class GUIParameters {
             'Sin[a(1-b^x)] (v1)': NuclearPotentialType.potential_powAX,
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
+            'Force Map 1': NuclearPotentialType.potential_forceMap1,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }
@@ -93,6 +96,12 @@ export class GUIParameters {
         });
         guiParametersInteractions.add(options.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
             core.updatePhysics('distance1', val);
+        });
+        guiParametersInteractions.add(options.parameters, 'enableFriction').name('Enable Friction').listen().onFinishChange((val) => {
+            core.updatePhysics('enableFriction', val);
+        });
+        guiParametersInteractions.add(options.parameters, 'frictionConstant').name('Friction Constant').listen().onFinishChange((val) => {
+            core.updatePhysics('frictionConstant', val);
         });
 
         controls.add(options.parameters, 'close').name('Close');
@@ -118,5 +127,7 @@ export class GUIParameters {
         edit.distance1 = simulation.physics.useDistance1;
         edit.nuclearPotential = simulation.physics.nuclearPotential;
         edit.enableBoundary = simulation.physics.enableBoundary;
+        edit.enableFriction = simulation.physics.enableDrift;
+        edit.frictionConstant = simulation.physics.driftConstant.toExponential(2);
     }
 }

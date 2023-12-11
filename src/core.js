@@ -194,6 +194,18 @@ class Core {
                 updateShader = true;
                 break;
 
+            case 'enableFriction':
+                physics.enableDrift = value;
+                updatePhysics = false;
+                updateShader = true;
+                break;
+
+            case 'frictionConstant':
+                physics.driftConstant = parseFloat(value);
+                updatePhysics = true;
+                updateShader = false;
+                break;
+
             default:
                 updatePhysics = false;
                 break;

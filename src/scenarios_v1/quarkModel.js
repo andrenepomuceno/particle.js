@@ -5,14 +5,15 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    colorTests,
+    standardModel3,
+    //colorTests,
     colorCharge,
     //crystal,
     air,
     fullScaleModel,
     water2,
-    miniverse2,
-    cosmological,
+    //miniverse2,
+    //cosmological,
     essentialElements,
 ];
 
@@ -36,6 +37,38 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
+}
+
+function standardModel3(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
+    simulation.mode2D = true;
+
+    physics.nuclearForceRange = 1e4;
+    physics.boundaryDistance = 25 * physics.nuclearForceRange;
+    physics.boundaryDamping = 0.9;
+    graphics.cameraDistance = 10 * physics.nuclearForceRange;
+    simulation.particleRadius = 0.01 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+
+    physics.forceConstant = 1.0;
+    physics.massConstant = 1e-3;
+    physics.chargeConstant = 1;
+    physics.nuclearForceConstant = 1;
+
+    let particleTypes = [
+        { m: 0.01, q: 0, nq: 1 },
+        { m: 0.511, q: -1, nq: 1 },
+        { m: 3, q: 2 / 3, nq: 1 },
+        { m: 6, q: -1 / 3, nq: 1 },
+    ]
+    createParticles(simulation, particleTypes, graphics.maxParticles, {
+        randomQSignal: false, v1: 0, r1: 2.0 * physics.nuclearForceRange
+    });
+    //drawGrid(simulation);
 }
 
 function colorTests(simulation) {

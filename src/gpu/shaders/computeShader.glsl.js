@@ -90,7 +90,7 @@ void main() {
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
 
-    vec4 forceConts = vec4( // TODO move this to uniform
+    vec4 forceConstants = vec4( // TODO move this to uniform
         massConstant, 
         -chargeConstant,
         nuclearForceConstant,
@@ -204,16 +204,39 @@ void main() {
                         // int idx = int(3.0 * x);
                         // const float fMap[4] = float[](2.0, 0.0, -1.0, -1.0);
                         // int idx = int(4.0 * x);
+                        // const float fMap[7] = float[](3.0, 0.0, -2.0, 0.0, 2.0, 0.0, -3.0);
+                        // int idx = int(7.0 * x);
                         // const float fMap[6] = float[](1.0, 3.0, 0.0, -1.0, -0.5, -0.25);
                         // int idx = int(6.0 * x);
-                        const float fMap[8] = float[](1.0, 3.0, -3.0, -1.0, -0.5, -0.25, -0.125, 0.1);
-                        int idx = int(8.0 * x);
+
+                        // const float fMap[10] = float[](1.0, 3.0, -2.0, -1.0, 0.5, -0.5, -0.25, 0.125, -0.125, -0.063);
+                        // int idx = int(10.0 * x);
+
+                        // const float fMap[8] = float[](3.0, -2.0, 1.0, -1.0, 0.5, -0.5, 0.25, -0.25);
+                        // int idx = int(8.0 * x);
+
+                        /*const float fMap[12] = float[](2.0, 3.0, -2.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.5, 0.0, -0.5);
+                        int idx = int(12.0 * x);*/
+
+                        /*const float fMap[6] = float[](2.0, 3.0, -2.0, -1.0, 0.5, -0.5);
+                        int idx = int(6.0 * x);*/
+
+                        // const float fMap[12] = float[](0.0, 2.0, 0.0, -2.0, 0.0, 0.1, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
+                        // int idx = int(12.0 * x);
+
+                        // const float fMap[8] = float[](0.1, 2.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
+                        // int idx = int(8.0 * x);
+
+                        const float fMap[7] = float[](3.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
+                        int idx = int(7.0 * x);
+
                         // const float fMap[16] = float[16](
                         //     3.0, 2.0, 1.0, -0.4,
                         //     -0.9, -0.9, -0.8, -0.6, 
                         //     -0.4, -0.3, -0.2, -0.1, 
                         //     -0.06, -0.03, -0.01, 0.0);
                         // int idx = int(16.0 * x);
+                        
                         x = fMap[idx];
                     #else
                         x = sin(2.0 * PI * x);
@@ -250,14 +273,14 @@ void main() {
             #endif
             vec4 props = props1 * props2;
             vec4 pot = vec4(d12, d12, x, 0);
-            vec4 result = forceConts * props * pot;
+            vec4 result = forceConstants * props * pot;
             force += result.x + result.y + result.z;
             rForce += force * normalize(dPos);
         }
     }
 
     #if ENABLE_DRIFT
-        float velAbs = dot(vel1,vel1);
+        float velAbs = min(dot(vel1, vel1), 1e8);
         if (velAbs > 0.0) {
             vec3 f = -driftConstant * normalize(vel1);
             //f *= sqrt(velAbs);

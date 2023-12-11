@@ -127,7 +127,7 @@ export class GUIParameters {
         edit.distance1 = simulation.physics.useDistance1;
         edit.nuclearPotential = simulation.physics.nuclearPotential;
         edit.enableBoundary = simulation.physics.enableBoundary;
-        edit.enableFriction = simulation.physics.enableDrift;
-        edit.frictionConstant = simulation.physics.driftConstant.toExponential(2);
+        edit.enableFriction = simulation.physics.enableFriction;
+        edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
     }
 }

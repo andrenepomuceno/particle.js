@@ -374,7 +374,7 @@ export class GraphicsGPU {
                 this.physics.useBoxBoundary,
                 this.physics.enableBoundary,
                 this.physics.enableColorCharge,
-                this.physics.enableDrift);
+                this.physics.enableFriction);
             this.physics.positionShader = generateComputePosition(this.physics.enableBoundary, this.physics.useBoxBoundary);
         }
 
@@ -405,7 +405,7 @@ export class GraphicsGPU {
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
-        uniforms['driftConstant'] = { value: physics.driftConstant };
+        uniforms['frictionConstant'] = { value: physics.frictionConstant };
 
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };

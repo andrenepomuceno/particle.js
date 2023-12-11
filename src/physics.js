@@ -52,8 +52,8 @@ export class Physics {
 
         this.enableColorCharge = false;
 
-        this.enableDrift = true;
-        this.driftConstant = 1e-4;
+        this.enableFriction = true;
+        this.frictionConstant = 1e-4;
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;

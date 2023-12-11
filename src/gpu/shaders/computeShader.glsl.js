@@ -10,7 +10,7 @@ function define(define, value) {
 }
 
 export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, 
-enableColorCharge = true, enableDrift = false) {
+enableColorCharge = true, enableFriction = false) {
     nuclearPotential = NuclearPotentialType.potential_forceMap1
 
     let config = '';
@@ -20,7 +20,7 @@ enableColorCharge = true, enableDrift = false) {
     config += define("USE_BOX_BOUNDARY", boxBoundary);
     config += define("USE_DISTANCE1", useDistance1);
     config += define("ENABLE_COLOR_CHARGE", enableColorCharge);
-    config += define("ENABLE_DRIFT", enableDrift);
+    config += define("ENABLE_FRICTION", enableFriction);
 
     config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
     config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
@@ -59,7 +59,7 @@ uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
-uniform float driftConstant;
+uniform float frictionConstant;
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -279,10 +279,10 @@ void main() {
         }
     }
 
-    #if ENABLE_DRIFT
-        float velAbs = min(dot(vel1, vel1), 1e8);
+    #if ENABLE_FRICTION
+        float velAbs = min(dot(vel1, vel1), m1/frictionConstant);
         if (velAbs > 0.0) {
-            vec3 f = -driftConstant * normalize(vel1);
+            vec3 f = -frictionConstant * normalize(vel1);
             //f *= sqrt(velAbs);
             f *= velAbs;
             //f *= m1;
@@ -326,6 +326,12 @@ void main() {
     } else if (type1 == PROBE) {
         vel1 = rForce;
     }
+
+    #if ENABLE_BOUNDARY
+        vel1 = min(vel1, vec3(boundaryDistance, boundaryDistance, boundaryDistance));
+    #else
+        vel1 = min(vel1, vec3(1e12, 1e12, 1e12));
+    #endif
 
     gl_FragColor = vec4(vel1, collisions);
 }

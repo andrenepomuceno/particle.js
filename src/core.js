@@ -195,13 +195,13 @@ class Core {
                 break;
 
             case 'enableFriction':
-                physics.enableDrift = value;
+                physics.enableFriction = value;
                 updatePhysics = false;
                 updateShader = true;
                 break;
 
             case 'frictionConstant':
-                physics.driftConstant = parseFloat(value);
+                physics.frictionConstant = parseFloat(value);
                 updatePhysics = true;
                 updateShader = false;
                 break;
@@ -218,7 +218,7 @@ class Core {
                 physics.useBoxBoundary,
                 physics.enableBoundary,
                 physics.enableColorCharge,
-                physics.enableDrift
+                physics.enableFriction
             );
             physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
             

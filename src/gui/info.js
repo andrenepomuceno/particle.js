@@ -77,7 +77,7 @@ export class GUIInfo {
             }
         });
         controls.add(options.info, 'time').name('Time').listen();
-        controls.add(options.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
+        controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
         });
         controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange((val) => {

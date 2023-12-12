@@ -54,6 +54,7 @@ export class SimulationGPU {
             populateSimulationCallback(this);
             log('Populating done.');
 
+            this.physics.mode2D = this.mode2D;
             this.graphics.cameraSetup();
             this.bidimensionalMode();
             this.setParticleRadius();

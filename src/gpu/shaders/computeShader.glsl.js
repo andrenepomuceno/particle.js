@@ -1,6 +1,6 @@
 import { FrictionModel, NuclearPotentialType } from "../../physics";
 
-function define(define, value) {
+function define(define, value = false) {
     if (value) {
         return "#define " + define + " 1\n";
     }
@@ -19,6 +19,8 @@ export function generateComputeVelocity(physics) {
     config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
     config += define("USE_DISTANCE1", physics.useDistance1);
     config += define("ENABLE_COLOR_CHARGE", physics.enableColorCharge);
+    config += define("ROUND_VELOCITY", physics.roundVelocity);
+    config += define("MODE_2D", physics.mode2D);
 
     config += define("ENABLE_FRICTION", physics.enableFriction);
     config += define("FRICTION_DEFAULT", physics.frictionModel === FrictionModel.default);
@@ -42,6 +44,8 @@ export function generateComputePosition(physics) {
 
     config += define("ENABLE_BOUNDARY", physics.enableBoundary);
     config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
+    config += define("ROUND_POS", physics.roundPosition);
+    config += define("MODE_2D", physics.mode2D);
 
     let shader = config + computePosition;
     return shader;
@@ -287,7 +291,7 @@ void main() {
                     if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
                         vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
                     } else {
-                        vel1 = vec3(0.0);
+                        vel1 = normalize(vel1);
                     }
                 }
             #else
@@ -298,7 +302,7 @@ void main() {
                         if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
                         if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
                     } else {
-                        vel1 = vec3(0.0);
+                        vel1 = normalize(vel1);
                     }
                 }
             #endif
@@ -309,14 +313,18 @@ void main() {
 
     // velocity clamp / sanity checks
     #if ENABLE_BOUNDARY
-        vel1 = min(vel1, vec3(boundaryDistance, boundaryDistance, boundaryDistance));
+        vel1 = clamp(vel1, -boundaryDistance, boundaryDistance);
     #else
-        vel1 = min(vel1, vec3(1e15, 1e15, 1e15));
+        vel1 = clamp(vel1, -1e15, 1e15);
     #endif
 
-    #ifdef ROUND_VELOCITY
+    #if ROUND_VELOCITY
         vel1 = round(vel1);
     #endif
+
+    /*#if MODE_2D
+        vel1.z = 0.0;
+    #endif*/
 
     gl_FragColor = vec4(vel1, collisions);
 }
@@ -360,22 +368,33 @@ void main() {
             #if !USE_BOX_BOUNDARY
                 // check out of boundary
                 if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
-                    pos = normalize(pos);
+                    float len = length(pos);
+                    vec3 n = normalize(pos);
+                    pos = n * mod(len, boundaryDistance);
                 }
             #else
                 vec3 box = vec3(boundaryDistance);
                 if (sdBox(pos, BOUNDARY_TOLERANCE * box) >= 0.0) {
-                    pos = normalize(pos);
+                    pos = mod(pos, boundaryDistance);
+                    pos *= 2.0;
+                    pos -= boundaryDistance;
+                    #if MODE_2D
+                        pos.z = 0.0;
+                    #endif
                 }
             #endif
         #else
-            // clamp pos?
+            pos = clamp(pos, -1e30, 1e30);
         #endif
     }
 
-    #ifdef ROUND_POS
+    #if ROUND_POS
         pos = round(pos);
     #endif
+
+    /*#if MODE_2D
+        pos.z = 0.0;
+    #endif*/
 
     gl_FragColor = vec4(pos, type);
 }

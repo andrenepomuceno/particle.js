@@ -28,14 +28,14 @@ const computePanel = statsPanel.addPanel(new Stats.Panel('GPU'));
 //statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
-const guiInfo = gui.addFolder('👀 INFORMATION');
-const guiControls = gui.addFolder("🖱️ CONTROLS (keyboard and mouse shortcuts)");
-const guiParticle = gui.addFolder("🔴 PARTICLE (click on particle or enter ID)");
-const guiSelection = gui.addFolder('🔳 SELECTION');
-const guiGenerator = gui.addFolder('🧪 GENERATOR');
-const guiField = gui.addFolder('↗️ FIELD');
-const guiAdvanced = gui.addFolder('⚙️ ADVANCED');
-const guiParameters = gui.addFolder('⚛️ PARAMETERS');
+const guiInfo = gui.addFolder('INFORMATION');
+const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
+const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
+const guiSelection = gui.addFolder('SELECTION');
+const guiGenerator = gui.addFolder('GENERATOR');
+const guiField = gui.addFolder('FIELD');
+const guiAdvanced = gui.addFolder('ADVANCED');
+const guiParameters = gui.addFolder('PARAMETERS');
 
 const mouse = new Mouse();
 

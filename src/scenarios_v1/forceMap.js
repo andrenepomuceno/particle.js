@@ -4,16 +4,17 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
-export const quarkModel = [
+export const forceMap = [
+    //standardModel3,
     //colorTests,
-    colorCharge,
+    //colorCharge,
     //crystal,
-    air,
-    fullScaleModel,
-    water2,
+    //air,
+    //fullScaleModel,
+    //water2,
     //miniverse2,
     //cosmological,
-    essentialElements,
+    //essentialElements,
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
@@ -36,6 +37,11 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     simulation.setParticleRadius(50, 25);
     simulation.bidimensionalMode(true);
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
+
+    physics.enableFriction = true;
+    physics.frictionConstant = 1e-3;
 }
 
 function standardModel3(simulation) {
@@ -43,7 +49,6 @@ function standardModel3(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAX;
     simulation.mode2D = true;
 
     physics.nuclearForceRange = 1e4;
@@ -75,7 +80,6 @@ function colorTests(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     physics.enableColorCharge = true;
     //physics.useDistance1 = true;
@@ -141,7 +145,6 @@ function colorCharge(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     physics.enableColorCharge = true;
     //physics.useDistance1 = true;
@@ -215,7 +218,6 @@ function crystal(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
@@ -288,7 +290,6 @@ function fullScaleModel(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     physics.enableColorCharge = true;
     //physics.useDistance1 = true;
@@ -349,7 +350,6 @@ function water2(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = true;
@@ -428,7 +428,6 @@ function miniverse2(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     //physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = false;
@@ -528,8 +527,6 @@ function essentialElements(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
-
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv2;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = true;
@@ -637,7 +634,6 @@ function air(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
     //physics.useDistance1 = true;
     simulation.mode2D = true;

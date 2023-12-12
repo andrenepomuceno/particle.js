@@ -1,4 +1,4 @@
-import { NuclearPotentialType } from '../physics';
+import { FrictionModel, NuclearPotentialType } from '../physics';
 import {
     simulation,
     core,
@@ -34,6 +34,7 @@ export class GUIParameters {
             enableBoundary: true,
             enableFriction: false,
             frictionConstant: '',
+            frictionModel: '',
             close: () => {
                 controls.close();
             },
@@ -85,6 +86,13 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionConstant').name('Friction Constant').listen().onFinishChange((val) => {
             core.updatePhysics('frictionConstant', val);
         });
+        const frictionModel = {
+            '-cv (default)': FrictionModel.default,
+            '-cv^2': FrictionModel.square,
+        }
+        guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
+            core.updatePhysics('frictionModel', val);
+        });
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -129,5 +137,6 @@ export class GUIParameters {
         edit.enableBoundary = simulation.physics.enableBoundary;
         edit.enableFriction = simulation.physics.enableFriction;
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
+        edit.frictionModel = simulation.physics.frictionModel;
     }
 }

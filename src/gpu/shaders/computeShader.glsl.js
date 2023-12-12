@@ -1,4 +1,4 @@
-import { NuclearPotentialType } from "../../physics";
+import { FrictionModel, NuclearPotentialType } from "../../physics";
 
 function define(define, value) {
     if (value) {
@@ -9,37 +9,39 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, 
-enableColorCharge = true, enableFriction = false) {
-    nuclearPotential = NuclearPotentialType.potential_forceMap1
+export function generateComputeVelocity(physics) {
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
 
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
-    config += define("ENABLE_BOUNDARY", enableBoundary);
-    config += define("USE_BOX_BOUNDARY", boxBoundary);
-    config += define("USE_DISTANCE1", useDistance1);
-    config += define("ENABLE_COLOR_CHARGE", enableColorCharge);
-    config += define("ENABLE_FRICTION", enableFriction);
+    config += define("ENABLE_BOUNDARY", physics.enableBoundary);
+    config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
+    config += define("USE_DISTANCE1", physics.useDistance1);
+    config += define("ENABLE_COLOR_CHARGE", physics.enableColorCharge);
 
-    config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
-    config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
-    config += define("USE_POTENTIAL1", nuclearPotential === NuclearPotentialType.potential_exp);
-    config += define("USE_POTENTIAL2", nuclearPotential === NuclearPotentialType.potential_powAX);
-    config += define("USE_POTENTIAL3", nuclearPotential === NuclearPotentialType.potential_powAXv2);
-    config += define("USE_POTENTIAL4", nuclearPotential === NuclearPotentialType.potential_powAXv3);
-    config += define("USE_FMAP1", nuclearPotential === NuclearPotentialType.potential_forceMap1);
+    config += define("ENABLE_FRICTION", physics.enableFriction);
+    config += define("FRICTION_DEFAULT", physics.frictionModel === FrictionModel.default);
+    config += define("FRICTION_SQUARE", physics.frictionModel === FrictionModel.square);
+
+    config += define("USE_HOOKS_LAW", physics.nuclearPotential === NuclearPotentialType.hooksLaw);
+    config += define("USE_POTENTIAL0", physics.nuclearPotential === NuclearPotentialType.potential_powXR);
+    config += define("USE_POTENTIAL1", physics.nuclearPotential === NuclearPotentialType.potential_exp);
+    config += define("USE_POTENTIAL2", physics.nuclearPotential === NuclearPotentialType.potential_powAX);
+    config += define("USE_POTENTIAL3", physics.nuclearPotential === NuclearPotentialType.potential_powAXv2);
+    config += define("USE_POTENTIAL4", physics.nuclearPotential === NuclearPotentialType.potential_powAXv3);
+    config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
 
     let shader = config + computeVelocityV2;
     return shader;
 }
 
-export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
+export function generateComputePosition(physics) {
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
-    config += define("ENABLE_BOUNDARY", enableBoundary);
-    config += define("USE_BOX_BOUNDARY", boxBoundary);
+    config += define("ENABLE_BOUNDARY", physics.enableBoundary);
+    config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
 
     let shader = config + computePosition;
     return shader;
@@ -259,7 +261,9 @@ void main() {
         if (velAbs > 0.0) {
             //velAbs = min(velAbs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
             vec3 f = -frictionConstant * normalize(vel1);
-            velAbs = sqrt(velAbs);
+            #if FRICTION_DEFAULT
+                velAbs = sqrt(velAbs);
+            #endif
             f *= velAbs;
             rForce += f;
         }
@@ -307,7 +311,7 @@ void main() {
     #if ENABLE_BOUNDARY
         vel1 = min(vel1, vec3(boundaryDistance, boundaryDistance, boundaryDistance));
     #else
-        vel1 = min(vel1, vec3(1e12, 1e12, 1e12));
+        vel1 = min(vel1, vec3(1e15, 1e15, 1e15));
     #endif
 
     #ifdef ROUND_VELOCITY

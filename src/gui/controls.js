@@ -259,9 +259,9 @@ function exportJsonSnapshot(simulation) {
     }
     return JSON.stringify(snapshot, (key, value) => {
         switch (key) {
-            case 'velocityShader':
-            case 'positionShader':
-            //case 'particleList':
+            //case 'velocityShader':
+            //case 'positionShader':
+            case 'particleList':
             case 'force':
                 return undefined;
 

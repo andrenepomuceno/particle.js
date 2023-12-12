@@ -12,6 +12,11 @@ export const NuclearPotentialType = {
     potential_forceMap1: 'forceMap1',
 }
 
+export const FrictionModel = {
+    default: '-cv',
+    square: '-cv^2',
+}
+
 export const scaleEPN = {
     m: 1 * 1e18,  // attometer
     kg: 1.0 * (1 / 9.1093837015) * 1e30,  // kilogram, quantum mass
@@ -53,7 +58,8 @@ export class Physics {
         this.enableColorCharge = false;
 
         this.enableFriction = true;
-        this.frictionConstant = 1e-3;
+        this.frictionConstant = 1e-4;
+        this.frictionModel = FrictionModel.square;
 
         this.avgVelocity = 0.0;
         this.avgEnergy = 0.0;

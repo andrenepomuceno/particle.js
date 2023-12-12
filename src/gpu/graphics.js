@@ -370,14 +370,8 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined || this.physics.positionShader == undefined) {
-            this.physics.velocityShader = generateComputeVelocity(
-                this.physics.nuclearPotential,
-                this.physics.useDistance1,
-                this.physics.useBoxBoundary,
-                this.physics.enableBoundary,
-                this.physics.enableColorCharge,
-                this.physics.enableFriction);
-            this.physics.positionShader = generateComputePosition(this.physics.enableBoundary, this.physics.useBoxBoundary);
+            this.physics.velocityShader = generateComputeVelocity(this.physics);
+            this.physics.positionShader = generateComputePosition(this.physics);
         }
 
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);

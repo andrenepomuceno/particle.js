@@ -12,6 +12,7 @@ import { sandbox } from './scenarios_v0/sandbox.js';
 import { experiments1 } from './scenarios_v0/experiments1.js';
 import { epnModel } from './scenarios_v1/epnModel.js';
 import { quarkModel } from './scenarios_v1/quarkModel.js';
+import { forceMap } from './scenarios_v1/forceMap.js';
 
 export let scenariosList = [];
 function addFolder(name, list) {
@@ -21,6 +22,7 @@ function addFolder(name, list) {
     scenariosList = scenariosList.concat(list);
 }
 
+addFolder('Force Map', forceMap);
 addFolder('Quark Model', quarkModel);
 addFolder('EPN Model', epnModel);
 addFolder('Experiments 1', experiments1);

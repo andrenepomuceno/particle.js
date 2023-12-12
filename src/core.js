@@ -206,21 +206,20 @@ class Core {
                 updateShader = false;
                 break;
 
+            case 'frictionModel':
+                physics.frictionModel = value;
+                updatePhysics = false;
+                updateShader = true;
+                break;
+
             default:
                 updatePhysics = false;
                 break;
         }
 
         if (updateShader) {
-            physics.velocityShader = generateComputeVelocity(
-                physics.nuclearPotential,
-                physics.useDistance1,
-                physics.useBoxBoundary,
-                physics.enableBoundary,
-                physics.enableColorCharge,
-                physics.enableFriction
-            );
-            physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
+            physics.velocityShader = generateComputeVelocity(physics);
+            physics.positionShader = generateComputePosition(physics);
             
             graphics.readbackParticleData();
             graphics.drawParticles();
@@ -500,7 +499,7 @@ class Core {
                         return;
                     }
                     let centerVector = new Vector3(center.x, center.y, center.z);
-                    if (centerVector.length() >= physics.boundaryDistance) {
+                    if (physics.enableBoundary && centerVector.length() >= physics.boundaryDistance) {
                         alert('Value out of boundaries.');
                         return;
                     }

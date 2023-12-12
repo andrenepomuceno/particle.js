@@ -240,8 +240,8 @@ function snapshot() {
     simulation.graphics.renderer.domElement.toBlob((blob) => {
         downloadFile(blob, finalName + '.png', "image/png");
     }, 'image/png', 1);
-    //downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
-    downloadFile(exportJsonSnapshot(simulation), finalName + '.particlejs.json', "text/plain;charset=utf-8");
+    downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
+    //downloadFile(exportJsonSnapshot(simulation), finalName + '.particlejs.json', "text/plain;charset=utf-8");
 }
 
 function exportJsonSnapshot(simulation) {

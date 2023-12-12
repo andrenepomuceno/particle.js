@@ -10,34 +10,50 @@ export const ParticleType = {
 }
 
 export class Particle {
-    constructor() {
+    constructor(input = {
+        //id: gParticleId++,
+        type: ParticleType.default,
+
+        mass: 0.0,
+        charge: 0.0,
+        nuclearCharge: 0.0,
+        colorCharge: 0,
+
+        position: {
+            x: 0.0, y: 0.0, z: 0.0
+        },
+        velocity: {
+            x: 0.0, y: 0.0, z: 0.0
+        },
+
+        color: 0,
+        radius: 0,
+        collisions: 0,
+        name: ''
+    }) {
+        //this.id = input.id;
         this.id = gParticleId++;
-        this.type = ParticleType.default;
+        this.type = input.type;
 
-        this.mass = 0.0;
-        this.charge = 0.0;
-        this.nuclearCharge = 0.0;
-        this.colorCharge = 0.0;
+        this.mass = input.mass;
+        this.charge = input.charge;
+        this.nuclearCharge = input.nuclearCharge;
+        this.colorCharge = input.colorCharge;
 
-        this.position = new Vector3();
-        this.velocity = new Vector3();
+        this.position = new Vector3(input.position.x, input.position.y, input.position.z);
+        this.velocity = new Vector3(input.velocity.x, input.velocity.y, input.velocity.z);
+
+        this.color = new Color(input.color);
+        this.radius = input.radius;
+        this.collisions = input.collisions;
+        this.name = input.name;
 
         this.force = new Vector3();
-        this.color = undefined;
-        this.radius = undefined;
         this.uv = [];
-        this.collisions = 0.0;
-        this.name = '';
     }
 
     clone() {
-        let p = new Particle();
-        p.type = this.type;
-        p.mass = this.mass;
-        p.charge = this.charge;
-        p.nuclearCharge = this.nuclearCharge;
-        p.position = this.position.clone();
-        p.velocity = this.velocity.clone();
+        let p = new Particle(this);
         return p;
     }
 

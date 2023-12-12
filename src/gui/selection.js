@@ -4,7 +4,7 @@ import {
     core,
 } from '../core.js';
 import { uploadCsv } from '../components/csv';
-import { Selection, SourceType } from '../components/selection';
+import { SourceType } from '../components/selection';
 import { mouseToWorldCoord } from '../helpers.js';
 
 let options = undefined;
@@ -143,7 +143,6 @@ export class GUISelection {
 }
 
 function guiSelectionClose(clear = true) {
-    console.log(selection);
     if (clear) selection.clear();
     controls.close();
 }

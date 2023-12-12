@@ -221,6 +221,22 @@ export function downloadFile(data, filename, type) {
     }
 }
 
+export function uploadFile(type, callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type;
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
+}
+
 export function generateParticleColor(p, absCharge) {
     let h = 0, s = 100, l = 50;
     let lmin = 30, lmax = 60;

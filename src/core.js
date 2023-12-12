@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
 import { decodeVector3 } from './helpers.js';
 import { scenariosList } from './scenarios.js';
-import { ParticleType } from './particle.js';
+import { Particle, ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
 import { GraphicsGPU } from './gpu/graphics'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
@@ -220,7 +220,7 @@ class Core {
         if (updateShader) {
             physics.velocityShader = generateComputeVelocity(physics);
             physics.positionShader = generateComputePosition(physics);
-            
+
             graphics.readbackParticleData();
             graphics.drawParticles();
         }
@@ -619,15 +619,57 @@ class Core {
         simulation.cycles = imported.cycles;
     }
 
+    exportJson(list) {
+        simulation.graphics.readbackParticleData();
+
+        let snapshotObj = {
+            version: "0.1",
+            name: simulation.name,
+            folder: simulation.folderName,
+            cycles: simulation.cycles,
+            particleRadius: simulation.particleRadius,
+            particleRadiusRange: simulation.particleRadiusRange,
+            mode2D: simulation.mode2D,
+            target: simulation.graphics.controls.target,
+            camera: simulation.graphics.camera.position,
+
+            physics: simulation.physics
+        };
+
+        if (list) snapshotObj.physics.particleList = list;
+
+        snapshotObj.physics.velocityShader = undefined;
+        snapshotObj.physics.positionShader = undefined;
+        snapshotObj.physics.particleList.forEach((particle) => {
+            particle.force = undefined;
+            particle.uv = undefined;
+        })
+        //snapshotObj.physics.particleList = undefined;
+
+        return JSON.stringify(snapshotObj, null, 4);
+    }
+
     importJson(filename, content) {
         log('importJson ' + filename);
 
         let graphics = simulation.graphics;
 
         let imported = JSON.parse(content);
-        if (imported == undefined) return;
+        if (imported == undefined || imported.physics == undefined || imported.physics.particleList == undefined) {
+            log("Failed to parse JSON file.");
+            return;
+        }
 
-        this.internalSetup(imported.physics);
+        log("Loaded particles: " + imported.physics.particleList.length);
+
+        let newPhysics = new Physics(imported.physics);
+
+        imported.physics.particleList.forEach((particle) => {
+            let newParticle = new Particle(particle);
+            newPhysics.particleList.push(newParticle);
+        })
+
+        this.internalSetup(newPhysics);
 
         simulation.name = filename;
         simulation.folderName = 'imported';

@@ -1,13 +1,12 @@
 import {
-    downloadFile, exportFilename
+    downloadFile, exportFilename as generateExportFilename, uploadFile
 } from '../helpers.js';
 import {
     simulation,
     core,
 } from '../core.js';
 import { scenariosList } from '../scenarios.js';
-import { exportCSV, uploadCsv } from '../components/csv';
-import { guiParametersRefresh } from './parameters.js';
+import { exportCSV } from '../components/csv';
 
 function log(msg) {
     console.log("menu/controls: " + msg);
@@ -60,10 +59,18 @@ export class GUIControls {
                 snapshotJson();
             },
             import: function () {
-                uploadCsv((name, content) => {
+                uploadFile('.csv', (name, content) => {
                     options.particle.close();
-                    //core.importCSV(name, content);
                     core.importCSV(name, content);
+                    options.guiInfo.refresh();
+                    options.guiParameters.refresh();
+                    options.guiControls.refresh();
+                });
+            },
+            importJson: function () {
+                uploadJsonZip((name, content) => {
+                    options.particle.close();
+                    core.importJson(name, content);
                     options.guiInfo.refresh();
                     options.guiParameters.refresh();
                     options.guiControls.refresh();
@@ -234,51 +241,67 @@ export class GUIControls {
     }
 }
 
-function snapshot() {
-    let name = simulation.name;
-    let finalName = exportFilename(name)
-    log('snapshot ' + finalName);
-
+function downloadRenderPng(name) {
     simulation.graphics.render();
     simulation.graphics.renderer.domElement.toBlob((blob) => {
-        downloadFile(blob, finalName + '.png', "image/png");
+        downloadFile(blob, name + '.png', "image/png");
     }, 'image/png', 1);
+}
+
+function snapshot() {
+    let name = simulation.name;
+    let finalName = generateExportFilename(name)
+    log('snapshot ' + finalName);
+
+    downloadRenderPng(finalName)
     downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
 }
 
-function snapshotJson() {
-    simulation.graphics.readbackParticleData();
+const JSZip = require('jszip');
 
-    snapshotObj = {
-        name: simulation.name,
-        folder: simulation.folderName,
-        cycles: simulation.cycles,
-        physics: simulation.physics,
-        particleRadius: simulation.particleRadius,
-        particleRadiusRange: simulation.particleRadiusRange,
-        mode2D: simulation.mode2D,
-        target: simulation.graphics.controls.target,
-        camera: simulation.graphics.camera.position,
-    }
-
-    content = JSON.stringify(snapshotObj, (key, value) => {
-        switch (key) {
-            //case 'velocityShader':
-            //case 'positionShader':
-            case 'particleList':
-            case 'force':
-                return undefined;
-
-            default:
-                return value;
-        }
+function downloadStringToZip(jsonContent, filename) {
+    return new Promise(() => {
+        var zip = new JSZip();
+        zip.file(filename, jsonContent);
+        zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE"
+        })
+        .then(function(content) {
+            downloadFile(content, filename + '.zip', "data:application/zip;");
+        });
     });
-
-    let name = simulation.name;
-    let finalName = exportFilename(name)
-    downloadFile(content, finalName + '.particlejs.json', "text/plain;charset=utf-8");
 }
 
-function importJsonSnapshot(simulation) {
+function snapshotJson() {
+    let content = core.exportJson();
+    let name = simulation.name;
+    let finalName = generateExportFilename(name)
 
+    downloadRenderPng(finalName);
+    downloadStringToZip(content, finalName + ".json");
+}
+
+function uploadJsonZip(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json.zip';
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = readerEvent => {
+            let fileData = readerEvent.target.result;
+
+            let zip = new JSZip();
+            zip.loadAsync(fileData).then(function (zip) {
+                let jsonFilename = file.name.replace(".zip", "");
+                zip.file(jsonFilename).async("string").then((jsonData) => {
+                    callback(jsonFilename, jsonData);
+                })
+            });
+        }
+    }
+
+    input.click();
 }

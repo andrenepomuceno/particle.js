@@ -56,11 +56,14 @@ export class GUIControls {
             snapshot: function () {
                 snapshot();
             },
+            snapshotJson: function () {
+                snapshotJson();
+            },
             import: function () {
                 uploadCsv((name, content) => {
                     options.particle.close();
                     //core.importCSV(name, content);
-                    core.importJson(name, content);
+                    core.importCSV(name, content);
                     options.guiInfo.refresh();
                     options.guiParameters.refresh();
                     options.guiControls.refresh();
@@ -241,12 +244,12 @@ function snapshot() {
         downloadFile(blob, finalName + '.png', "image/png");
     }, 'image/png', 1);
     downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
-    //downloadFile(exportJsonSnapshot(simulation), finalName + '.particlejs.json', "text/plain;charset=utf-8");
 }
 
-function exportJsonSnapshot(simulation) {
+function snapshotJson() {
     simulation.graphics.readbackParticleData();
-    snapshot = {
+
+    snapshotObj = {
         name: simulation.name,
         folder: simulation.folderName,
         cycles: simulation.cycles,
@@ -257,7 +260,8 @@ function exportJsonSnapshot(simulation) {
         target: simulation.graphics.controls.target,
         camera: simulation.graphics.camera.position,
     }
-    return JSON.stringify(snapshot, (key, value) => {
+
+    content = JSON.stringify(snapshotObj, (key, value) => {
         switch (key) {
             //case 'velocityShader':
             //case 'positionShader':
@@ -269,6 +273,10 @@ function exportJsonSnapshot(simulation) {
                 return value;
         }
     });
+
+    let name = simulation.name;
+    let finalName = exportFilename(name)
+    downloadFile(content, finalName + '.particlejs.json', "text/plain;charset=utf-8");
 }
 
 function importJsonSnapshot(simulation) {

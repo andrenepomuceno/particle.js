@@ -13,6 +13,7 @@ export class Keyboard {
         this.onKeyDownMap.set('c', { callback: this.guiOptions.controls.resetCamera });
         this.onKeyDownMap.set('r', { callback: this.guiOptions.controls.reset });
         this.onKeyDownMap.set('p', { callback: this.guiOptions.controls.snapshot });
+        this.onKeyDownMap.set('P', { callback: this.guiOptions.controls.snapshotJson });
         this.onKeyDownMap.set('i', { callback: this.guiOptions.controls.import });
         this.onKeyDownMap.set('a', { callback: this.guiOptions.controls.hideAxis });
         this.onKeyDownMap.set('v', { callback: this.guiOptions.controls.xyCamera });

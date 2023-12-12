@@ -1,13 +1,13 @@
 import { Vector3 } from 'three';
 import { createNuclei, createNucleiFromList, createParticle, createParticlesList, parseElementRatioList, randomVector } from '../scenariosHelpers';
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
-import { NuclearPotentialType } from '../physics';
+import { FrictionModel, NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const forceMap = [
     //standardModel3,
     //colorTests,
-    //colorCharge,
+    hexagonalCrystal,
     //crystal,
     //air,
     //fullScaleModel,
@@ -42,6 +42,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
 
     physics.enableFriction = true;
     physics.frictionConstant = 1e-3;
+    physics.frictionModel = FrictionModel.square;
 }
 
 function standardModel3(simulation) {
@@ -75,78 +76,13 @@ function standardModel3(simulation) {
     //drawGrid(simulation);
 }
 
-function colorTests(simulation) {
+function hexagonalCrystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
 
     physics.useBoxBoundary = true;
-    physics.enableColorCharge = true;
-    //physics.useDistance1 = true;
-    simulation.mode2D = false;
-
-    const M = 1e18;
-    const KG = 1e30;
-    const S = (0.25) * 1e27;
-    const C = (1 / 1.602176634) * 1e21;
-    const nuclearForceRange = 3e-15 * M;
-
-    physics.boundaryDistance = 10 * 1e-15 * M;
-    physics.boundaryDamping = 0.9;
-
-    graphics.cameraDistance = 0.25 * physics.boundaryDistance;
-    graphics.cameraSetup();
-
-    physics.nuclearForceRange = nuclearForceRange;
-    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
-
-    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
-    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
-    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
-    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
-
-    let r0 = 0.05 * physics.nuclearForceRange;
-    let r1 = 0.5 * physics.nuclearForceRange;
-    let r2 = 2e3;// * physics.nuclearForceRange;
-
-    let nucleusList = [
-        // proton
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up r', colorCharge: 1.0 },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up g ', colorCharge: 2.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down b', colorCharge: 3.0 },
-
-        // neutron
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up r', colorCharge: 1.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down g', colorCharge: 2.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down b', colorCharge: 3.0 },
-    ]
-
-    let cloudList = [
-        //{ m: (1e2) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
-    ]
-
-    let zNumber = 1;
-    let electrons = 10 * zNumber;
-    let nq = 1;
-    let v = 1e1 * M * S ** -2;
-    let center = new Vector3(0, 0, 0);
-    createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, nq, r0, r1, center, v, electrons);
-
-    shuffleArray(physics.particleList);
-
-    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
-}
-
-function colorCharge(simulation) {
-    let graphics = simulation.graphics;
-    let physics = simulation.physics;
-    defaultParameters(simulation);
-
-    physics.useBoxBoundary = true;
-    physics.enableColorCharge = true;
+    //physics.enableColorCharge = true;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 
@@ -173,8 +109,8 @@ function colorCharge(simulation) {
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
-    let r1 = 0.5 * physics.nuclearForceRange;
-    let r2 = 2e3;// * physics.nuclearForceRange;
+    let r1 = 1/3 * physics.nuclearForceRange;
+    let r2 = 2/3 * physics.nuclearForceRange;
 
     let nucleusList = [
         // proton
@@ -194,8 +130,8 @@ function colorCharge(simulation) {
     ]
 
     let zNumber = 6;
-    let electrons = 10 * zNumber;
-    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 10 * cloudList.length));
+    let electrons = 8 * zNumber;
+    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 8 * cloudList.length));
     let nq = 1;
     let v = 1e1 * M * S ** -2;
     hexagonGenerator((vertex, totalLen) => {

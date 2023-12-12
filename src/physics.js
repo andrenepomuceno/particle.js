@@ -57,7 +57,7 @@ export class Physics {
 
         this.enableColorCharge = false;
 
-        this.enableFriction = true;
+        this.enableFriction = false;
         this.frictionConstant = 1e-4;
         this.frictionModel = FrictionModel.square;
 

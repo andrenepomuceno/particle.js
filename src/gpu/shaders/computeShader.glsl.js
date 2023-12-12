@@ -10,7 +10,7 @@ function define(define, value) {
 }
 
 export function generateComputeVelocity(physics) {
-    physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
+    //physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
 
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
@@ -121,7 +121,7 @@ void main() {
             if (rng == 0.0) continue;*/
 
             // check collision
-            if (distance2 <= minDistance2) {
+            if (distance2 < minDistance2) {
                 if (type1 != PROBE) {
                     float m2 = props2.x;
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;

@@ -6,7 +6,7 @@ import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
     //colorTests,
-    colorCharge,
+    //colorCharge,
     //crystal,
     air,
     fullScaleModel,

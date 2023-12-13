@@ -120,7 +120,7 @@ export class GUIInfo {
             options.collapseList.push(guiInfoDebug);
         }
 
-        //options.collapseList.push(guiInfo);
+        options.collapseList.push(controls);
         options.collapseList.push(guiInfoMore);
         options.collapseList.push(guiInfoRuler);
 

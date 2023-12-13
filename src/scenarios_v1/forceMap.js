@@ -3,6 +3,7 @@ import { createNuclei, createNucleiFromList, createParticle, createParticlesList
 import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
 import { FrictionModel, NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
+import { core } from '../core';
 
 export const forceMap = [
     //standardModel3,
@@ -116,6 +117,10 @@ function hexagonalCrystal(simulation) {
     shuffleArray(physics.particleList);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+
+    let futureAction = new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
+        core.updatePhysics('frictionConstant', 1e-4);
+    });
 }
 
 function crystal(simulation) {

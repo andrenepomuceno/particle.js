@@ -1,6 +1,6 @@
-import { NuclearPotentialType } from "../../physics";
+import { FrictionModel, NuclearPotentialType } from "../../physics";
 
-function define(define, value) {
+function define(define, value = false) {
     if (value) {
         return "#define " + define + " 1\n";
     }
@@ -9,32 +9,43 @@ function define(define, value) {
     }
 }
 
-export function generateComputeVelocity(nuclearPotential = 'default', useDistance1 = false, boxBoundary = false, enableBoundary = true, enableColorCharge = true) {
+export function generateComputeVelocity(physics) {
+    //physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
+
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
-    config += define("ENABLE_BOUNDARY", enableBoundary);
-    config += define("USE_BOX_BOUNDARY", boxBoundary);
-    config += define("USE_DISTANCE1", useDistance1);
-    config += define("ENABLE_COLOR_CHARGE", enableColorCharge);
+    config += define("ENABLE_BOUNDARY", physics.enableBoundary);
+    config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
+    config += define("USE_DISTANCE1", physics.useDistance1);
+    config += define("ENABLE_COLOR_CHARGE", physics.enableColorCharge);
+    config += define("ROUND_VELOCITY", physics.roundVelocity);
+    config += define("MODE_2D", physics.mode2D);
 
-    config += define("USE_HOOKS_LAW", nuclearPotential === NuclearPotentialType.hooksLaw);
-    config += define("USE_POTENTIAL0", nuclearPotential === NuclearPotentialType.potential_powXR);
-    config += define("USE_POTENTIAL1", nuclearPotential === NuclearPotentialType.potential_exp);
-    config += define("USE_POTENTIAL2", nuclearPotential === NuclearPotentialType.potential_powAX);
-    config += define("USE_POTENTIAL3", nuclearPotential === NuclearPotentialType.potential_powAXv2);
-    config += define("USE_POTENTIAL4", nuclearPotential === NuclearPotentialType.potential_powAXv3);
+    config += define("ENABLE_FRICTION", physics.enableFriction);
+    config += define("FRICTION_DEFAULT", physics.frictionModel === FrictionModel.default);
+    config += define("FRICTION_SQUARE", physics.frictionModel === FrictionModel.square);
+
+    config += define("USE_HOOKS_LAW", physics.nuclearPotential === NuclearPotentialType.hooksLaw);
+    config += define("USE_POTENTIAL0", physics.nuclearPotential === NuclearPotentialType.potential_powXR);
+    config += define("USE_POTENTIAL1", physics.nuclearPotential === NuclearPotentialType.potential_exp);
+    config += define("USE_POTENTIAL2", physics.nuclearPotential === NuclearPotentialType.potential_powAX);
+    config += define("USE_POTENTIAL3", physics.nuclearPotential === NuclearPotentialType.potential_powAXv2);
+    config += define("USE_POTENTIAL4", physics.nuclearPotential === NuclearPotentialType.potential_powAXv3);
+    config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
 
     let shader = config + computeVelocityV2;
     return shader;
 }
 
-export function generateComputePosition(enableBoundary = true, boxBoundary = false) {
+export function generateComputePosition(physics) {
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
-    config += define("ENABLE_BOUNDARY", enableBoundary);
-    config += define("USE_BOX_BOUNDARY", boxBoundary);
+    config += define("ENABLE_BOUNDARY", physics.enableBoundary);
+    config += define("USE_BOX_BOUNDARY", physics.useBoxBoundary);
+    config += define("ROUND_POS", physics.roundPosition);
+    config += define("MODE_2D", physics.mode2D);
 
     let shader = config + computePosition;
     return shader;
@@ -45,8 +56,8 @@ const computeVelocityV2 = /* glsl */ `
 precision highp float;
 
 uniform float minDistance2;
-uniform float massConstant;
-uniform float chargeConstant;
+/*uniform float massConstant;
+uniform float chargeConstant;*/
 uniform float nuclearForceConstant;
 uniform float nuclearForceRange;
 uniform float nuclearForceRange2;
@@ -54,6 +65,14 @@ uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
+uniform float frictionConstant;
+uniform vec4 forceConstants;
+/*vec4 forceConstants = vec4(
+    massConstant, 
+    -chargeConstant,
+    nuclearForceConstant,
+    0
+);*/
 
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
@@ -84,13 +103,6 @@ void main() {
     vec3 vel1 = tVel1.xyz;
     float collisions = tVel1.w;
 
-    vec4 forceConts = vec4( // TODO move this to uniform
-        massConstant, 
-        -chargeConstant,
-        nuclearForceConstant,
-        0
-    );
-
     vec3 rForce = vec3(0.0);
     for (float texY = 0.5; texY < resolution.y; texY++) {
         for (float texX = 0.5; texX < resolution.x; texX++) {
@@ -113,7 +125,7 @@ void main() {
             if (rng == 0.0) continue;*/
 
             // check collision
-            if (distance2 <= minDistance2) {
+            if (distance2 < minDistance2) {
                 if (type1 != PROBE) {
                     float m2 = props2.x;
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
@@ -144,8 +156,9 @@ void main() {
                 float distance1 = sqrt(distance2);
             #endif
             
+            float force = 0.0;
             float x = 0.0;
-            if (distance2 <= nuclearForceRange2) {
+            if (distance2 < nuclearForceRange2) {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
@@ -169,6 +182,43 @@ void main() {
                     #elif USE_POTENTIAL4 // 'powAXv3'
                         const float a = 3.0;
                         x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
+                    #elif USE_FMAP1 // 'forceMap1'
+                        // const float fMap[2] = float[2](1.0, 0.0);
+                        // int idx = int(2.0 * x);
+                        // const float fMap[3] = float[](3.0, 0.0, -1.0);
+                        // int idx = int(3.0 * x);
+                        // const float fMap[4] = float[](2.0, 0.0, -1.0, -1.0);
+                        // int idx = int(4.0 * x);
+                        // const float fMap[7] = float[](3.0, 0.0, -2.0, 0.0, 2.0, 0.0, -3.0);
+                        // int idx = int(7.0 * x);
+                        // const float fMap[6] = float[](1.0, 3.0, 0.0, -1.0, -0.5, -0.25);
+                        // int idx = int(6.0 * x);
+
+                        // const float fMap[10] = float[](1.0, 3.0, -2.0, -1.0, 0.5, -0.5, -0.25, 0.125, -0.125, -0.063);
+                        // int idx = int(10.0 * x);
+
+                        // const float fMap[8] = float[](3.0, -2.0, 1.0, -1.0, 0.5, -0.5, 0.25, -0.25);
+                        // int idx = int(8.0 * x);
+
+                        /*const float fMap[12] = float[](2.0, 3.0, -2.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.5, 0.0, -0.5);
+                        int idx = int(12.0 * x);*/
+
+                        /*const float fMap[6] = float[](2.0, 3.0, -2.0, -1.0, 0.5, -0.5);
+                        int idx = int(6.0 * x);*/
+
+                        // const float fMap[12] = float[](0.0, 2.0, 0.0, -2.0, 0.0, 0.1, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
+                        // int idx = int(12.0 * x);
+
+                        // const float fMap[8] = float[](0.1, 2.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
+                        // int idx = int(8.0 * x);
+
+                        const float fMap[12] = float[](
+                            1.0, 2.0, 0.0, -2.0, 
+                            0.0, 0.5, 0.0, -1.0, 
+                            0.0, 0.25, 0.0, -0.5);
+                        int idx = int(8.0 * x);
+                        
+                        x = fMap[idx];
                     #else
                         x = sin(2.0 * PI * x);
                     #endif
@@ -176,21 +226,24 @@ void main() {
 
                 #if ENABLE_COLOR_CHARGE
                     const vec3 color1[4] = vec3[](
-                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 0.0, 0.0),
 
-                        vec3(1.0, 2.0, -3.0)/3.0,
-                        vec3(-3.0, 1.0, 2.0)/3.0,
-                        vec3(2.0, -3.0, 1.0)/3.0
+                        vec3(0.0, 1.0, -1.0),
+                        vec3(-1.0, 0.0, 1.0),
+                        vec3(1.0, -1.0, 0.0)
                     );
                     const vec3 color2[4] = vec3[](
-                        vec3(1.0, 0.0, 0.0),
+                        vec3(0.0, 0.0, 0.0),
                         
                         vec3(1.0, 0.0, 0.0),
                         vec3(0.0, 1.0, 0.0),
                         vec3(0.0, 0.0, 1.0)
                     );
 
-                    x *= dot(color1[uint(props1.w)], color2[uint(props2.w)]);
+                    float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
+                    float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+                    force += nuclearForceConstant * c * d;
+                    // x = x * c;
                 #endif
             }
 
@@ -201,23 +254,28 @@ void main() {
             #endif
             vec4 props = props1 * props2;
             vec4 pot = vec4(d12, d12, x, 0);
-            vec4 result = forceConts * props * pot;
-            float force = result.x + result.y + result.z;
+            vec4 result = forceConstants * props * pot;
+            force += result.x + result.y + result.z;
             rForce += force * normalize(dPos);
         }
     }
 
+    #if ENABLE_FRICTION
+        float velAbs = dot(vel1, vel1);
+        if (velAbs > 0.0) {
+            //velAbs = min(velAbs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
+            vec3 f = -frictionConstant * normalize(vel1);
+            #if FRICTION_DEFAULT
+                velAbs = sqrt(velAbs);
+            #endif
+            f *= velAbs;
+            rForce += f;
+        }
+    #endif
+
     rForce *= forceConstant;
-
-    /*float velAbs = dot(vel1,vel1);
-    if (velAbs > 0.0) {
-        vec3 f = -1.0e-5 * normalize(vel1);
-        //f *= sqrt(velAbs);
-        f *= velAbs;
-        //f *= m1;
-        rForce += f;
-    }*/
-
+    
+    // update velocity
     if (type1 == DEFAULT) {
         if (m1 != 0.0) {
             vel1 += rForce / abs(m1);
@@ -233,7 +291,7 @@ void main() {
                     if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
                         vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
                     } else {
-                        vel1 = vec3(0.0);
+                        vel1 = normalize(vel1);
                     }
                 }
             #else
@@ -244,7 +302,7 @@ void main() {
                         if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
                         if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
                     } else {
-                        vel1 = vec3(0.0);
+                        vel1 = normalize(vel1);
                     }
                 }
             #endif
@@ -252,6 +310,21 @@ void main() {
     } else if (type1 == PROBE) {
         vel1 = rForce;
     }
+
+    // velocity clamp / sanity checks
+    #if ENABLE_BOUNDARY
+        vel1 = clamp(vel1, -boundaryDistance, boundaryDistance);
+    #else
+        vel1 = clamp(vel1, -1e15, 1e15);
+    #endif
+
+    #if ROUND_VELOCITY
+        vel1 = round(vel1);
+    #endif
+
+    /*#if MODE_2D
+        vel1.z = 0.0;
+    #endif*/
 
     gl_FragColor = vec4(vel1, collisions);
 }
@@ -295,16 +368,33 @@ void main() {
             #if !USE_BOX_BOUNDARY
                 // check out of boundary
                 if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
-                    pos = normalize(pos);
+                    float len = length(pos);
+                    vec3 n = normalize(pos);
+                    pos = n * mod(len, boundaryDistance);
                 }
             #else
                 vec3 box = vec3(boundaryDistance);
                 if (sdBox(pos, BOUNDARY_TOLERANCE * box) >= 0.0) {
-                    pos = normalize(pos);
+                    pos = mod(pos, boundaryDistance);
+                    pos *= 2.0;
+                    pos -= boundaryDistance;
+                    #if MODE_2D
+                        pos.z = 0.0;
+                    #endif
                 }
             #endif
+        #else
+            pos = clamp(pos, -1e30, 1e30);
         #endif
     }
+
+    #if ROUND_POS
+        pos = round(pos);
+    #endif
+
+    /*#if MODE_2D
+        pos.z = 0.0;
+    #endif*/
 
     gl_FragColor = vec4(pos, type);
 }

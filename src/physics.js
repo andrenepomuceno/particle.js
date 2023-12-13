@@ -9,6 +9,12 @@ export const NuclearPotentialType = {
     potential_powAX: 'potential2',
     potential_powAXv2: 'potential3',
     potential_powAXv3: 'potential4',
+    potential_forceMap1: 'forceMap1',
+}
+
+export const FrictionModel = {
+    default: '-cv',
+    square: '-cv^2',
 }
 
 export const scaleEPN = {
@@ -24,34 +30,73 @@ function log(msg) {
 }
 
 export class Physics {
-    constructor() {
+    constructor(input = {
+        mode2D: true,
+        enableColision: true,
+        enableBoundary: true,
+        minDistance2: Math.pow(0.5, 2),
+        boundaryDistance: 1e12,
+        boundaryDamping: 0.99,
+
+        forceConstant: 1.0,
+        massConstant: 1.0,
+        chargeConstant: 1.0,
+        nuclearForceConstant: 1.0,
+        nuclearForceRange: 1e3,
+
+        collisionCounter: 0,
+
+        //particleList: [],
+
+        nuclearPotential: NuclearPotentialType.default,
+        useBoxBoundary: false,
+        useDistance1: false,
+        velocityShader: undefined,
+        positionShader: undefined,
+
+        enableColorCharge: false,
+
+        enableFriction: false,
+        frictionConstant: 1e-4,
+        frictionModel: FrictionModel.square,
+
+        avgVelocity: 0.0,
+        avgEnergy: 0.0,
+    }) {
         log('constructor');
 
-        this.enableColision = true;
-        this.enableBoundary = true;
-        this.minDistance2 = Math.pow(0.5, 2);
-        this.boundaryDistance = 1e12;
-        this.boundaryDamping = 0.99;//1.0;
+        this.mode2D = input.mode2D;
+        this.enableColision = input.enableColision;
+        this.enableBoundary = input.enableBoundary;
+        this.minDistance2 = input.minDistance2;
+        this.boundaryDistance = input.boundaryDistance;
+        this.boundaryDamping = input.boundaryDamping;
 
-        this.forceConstant = 1.0;
-        this.massConstant = 1.0;
-        this.chargeConstant = 1.0;
-        this.nuclearForceConstant = 1.0;
-        this.nuclearForceRange = 1e3;
+        this.forceConstant = input.forceConstant;
+        this.massConstant = input.massConstant;
+        this.chargeConstant = input.chargeConstant;
+        this.nuclearForceConstant = input.nuclearForceConstant;
+        this.nuclearForceRange = input.nuclearForceRange;
 
-        this.collisionCounter = 0;
+        this.collisionCounter = input.collisionCounter;
 
+        //this.particleList = input.particleList;
         this.particleList = [];
 
-        this.nuclearPotential = NuclearPotentialType.default;
-        this.useBoxBoundary = false;
-        this.useDistance1 = false;
-        this.enableColorCharge = false;
-        this.velocityShader = undefined;
-        this.positionShader = undefined;
+        this.nuclearPotential = input.nuclearPotential;
+        this.useBoxBoundary = input.useBoxBoundary;
+        this.useDistance1 = input.useDistance1;
+        this.velocityShader = input.velocityShader;
+        this.positionShader = input.positionShader;
 
-        this.avgVelocity = 0.0;
-        this.avgEnergy = 0.0;
+        this.enableColorCharge = input.enableColorCharge;
+
+        this.enableFriction = input.enableFriction;
+        this.frictionConstant = input.frictionConstant;
+        this.frictionModel = input.frictionModel;
+
+        this.avgVelocity = input.avgVelocity;
+        this.avgEnergy = input.avgEnergy;
     }
 
     header() {

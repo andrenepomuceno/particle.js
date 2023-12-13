@@ -50,30 +50,37 @@ export class GUIInfo {
             fieldAvgVel: '0',
         };
 
-        controls.add(options.info, 'name').name('Name').listen().onFinishChange((val) => {
+        controls.add(options.info, 'name').name('Name ✏️').listen().onFinishChange((val) => {
             simulation.name = val;
         });
         controls.add(options.info, 'folderName').name('Folder').listen();
         controls.add(options.info, 'particles').name('Particles').listen();
-        controls.add(options.info, 'maxParticles').name('Max Particles').listen().onFinishChange((val) => {
+        controls.add(options.info, 'maxParticles').name('Max Particles ✏️').listen().onFinishChange((val) => {
             val = parseFloat(val);
-            if (val == simulation.physics.particleList.length) {
+            if (isNaN(val)) {
+                alert("Invalid value!");
                 return;
             }
+
             if (val > simulation.physics.particleList.length) {
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.setMaxParticles(val);
                 simulation.drawParticles();
-                return;
+            } else if (val < simulation.physics.particleList.length) {
+                simulation.graphics.readbackParticleData();
+                simulation.graphics.setMaxParticles(val);
+                let diff = simulation.physics.particleList.length - simulation.graphics.maxParticles;
+                simulation.particleList.splice(0, diff);
+                simulation.drawParticles();
+            } else {
+                // equal
             }
-            simulation.graphics.setMaxParticles(val);
-            options.scenarioSetup();
         });
         controls.add(options.info, 'time').name('Time').listen();
-        controls.add(options.info, 'autoRefresh').name('Automatic Refresh').listen().onFinishChange((val) => {
+        controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
         });
-        controls.add(options.info, 'cameraPosition').name('Camera Coordinates').listen().onFinishChange((val) => {
+        controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange((val) => {
             let p = decodeVector3(val);
             if (p == undefined) {
                 alert("Invalid coordinates!");
@@ -85,13 +92,13 @@ export class GUIInfo {
         });
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
-        guiInfoMore.add(options.info, 'mass').name('Mass (sum)').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️✖️').listen().onFinishChange((val) => {
             core.updateParticleList('mass', val);
         });
-        guiInfoMore.add(options.info, 'charge').name('Charge (sum)').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
             core.updateParticleList('charge', val);
         });
-        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum)').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
             core.updateParticleList('nuclearCharge', val);
         });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();

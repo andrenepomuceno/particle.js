@@ -1,6 +1,7 @@
 import { ParticleType } from './particle.js';
 import { MathUtils, Vector3 } from 'three';
 import { Particle } from './particle.js';
+const JSZip = require('jszip');
 
 export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
     let x, y, z = 0;
@@ -221,6 +222,22 @@ export function downloadFile(data, filename, type) {
     }
 }
 
+export function uploadFile(type, callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type;
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            let content = readerEvent.target.result;
+            callback(file.name, content);
+        }
+    }
+    input.click();
+}
+
 export function generateParticleColor(p, absCharge) {
     let h = 0, s = 100, l = 50;
     let lmin = 30, lmax = 60;
@@ -348,7 +365,7 @@ export function decodeVector3(value) {
     return vec;
 }
 
-export function exportFilename(prefix = 'particles') {
+export function generateExportFilename(prefix = 'particles') {
     let timestamp = new Date().toISOString();
     let finalName = prefix + "_" + timestamp;
     finalName = finalName.replaceAll(/[ :\/-]/ig, "_").replaceAll(/\.csv/ig, '');
@@ -432,4 +449,42 @@ export function createParticles(simulation, typeList, n, options) {
 
 export function getCameraConstant(camera) {
     return window.innerHeight / (Math.tan(MathUtils.DEG2RAD * 0.5 * camera.fov) / camera.zoom);
+}
+
+export function downloadStringToZip(jsonContent, filename) {
+    return new Promise(() => {
+        var zip = new JSZip();
+        zip.file(filename, jsonContent);
+        zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE"
+        })
+        .then(function(content) {
+            downloadFile(content, filename + '.zip', "data:application/zip;");
+        });
+    });
+}
+
+export function uploadJsonZip(callback) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json.zip';
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = readerEvent => {
+            let fileData = readerEvent.target.result;
+
+            let zip = new JSZip();
+            zip.loadAsync(fileData).then(function (zip) {
+                let jsonFilename = file.name.replace(".zip", "");
+                zip.file(jsonFilename).async("string").then((jsonData) => {
+                    callback(jsonFilename, jsonData);
+                })
+            });
+        }
+    }
+
+    input.click();
 }

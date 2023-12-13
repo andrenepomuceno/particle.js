@@ -4,8 +4,8 @@ import {
     core,
 } from '../core.js';
 import { uploadCsv } from '../components/csv';
-import { Selection, SourceType } from '../components/selection';
-import { mouseToWorldCoord } from '../helpers.js';
+import { SourceType } from '../components/selection';
+import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
 
 let options = undefined;
 let controls = undefined;
@@ -37,13 +37,18 @@ export class GUISelection {
             center: '',
             fixedPosition: false,
             export: () => {
-                selection.export(simulation);
+                //selection.export(simulation);
+                selection.exportJson();
             },
             import: () => {
-                uploadCsv((name, content) => {
+                uploadJsonZip((name, content) => {
+                    selection.clear();    
+                    core.importParticleListJson(selection, name, content);
+                });
+                /*uploadCsv((name, content) => {
                     selection.clear();    
                     core.importParticleList(selection, name, content);
-                });
+                });*/
             },
             clone: () => {
                 selection.clone();
@@ -97,18 +102,18 @@ export class GUISelection {
         controls.add(options.selection, 'source').name('Source').listen();
         controls.add(options.selection, 'particles').name('Particles').listen();
     
-        const guiSelectionProperties = controls.addFolder("[+] Properties");
-        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+        const guiSelectionProperties = controls.addFolder("[+] Properties ✏️");
+        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('mass', val);
         });
-        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('charge', val);
         });
-        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum) ✖️").listen().onFinishChange((val) => {
             selectionListUpdate('nuclearCharge', val);
         });
     
-        const guiSelectionVariables = controls.addFolder("[+] Variables");
+        const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");
         guiSelectionVariables.add(options.selection, 'velocity').name('Velocity').listen().onFinishChange((val) => {
             selectionListUpdate('velocityAbs', val);
         });
@@ -131,7 +136,7 @@ export class GUISelection {
         controls.add(options.selection, 'delete').name("Delete [D]");
         controls.add(options.selection, 'clone').name("Clone [X]");
         controls.add(options.selection, 'place').name("Place [Z]");
-        controls.add(options.selection, 'clear').name('Close');
+        controls.add(options.selection, 'clear').name('Close 🔺');
     
         options.collapseList.push(controls);
         options.collapseList.push(guiSelectionActions);
@@ -143,7 +148,6 @@ export class GUISelection {
 }
 
 function guiSelectionClose(clear = true) {
-    console.log(selection);
     if (clear) selection.clear();
     controls.close();
 }

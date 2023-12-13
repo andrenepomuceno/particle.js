@@ -23,7 +23,7 @@ if (ENV?.record === true) {
 
 import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
-import { exportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
+import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
 import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
@@ -240,7 +240,9 @@ export class GraphicsGPU {
 
     setMaxParticles(n) {
         log('setMaxParticles');
-        this.textureWidth = Math.round(Math.sqrt(n) / 16) * 16;
+        n = Math.max(n, 1e3);
+        n = Math.min(n, 1e6);
+        this.textureWidth = Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
 
@@ -264,7 +266,7 @@ export class GraphicsGPU {
         CanvasCapture.beginVideoRecord({
             format: CanvasCapture.WEBM,
             fps: 60,
-            name: exportFilename(name),
+            name: generateExportFilename(name),
         });
     }
 
@@ -368,13 +370,8 @@ export class GraphicsGPU {
         this.#fillTextures();
 
         if (this.physics.velocityShader == undefined || this.physics.positionShader == undefined) {
-            this.physics.velocityShader = generateComputeVelocity(
-                this.physics.nuclearPotential,
-                this.physics.useDistance1,
-                this.physics.useBoxBoundary,
-                this.physics.enableBoundary,
-                this.physics.enableColorCharge);
-            this.physics.positionShader = generateComputePosition(this.physics.enableBoundary, this.physics.useBoxBoundary);
+            this.physics.velocityShader = generateComputeVelocity(this.physics);
+            this.physics.positionShader = generateComputePosition(this.physics);
         }
 
         this.velocityVariable = gpuCompute.addVariable('textureVelocity', this.physics.velocityShader, this.dtVelocity);
@@ -396,14 +393,16 @@ export class GraphicsGPU {
         let physics = this.physics;
         let uniforms = this.velocityVariable.material.uniforms;
         uniforms['minDistance2'] = { value: physics.minDistance2 };
-        uniforms['massConstant'] = { value: physics.massConstant };
-        uniforms['chargeConstant'] = { value: physics.chargeConstant };
-        uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
+        // uniforms['massConstant'] = { value: physics.massConstant };
+        // uniforms['chargeConstant'] = { value: physics.chargeConstant };
+        // uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
         uniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
         uniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
         uniforms['forceConstant'] = { value: physics.forceConstant };
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
+        uniforms['frictionConstant'] = { value: physics.frictionConstant };
+        uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
 
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };

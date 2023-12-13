@@ -1,4 +1,4 @@
-import { NuclearPotentialType } from '../physics';
+import { FrictionModel, NuclearPotentialType } from '../physics';
 import {
     simulation,
     core,
@@ -32,23 +32,42 @@ export class GUIParameters {
             boxBoundary: false,
             distance1: false,
             enableBoundary: true,
+            enableFriction: false,
+            frictionConstant: '',
+            frictionModel: '',
             close: () => {
                 controls.close();
             },
         };
 
-        const guiParametersConsts = controls.addFolder("[+] Constants");
+        const guiParametersConsts = controls.addFolder("[+] Constants ✏️");
         guiParametersConsts.add(options.parameters, 'massConstant').name('Gravitational Constant').listen().onFinishChange((val) => {
             core.updatePhysics('massConstant', val);
         });
         guiParametersConsts.add(options.parameters, 'chargeConstant').name('Electric Constant').listen().onFinishChange((val) => {
             core.updatePhysics('chargeConstant', val);
         });
+        guiParametersConsts.add(options.parameters, 'distance1').name("Use 1/x potential (gravity and charge)").listen().onFinishChange((val) => {
+            core.updatePhysics('distance1', val);
+        });
         guiParametersConsts.add(options.parameters, 'nuclearForceConstant').name('Nuclear Force Constant').listen().onFinishChange((val) => {
             core.updatePhysics('nuclearForceConstant', val);
         });
         guiParametersConsts.add(options.parameters, 'nuclearForceRange').name('Nuclear Force Range').listen().onFinishChange((val) => {
             core.updatePhysics('nuclearForceRange', val);
+        });
+        const potentialType = {
+            'Sin[ax]': NuclearPotentialType.default,
+            'Hooks Law': NuclearPotentialType.hooksLaw,
+            'Sin[a(1-b^x)] (v1)': NuclearPotentialType.potential_powAX,
+            'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
+            'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
+            'Force Map 1': NuclearPotentialType.potential_forceMap1,
+            /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
+            'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
+        }
+        guiParametersConsts.add(options.parameters, 'nuclearPotential', potentialType).name('Nuclear Potential').listen().onFinishChange((val) => {
+            core.updatePhysics('potential', val);
         });
         guiParametersConsts.add(options.parameters, 'forceConstant').name('Force Multiplier').listen().onFinishChange((val) => {
             core.updatePhysics('forceConstant', val);
@@ -61,9 +80,22 @@ export class GUIParameters {
             }
             core.updatePhysics('minDistance2', Math.pow(d, 2));
         });
+        guiParametersConsts.add(options.parameters, 'enableFriction').name('Enable Friction').listen().onFinishChange((val) => {
+            core.updatePhysics('enableFriction', val);
+        });
+        guiParametersConsts.add(options.parameters, 'frictionConstant').name('Friction Constant').listen().onFinishChange((val) => {
+            core.updatePhysics('frictionConstant', val);
+        });
+        const frictionModel = {
+            '-cv (default)': FrictionModel.default,
+            '-cv^2': FrictionModel.square,
+        }
+        guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
+            core.updatePhysics('frictionModel', val);
+        });
         //guiParametersConsts.open();
 
-        const guiParametersBoundary = controls.addFolder("[+] Boundary");
+        const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
         guiParametersBoundary.add(options.parameters, 'boundaryDistance').name('Boundary Distance').listen().onFinishChange((val) => {
             core.updatePhysics('boundaryDistance', val);
         });
@@ -78,29 +110,14 @@ export class GUIParameters {
         });
         //guiParametersBoundary.open();
 
-        const guiParametersInteractions = controls.addFolder("[+] Interactions");
-        const potentialType = {
-            'Sin[ax]': NuclearPotentialType.default,
-            'Hooks Law': NuclearPotentialType.hooksLaw,
-            'Sin[a(1-b^x)] (v1)': NuclearPotentialType.potential_powAX,
-            'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
-            'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
-            /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
-            'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
-        }
-        guiParametersInteractions.add(options.parameters, 'nuclearPotential', potentialType).name('Nuclear Potential').listen().onFinishChange((val) => {
-            core.updatePhysics('potential', val);
-        });
-        guiParametersInteractions.add(options.parameters, 'distance1').name("Use 1/x potential (gravity/charge)").listen().onFinishChange((val) => {
-            core.updatePhysics('distance1', val);
-        });
+        // const guiParametersInteractions = controls.addFolder("[+] Interactions");
 
-        controls.add(options.parameters, 'close').name('Close');
+        controls.add(options.parameters, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiParametersBoundary);
         options.collapseList.push(guiParametersConsts);
-        options.collapseList.push(guiParametersInteractions);
+        // options.collapseList.push(guiParametersInteractions);
     }
 
     refresh() {
@@ -118,5 +135,8 @@ export class GUIParameters {
         edit.distance1 = simulation.physics.useDistance1;
         edit.nuclearPotential = simulation.physics.nuclearPotential;
         edit.enableBoundary = simulation.physics.enableBoundary;
+        edit.enableFriction = simulation.physics.enableFriction;
+        edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
+        edit.frictionModel = simulation.physics.frictionModel;
     }
 }

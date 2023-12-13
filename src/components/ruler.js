@@ -66,6 +66,7 @@ export class Ruler {
         if (!this.started) return;
 
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
+        this.refreshRulerControls();
 
         let diff = this.p1.clone().sub(this.p0);
         let dir = diff.clone().normalize();
@@ -96,7 +97,7 @@ export class Ruler {
 
     finish(event) {
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
-        this.ruler = this.p1.clone().sub(this.p0);
+        this.refreshRulerControls();
 
         this.graphics.scene.remove(this.arrow);
         this.arrow.dispose();
@@ -105,10 +106,13 @@ export class Ruler {
         this.graphics.scene.remove(this.selection);
         this.selection = undefined;
 
+        this.started = false;
+    }
+
+    refreshRulerControls() {
+        this.ruler = this.p1.clone().sub(this.p0);
         this.controls.rulerLen = this.ruler.length().toExponential(3);        
         this.controls.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
-        this.controls.rulerStart = floatArrayToString(this.p1.toArray(), 3);
-
-        this.started = false;
+        this.controls.rulerStart = floatArrayToString(this.p0.toArray(), 3);
     }
 }

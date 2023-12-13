@@ -12,8 +12,10 @@ export class Keyboard {
         this.onKeyDownMap.set(' ', { callback: this.guiOptions.controls.pauseResume });
         this.onKeyDownMap.set('c', { callback: this.guiOptions.controls.resetCamera });
         this.onKeyDownMap.set('r', { callback: this.guiOptions.controls.reset });
-        this.onKeyDownMap.set('p', { callback: this.guiOptions.controls.snapshot });
-        this.onKeyDownMap.set('i', { callback: this.guiOptions.controls.import });
+        //this.onKeyDownMap.set('p', { callback: this.guiOptions.controls.snapshot });
+        this.onKeyDownMap.set('p', { callback: this.guiOptions.controls.snapshotJson });
+        //this.onKeyDownMap.set('i', { callback: this.guiOptions.controls.import });
+        this.onKeyDownMap.set('i', { callback: this.guiOptions.controls.importJson });
         this.onKeyDownMap.set('a', { callback: this.guiOptions.controls.hideAxis });
         this.onKeyDownMap.set('v', { callback: this.guiOptions.controls.xyCamera });
         this.onKeyDownMap.set('n', { callback: this.guiOptions.controls.step });
@@ -56,6 +58,8 @@ export class Keyboard {
         let key = event.key.toLowerCase();
         if (event.key == 'G') key = event.key;
         if (event.key == 'Z') key = event.key;
+        /*if (event.key == 'P') key = event.key;
+        if (event.key == 'I') key = event.key;*/
         if (keyboard.onKeyDownMap.has(key)) {
             let callback = keyboard.onKeyDownMap.get(key).callback;
             return callback();

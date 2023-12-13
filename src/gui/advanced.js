@@ -28,7 +28,7 @@ export class GUIAdvanced {
             zeroVelocity: () => {
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
-                    p.velocity.multiplyScalar(0.01);
+                    p.velocity.multiplyScalar(1e-6);
                 });
                 simulation.drawParticles();
             },
@@ -82,7 +82,7 @@ export class GUIAdvanced {
     
         controls.add(options.advanced, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
         controls.add(options.advanced, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
-        controls.add(options.advanced, 'dampKickFactor').name("Damp/Kick Factor").listen().onFinishChange((val) => {
+        controls.add(options.advanced, 'dampKickFactor').name("Damp/Kick Factor ✏️").listen().onFinishChange((val) => {
             let factor = parseFloat(val);
             if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
                 alert('Factor must be between 0.0 and 1.0.');
@@ -93,12 +93,12 @@ export class GUIAdvanced {
         });
     
         controls.add(options.advanced, 'addRandomVelocity').name('Add Random Velocity');
-        controls.add(options.advanced, 'randomVelocity').name('Random Velocity').listen();
+        controls.add(options.advanced, 'randomVelocity').name('Random Velocity ✏️').listen();
     
         controls.add(options.advanced, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
-        controls.add(options.advanced, 'cleanupThreshold').name('Cleanup Threshold').listen();
+        controls.add(options.advanced, 'cleanupThreshold').name('Cleanup Threshold ✏️').listen();
         controls.add(options.advanced, 'zeroPosition').name('Zero Position');
-        controls.add(options.advanced, 'close').name('Close');
+        controls.add(options.advanced, 'close').name('Close 🔺');
     
         options.collapseList.push(controls);
     }

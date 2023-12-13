@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
 import { decodeVector3 } from './helpers.js';
 import { scenariosList } from './scenarios.js';
-import { ParticleType } from './particle.js';
+import { Particle, ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
 import { GraphicsGPU } from './gpu/graphics'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
@@ -69,6 +69,19 @@ class Core {
         }
 
         selection.import(imported);
+    }
+
+    importParticleListJson(selection, filename, content) {
+        log('Importing selection ' + filename);
+        
+        let imported = this.parseJson(content);
+        if (imported == undefined) return;
+
+        if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
+            alert("Warning: imported physics constants do not match.");
+        }
+
+        selection.import(imported, filename);
     }
 
     normalizePosition(list) {
@@ -194,21 +207,33 @@ class Core {
                 updateShader = true;
                 break;
 
+            case 'enableFriction':
+                physics.enableFriction = value;
+                updatePhysics = false;
+                updateShader = true;
+                break;
+
+            case 'frictionConstant':
+                physics.frictionConstant = parseFloat(value);
+                updatePhysics = true;
+                updateShader = false;
+                break;
+
+            case 'frictionModel':
+                physics.frictionModel = value;
+                updatePhysics = false;
+                updateShader = true;
+                break;
+
             default:
                 updatePhysics = false;
                 break;
         }
 
         if (updateShader) {
-            physics.velocityShader = generateComputeVelocity(
-                physics.nuclearPotential,
-                physics.useDistance1,
-                physics.useBoxBoundary,
-                physics.enableBoundary,
-                physics.enableColorCharge
-            );
-            physics.positionShader = generateComputePosition(physics.enableBoundary, physics.useBoxBoundary);
-            
+            physics.velocityShader = generateComputeVelocity(physics);
+            physics.positionShader = generateComputePosition(physics);
+
             graphics.readbackParticleData();
             graphics.drawParticles();
         }
@@ -487,7 +512,7 @@ class Core {
                         return;
                     }
                     let centerVector = new Vector3(center.x, center.y, center.z);
-                    if (centerVector.length() >= physics.boundaryDistance) {
+                    if (physics.enableBoundary && centerVector.length() >= physics.boundaryDistance) {
                         alert('Value out of boundaries.');
                         return;
                     }
@@ -588,6 +613,84 @@ class Core {
         let graphics = simulation.graphics;
 
         let imported = parseCsv(simulation, filename, content);
+        if (imported == undefined) return;
+
+        this.internalSetup(imported.physics);
+
+        simulation.name = filename;
+        simulation.folderName = 'imported';
+        simulation.particleRadius = imported.particleRadius;
+        simulation.particleRadiusRange = imported.particleRadiusRange;
+        simulation.mode2D = imported.mode2D;
+
+        graphics.camera.position.set(imported.camera.x, imported.camera.y, imported.camera.z);
+        graphics.controls.target.set(imported.target.x, imported.target.y, imported.target.z);
+        graphics.controls.update();
+
+        simulation.setup();
+
+        simulation.cycles = imported.cycles;
+    }
+
+    exportJson(list) {
+        simulation.graphics.readbackParticleData();
+
+        let snapshotObj = {
+            version: "0.1",
+            name: simulation.name,
+            folder: simulation.folderName,
+            cycles: simulation.cycles,
+            particleRadius: simulation.particleRadius,
+            particleRadiusRange: simulation.particleRadiusRange,
+            mode2D: simulation.mode2D,
+            target: simulation.graphics.controls.target,
+            camera: simulation.graphics.camera.position,
+
+            physics: simulation.physics
+        };
+
+        if (list) snapshotObj.physics.particleList = list;
+
+        snapshotObj.physics.velocityShader = undefined;
+        snapshotObj.physics.positionShader = undefined;
+        snapshotObj.physics.particleList.forEach((particle) => {
+            particle.force = undefined;
+            particle.uv = undefined;
+        })
+        //snapshotObj.physics.particleList = undefined;
+
+        return JSON.stringify(snapshotObj, null, 4);
+    }
+
+    parseJson(content) {
+        log("parseJson")
+
+        let imported = JSON.parse(content);
+        if (imported == undefined || imported.physics == undefined || imported.physics.particleList == undefined) {
+            log("Failed to parse JSON file.");
+            return undefined;
+        }
+
+        log("Loaded particles: " + imported.physics.particleList.length);
+
+        let newPhysics = new Physics(imported.physics);
+
+        imported.physics.particleList.forEach((particle) => {
+            let newParticle = new Particle(particle);
+            newPhysics.particleList.push(newParticle);
+        });
+
+        imported.physics = newPhysics;
+
+        return imported;
+    }
+
+    importJson(filename, content) {
+        log('importJson ' + filename);
+
+        let graphics = simulation.graphics;
+
+        let imported = this.parseJson(content);
         if (imported == undefined) return;
 
         this.internalSetup(imported.physics);

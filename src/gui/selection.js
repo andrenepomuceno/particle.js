@@ -5,7 +5,7 @@ import {
 } from '../core.js';
 import { uploadCsv } from '../components/csv';
 import { SourceType } from '../components/selection';
-import { mouseToWorldCoord } from '../helpers.js';
+import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
 
 let options = undefined;
 let controls = undefined;
@@ -37,13 +37,18 @@ export class GUISelection {
             center: '',
             fixedPosition: false,
             export: () => {
-                selection.export(simulation);
+                //selection.export(simulation);
+                selection.exportJson();
             },
             import: () => {
-                uploadCsv((name, content) => {
+                uploadJsonZip((name, content) => {
+                    selection.clear();    
+                    core.importParticleListJson(selection, name, content);
+                });
+                /*uploadCsv((name, content) => {
                     selection.clear();    
                     core.importParticleList(selection, name, content);
-                });
+                });*/
             },
             clone: () => {
                 selection.clone();

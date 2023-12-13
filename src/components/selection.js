@@ -1,9 +1,10 @@
-import { arrayToString, mouseToWorldCoord, downloadFile, exportFilename, mouseToScreenCoord } from "../helpers";
+import { arrayToString, mouseToWorldCoord, downloadFile, generateExportFilename, mouseToScreenCoord, downloadStringToZip } from "../helpers";
 import { calcListStatistics } from "../physics";
 import { ParticleType } from "../particle";
 const { Image } = require('image-js');
 import { exportCSV } from "./csv";
 import { Vector3 } from 'three';
+import { core } from "../core";
 
 function log(msg) {
     console.log("Selection: " + msg);
@@ -138,12 +139,27 @@ export class Selection {
             alert("Please select particles first!");
             return;
         }
-        let finalName = exportFilename("selection_" + this.source);
+
+        let finalName = generateExportFilename("selection_" + this.source);
         if (this.blob != undefined) downloadFile(this.blob, finalName + '.png', "image/png");
         downloadFile(exportCSV(simulation, this.list), finalName + '.csv', "text/plain;charset=utf-8");
     }
 
-    import(imported) {
+    exportJson() {
+        log('exportJson');
+        if (this.list == undefined || this.list.length == 0) {
+            alert("Please select particles first!");
+            return;
+        }
+
+        let finalName = generateExportFilename("selection_" + this.source);
+        if (this.blob != undefined) downloadFile(this.blob, finalName + '.png', "image/png");
+
+        let content = core.exportJson(this.list);
+        downloadStringToZip(content, finalName + '.json');
+    }
+
+    import(imported, filename = '') {
         this.importedData = imported;
         this.list = imported.physics.particleList;
         this.source = SourceType.imported + ' from ' + filename;

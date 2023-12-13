@@ -1,5 +1,5 @@
 import {
-    downloadFile, exportFilename as generateExportFilename, uploadFile
+    downloadFile, generateExportFilename, uploadFile, downloadStringToZip, uploadJsonZip
 } from '../helpers.js';
 import {
     simulation,
@@ -241,13 +241,6 @@ export class GUIControls {
     }
 }
 
-function downloadRenderPng(name) {
-    simulation.graphics.render();
-    simulation.graphics.renderer.domElement.toBlob((blob) => {
-        downloadFile(blob, name + '.png', "image/png");
-    }, 'image/png', 1);
-}
-
 function snapshot() {
     let name = simulation.name;
     let finalName = generateExportFilename(name)
@@ -257,51 +250,20 @@ function snapshot() {
     downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
 }
 
-const JSZip = require('jszip');
-
-function downloadStringToZip(jsonContent, filename) {
-    return new Promise(() => {
-        var zip = new JSZip();
-        zip.file(filename, jsonContent);
-        zip.generateAsync({
-            type: "blob",
-            compression: "DEFLATE"
-        })
-        .then(function(content) {
-            downloadFile(content, filename + '.zip', "data:application/zip;");
-        });
-    });
+function downloadRenderPng(name) {
+    simulation.graphics.render();
+    simulation.graphics.renderer.domElement.toBlob((blob) => {
+        downloadFile(blob, name + '.png', "image/png");
+    }, 'image/png', 1);
 }
 
 function snapshotJson() {
     let content = core.exportJson();
     let name = simulation.name;
     let finalName = generateExportFilename(name)
-
+    
     downloadRenderPng(finalName);
     downloadStringToZip(content, finalName + ".json");
 }
 
-function uploadJsonZip(callback) {
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json.zip';
-    input.onchange = e => {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onload = readerEvent => {
-            let fileData = readerEvent.target.result;
 
-            let zip = new JSZip();
-            zip.loadAsync(fileData).then(function (zip) {
-                let jsonFilename = file.name.replace(".zip", "");
-                zip.file(jsonFilename).async("string").then((jsonData) => {
-                    callback(jsonFilename, jsonData);
-                })
-            });
-        }
-    }
-
-    input.click();
-}

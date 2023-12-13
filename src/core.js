@@ -71,6 +71,19 @@ class Core {
         selection.import(imported);
     }
 
+    importParticleListJson(selection, filename, content) {
+        log('Importing selection ' + filename);
+        
+        let imported = this.parseJson(content);
+        if (imported == undefined) return;
+
+        if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
+            alert("Warning: imported physics constants do not match.");
+        }
+
+        selection.import(imported, filename);
+    }
+
     normalizePosition(list) {
         log('normalizePosition');
         let normalizedList = [];
@@ -649,15 +662,13 @@ class Core {
         return JSON.stringify(snapshotObj, null, 4);
     }
 
-    importJson(filename, content) {
-        log('importJson ' + filename);
-
-        let graphics = simulation.graphics;
+    parseJson(content) {
+        log("parseJson")
 
         let imported = JSON.parse(content);
         if (imported == undefined || imported.physics == undefined || imported.physics.particleList == undefined) {
             log("Failed to parse JSON file.");
-            return;
+            return undefined;
         }
 
         log("Loaded particles: " + imported.physics.particleList.length);
@@ -667,9 +678,22 @@ class Core {
         imported.physics.particleList.forEach((particle) => {
             let newParticle = new Particle(particle);
             newPhysics.particleList.push(newParticle);
-        })
+        });
 
-        this.internalSetup(newPhysics);
+        imported.physics = newPhysics;
+
+        return imported;
+    }
+
+    importJson(filename, content) {
+        log('importJson ' + filename);
+
+        let graphics = simulation.graphics;
+
+        let imported = this.parseJson(content);
+        if (imported == undefined) return;
+
+        this.internalSetup(imported.physics);
 
         simulation.name = filename;
         simulation.folderName = 'imported';

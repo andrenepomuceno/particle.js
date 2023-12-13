@@ -23,7 +23,7 @@ if (ENV?.record === true) {
 
 import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
-import { exportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
+import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
 import { ParticleType } from '../particle.js';
 
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
@@ -266,7 +266,7 @@ export class GraphicsGPU {
         CanvasCapture.beginVideoRecord({
             format: CanvasCapture.WEBM,
             fps: 60,
-            name: exportFilename(name),
+            name: generateExportFilename(name),
         });
     }
 

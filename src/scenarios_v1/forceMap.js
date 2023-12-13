@@ -41,7 +41,7 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
 
     physics.enableFriction = true;
-    physics.frictionConstant = 1e-4;
+    physics.frictionConstant = 1e-3;
     physics.frictionModel = FrictionModel.square;
 }
 

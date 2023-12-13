@@ -488,3 +488,9 @@ export function uploadJsonZip(callback) {
 
     input.click();
 }
+
+export function safeParseFloat(value, old) {
+    let val = parseFloat(value);
+    if (isNaN(val)) return old;
+    return val;
+}

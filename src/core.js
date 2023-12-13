@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
-import { decodeVector3 } from './helpers.js';
+import { decodeVector3, safeParseFloat } from './helpers.js';
 import { scenariosList } from './scenarios.js';
 import { Particle, ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
@@ -140,45 +140,45 @@ class Core {
 
         switch (key) {
             case 'massConstant':
-                physics.massConstant = parseFloat(value);
+                physics.massConstant = safeParseFloat(value, physics.massConstant);
                 break;
 
             case 'chargeConstant':
-                physics.chargeConstant = parseFloat(value);
+                physics.chargeConstant = safeParseFloat(value, physics.chargeConstant);
                 break;
 
             case 'nuclearForceConstant':
-                physics.nuclearForceConstant = parseFloat(value);
+                physics.nuclearForceConstant = safeParseFloat(value, physics.nuclearForceConstant);
                 break;
 
             case 'nuclearForceRange':
-                physics.nuclearForceRange = parseFloat(value);
+                physics.nuclearForceRange = safeParseFloat(value, physics.nuclearForceRange);
                 break;
 
             case 'boundaryDamping':
-                physics.boundaryDamping = parseFloat(value);
+                physics.boundaryDamping = safeParseFloat(value, physics.boundaryDamping);
                 break;
 
             case 'boundaryDistance':
-                physics.boundaryDistance = parseFloat(value);
+                physics.boundaryDistance = safeParseFloat(value, physics.boundaryDistance);
                 break;
 
             case 'minDistance2':
-                physics.minDistance2 = parseFloat(value);
+                physics.minDistance2 = safeParseFloat(value, physics.minDistance2);
                 break;
 
             case 'forceConstant':
-                physics.forceConstant = parseFloat(value);
+                physics.forceConstant = safeParseFloat(value, physics.forceConstant);
                 break;
 
             case 'radius':
-                simulation.particleRadius = parseFloat(value);
+                simulation.particleRadius = safeParseFloat(value, simulation.particleRadius);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
 
             case 'radiusRange':
-                simulation.particleRadiusRange = parseFloat(value);
+                simulation.particleRadiusRange = safeParseFloat(value, simulation.particleRadiusRange);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
@@ -214,7 +214,7 @@ class Core {
                 break;
 
             case 'frictionConstant':
-                physics.frictionConstant = parseFloat(value);
+                physics.frictionConstant = safeParseFloat(value, physics.frictionConstant);
                 updatePhysics = true;
                 updateShader = false;
                 break;
@@ -268,17 +268,17 @@ class Core {
 
         switch (key) {
             case 'mass':
-                particle.mass = parseFloat(value);
+                particle.mass = safeParseFloat(value, particle.mass);
                 fullUpdate = true;
                 break;
 
             case 'charge':
-                particle.charge = parseFloat(value);
+                particle.charge = safeParseFloat(value, particle.charge);
                 fullUpdate = true;
                 break;
 
             case 'nuclearCharge':
-                particle.nuclearCharge = parseFloat(value);
+                particle.nuclearCharge = safeParseFloat(value, particle.nuclearCharge);
                 fullUpdate = true;
                 break;
 
@@ -300,6 +300,10 @@ class Core {
             case 'velocityAbs':
                 {
                     let velocity = parseFloat(value);
+                    if (isNaN(velocity)) {
+                        alert("Invalid value!");
+                        return;
+                    }
                     if (velocity >= physics.boundaryDistance) {
                         alert("Value is too big!");
                         return;
@@ -530,6 +534,10 @@ class Core {
             case 'velocityAbs':
                 {
                     let newVelocityAbs = parseFloat(value);
+                    if (isNaN(newVelocityAbs)) {
+                        alert('Invalid value.');
+                        return;
+                    }
                     if (Math.abs(newVelocityAbs) >= physics.boundaryDistance) {
                         alert('Value is too big.');
                         return;

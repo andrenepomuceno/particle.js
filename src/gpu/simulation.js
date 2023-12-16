@@ -24,17 +24,9 @@ export class SimulationGPU {
         this.mode2D = false;
 
         this.cycles = 0;
-        this.energy = 0.0;
+        this.totalTime = 0.0;
         this.particleRadius = 20;
         this.particleRadiusRange = 10;
-        this.totalMass = 0.0;
-        this.totalTime = 0.0;
-        this.totalCharge = 0.0;
-
-        this.mMin = Infinity;
-        this.mMax = -Infinity;
-        this.qMin = Infinity;
-        this.qMax = -Infinity;
 
         this.computeTime = [];
         this.stats = {};
@@ -140,14 +132,6 @@ export class SimulationGPU {
         };
 
         this.stats = calcListStatistics(this.particleList);
-        this.mMin = this.stats.mMin;
-        this.mMax = this.stats.mMax;
-        this.qMin = this.stats.qMin;
-        this.qMax = this.stats.qMax;
-        this.totalMass = this.stats.totalMass;
-        this.energy = this.stats.totalEnergy;
-        this.totalCharge = this.stats.totalCharge;
-
         this.#fillParticleRadius();
         this.#fillParticleColor();
         this.graphics.drawParticles(this.particleList, this.physics);
@@ -155,12 +139,12 @@ export class SimulationGPU {
 
     #fillParticleRadius() {
         log("#fillParticleRadius");
-        fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.mMin, this.mMax, this.enableMassRadius);
+        fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.stats.mMin, this.stats.mMax, this.enableMassRadius);
     }
 
     #fillParticleColor() {
         log("#fillParticleColor");
-        fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
+        fillParticleColor(this.particleList, this.stats.qMin, this.stats.qMax, this.enableChargeColor);
     }
 
     bidimensionalMode(enable) {

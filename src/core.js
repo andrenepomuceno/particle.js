@@ -262,25 +262,19 @@ class Core {
         if (particle == undefined) return;
         if (value == undefined || value === '') return;
 
-        let simpleUpdate = false;
-        let fullUpdate = false;
-
         graphics.readbackParticleData();
 
         switch (key) {
             case 'mass':
                 particle.mass = safeParseFloat(value, particle.mass);
-                fullUpdate = true;
                 break;
 
             case 'charge':
                 particle.charge = safeParseFloat(value, particle.charge);
-                fullUpdate = true;
                 break;
 
             case 'nuclearCharge':
                 particle.nuclearCharge = safeParseFloat(value, particle.nuclearCharge);
-                fullUpdate = true;
                 break;
 
             case 'position':
@@ -294,7 +288,6 @@ class Core {
                         }
                         particle.position = vec;
                     }
-                    simpleUpdate = true;
                 }
                 break;
 
@@ -313,7 +306,6 @@ class Core {
                         particle.velocity.set(1.0, 0.0, 0.0);
                     }
                     particle.velocity.normalize().multiplyScalar(velocity);
-                    simpleUpdate = true;
                 }
 
                 break;
@@ -332,7 +324,6 @@ class Core {
                         alert('Invalid value.');
                         return;
                     }
-                    simpleUpdate = true;
                 }
                 break;
 
@@ -342,31 +333,24 @@ class Core {
                 particle.nuclearCharge = 0;
                 particle.velocity.set(0, 0, 0);
                 particle.position.set(0, 0, 0);
-                fullUpdate = true;
                 break;
 
             case 'fixed':
                 if (value === true) particle.type = ParticleType.fixed;
                 else if (value === false) particle.type = ParticleType.default;
-                simpleUpdate = true;
                 break;
 
             case 'color':
                 let color = value.replace('#', '');
                 color = parseInt(color, 16);
                 particle.setColor(color);
-                simpleUpdate = true;
                 break;
 
             default:
                 break;
         }
 
-        if (simpleUpdate) {
-            graphics.drawParticles(physics.particleList, physics);
-        } else if (fullUpdate) {
-            simulation.drawParticles();
-        }
+        simulation.drawParticles();
     }
 
     deleteParticleList(list) {
@@ -443,8 +427,6 @@ class Core {
         let totalCharge = stats.totalCharge;
         let totalNuclearCharge = stats.totalNuclearCharge;
 
-        let updateLevel = 0;
-
         switch (parameter) {
             case 'mass':
                 {
@@ -456,10 +438,8 @@ class Core {
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.mass *= Math.abs(ratio);
-                    });
-                    updateLevel = 2;
-                }
+                        p.mass *= ratio;
+                    });                }
                 break;
 
             case 'charge':
@@ -474,10 +454,8 @@ class Core {
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.charge *= Math.abs(ratio);
-                    });
-                    updateLevel = 2;
-                }
+                        p.charge *= ratio;
+                    });                }
                 break;
 
             case 'nuclearCharge':
@@ -490,9 +468,8 @@ class Core {
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.nuclearCharge *= Math.abs(ratio);
+                        p.nuclearCharge *= ratio;
                     });
-                    updateLevel = 2;
                 }
                 break;
 
@@ -515,7 +492,6 @@ class Core {
                         tmpList[index].position.add(centerVector);
                         particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
@@ -543,7 +519,6 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(totalVelocityMean);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
@@ -571,7 +546,6 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(dirVec);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
@@ -581,19 +555,12 @@ class Core {
                     if (value == true) particle.type = ParticleType.fixed;
                     else particle.type = ParticleType.default;
                 });
-                updateLevel = 1;
                 break;
 
             default:
                 log('invalid parameter');
                 return;
         }
-
-        /*if (updateLevel == 1) {
-            graphics.drawParticles(physics.particleList, physics);
-        } else if (updateLevel == 2) {
-            simulation.drawParticles();
-        }*/
 
         simulation.drawParticles();
     }

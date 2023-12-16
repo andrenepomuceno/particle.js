@@ -133,7 +133,7 @@ export class GUIInfo {
 
         simulation.physics.collisionCounter = simulation.stats.collisions;
         let avgEnergy = simulation.stats.avgEnergy;
-        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
+        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.stats.totalMass);
         simulation.physics.avgEnergy = avgEnergy;
         simulation.physics.avgVelocity = avgVelocity;
         simulation.graphics.updateAvgVelocity(avgVelocity);
@@ -154,8 +154,8 @@ export class GUIInfo {
         options.info.velocity = avgVelocity.toExponential(2);
 
         options.info.collisions = simulation.physics.collisionCounter;
-        options.info.mass = simulation.totalMass.toExponential(2);
-        options.info.charge = simulation.totalCharge.toExponential(2);
+        options.info.mass = simulation.stats.totalMass.toExponential(2);
+        options.info.charge = simulation.stats.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
         options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
         let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();

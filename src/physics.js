@@ -137,29 +137,12 @@ export function calcListStatistics(list) {
     stats.qMax = -Infinity;
 
     list.forEach(p => {
-
-        if (p.type != ParticleType.undefined) {
-            if (p.mass > stats.mMax) {
-                stats.mMax = p.mass;
-            }
-            if (p.mass < stats.mMin) {
-                stats.mMin = p.mass;
-            }
-            if (p.charge > stats.qMax) {
-                stats.qMax = p.charge;
-            }
-            if (p.charge < stats.qMin) {
-                stats.qMin = p.charge;
-            }
-        }
-
         switch (p.type) {
             case ParticleType.fixed:
                 if (p.type == ParticleType.fixed) stats.fixed++;
                 //break;
 
             case ParticleType.default:
-            case ParticleType.fixed:
                 stats.center.add(p.position);
                 stats.totalVelocity.add(p.velocity);
                 stats.totalMass += p.mass;
@@ -167,9 +150,23 @@ export function calcListStatistics(list) {
                 stats.totalNuclearCharge += p.nuclearCharge;
                 stats.totalEnergy += p.energy();
                 stats.collisions += p.collisions;
+
+                if (p.mass > stats.mMax) {
+                    stats.mMax = p.mass;
+                }
+                if (p.mass < stats.mMin) {
+                    stats.mMin = p.mass;
+                }
+                if (p.charge > stats.qMax) {
+                    stats.qMax = p.charge;
+                }
+                if (p.charge < stats.qMin) {
+                    stats.qMin = p.charge;
+                }
                 break;
 
             case ParticleType.undefined:
+            case ParticleType.probe:
             default:
                 return;
         }    

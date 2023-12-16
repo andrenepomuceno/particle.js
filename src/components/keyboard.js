@@ -1,3 +1,8 @@
+function log(msg) {
+    let timestamp = new Date().toLocaleString();
+    console.log(timestamp + " | Core: " + msg);
+}
+
 export class Keyboard {
     constructor(mouseHelper, guiOptions) {
         this.mouseHelper = mouseHelper;
@@ -55,6 +60,8 @@ export class Keyboard {
 
     onKeyDown(keyboard, event) {
         if (keyboard.mouseHelper.overGUI || keyboard.onKeyDownMap == undefined) return;
+
+        log("key = " + event.key);
         let key = event.key.toLowerCase();
         if (event.key == 'G') key = event.key;
         if (event.key == 'Z') key = event.key;

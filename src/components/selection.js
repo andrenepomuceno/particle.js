@@ -7,7 +7,7 @@ import { Vector3 } from 'three';
 import { core } from "../core";
 
 function log(msg) {
-    console.log("Selection: " + msg);
+    //console.log("Selection: " + msg);
 }
 
 export const SourceType = {
@@ -72,6 +72,12 @@ export class Selection {
         };
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
+
+        let width = this.mouse1.x - this.mouse0.x;
+        let height = this.mouse0.y - this.mouse1.y;
+        if (width <= 0 || height <= 0) {
+            return;
+        }
 
         if (this.#readParticleData(mode) > 0) {
             this.#snapshot(mode);
@@ -245,7 +251,6 @@ export class Selection {
             }
         });
 
-        console.log(this.list.length);
         return this.list.length;
     }
 

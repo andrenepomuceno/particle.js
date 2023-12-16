@@ -3,7 +3,7 @@ import { cubeGenerator, sphereGenerator, viewSize } from '../helpers'
 import { Particle, ParticleType } from '../particle.js';
 
 function log(msg) {
-    console.log("Field: " + msg);
+    //console.log("Field: " + msg);
 }
 
 const arrowPadding = 0.9;

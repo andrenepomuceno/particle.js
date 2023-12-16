@@ -2,7 +2,7 @@ import { mouseToWorldCoord, mouseToScreenCoord } from "../helpers";
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from 'three';
 
 function log(msg) {
-    console.log("Mouse: " + msg);
+    //console.log("Mouse: " + msg);
 }
 
 export class Mouse {

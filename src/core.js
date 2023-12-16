@@ -15,7 +15,8 @@ let physics = new Physics();
 export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
-    console.log("Core: " + msg)
+    let timestamp = new Date().toLocaleString();
+    console.log(timestamp + " | Core: " + msg);
 }
 
 class Core {
@@ -431,32 +432,27 @@ class Core {
     }
 
     updateParticleList(parameter, value, list) {
-        let totalMass = simulation.totalMass.toExponential(1);
-        let totalCharge = simulation.totalCharge.toExponential(1);
+        log('updateParticleList param = ' + parameter + ' value = ' + value + ' listLen = ' + (list === undefined?'undefined':list.length));
+
         if (list == undefined) {
             list = graphics.particleList;
-        } else {
-            let stats = calcListStatistics(list);
-            totalMass = stats.totalMass.toExponential(1);
-            totalCharge = stats.totalCharge.toExponential(1);
         }
-        log('updateParticleList ' + parameter + ' ' + value + ' ' + list.length);
+
+        let stats = calcListStatistics(list);
+        let totalMass = stats.totalMass;
+        let totalCharge = stats.totalCharge;
+        let totalNuclearCharge = stats.totalNuclearCharge;
 
         let updateLevel = 0;
 
         switch (parameter) {
             case 'mass':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
+                    let newMass = safeParseFloat(value, totalMass);
+                    let ratio = newMass/totalMass;
+                    if (ratio == 1.0) {
                         return;
-                    }
-                    if (ratio.toExponential(1) == totalMass) return;
-                    if (ratio > 1e6) {
-                        alert('Value is too big.');
-                        return;
-                    }
+                    }      
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
@@ -468,14 +464,9 @@ class Core {
 
             case 'charge':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
-                        return;
-                    }
-                    if (ratio.toExponential(1) == totalCharge) return;
-                    if (ratio >= 1e6) {
-                        alert('Value is too big.');
+                    let newCharge = safeParseFloat(value, totalCharge);
+                    let ratio = newCharge/totalMass;
+                    if (ratio == 1.0) {
                         return;
                     }
 
@@ -489,14 +480,9 @@ class Core {
 
             case 'nuclearCharge':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
-                        return;
-                    }
-                    if (ratio.toExponential(1) == totalCharge) return;
-                    if (ratio >= 1e6) {
-                        alert('Value is too big.');
+                    let newNuclearCharge = safeParseFloat(value, totalNuclearCharge);
+                    let ratio = newNuclearCharge/totalNuclearCharge;
+                    if (ratio == 1.0) {
                         return;
                     }
 
@@ -612,6 +598,7 @@ class Core {
         log('deleteAll');
 
         simulation.particleList = [];
+        simulation.physics.particleList = [];
         simulation.drawParticles();
     }
 

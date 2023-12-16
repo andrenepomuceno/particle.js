@@ -3,7 +3,7 @@ import { ParticleType } from '../particle';
 import { calcListStatistics } from '../physics';
 
 function log(msg) {
-    console.log("SimulationGPU: " + msg);
+    //console.log("SimulationGPU: " + msg);
 }
 
 export class SimulationGPU {

@@ -29,7 +29,7 @@ import { ParticleType } from '../particle.js';
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    console.log("Graphics (GPU): " + msg);
+    //console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {

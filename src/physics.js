@@ -26,7 +26,7 @@ export const scaleEPN = {
 export const nuclearForceRange = 1e-15 * scaleEPN.m;
 
 function log(msg) {
-    console.log("Physics: " + msg);
+    //console.log("Physics: " + msg);
 }
 
 export class Physics {

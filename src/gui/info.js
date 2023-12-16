@@ -92,13 +92,13 @@ export class GUIInfo {
         });
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
-        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('mass', val);
         });
-        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('charge', val);
         });
-        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('nuclearCharge', val);
         });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();

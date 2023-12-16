@@ -40,7 +40,7 @@ const guiParameters = gui.addFolder('PARAMETERS');
 const mouse = new Mouse();
 
 function log(msg) {
-    console.log("View: " + msg);
+    //console.log("View: " + msg);
 }
 
 let collapseList = [];

@@ -2,7 +2,6 @@ import { arrayToString, mouseToWorldCoord, downloadFile, generateExportFilename,
 import { calcListStatistics } from "../physics";
 import { ParticleType } from "../particle";
 const { Image } = require('image-js');
-import { exportCSV } from "./csv";
 import { Vector3 } from 'three';
 import { core } from "../core";
 
@@ -137,18 +136,6 @@ export class Selection {
                 });
             });
         }, 'image/png', 1);
-    }
-
-    export(simulation) {
-        log('export');
-        if (this.list == undefined || this.list.length == 0) {
-            alert("Please select particles first!");
-            return;
-        }
-
-        let finalName = generateExportFilename("selection_" + this.source);
-        if (this.blob != undefined) downloadFile(this.blob, finalName + '.png', "image/png");
-        downloadFile(exportCSV(simulation, this.list), finalName + '.csv', "text/plain;charset=utf-8");
     }
 
     exportJson() {

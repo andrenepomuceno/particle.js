@@ -8,7 +8,6 @@ import { GraphicsGPU } from './gpu/graphics'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
 import { FieldGPU } from './gpu/field';
 import { generateComputePosition, generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
-import { parseCsv } from './components/csv.js';
 
 const graphics = new GraphicsGPU();
 let physics = new Physics();
@@ -57,19 +56,6 @@ class Core {
         simulation.setup(this.particleSetup);
 
         log('simulationSetup done');
-    }
-
-    importParticleList(selection, filename, content) {
-        log('Importing selection ' + filename);
-
-        let imported = parseCsv(simulation, filename, content);
-        if (imported == undefined) return;
-
-        if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
-            alert("Warning: imported physics constants do not match.");
-        }
-
-        selection.import(imported);
     }
 
     importParticleListJson(selection, filename, content) {
@@ -571,31 +557,6 @@ class Core {
         simulation.particleList = [];
         simulation.physics.particleList = [];
         simulation.drawParticles();
-    }
-
-    importCSV(filename, content) {
-        log('importCSV ' + filename);
-
-        let graphics = simulation.graphics;
-
-        let imported = parseCsv(simulation, filename, content);
-        if (imported == undefined) return;
-
-        this.internalSetup(imported.physics);
-
-        simulation.name = filename;
-        simulation.folderName = 'imported';
-        simulation.particleRadius = imported.particleRadius;
-        simulation.particleRadiusRange = imported.particleRadiusRange;
-        simulation.mode2D = imported.mode2D;
-
-        graphics.camera.position.set(imported.camera.x, imported.camera.y, imported.camera.z);
-        graphics.controls.target.set(imported.target.x, imported.target.y, imported.target.z);
-        graphics.controls.update();
-
-        simulation.setup();
-
-        simulation.cycles = imported.cycles;
     }
 
     exportJson(list) {

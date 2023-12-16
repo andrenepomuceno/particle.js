@@ -456,7 +456,7 @@ class Core {
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.mass *= ratio;
+                        p.mass *= Math.abs(ratio);
                     });
                     updateLevel = 2;
                 }
@@ -465,14 +465,16 @@ class Core {
             case 'charge':
                 {
                     let newCharge = safeParseFloat(value, totalCharge);
-                    let ratio = newCharge/totalMass;
+                    let ratio = newCharge/totalCharge;
                     if (ratio == 1.0) {
                         return;
                     }
 
+                    console.log("ratio = " + ratio);
+
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.charge *= ratio;
+                        p.charge *= Math.abs(ratio);
                     });
                     updateLevel = 2;
                 }
@@ -488,7 +490,7 @@ class Core {
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
-                        p.nuclearCharge *= ratio;
+                        p.nuclearCharge *= Math.abs(ratio);
                     });
                     updateLevel = 2;
                 }
@@ -587,11 +589,13 @@ class Core {
                 return;
         }
 
-        if (updateLevel == 1) {
+        /*if (updateLevel == 1) {
             graphics.drawParticles(physics.particleList, physics);
         } else if (updateLevel == 2) {
             simulation.drawParticles();
-        }
+        }*/
+
+        simulation.drawParticles();
     }
 
     deleteAll() {

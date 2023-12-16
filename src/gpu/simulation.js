@@ -139,34 +139,14 @@ export class SimulationGPU {
             log("Empty particle list! Continuing...");
         };
 
-        this.mMin = Infinity, this.mMax = -Infinity;
-        this.qMin = Infinity, this.qMax = -Infinity;
-
-        this.totalMass = 0.0;
-        this.energy = 0.0;
-        this.totalCharge = 0.0;
-
-        this.particleList.forEach((p, idx) => {
-            if (p.type == ParticleType.probe || p.type == ParticleType.undefined) return;
-
-            if (p.mass > this.mMax) {
-                this.mMax = p.mass;
-            }
-            if (p.mass < this.mMin) {
-                this.mMin = p.mass;
-            }
-
-            if (p.charge > this.qMax) {
-                this.qMax = p.charge;
-            }
-            if (p.charge < this.qMin) {
-                this.qMin = p.charge;
-            }
-
-            this.totalMass += Math.abs(p.mass);
-            this.energy += (p.mass * p.velocity.lengthSq());
-            this.totalCharge += p.charge;
-        });
+        this.stats = calcListStatistics(this.particleList);
+        this.mMin = this.stats.mMin;
+        this.mMax = this.stats.mMax;
+        this.qMin = this.stats.qMin;
+        this.qMax = this.stats.qMax;
+        this.totalMass = this.stats.totalMass;
+        this.energy = this.stats.totalEnergy;
+        this.totalCharge = this.stats.totalCharge;
 
         this.#fillParticleRadius();
         this.#fillParticleColor();

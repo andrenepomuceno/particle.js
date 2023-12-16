@@ -131,7 +131,28 @@ export function calcListStatistics(list) {
     stats.totalEnergy = 0.0;
     stats.collisions = 0.0;
 
+    stats.mMin = Infinity;
+    stats.mMax = -Infinity;
+    stats.qMin = Infinity;
+    stats.qMax = -Infinity;
+
     list.forEach(p => {
+
+        if (p.type != ParticleType.undefined) {
+            if (p.mass > stats.mMax) {
+                stats.mMax = p.mass;
+            }
+            if (p.mass < stats.mMin) {
+                stats.mMin = p.mass;
+            }
+            if (p.charge > stats.qMax) {
+                stats.qMax = p.charge;
+            }
+            if (p.charge < stats.qMin) {
+                stats.qMin = p.charge;
+            }
+        }
+
         switch (p.type) {
             case ParticleType.fixed:
                 if (p.type == ParticleType.fixed) stats.fixed++;

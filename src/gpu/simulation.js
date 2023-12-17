@@ -1,9 +1,8 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
-import { ParticleType } from '../particle';
 import { calcListStatistics } from '../physics';
 
 function log(msg) {
-    //console.log("SimulationGPU: " + msg);
+    console.log("SimulationGPU: " + msg);
 }
 
 export class SimulationGPU {
@@ -30,6 +29,8 @@ export class SimulationGPU {
 
         this.computeTime = [];
         this.stats = {};
+
+        this.actionList = [];
     }
 
     setup(populateSimulationCallback) {
@@ -69,6 +70,13 @@ export class SimulationGPU {
         let t1 = performance.now();
         this.computeTime.push(t1 - t0);
         if (this.computeTime.length > 10 * 60) this.computeTime.shift();
+
+        let action = this.actionList[0];
+        if (action != undefined && action.cycle <= this.cycles) {
+            log("Executing action for cycle " + action.cycle);
+            action.callback();
+            this.actionList.shift();
+        }
     }
 
     getComputeTime() {

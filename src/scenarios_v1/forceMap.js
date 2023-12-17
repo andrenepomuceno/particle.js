@@ -6,7 +6,7 @@ import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 import { core } from '../core';
 
 export const forceMap = [
-    welcome,
+    //welcome,
     hexagonalCrystal,
 ];
 
@@ -248,8 +248,11 @@ function hexagonalCrystal(simulation) {
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
 
-    let futureAction = new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        core.updatePhysics('frictionConstant', 1e-4);
+    simulation.actionList.push({
+        cycle: Math.round(2000/60),
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-4);
+        }
     });
 }
 

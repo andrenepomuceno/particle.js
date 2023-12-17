@@ -254,7 +254,7 @@ export class GraphicsGPU {
             return;
         }
 
-        let element = this.renderer.domElement;//document.getElementById('container');
+        let element = this.renderer.domElement;
         CanvasCapture.init(
             element,
             {

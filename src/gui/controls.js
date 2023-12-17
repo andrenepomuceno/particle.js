@@ -51,8 +51,8 @@ export class GUIControls {
                 if (core.simulationIdx > 0)
                     options.scenarioSetup(--core.simulationIdx);
             },
-            snapshot: function () {
-                snapshot();
+            snapshotJson: function () {
+                snapshotJson();
             },
             importJson: function () {
                 uploadJsonZip((name, content) => {

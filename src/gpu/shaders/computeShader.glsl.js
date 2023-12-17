@@ -242,8 +242,10 @@ void main() {
 
                     float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
                     float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+                    //x += (1.0 - d) * c;
                     force += nuclearForceConstant * c * d;
-                    // x = x * c;
+                    //x += x * c;
+                    //x = x * (0.9 + 0.1 * c);
                 #endif
             }
 

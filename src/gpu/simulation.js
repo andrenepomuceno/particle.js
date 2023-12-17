@@ -50,7 +50,7 @@ export class SimulationGPU {
             
             log('Sorting action list...');
             this.actionList = this.actionList.sort((a, b) => {
-                return a.time - b.time;
+                return a.cycle - b.cycle;
             });
 
             this.physics.mode2D = this.mode2D;
@@ -78,8 +78,8 @@ export class SimulationGPU {
         if (this.computeTime.length > 10 * 60) this.computeTime.shift();
 
         let action = this.actionList[0];
-        if (action != undefined && action.time <= this.totalTime) {
-            log("Executing action for time " + action.time);
+        if (action != undefined && action.cycle <= this.cycles) {
+            log("Executing action for cycle " + action.cycle);
             action.callback();
             this.actionList.shift();
         }

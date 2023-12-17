@@ -55,7 +55,7 @@ class Core {
 
         simulation.setup(this.particleSetup);
 
-        log('simulationSetup done');
+        log('setup done');
     }
 
     importParticleListJson(selection, filename, content) {

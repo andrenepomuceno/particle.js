@@ -40,7 +40,8 @@ const guiParameters = gui.addFolder('PARAMETERS');
 const mouse = new Mouse();
 
 function log(msg) {
-    //console.log("View: " + msg);
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | View: " + msg);
 }
 
 let collapseList = [];
@@ -108,6 +109,8 @@ function scenarioSetup(idx) {
     guiOptions.guiControls.refresh();
     guiOptions.guiParameters.refresh();
     guiOptions.guiField.refresh();
+
+    log('setup done');
 }
 
 export function viewSetup() {
@@ -146,6 +149,7 @@ export function viewSetup() {
     guiOptions.keyboard = new Keyboard(mouse, guiOptions, simulation);
     guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
 
+    log('Animating...');
     animate();
 }
 

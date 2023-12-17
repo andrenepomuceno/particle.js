@@ -1,50 +1,15 @@
 import { Vector3 } from 'three';
-import { createNuclei, createNucleiFromList, createParticle, createParticlesList, parseElementRatioList, randomVector } from '../scenariosHelpers';
-import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random } from '../helpers';
+import { createNucleiFromList } from '../scenariosHelpers';
+import { hexagonGenerator, shuffleArray, stringToCoordinates } from '../helpers';
 import { FrictionModel, NuclearPotentialType } from '../physics';
-import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
+import { calcGridSize } from '../scenariosHelpers';
 import { core } from '../core';
 
 export const forceMap = [
-    //welcome,
+    planetoidFormation,
+    welcome,
     hexagonalCrystal,
 ];
-
-function stringToCoordinates(text, font = "Arial", fontSize = 16, x0 = 0, y0 = 0, center = true) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    ctx.font = `${fontSize}px ${font}`;
-    const width = ctx.measureText(text).width;
-    canvas.width = width;
-    canvas.height = 1.25 * fontSize;
-
-    ctx.font = `${fontSize}px ${font}`;
-    ctx.fillText(text, 0, fontSize);
-
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const coordinates = [];
-    const data = img.data;
-
-    let xOffset = 0;
-    let yOffset = 0;
-    if (center) {
-        xOffset = Math.round(img.width/2);
-        yOffset = Math.round(img.height/2);
-    }
-
-    for (let y = 0; y < img.height; y++) {
-        for (let x = 0; x < img.width; x++) {
-            const pixelIndex = (y * img.width + x) * 4;
-            let alpha = data[pixelIndex + 3];
-            if (alpha > 0) {
-                coordinates.push({ x: x + x0 - xOffset, y: -(y + y0 - yOffset), v: alpha });
-            }
-        }
-    }
-
-    return coordinates;
-}
 
 function defaultParameters(simulation, cameraDistance = 1e4) {
     let graphics = simulation.graphics;
@@ -72,6 +37,215 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.enableFriction = true;
     physics.frictionConstant = 1e-3;
     physics.frictionModel = FrictionModel.square;
+}
+
+function planetoidFormation(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    graphics.setMaxParticles(35e3);
+    simulation.setParticleRadius(300, 100);
+
+    physics.useBoxBoundary = true;
+    //physics.enableColorCharge = true;
+    physics.useDistance1 = true;
+    //simulation.mode2D = false;
+
+    const M = 1e18; // distance
+    const KG = 1e30; // mass
+    const S = (0.25) * 1e27; // time
+    const C = (1 / 1.602176634) * 1e21; // charge
+    const nuclearForceRange = 3e-15 * M;
+
+    physics.frictionConstant = 1;
+    physics.frictionModel = FrictionModel.default;
+
+    physics.boundaryDistance = 1e5 * 1e-15 * M;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 30 * nuclearForceRange;
+    graphics.cameraSetup();
+
+    physics.nuclearForceRange = nuclearForceRange;
+    /*simulation.particleRadius = 0.03 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;*/
+
+    physics.massConstant = 1e-1;//6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 1e-4;//8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 3; //30e3 * KG * M * S ** -2;
+    physics.forceConstant = 1;
+    physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
+
+    let nucleusList = [
+        // proton
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+
+        // neutron
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+    ]
+
+    let cloudList = [
+        //{ m: (1e2) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
+    ]
+
+    let r0 = 0.05 * physics.nuclearForceRange;
+    let r1 = 1/3 * physics.nuclearForceRange;
+    let r2 = 2/3 * physics.nuclearForceRange;
+    let vel = 0;
+    let zNumber = 3;
+    let cloudN = 2 * zNumber;
+
+    let fontSize = 20;
+    let alphaThreshold = 0.25 * 255;
+
+    let coordList = stringToCoordinates("PLANETOID", "Arial", fontSize, 0, -fontSize/2);
+    coordList = coordList.concat(stringToCoordinates("FORMATION", "Arial", fontSize, 0, fontSize/2));
+    //coordList = coordList.concat(stringToCoordinates("SIMULATION", "Arial", fontSize, 0, fontSize))
+
+    console.log("coordList.length = " + coordList.length);
+
+    coordList.forEach((value, idx) => {
+        let center = new Vector3(r2 * value.x, r2 * (value.y + 2), 0.0);
+        if (value.v > alphaThreshold) createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1, 1, 1, r0, r1, center, vel, cloudN);
+    });
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+
+    function setCameraDistance(d) {
+        simulation.graphics.camera.position.set(0, 0, d);
+        simulation.graphics.controls.target.set(0, 0, 0);
+        simulation.graphics.controls.update();
+    }
+
+    function cameraTransition(startTime, duration, initialPos = {x: 0, y: 0, z: 0}, finalPos = {x: 0, y: 0, z: 0}, delta = 1000/60) {
+        let list = [];
+
+        let steps = Math.round(duration/delta);
+
+        let posDeltaX = (finalPos.x - initialPos.x)/steps;
+        let posDeltaY = (finalPos.y - initialPos.y)/steps;
+        let posDeltaZ = (finalPos.z - initialPos.z)/steps;
+
+        for (let i = 0; i < steps; ++i) {
+            let action = {
+                time: startTime + i * delta,
+                callback: () => {
+                    simulation.graphics.camera.position.set(
+                        initialPos.x + i * posDeltaX, 
+                        initialPos.y + i * posDeltaY, 
+                        initialPos.z + i * posDeltaZ);
+                }
+            };
+
+            list.push(action);
+        }
+
+        return list;
+    }
+
+    simulation.addAction({
+        time: 3 * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-3);
+        }
+    });
+
+    simulation.addAction({
+        time: (1.5 * 60) * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-2);
+        }
+    });
+
+    simulation.addActionArray(cameraTransition(
+        2.0 * 60 * 1e3, 
+        3 * 1e3, 
+        {x: 0, y: 0, z: 1e5}, 
+        {x: 0, y: 0, z: 1.5e5}));
+
+    simulation.addAction({
+        time: 2.25 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', 2 * physics.massConstant);
+        }
+    });
+
+    simulation.addAction({
+        time: 2.5 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', 2 * physics.massConstant);
+        }
+    });
+
+    simulation.addAction({
+        time: 2.75 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', 2 * physics.massConstant);
+        }
+    });
+
+    simulation.addActionArray(cameraTransition(
+        2.75 * 60 * 1e3, 
+        3 * 1e3, 
+        {x: 0, y: 0, z: 1.5e5}, 
+        {x: 0, y: 0, z: 1.0e5}));
+
+    simulation.addAction({
+        time: 3 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 5e-2);
+        }
+    });
+
+    simulation.addAction({
+        time: 3.25 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-2);
+        }
+    });
+
+    simulation.addAction({
+        time: 3.5 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', physics.massConstant / 2);
+        }
+    });
+
+    simulation.addAction({
+        time: 3.75 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', physics.massConstant / 2);
+        }
+    });
+
+    simulation.addAction({
+        time: 4.0 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('massConstant', physics.massConstant / 2);
+        }
+    });
+
+    simulation.addAction({
+        time: 4.25 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 5e-2);
+        }
+    });
+
+    simulation.addAction({
+        time: 4.5 * 60 * 1e3,
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-3);
+        }
+    });    
 }
 
 function welcome(simulation) {
@@ -148,32 +322,9 @@ function welcome(simulation) {
         if (value.v > alphaThreshold) createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1, 1, 1, r0, r1, center, vel, cloudN);
     });
 
-    /*let center = new Vector3(0,0,0);
-    createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1, 1, 1, r0, r1, center, vel, cloudN);*/
-
     shuffleArray(physics.particleList);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
-
-    /*let futureAction = new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        core.deleteAll();
-
-        let coordList = stringToCoordinates("Press", "Arial", fontSize, 0, -fontSize);
-        coordList = coordList.concat(stringToCoordinates("Page Down", "Arial", fontSize, 0, 0));
-        coordList = coordList.concat(stringToCoordinates("Page Up", "Arial", fontSize, 0, fontSize))
-
-        console.log("coordList.length = " + coordList.length);
-
-        coordList.forEach((value, idx) => {
-            let center = new Vector3(r2 * value.x, r2 * (value.y + 2), 0.0);
-            if (value.v > alphaThreshold) createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1, 1, 1, r0, r1, center, vel, cloudN);    
-        });
-
-        simulation.particleList = simulation.physics.particleList;
-        simulation.drawParticles();
-
-        //console.log(simulation); 
-    });*/
 }
 
 function hexagonalCrystal(simulation) {

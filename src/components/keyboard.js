@@ -1,5 +1,5 @@
 function log(msg) {
-    let timestamp = new Date().toLocaleString();
+    let timestamp = new Date().toISOString();
     console.log(timestamp + " | Core: " + msg);
 }
 

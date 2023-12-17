@@ -14,7 +14,7 @@ let physics = new Physics();
 export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
-    let timestamp = new Date().toLocaleString();
+    let timestamp = new Date().toISOString();
     console.log(timestamp + " | " + simulation.cycles + " | Core: " + msg);
 }
 

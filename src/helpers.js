@@ -494,3 +494,39 @@ export function safeParseFloat(value, old) {
     if (isNaN(val)) return old;
     return val;
 }
+
+export function stringToCoordinates(text, font = "Arial", fontSize = 16, x0 = 0, y0 = 0, center = true) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.font = `${fontSize}px ${font}`;
+    const width = ctx.measureText(text).width;
+    canvas.width = width;
+    canvas.height = 1.25 * fontSize;
+
+    ctx.font = `${fontSize}px ${font}`;
+    ctx.fillText(text, 0, fontSize);
+
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const coordinates = [];
+    const data = img.data;
+
+    let xOffset = 0;
+    let yOffset = 0;
+    if (center) {
+        xOffset = Math.round(img.width/2);
+        yOffset = Math.round(img.height/2);
+    }
+
+    for (let y = 0; y < img.height; y++) {
+        for (let x = 0; x < img.width; x++) {
+            const pixelIndex = (y * img.width + x) * 4;
+            let alpha = data[pixelIndex + 3];
+            if (alpha > 0) {
+                coordinates.push({ x: x + x0 - xOffset, y: -(y + y0 - yOffset), v: alpha });
+            }
+        }
+    }
+
+    return coordinates;
+}

@@ -2,7 +2,8 @@ import { fillParticleRadius, fillParticleColor } from '../helpers';
 import { calcListStatistics } from '../physics';
 
 function log(msg) {
-    console.log("SimulationGPU: " + msg);
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | Simulation: " + msg);
 }
 
 export class SimulationGPU {
@@ -46,6 +47,11 @@ export class SimulationGPU {
             log('Populating ' + populateSimulationCallback.name + '...');
             populateSimulationCallback(this);
             log('Populating done.');
+            
+            log('Sorting action list...');
+            this.actionList = this.actionList.sort((a, b) => {
+                return a.time - b.time;
+            });
 
             this.physics.mode2D = this.mode2D;
             this.graphics.cameraSetup();
@@ -72,11 +78,22 @@ export class SimulationGPU {
         if (this.computeTime.length > 10 * 60) this.computeTime.shift();
 
         let action = this.actionList[0];
-        if (action != undefined && action.cycle <= this.cycles) {
-            log("Executing action for cycle " + action.cycle);
+        if (action != undefined && action.time <= this.totalTime) {
+            log("Executing action for time " + action.time);
             action.callback();
             this.actionList.shift();
         }
+    }
+
+    addAction(action = {
+        cycle: 0,
+        callback: ()=>{}
+    }) {
+        this.actionList.push(action);
+    }
+
+    addActionArray(array) {
+        this.actionList.push(...array);
     }
 
     getComputeTime() {

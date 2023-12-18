@@ -11,6 +11,7 @@ import {
     Points,
     Mesh,
     MeshBasicMaterial,
+    RingGeometry,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
@@ -91,6 +92,8 @@ export class GraphicsGPU {
         this.axisObject = undefined;
         this.labelMesh = undefined;
         this.labelText = this.axisWidth.toFixed(1) + 'u';
+
+        this.cursorMesh = undefined;
     }
 
     raycast(core, pointer) {
@@ -290,6 +293,22 @@ export class GraphicsGPU {
         this.scene.add(mesh);
 
         return mesh;
+    }
+
+    drawCursor(show = true, radius = 100, thickness = 10) {
+        if (this.cursorMesh != undefined && !show) {
+            this.scene.remove(this.cursorMesh);
+            this.cursorMesh = undefined;
+            return;
+        }
+        
+        this.cursorMesh = new Mesh(
+            new RingGeometry(radius - thickness/2, radius + thickness/2, 32),
+            new MeshBasicMaterial({ color: 0xfffffff })
+        );
+        this.scene.add(this.cursorMesh);
+
+        return this.cursorMesh;
     }
 
     drawAxisLabel(mode2D, width, labelText) {

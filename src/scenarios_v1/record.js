@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { createNucleiFromList } from '../scenariosHelpers';
-import { hexagonGenerator, shuffleArray, stringToCoordinates } from '../helpers';
+import { hexagonGenerator, mouseToScreenCoord, mouseToWorldCoord, shuffleArray, stringToCoordinates } from '../helpers';
 import { FrictionModel, NuclearPotentialType } from '../physics';
 import { calcGridSize } from '../scenariosHelpers';
 import { core } from '../core';
@@ -161,8 +161,16 @@ function planetoidFormation3(simulation) {
 
     function caption(text, timeout = 2000) {
         const color = 0xffffff;
-        const size = 5e3;
-        const pos = new Vector3(-1.2e5, -0.6e5, 0);
+        const pos = mouseToWorldCoord(
+            mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.90}),
+            graphics.camera
+        );
+        const height = mouseToWorldCoord(
+            mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.94}),
+            graphics.camera
+        );
+        const size = Math.abs(pos.y - height.y);
+
         let captions = graphics.drawText(text, size, pos, color);
         delayedAction(timeout).then(() => {
             graphics.scene.remove(captions);
@@ -176,6 +184,7 @@ function planetoidFormation3(simulation) {
             core.updatePhysics('frictionConstant', 1);
             core.updatePhysics('massConstant', 512);
             caption("Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
+            graphics.drawCursor(false);
         }
     });
 

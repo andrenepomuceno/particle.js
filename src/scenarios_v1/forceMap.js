@@ -6,7 +6,7 @@ import { calcGridSize } from '../scenariosHelpers';
 import { core } from '../core';
 
 export const forceMap = [
-    welcome,
+    //welcome,
     hexagonalCrystal,
 ];
 

@@ -270,85 +270,51 @@ export class GraphicsGPU {
         });
     }
 
+    drawText(text, size, position, color) {
+        const height = 1;
+        let mesh = new Mesh(
+            new TextGeometry(text, {
+                font: this.font,
+                size: size,
+                height: height
+            }),
+            new MeshBasicMaterial({
+                color: color,
+            })
+        );
+
+        mesh.translateX(position.x);
+        mesh.translateY(position.y);
+        mesh.translateZ(position.z);
+
+        this.scene.add(mesh);
+
+        return mesh;
+    }
+
     drawAxisLabel(mode2D, width, labelText) {
         if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
             this.scene.remove(label);
         });
 
-        this.labelMesh = [
-            new Mesh(
-                new TextGeometry('X (' + labelText + ')', {
-                    font: this.font,
-                    size: width * 0.05,
-                    height: 1,
-                }),
-                new MeshBasicMaterial({
-                    color: 0xff0000,
-                })
-            ),
-            new Mesh(
-                new TextGeometry('Y', {
-                    font: this.font,
-                    size: width * 0.05,
-                    height: 1,
-                }),
-                new MeshBasicMaterial({
-                    color: 0x00ff00,
-                })
-            )
-        ];
-
         const spacing = 0.02 * width;
-        this.labelMesh[0].translateOnAxis(new Vector3(1, 0, 0), spacing + width);
-        this.labelMesh[1].translateOnAxis(new Vector3(0, 1, 0), spacing + width);
+        this.labelMesh = [
+            this.drawText('X (' + labelText + ')', width * 0.05, new Vector3(spacing + width, 0, 0), 0xff0000),
+            this.drawText('Y', width * 0.05, new Vector3(0, spacing + width, 0), 0x00ff00)
+        ];
 
         if (mode2D == false) {
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('Z', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0x0000ff,
-                    })
-                )
+                this.drawText('Z', width * 0.05, new Vector3(0, 0, spacing + width), 0x0000ff)
             );
-            this.labelMesh[2].translateOnAxis(new Vector3(0, 0, 1), spacing + width);
-
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('(0,0,0)', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0xffffff,
-                    })
-                )
+                this.drawText('(0,0,0)', width * 0.05, new Vector3(spacing, spacing, 0), 0xffffff)
             );
-            this.labelMesh[3].translateOnAxis(new Vector3(1, 1, 0), spacing);
         } else {
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('(0,0)', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0xffffff,
-                    })
-                )
+                this.drawText('(0,0)', width * 0.05, new Vector3(spacing, spacing, 0), 0xffffff)
             );
-            this.labelMesh[2].translateOnAxis(new Vector3(1, 1, 0), spacing);
         }
-
-        this.labelMesh.forEach(label => {
-            this.scene.add(label);
-        });
     }
 
     /* GPGPU Stuff */

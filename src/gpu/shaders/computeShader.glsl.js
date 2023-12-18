@@ -240,12 +240,17 @@ void main() {
                         vec3(0.0, 0.0, 1.0)
                     );
 
-                    float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
-                    float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
-                    //x += (1.0 - d) * c;
-                    force += nuclearForceConstant * c * d;
-                    //x += x * c;
-                    //x = x * (0.9 + 0.1 * c);
+                    if (props1.w != 0.0 || props2.w != 0.0) {
+                        float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
+                        const float colorMixConstant = 1.0/3.0;
+                        x = x * (1.0 - colorMixConstant + colorMixConstant * c);
+                        //float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+                        //force += nuclearForceConstant * c * (1.0 - d);
+                        //force += nuclearForceConstant * c * x;
+                        //x += (1.0 - d) * c;    
+                        //x *= c;
+                        //x += x * c;
+                    }
                 #endif
             }
 

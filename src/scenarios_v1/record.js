@@ -159,7 +159,7 @@ function planetoidFormation3(simulation) {
         })
     }
 
-    function caption(text, timeout = 2000) {
+    function caption(text, timeout = 3000) {
         const color = 0xffffff;
         const pos = mouseToWorldCoord(
             mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.90}),
@@ -179,24 +179,23 @@ function planetoidFormation3(simulation) {
 
     const cyclesPerMs = (50/1000);
     simulation.addAction({
-        cycle: 3 * 1e3 * cyclesPerMs,
+        cycle: 1 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1);
-            core.updatePhysics('massConstant', 512);
             caption("Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
             graphics.drawCursor(false);
         }
     });
 
-    simulation.addActionArray(cameraTransition(5 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: 1e5}));
-
     simulation.addAction({
-        cycle: 10 * 1e3 * cyclesPerMs,
+        cycle: 5 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
-            caption("Gravity: " + physics.massConstant);
+            core.updatePhysics('frictionConstant', 1);
+            core.updatePhysics('massConstant', 512);
+            caption("Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
+
+    simulation.addActionArray(cameraTransition(8 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: 1e5}));
 
     simulation.addAction({
         cycle: 13 * 1e3 * cyclesPerMs,
@@ -246,10 +245,18 @@ function planetoidFormation3(simulation) {
         }
     });
 
-    simulation.addActionArray(cameraTransition(30 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: -1e5}));
+    simulation.addAction({
+        cycle: 31 * 1e3 * cyclesPerMs,
+        callback: () => {
+            core.updatePhysics('massConstant', physics.massConstant / 2);
+            caption("Gravity: " + physics.massConstant);
+        }
+    });
+
+    simulation.addActionArray(cameraTransition(34 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: -1e5}));
 
     simulation.addAction({
-        cycle: 35 * 1e3 * cyclesPerMs,
+        cycle: 40 * 1e3 * cyclesPerMs,
         callback: () => {
             core.updatePhysics('massConstant', 0.5);
             caption("Gravity: " + physics.massConstant);
@@ -257,7 +264,7 @@ function planetoidFormation3(simulation) {
     });
 
     simulation.addAction({
-        cycle: 40 * 1e3 * cyclesPerMs,
+        cycle: 43 * 1e3 * cyclesPerMs,
         callback: () => {
             core.updatePhysics('frictionConstant', 1e-1);
             caption("Friction: " + physics.frictionConstant);
@@ -265,7 +272,7 @@ function planetoidFormation3(simulation) {
     });
 
     simulation.addAction({
-        cycle: 45 * 1e3 * cyclesPerMs,
+        cycle: 48 * 1e3 * cyclesPerMs,
         callback: () => {
             core.updatePhysics('frictionConstant', 1e-2);
             caption("Friction: " + physics.frictionConstant);
@@ -273,14 +280,21 @@ function planetoidFormation3(simulation) {
     });
 
     simulation.addAction({
-        cycle: 50 * 1e3 * cyclesPerMs,
+        cycle: 53 * 1e3 * cyclesPerMs,
         callback: () => {
             core.updatePhysics('frictionConstant', 1e-3);
             caption("Friction: " + physics.frictionConstant);
         }
     });
 
-    simulation.addActionArray(cameraTransition(1.1 * 60 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: 9e5}));
+    simulation.addActionArray(cameraTransition(58 * 1e3 * cyclesPerMs, 5 * 1e3 * cyclesPerMs, {x: 0, y: 0, z: 9e5}));
+
+    simulation.addAction({
+        cycle: 65 * 1e3 * cyclesPerMs,
+        callback: () => {
+            caption("The End!");
+        }
+    });
 
     simulation.addAction({
         cycle: 1.5 * 60 * 1e3 * cyclesPerMs,

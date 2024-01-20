@@ -125,7 +125,7 @@ void main() {
             if (rng == 0.0) continue;*/
 
             // check collision
-            if (distance2 < minDistance2) {
+            if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
                     float m2 = props2.x;
                     vec3 vel2 = texture2D(textureVelocity, uv2).xyz;

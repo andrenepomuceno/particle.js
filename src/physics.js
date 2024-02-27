@@ -62,6 +62,8 @@ export class Physics {
 
         avgVelocity: 0.0,
         avgEnergy: 0.0,
+
+        forceMap: [1.0, -1.0],
     }) {
         log('constructor');
 
@@ -97,6 +99,8 @@ export class Physics {
 
         this.avgVelocity = input.avgVelocity;
         this.avgEnergy = input.avgEnergy;
+
+        this.forceMap = input.forceMap;
     }
 
     header() {

@@ -389,6 +389,9 @@ export class GraphicsGPU {
         uniforms['frictionConstant'] = { value: physics.frictionConstant };
         uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
 
+        uniforms['forceMap'] = { value: physics.forceMap };
+        uniforms['forceMapLen'] = { value: physics.forceMap.length };
+
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
     }

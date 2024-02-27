@@ -74,6 +74,9 @@ uniform vec4 forceConstants;
     0
 );*/
 
+uniform float forceMap[16];
+uniform float forceMapLen;
+
 #define UNDEFINED -1.0
 #define DEFAULT 0.0
 #define PROBE 1.0
@@ -183,42 +186,14 @@ void main() {
                         const float a = 3.0;
                         x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
                     #elif USE_FMAP1 // 'forceMap1'
-                        // const float fMap[2] = float[2](1.0, 0.0);
-                        // int idx = int(2.0 * x);
-                        // const float fMap[3] = float[](3.0, 0.0, -1.0);
-                        // int idx = int(3.0 * x);
-                        // const float fMap[4] = float[](2.0, 0.0, -1.0, -1.0);
-                        // int idx = int(4.0 * x);
-                        // const float fMap[7] = float[](3.0, 0.0, -2.0, 0.0, 2.0, 0.0, -3.0);
-                        // int idx = int(7.0 * x);
-                        // const float fMap[6] = float[](1.0, 3.0, 0.0, -1.0, -0.5, -0.25);
-                        // int idx = int(6.0 * x);
-
-                        // const float fMap[10] = float[](1.0, 3.0, -2.0, -1.0, 0.5, -0.5, -0.25, 0.125, -0.125, -0.063);
-                        // int idx = int(10.0 * x);
-
-                        // const float fMap[8] = float[](3.0, -2.0, 1.0, -1.0, 0.5, -0.5, 0.25, -0.25);
-                        // int idx = int(8.0 * x);
-
-                        /*const float fMap[12] = float[](2.0, 3.0, -2.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.5, 0.0, -0.5);
-                        int idx = int(12.0 * x);*/
-
-                        /*const float fMap[6] = float[](2.0, 3.0, -2.0, -1.0, 0.5, -0.5);
-                        int idx = int(6.0 * x);*/
-
-                        // const float fMap[12] = float[](0.0, 2.0, 0.0, -2.0, 0.0, 0.1, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
-                        // int idx = int(12.0 * x);
-
-                        // const float fMap[8] = float[](0.1, 2.0, 0.0, -1.0, 0.0, 0.1, 0.0, -0.5);
-                        // int idx = int(8.0 * x);
-
-                        const float fMap[12] = float[](
-                            1.0, 2.0, 0.0, -2.0, 
-                            0.0, 0.5, 0.0, -1.0, 
-                            0.0, 0.25, 0.0, -0.5);
-                        int idx = int(8.0 * x);
-                        
-                        x = fMap[idx];
+                        int idx = int(forceMapLen * x);
+                        x = forceMap[idx];
+                    #elif USE_FMAP2
+                        float fx = -x;
+                        if (distance2 < 0.1 * nuclearForceRange2) {
+                            fx += 10.0 * x;
+                        }
+                        x = fx;
                     #else
                         x = sin(2.0 * PI * x);
                     #endif

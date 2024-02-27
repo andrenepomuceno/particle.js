@@ -212,6 +212,12 @@ class Core {
                 updateShader = true;
                 break;
 
+            case 'forceMap':
+                physics.forceMap = value;
+                updatePhysics = true;
+                updateShader = false;
+                break;
+
             default:
                 updatePhysics = false;
                 break;

@@ -29,6 +29,7 @@ export class GUIParameters {
             radius: '',
             radiusRange: '',
             nuclearPotential: NuclearPotentialType.default,
+            forceMap: '[]',
             boxBoundary: false,
             distance1: false,
             enableBoundary: true,
@@ -69,8 +70,19 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'nuclearPotential', potentialType).name('Nuclear Potential').listen().onFinishChange((val) => {
             core.updatePhysics('potential', val);
         });
-        guiParametersConsts.add(options.parameters, 'forceConstant').name('Force Multiplier').listen().onFinishChange((val) => {
-            core.updatePhysics('forceConstant', val);
+        guiParametersConsts.add(options.parameters, 'forceMap').name('Force Map').listen().onFinishChange((val) => {
+            let forceMap = String(val).split(',').map((x) => {
+                let v = parseFloat(x);
+                if (isNaN(v)) {
+                    v = 0;
+                }
+                return v;
+            });
+            if (forceMap.length < 1 || forceMap.length > 16) {
+                alert('Invalid map.');
+                return;
+            }
+            core.updatePhysics('forceMap', forceMap);
         });
         guiParametersConsts.add(options.parameters, 'minDistance').name('Minimum Distance').listen().onFinishChange((val) => {
             let d = parseFloat(val);
@@ -92,6 +104,9 @@ export class GUIParameters {
         }
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
+        });
+        guiParametersConsts.add(options.parameters, 'forceConstant').name('Force Multiplier').listen().onFinishChange((val) => {
+            core.updatePhysics('forceConstant', val);
         });
         //guiParametersConsts.open();
 
@@ -134,6 +149,7 @@ export class GUIParameters {
         edit.boxBoundary = simulation.physics.useBoxBoundary;
         edit.distance1 = simulation.physics.useDistance1;
         edit.nuclearPotential = simulation.physics.nuclearPotential;
+        edit.forceMap = simulation.physics.forceMap;
         edit.enableBoundary = simulation.physics.enableBoundary;
         edit.enableFriction = simulation.physics.enableFriction;
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);

@@ -6,6 +6,7 @@ import { calcGridSize } from '../scenariosHelpers';
 import { core } from '../core';
 
 export const forceMap = [
+    experiments1,
     //welcome,
     hexagonalCrystal,
 ];
@@ -37,6 +38,90 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     physics.frictionConstant = 1e-3;
     physics.frictionModel = FrictionModel.square;
 }
+
+function experiments1(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    physics.forceMap = [2,-1,-0.5,-0.25,-0.12,-0.06,-0.03]
+
+    physics.useBoxBoundary = true;
+    //physics.enableColorCharge = true;
+    physics.useDistance1 = true;
+    //simulation.mode2D = false;
+    physics.frictionConstant = 1e-3;
+
+    const M = 1e18;
+    const KG = 1e30;
+    const S = (0.25) * 1e27;
+    const C = (1 / 1.602176634) * 1e21;
+    const nuclearForceRange = 3e-15 * M;
+
+    physics.boundaryDistance = 100 * 1e-15 * M;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 0.25 * physics.boundaryDistance;
+    graphics.cameraSetup();
+
+    physics.nuclearForceRange = nuclearForceRange;
+    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+
+    physics.massConstant = 1e-2; //6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 1e-4; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+    physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2; // fine structure
+    physics.forceConstant = 1;
+    physics.minDistance2 = Math.pow(1e-3, 2);
+
+    let r0 = 0.05 * physics.nuclearForceRange;
+    let r1 = 1/3 * physics.nuclearForceRange;
+    let r2 = 2/3 * physics.nuclearForceRange;
+
+    let nucleusList = [
+        // proton
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+
+        // neutron
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark up', colorCharge: 1.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: 1, name: 'quark down', colorCharge: 3.0 },
+    ]
+
+    let cloudList = [
+        //{ m: (1e2) * 4.99145554865e-37 * KG, q: 0, nq: -1, name: 'neutrino' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -1, name: 'electron' },
+    ]
+
+    let zNumber = 6;
+    let electrons = 8 * zNumber;
+    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 8 * cloudList.length));
+    let nq = 1;
+    let v = 1e1 * M * S ** -2;
+    hexagonGenerator((vertex, totalLen) => {
+        let snq = nq;
+        //let snq = nq * ((random(0, 1) >= 0.001) ? (1) : (-1));
+        //let snq = nq * (index % 2) ? (1) : (-1);
+        //let center = new Vector3(x, y, z);
+        let center = new Vector3(vertex.x, vertex.y, 0);
+
+        createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
+    }, r2, grid, 'offset', false);
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+
+    simulation.actionList.push({
+        cycle: Math.round(2000/60),
+        callback: () => {
+            core.updatePhysics('frictionConstant', 1e-4);
+        }
+    });
+}
+
 
 function welcome(simulation) {
     let graphics = simulation.graphics;
@@ -121,6 +206,8 @@ function hexagonalCrystal(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
+
+    physics.forceMap = [1.0, 2.0, 0.0, -2.0, 0.0, 0.5, 0.0, -1.0]
 
     physics.useBoxBoundary = true;
     //physics.enableColorCharge = true;

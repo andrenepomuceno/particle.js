@@ -27,7 +27,7 @@
     "image-js": "^0.35.2",
     "jszip": "^3.10.1",
     "madge": "^6.1.0",
-    "three": "^0.147.0"
+    "three": "^0.162.0"
   },
   "devDependencies": {
     "canvas-capture": "^2.0.5",

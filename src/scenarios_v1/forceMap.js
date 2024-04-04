@@ -44,7 +44,8 @@ function experiments1(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    physics.forceMap = [2,-1,-0.5,-0.25,-0.12,-0.06,-0.03]
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2
+    physics.forceMap = [0, 1, 3, 0, -1/8, -1/4, -1/2, -1]
 
     physics.useBoxBoundary = true;
     //physics.enableColorCharge = true;
@@ -72,11 +73,11 @@ function experiments1(simulation) {
     physics.chargeConstant = 1e-4; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2; // fine structure
     physics.forceConstant = 1;
-    physics.minDistance2 = Math.pow(1e-3, 2);
+    physics.minDistance2 = Math.pow(1, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
-    let r1 = 1/3 * physics.nuclearForceRange;
-    let r2 = 2/3 * physics.nuclearForceRange;
+    let r1 = 1/2 * physics.nuclearForceRange;
+    let r2 = 1.2 * physics.nuclearForceRange;
 
     let nucleusList = [
         // proton
@@ -96,8 +97,8 @@ function experiments1(simulation) {
     ]
 
     let zNumber = 6;
-    let electrons = 8 * zNumber;
-    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + 8 * cloudList.length));
+    let electrons = 1;
+    let grid = calcGridSize(graphics, 4 * zNumber * (nucleusList.length + electrons * cloudList.length));
     let nq = 1;
     let v = 1e1 * M * S ** -2;
     hexagonGenerator((vertex, totalLen) => {
@@ -107,19 +108,12 @@ function experiments1(simulation) {
         //let center = new Vector3(x, y, z);
         let center = new Vector3(vertex.x, vertex.y, 0);
 
-        createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons);
+        createNucleiFromList(simulation, nucleusList, cloudList, zNumber, 1.0, 1.0, snq, r0, r1, center, v, electrons * zNumber);
     }, r2, grid, 'offset', false);
 
     shuffleArray(physics.particleList);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
-
-    simulation.actionList.push({
-        cycle: Math.round(2000/60),
-        callback: () => {
-            core.updatePhysics('frictionConstant', 1e-4);
-        }
-    });
 }
 
 

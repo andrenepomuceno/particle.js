@@ -33,6 +33,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_POTENTIAL3", physics.nuclearPotential === NuclearPotentialType.potential_powAXv2);
     config += define("USE_POTENTIAL4", physics.nuclearPotential === NuclearPotentialType.potential_powAXv3);
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
+    config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -307,6 +308,8 @@ void main() {
     /*#if MODE_2D
         vel1.z = 0.0;
     #endif*/
+
+    // vel1 *= velocityConstant;
 
     gl_FragColor = vec4(vel1, collisions);
 }

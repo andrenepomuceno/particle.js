@@ -394,6 +394,7 @@ export class GraphicsGPU {
 
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        uniforms['forceConstant'] = { value: physics.forceConstant };
     }
 
     #fillTextures() {

@@ -10,6 +10,7 @@ export const NuclearPotentialType = {
     potential_powAXv2: 'potential3',
     potential_powAXv3: 'potential4',
     potential_forceMap1: 'forceMap1',
+    potential_forceMap2: 'forceMap2',
 }
 
 export const FrictionModel = {

@@ -2,12 +2,11 @@ import { arrayToString, mouseToWorldCoord, downloadFile, generateExportFilename,
 import { calcListStatistics } from "../physics";
 import { ParticleType } from "../particle";
 const { Image } = require('image-js');
-import { exportCSV } from "./csv";
 import { Vector3 } from 'three';
 import { core } from "../core";
 
 function log(msg) {
-    console.log("Selection: " + msg);
+    //console.log("Selection: " + msg);
 }
 
 export const SourceType = {
@@ -73,6 +72,12 @@ export class Selection {
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         [this.mouse0, this.mouse1] = this.#topBottom(this.mouse0, this.mouse1);
 
+        let width = this.mouse1.x - this.mouse0.x;
+        let height = this.mouse0.y - this.mouse1.y;
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
         if (this.#readParticleData(mode) > 0) {
             this.#snapshot(mode);
             this.source = SourceType.simulation;
@@ -131,18 +136,6 @@ export class Selection {
                 });
             });
         }, 'image/png', 1);
-    }
-
-    export(simulation) {
-        log('export');
-        if (this.list == undefined || this.list.length == 0) {
-            alert("Please select particles first!");
-            return;
-        }
-
-        let finalName = generateExportFilename("selection_" + this.source);
-        if (this.blob != undefined) downloadFile(this.blob, finalName + '.png', "image/png");
-        downloadFile(exportCSV(simulation, this.list), finalName + '.csv', "text/plain;charset=utf-8");
     }
 
     exportJson() {
@@ -245,7 +238,6 @@ export class Selection {
             }
         });
 
-        console.log(this.list.length);
         return this.list.length;
     }
 

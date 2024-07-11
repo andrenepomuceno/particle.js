@@ -2,7 +2,7 @@ import { mouseToWorldCoord, mouseToScreenCoord } from "../helpers";
 import { Mesh, MeshBasicMaterial, RingGeometry, Vector2 } from 'three';
 
 function log(msg) {
-    console.log("Mouse: " + msg);
+    //console.log("Mouse: " + msg);
 }
 
 export class Mouse {
@@ -56,18 +56,13 @@ export class Mouse {
         log(['showCursor',radius,thickness].join(' '));
 
         this.hideCursor();
-
         this.graphics = graphics;
-        this.cursorMesh = new Mesh(
-            new RingGeometry(radius - thickness/2, radius + thickness/2, 32),
-            new MeshBasicMaterial({ color: 0xfffffff })
-        );
-        graphics.scene.add(this.cursorMesh);
+        this.cursorMesh = graphics.drawCursor(true, radius, thickness);
     }
 
     hideCursor() {
         if (this.cursorMesh != undefined) {
-            this.graphics.scene.remove(this.cursorMesh);
+            this.graphics.drawCursor(false);
             this.cursorMesh = undefined;
         }
     }

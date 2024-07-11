@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { calcListStatistics, Physics } from './physics.js';
-import { decodeVector3 } from './helpers.js';
+import { decodeVector3, safeParseFloat } from './helpers.js';
 import { scenariosList } from './scenarios.js';
 import { Particle, ParticleType } from './particle.js';
 import { SimulationGPU } from './gpu/simulation';
@@ -8,14 +8,14 @@ import { GraphicsGPU } from './gpu/graphics'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
 import { FieldGPU } from './gpu/field';
 import { generateComputePosition, generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
-import { parseCsv } from './components/csv.js';
 
 const graphics = new GraphicsGPU();
 let physics = new Physics();
 export let simulation = new SimulationGPU(graphics, physics);
 
 function log(msg) {
-    console.log("Core: " + msg)
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | " + simulation.cycles + " | Core: " + msg);
 }
 
 class Core {
@@ -55,20 +55,7 @@ class Core {
 
         simulation.setup(this.particleSetup);
 
-        log('simulationSetup done');
-    }
-
-    importParticleList(selection, filename, content) {
-        log('Importing selection ' + filename);
-
-        let imported = parseCsv(simulation, filename, content);
-        if (imported == undefined) return;
-
-        if (imported.physics.nuclearForceRange != physics.nuclearForceRange) {
-            alert("Warning: imported physics constants do not match.");
-        }
-
-        selection.import(imported);
+        log('setup done');
     }
 
     importParticleListJson(selection, filename, content) {
@@ -140,45 +127,45 @@ class Core {
 
         switch (key) {
             case 'massConstant':
-                physics.massConstant = parseFloat(value);
+                physics.massConstant = safeParseFloat(value, physics.massConstant);
                 break;
 
             case 'chargeConstant':
-                physics.chargeConstant = parseFloat(value);
+                physics.chargeConstant = safeParseFloat(value, physics.chargeConstant);
                 break;
 
             case 'nuclearForceConstant':
-                physics.nuclearForceConstant = parseFloat(value);
+                physics.nuclearForceConstant = safeParseFloat(value, physics.nuclearForceConstant);
                 break;
 
             case 'nuclearForceRange':
-                physics.nuclearForceRange = parseFloat(value);
+                physics.nuclearForceRange = safeParseFloat(value, physics.nuclearForceRange);
                 break;
 
             case 'boundaryDamping':
-                physics.boundaryDamping = parseFloat(value);
+                physics.boundaryDamping = safeParseFloat(value, physics.boundaryDamping);
                 break;
 
             case 'boundaryDistance':
-                physics.boundaryDistance = parseFloat(value);
+                physics.boundaryDistance = safeParseFloat(value, physics.boundaryDistance);
                 break;
 
             case 'minDistance2':
-                physics.minDistance2 = parseFloat(value);
+                physics.minDistance2 = safeParseFloat(value, physics.minDistance2);
                 break;
 
             case 'forceConstant':
-                physics.forceConstant = parseFloat(value);
+                physics.forceConstant = safeParseFloat(value, physics.forceConstant);
                 break;
 
             case 'radius':
-                simulation.particleRadius = parseFloat(value);
+                simulation.particleRadius = safeParseFloat(value, simulation.particleRadius);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
 
             case 'radiusRange':
-                simulation.particleRadiusRange = parseFloat(value);
+                simulation.particleRadiusRange = safeParseFloat(value, simulation.particleRadiusRange);
                 simulation.setParticleRadius();
                 updatePhysics = false;
                 break;
@@ -214,7 +201,7 @@ class Core {
                 break;
 
             case 'frictionConstant':
-                physics.frictionConstant = parseFloat(value);
+                physics.frictionConstant = safeParseFloat(value, physics.frictionConstant);
                 updatePhysics = true;
                 updateShader = false;
                 break;
@@ -223,6 +210,12 @@ class Core {
                 physics.frictionModel = value;
                 updatePhysics = false;
                 updateShader = true;
+                break;
+
+            case 'forceMap':
+                physics.forceMap = value;
+                updatePhysics = true;
+                updateShader = false;
                 break;
 
             default:
@@ -261,25 +254,19 @@ class Core {
         if (particle == undefined) return;
         if (value == undefined || value === '') return;
 
-        let simpleUpdate = false;
-        let fullUpdate = false;
-
         graphics.readbackParticleData();
 
         switch (key) {
             case 'mass':
-                particle.mass = parseFloat(value);
-                fullUpdate = true;
+                particle.mass = safeParseFloat(value, particle.mass);
                 break;
 
             case 'charge':
-                particle.charge = parseFloat(value);
-                fullUpdate = true;
+                particle.charge = safeParseFloat(value, particle.charge);
                 break;
 
             case 'nuclearCharge':
-                particle.nuclearCharge = parseFloat(value);
-                fullUpdate = true;
+                particle.nuclearCharge = safeParseFloat(value, particle.nuclearCharge);
                 break;
 
             case 'position':
@@ -293,13 +280,16 @@ class Core {
                         }
                         particle.position = vec;
                     }
-                    simpleUpdate = true;
                 }
                 break;
 
             case 'velocityAbs':
                 {
                     let velocity = parseFloat(value);
+                    if (isNaN(velocity)) {
+                        alert("Invalid value!");
+                        return;
+                    }
                     if (velocity >= physics.boundaryDistance) {
                         alert("Value is too big!");
                         return;
@@ -308,7 +298,6 @@ class Core {
                         particle.velocity.set(1.0, 0.0, 0.0);
                     }
                     particle.velocity.normalize().multiplyScalar(velocity);
-                    simpleUpdate = true;
                 }
 
                 break;
@@ -327,7 +316,6 @@ class Core {
                         alert('Invalid value.');
                         return;
                     }
-                    simpleUpdate = true;
                 }
                 break;
 
@@ -337,31 +325,24 @@ class Core {
                 particle.nuclearCharge = 0;
                 particle.velocity.set(0, 0, 0);
                 particle.position.set(0, 0, 0);
-                fullUpdate = true;
                 break;
 
             case 'fixed':
                 if (value === true) particle.type = ParticleType.fixed;
                 else if (value === false) particle.type = ParticleType.default;
-                simpleUpdate = true;
                 break;
 
             case 'color':
                 let color = value.replace('#', '');
                 color = parseInt(color, 16);
                 particle.setColor(color);
-                simpleUpdate = true;
                 break;
 
             default:
                 break;
         }
 
-        if (simpleUpdate) {
-            graphics.drawParticles(physics.particleList, physics);
-        } else if (fullUpdate) {
-            simulation.drawParticles();
-        }
+        simulation.drawParticles();
     }
 
     deleteParticleList(list) {
@@ -427,72 +408,53 @@ class Core {
     }
 
     updateParticleList(parameter, value, list) {
-        let totalMass = simulation.totalMass.toExponential(1);
-        let totalCharge = simulation.totalCharge.toExponential(1);
+        log('updateParticleList param = ' + parameter + ' value = ' + value + ' listLen = ' + (list === undefined?'undefined':list.length));
+
         if (list == undefined) {
             list = graphics.particleList;
-        } else {
-            let stats = calcListStatistics(list);
-            totalMass = stats.totalMass.toExponential(1);
-            totalCharge = stats.totalCharge.toExponential(1);
         }
-        log('updateParticleList ' + parameter + ' ' + value + ' ' + list.length);
 
-        let updateLevel = 0;
+        let stats = calcListStatistics(list);
+        let totalMass = stats.totalMass;
+        let totalCharge = stats.totalCharge;
+        let totalNuclearCharge = stats.totalNuclearCharge;
 
         switch (parameter) {
             case 'mass':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
+                    let newMass = safeParseFloat(value, totalMass);
+                    let ratio = newMass/totalMass;
+                    if (ratio == 1.0) {
                         return;
-                    }
-                    if (ratio.toExponential(1) == totalMass) return;
-                    if (ratio > 1e6) {
-                        alert('Value is too big.');
-                        return;
-                    }
+                    }      
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
                         p.mass *= ratio;
-                    });
-                    updateLevel = 2;
-                }
+                    });                }
                 break;
 
             case 'charge':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
+                    let newCharge = safeParseFloat(value, totalCharge);
+                    let ratio = newCharge/totalCharge;
+                    if (ratio == 1.0) {
                         return;
                     }
-                    if (ratio.toExponential(1) == totalCharge) return;
-                    if (ratio >= 1e6) {
-                        alert('Value is too big.');
-                        return;
-                    }
+
+                    console.log("ratio = " + ratio);
 
                     graphics.readbackParticleData();
                     list.forEach((p) => {
                         p.charge *= ratio;
-                    });
-                    updateLevel = 2;
-                }
+                    });                }
                 break;
 
             case 'nuclearCharge':
                 {
-                    let ratio = parseFloat(value);
-                    if (isNaN(ratio)) {
-                        alert('Invalid value.');
-                        return;
-                    }
-                    if (ratio.toExponential(1) == totalCharge) return;
-                    if (ratio >= 1e6) {
-                        alert('Value is too big.');
+                    let newNuclearCharge = safeParseFloat(value, totalNuclearCharge);
+                    let ratio = newNuclearCharge/totalNuclearCharge;
+                    if (ratio == 1.0) {
                         return;
                     }
 
@@ -500,7 +462,6 @@ class Core {
                     list.forEach((p) => {
                         p.nuclearCharge *= ratio;
                     });
-                    updateLevel = 2;
                 }
                 break;
 
@@ -523,13 +484,16 @@ class Core {
                         tmpList[index].position.add(centerVector);
                         particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
             case 'velocityAbs':
                 {
                     let newVelocityAbs = parseFloat(value);
+                    if (isNaN(newVelocityAbs)) {
+                        alert('Invalid value.');
+                        return;
+                    }
                     if (Math.abs(newVelocityAbs) >= physics.boundaryDistance) {
                         alert('Value is too big.');
                         return;
@@ -547,7 +511,6 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(totalVelocityMean);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
@@ -575,7 +538,6 @@ class Core {
                     list.forEach((particle, index) => {
                         particle.velocity.add(dirVec);
                     });
-                    updateLevel = 1;
                 }
                 break;
 
@@ -585,7 +547,6 @@ class Core {
                     if (value == true) particle.type = ParticleType.fixed;
                     else particle.type = ParticleType.default;
                 });
-                updateLevel = 1;
                 break;
 
             default:
@@ -593,43 +554,15 @@ class Core {
                 return;
         }
 
-        if (updateLevel == 1) {
-            graphics.drawParticles(physics.particleList, physics);
-        } else if (updateLevel == 2) {
-            simulation.drawParticles();
-        }
+        simulation.drawParticles();
     }
 
     deleteAll() {
         log('deleteAll');
 
         simulation.particleList = [];
+        simulation.physics.particleList = [];
         simulation.drawParticles();
-    }
-
-    importCSV(filename, content) {
-        log('importCSV ' + filename);
-
-        let graphics = simulation.graphics;
-
-        let imported = parseCsv(simulation, filename, content);
-        if (imported == undefined) return;
-
-        this.internalSetup(imported.physics);
-
-        simulation.name = filename;
-        simulation.folderName = 'imported';
-        simulation.particleRadius = imported.particleRadius;
-        simulation.particleRadiusRange = imported.particleRadiusRange;
-        simulation.mode2D = imported.mode2D;
-
-        graphics.camera.position.set(imported.camera.x, imported.camera.y, imported.camera.z);
-        graphics.controls.target.set(imported.target.x, imported.target.y, imported.target.z);
-        graphics.controls.update();
-
-        simulation.setup();
-
-        simulation.cycles = imported.cycles;
     }
 
     exportJson(list) {

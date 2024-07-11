@@ -3,7 +3,6 @@ import {
     simulation,
     core,
 } from '../core.js';
-import { uploadCsv } from '../components/csv';
 import { SourceType } from '../components/selection';
 import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
 
@@ -23,8 +22,6 @@ export class GUISelection {
     }
 
     setup() {
-        console.log('guiSelectionSetup');
-    
         options.selection = {
             pattern: 'box',
             source: 'None',
@@ -37,7 +34,6 @@ export class GUISelection {
             center: '',
             fixedPosition: false,
             export: () => {
-                //selection.export(simulation);
                 selection.exportJson();
             },
             import: () => {
@@ -45,10 +41,6 @@ export class GUISelection {
                     selection.clear();    
                     core.importParticleListJson(selection, name, content);
                 });
-                /*uploadCsv((name, content) => {
-                    selection.clear();    
-                    core.importParticleList(selection, name, content);
-                });*/
             },
             clone: () => {
                 selection.clone();
@@ -103,13 +95,13 @@ export class GUISelection {
         controls.add(options.selection, 'particles').name('Particles').listen();
     
         const guiSelectionProperties = controls.addFolder("[+] Properties ✏️");
-        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum) ✖️").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
             selectionListUpdate('mass', val);
         });
-        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum) ✖️").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
             selectionListUpdate('charge', val);
         });
-        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum) ✖️").listen().onFinishChange((val) => {
+        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
             selectionListUpdate('nuclearCharge', val);
         });
     
@@ -142,8 +134,6 @@ export class GUISelection {
         options.collapseList.push(guiSelectionActions);
         options.collapseList.push(guiSelectionProperties);
         options.collapseList.push(guiSelectionVariables);
-    
-        console.log('guiSelectionSetup done');
     }
 }
 

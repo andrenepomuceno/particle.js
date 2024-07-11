@@ -42,6 +42,10 @@ export class GUIAdvanced {
             },
             dampVelocity: () => {
                 let factor = parseFloat(options.advanced.dampKickFactor);
+                if (isNaN(factor)) {
+                    alert('Invalid value.');
+                    return;
+                }
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
                     p.velocity.multiplyScalar(1.0 - factor);
@@ -50,6 +54,10 @@ export class GUIAdvanced {
             },
             kickVelocity: () => {
                 let factor = parseFloat(options.advanced.dampKickFactor);
+                if (isNaN(factor)) {
+                    alert('Invalid value.');
+                    return;
+                }
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
                     p.velocity.multiplyScalar(1.0 + factor);

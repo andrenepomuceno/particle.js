@@ -10,6 +10,7 @@ export const NuclearPotentialType = {
     potential_powAXv2: 'potential3',
     potential_powAXv3: 'potential4',
     potential_forceMap1: 'forceMap1',
+    potential_forceMap2: 'forceMap2',
 }
 
 export const FrictionModel = {
@@ -26,7 +27,7 @@ export const scaleEPN = {
 export const nuclearForceRange = 1e-15 * scaleEPN.m;
 
 function log(msg) {
-    console.log("Physics: " + msg);
+    //console.log("Physics: " + msg);
 }
 
 export class Physics {
@@ -62,6 +63,8 @@ export class Physics {
 
         avgVelocity: 0.0,
         avgEnergy: 0.0,
+
+        forceMap: [1.0, -1.0],
     }) {
         log('constructor');
 
@@ -97,6 +100,8 @@ export class Physics {
 
         this.avgVelocity = input.avgVelocity;
         this.avgEnergy = input.avgEnergy;
+
+        this.forceMap = input.forceMap;
     }
 
     header() {
@@ -131,6 +136,11 @@ export function calcListStatistics(list) {
     stats.totalEnergy = 0.0;
     stats.collisions = 0.0;
 
+    stats.mMin = Infinity;
+    stats.mMax = -Infinity;
+    stats.qMin = Infinity;
+    stats.qMax = -Infinity;
+
     list.forEach(p => {
         switch (p.type) {
             case ParticleType.fixed:
@@ -138,7 +148,6 @@ export function calcListStatistics(list) {
                 //break;
 
             case ParticleType.default:
-            case ParticleType.fixed:
                 stats.center.add(p.position);
                 stats.totalVelocity.add(p.velocity);
                 stats.totalMass += p.mass;
@@ -146,9 +155,23 @@ export function calcListStatistics(list) {
                 stats.totalNuclearCharge += p.nuclearCharge;
                 stats.totalEnergy += p.energy();
                 stats.collisions += p.collisions;
+
+                if (p.mass > stats.mMax) {
+                    stats.mMax = p.mass;
+                }
+                if (p.mass < stats.mMin) {
+                    stats.mMin = p.mass;
+                }
+                if (p.charge > stats.qMax) {
+                    stats.qMax = p.charge;
+                }
+                if (p.charge < stats.qMin) {
+                    stats.qMin = p.charge;
+                }
                 break;
 
             case ParticleType.undefined:
+            case ParticleType.probe:
             default:
                 return;
         }    

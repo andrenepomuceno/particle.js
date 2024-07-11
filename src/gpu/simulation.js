@@ -1,9 +1,9 @@
 import { fillParticleRadius, fillParticleColor } from '../helpers';
-import { ParticleType } from '../particle';
 import { calcListStatistics } from '../physics';
 
 function log(msg) {
-    console.log("SimulationGPU: " + msg);
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | Simulation: " + msg);
 }
 
 export class SimulationGPU {
@@ -24,20 +24,14 @@ export class SimulationGPU {
         this.mode2D = false;
 
         this.cycles = 0;
-        this.energy = 0.0;
+        this.totalTime = 0.0;
         this.particleRadius = 20;
         this.particleRadiusRange = 10;
-        this.totalMass = 0.0;
-        this.totalTime = 0.0;
-        this.totalCharge = 0.0;
-
-        this.mMin = Infinity;
-        this.mMax = -Infinity;
-        this.qMin = Infinity;
-        this.qMax = -Infinity;
 
         this.computeTime = [];
         this.stats = {};
+
+        this.actionList = [];
     }
 
     setup(populateSimulationCallback) {
@@ -53,6 +47,11 @@ export class SimulationGPU {
             log('Populating ' + populateSimulationCallback.name + '...');
             populateSimulationCallback(this);
             log('Populating done.');
+            
+            log('Sorting action list...');
+            this.actionList = this.actionList.sort((a, b) => {
+                return a.cycle - b.cycle;
+            });
 
             this.physics.mode2D = this.mode2D;
             this.graphics.cameraSetup();
@@ -77,6 +76,24 @@ export class SimulationGPU {
         let t1 = performance.now();
         this.computeTime.push(t1 - t0);
         if (this.computeTime.length > 10 * 60) this.computeTime.shift();
+
+        let action = this.actionList[0];
+        if (action != undefined && action.cycle <= this.cycles) {
+            log("Executing action for cycle " + action.cycle);
+            action.callback();
+            this.actionList.shift();
+        }
+    }
+
+    addAction(action = {
+        cycle: 0,
+        callback: ()=>{}
+    }) {
+        this.actionList.push(action);
+    }
+
+    addActionArray(array) {
+        this.actionList.push(...array);
     }
 
     getComputeTime() {
@@ -139,35 +156,7 @@ export class SimulationGPU {
             log("Empty particle list! Continuing...");
         };
 
-        this.mMin = Infinity, this.mMax = -Infinity;
-        this.qMin = Infinity, this.qMax = -Infinity;
-
-        this.totalMass = 0.0;
-        this.energy = 0.0;
-        this.totalCharge = 0.0;
-
-        this.particleList.forEach((p, idx) => {
-            if (p.type == ParticleType.probe || p.type == ParticleType.undefined) return;
-
-            if (p.mass > this.mMax) {
-                this.mMax = p.mass;
-            }
-            if (p.mass < this.mMin) {
-                this.mMin = p.mass;
-            }
-
-            if (p.charge > this.qMax) {
-                this.qMax = p.charge;
-            }
-            if (p.charge < this.qMin) {
-                this.qMin = p.charge;
-            }
-
-            this.totalMass += Math.abs(p.mass);
-            this.energy += (p.mass * p.velocity.lengthSq());
-            this.totalCharge += p.charge;
-        });
-
+        this.stats = calcListStatistics(this.particleList);
         this.#fillParticleRadius();
         this.#fillParticleColor();
         this.graphics.drawParticles(this.particleList, this.physics);
@@ -175,12 +164,12 @@ export class SimulationGPU {
 
     #fillParticleRadius() {
         log("#fillParticleRadius");
-        fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.mMin, this.mMax, this.enableMassRadius);
+        fillParticleRadius(this.particleList, this.particleRadius, this.particleRadiusRange, this.stats.mMin, this.stats.mMax, this.enableMassRadius);
     }
 
     #fillParticleColor() {
         log("#fillParticleColor");
-        fillParticleColor(this.particleList, this.qMin, this.qMax, this.enableChargeColor);
+        fillParticleColor(this.particleList, this.stats.qMin, this.stats.qMax, this.enableChargeColor);
     }
 
     bidimensionalMode(enable) {

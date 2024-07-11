@@ -11,6 +11,7 @@ import {
     Points,
     Mesh,
     MeshBasicMaterial,
+    RingGeometry,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GPUComputationRenderer } from 'three/examples/jsm/misc/GPUComputationRenderer';
@@ -29,7 +30,7 @@ import { ParticleType } from '../particle.js';
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    console.log("Graphics (GPU): " + msg);
+    //console.log("Graphics (GPU): " + msg);
 }
 
 export class GraphicsGPU {
@@ -91,6 +92,8 @@ export class GraphicsGPU {
         this.axisObject = undefined;
         this.labelMesh = undefined;
         this.labelText = this.axisWidth.toFixed(1) + 'u';
+
+        this.cursorMesh = undefined;
     }
 
     raycast(core, pointer) {
@@ -254,7 +257,7 @@ export class GraphicsGPU {
             return;
         }
 
-        let element = this.renderer.domElement;//document.getElementById('container');
+        let element = this.renderer.domElement;
         CanvasCapture.init(
             element,
             {
@@ -270,85 +273,67 @@ export class GraphicsGPU {
         });
     }
 
+    drawText(text, size, position, color) {
+        const height = 1;
+        let mesh = new Mesh(
+            new TextGeometry(text, {
+                font: this.font,
+                size: size,
+                height: height
+            }),
+            new MeshBasicMaterial({
+                color: color,
+            })
+        );
+
+        mesh.translateX(position.x);
+        mesh.translateY(position.y);
+        mesh.translateZ(position.z);
+
+        this.scene.add(mesh);
+
+        return mesh;
+    }
+
+    drawCursor(show = true, radius = 100, thickness = 10) {
+        if (this.cursorMesh != undefined && !show) {
+            this.scene.remove(this.cursorMesh);
+            this.cursorMesh = undefined;
+            return;
+        }
+        
+        this.cursorMesh = new Mesh(
+            new RingGeometry(radius - thickness/2, radius + thickness/2, 32),
+            new MeshBasicMaterial({ color: 0xfffffff })
+        );
+        this.scene.add(this.cursorMesh);
+
+        return this.cursorMesh;
+    }
+
     drawAxisLabel(mode2D, width, labelText) {
         if (this.labelMesh != undefined) this.labelMesh.forEach(label => {
             this.scene.remove(label);
         });
 
-        this.labelMesh = [
-            new Mesh(
-                new TextGeometry('X (' + labelText + ')', {
-                    font: this.font,
-                    size: width * 0.05,
-                    height: 1,
-                }),
-                new MeshBasicMaterial({
-                    color: 0xff0000,
-                })
-            ),
-            new Mesh(
-                new TextGeometry('Y', {
-                    font: this.font,
-                    size: width * 0.05,
-                    height: 1,
-                }),
-                new MeshBasicMaterial({
-                    color: 0x00ff00,
-                })
-            )
-        ];
-
         const spacing = 0.02 * width;
-        this.labelMesh[0].translateOnAxis(new Vector3(1, 0, 0), spacing + width);
-        this.labelMesh[1].translateOnAxis(new Vector3(0, 1, 0), spacing + width);
+        this.labelMesh = [
+            this.drawText('X (' + labelText + ')', width * 0.05, new Vector3(spacing + width, 0, 0), 0xff0000),
+            this.drawText('Y', width * 0.05, new Vector3(0, spacing + width, 0), 0x00ff00)
+        ];
 
         if (mode2D == false) {
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('Z', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0x0000ff,
-                    })
-                )
+                this.drawText('Z', width * 0.05, new Vector3(0, 0, spacing + width), 0x0000ff)
             );
-            this.labelMesh[2].translateOnAxis(new Vector3(0, 0, 1), spacing + width);
-
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('(0,0,0)', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0xffffff,
-                    })
-                )
+                this.drawText('(0,0,0)', width * 0.05, new Vector3(spacing, spacing, 0), 0xffffff)
             );
-            this.labelMesh[3].translateOnAxis(new Vector3(1, 1, 0), spacing);
         } else {
             this.labelMesh.push(
-                new Mesh(
-                    new TextGeometry('(0,0)', {
-                        font: this.font,
-                        size: width * 0.05,
-                        height: 1,
-                    }),
-                    new MeshBasicMaterial({
-                        color: 0xffffff,
-                    })
-                )
+                this.drawText('(0,0)', width * 0.05, new Vector3(spacing, spacing, 0), 0xffffff)
             );
-            this.labelMesh[2].translateOnAxis(new Vector3(1, 1, 0), spacing);
         }
-
-        this.labelMesh.forEach(label => {
-            this.scene.add(label);
-        });
     }
 
     /* GPGPU Stuff */
@@ -363,9 +348,11 @@ export class GraphicsGPU {
             gpuCompute.setDataType(THREE.HalfFloatType);
         }
 
-        this.dtProperties = gpuCompute.createTexture();
         this.dtPosition = gpuCompute.createTexture();
         this.dtVelocity = gpuCompute.createTexture();
+
+        this.dtProperties = gpuCompute.createTexture();
+        this.dtProperties2 = gpuCompute.createTexture();
 
         this.#fillTextures();
 
@@ -382,6 +369,7 @@ export class GraphicsGPU {
 
         this.fillPhysicsUniforms();
         this.velocityVariable.material.uniforms['textureProperties'] = { value: this.dtProperties };
+        this.velocityVariable.material.uniforms['textureProperties2'] = { value: this.dtProperties2 };
 
         const error = gpuCompute.init();
         if (error !== null) {
@@ -404,16 +392,22 @@ export class GraphicsGPU {
         uniforms['frictionConstant'] = { value: physics.frictionConstant };
         uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
 
+        uniforms['forceMap'] = { value: physics.forceMap };
+        uniforms['forceMapLen'] = { value: physics.forceMap.length };
+
         uniforms = this.positionVariable.material.uniforms;
         uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        uniforms['forceConstant'] = { value: physics.forceConstant };
     }
 
     #fillTextures() {
         log("#fillTextures");
 
-        const propsArray = this.dtProperties.image.data;
         const posArray = this.dtPosition.image.data;
         const velocityArray = this.dtVelocity.image.data;
+
+        const propsArray = this.dtProperties.image.data;
+        const props2Array = this.dtProperties2.image.data;
 
         let particles = this.particleList.length;
         let maxParticles = propsArray.length / 4;
@@ -425,10 +419,6 @@ export class GraphicsGPU {
 
         this.particleList.forEach((p, i) => {
             let offset4 = 4 * i;
-            propsArray[offset4 + 0] = p.mass;
-            propsArray[offset4 + 1] = p.charge;
-            propsArray[offset4 + 2] = p.nuclearCharge;
-            propsArray[offset4 + 3] = p.colorCharge;
 
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;
@@ -439,15 +429,20 @@ export class GraphicsGPU {
             velocityArray[offset4 + 1] = p.velocity.y;
             velocityArray[offset4 + 2] = p.velocity.z;
             velocityArray[offset4 + 3] = p.collisions;
+
+            propsArray[offset4 + 0] = p.mass;
+            propsArray[offset4 + 1] = p.charge;
+            propsArray[offset4 + 2] = p.nuclearCharge;
+            propsArray[offset4 + 3] = p.colorCharge;
+
+            props2Array[offset4 + 0] = p.radius;
+            props2Array[offset4 + 1] = 0;
+            props2Array[offset4 + 2] = 0;
+            props2Array[offset4 + 3] = 0;
         });
 
         for (let k = particles; k < maxParticles; k++) {
             let offset4 = 4 * k;
-
-            propsArray[offset4 + 0] = 0;
-            propsArray[offset4 + 1] = 0;
-            propsArray[offset4 + 2] = 0;
-            propsArray[offset4 + 3] = 0;
 
             posArray[offset4 + 0] = 0;
             posArray[offset4 + 1] = 0;
@@ -458,6 +453,16 @@ export class GraphicsGPU {
             velocityArray[offset4 + 1] = 0;
             velocityArray[offset4 + 2] = 0;
             velocityArray[offset4 + 3] = 0;
+
+            propsArray[offset4 + 0] = 0;
+            propsArray[offset4 + 1] = 0;
+            propsArray[offset4 + 2] = 0;
+            propsArray[offset4 + 3] = 0;
+
+            props2Array[offset4 + 0] = 0;
+            props2Array[offset4 + 1] = 0;
+            props2Array[offset4 + 2] = 0;
+            props2Array[offset4 + 3] = 0;
         }
     }
 

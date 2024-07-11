@@ -77,9 +77,9 @@ export class GUIInfo {
             }
         });
         controls.add(options.info, 'time').name('Time').listen();
-        controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
+        /*controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
-        });
+        });*/
         controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange((val) => {
             let p = decodeVector3(val);
             if (p == undefined) {
@@ -92,13 +92,13 @@ export class GUIInfo {
         });
 
         const guiInfoMore = controls.addFolder("[+] Statistics");
-        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('mass', val);
         });
-        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('charge', val);
         });
-        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️✖️').listen().onFinishChange((val) => {
+        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('nuclearCharge', val);
         });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
@@ -120,7 +120,7 @@ export class GUIInfo {
             options.collapseList.push(guiInfoDebug);
         }
 
-        //options.collapseList.push(guiInfo);
+        options.collapseList.push(controls);
         options.collapseList.push(guiInfoMore);
         options.collapseList.push(guiInfoRuler);
 
@@ -133,7 +133,7 @@ export class GUIInfo {
 
         simulation.physics.collisionCounter = simulation.stats.collisions;
         let avgEnergy = simulation.stats.avgEnergy;
-        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.totalMass);
+        let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.stats.totalMass);
         simulation.physics.avgEnergy = avgEnergy;
         simulation.physics.avgVelocity = avgVelocity;
         simulation.graphics.updateAvgVelocity(avgVelocity);
@@ -154,8 +154,8 @@ export class GUIInfo {
         options.info.velocity = avgVelocity.toExponential(2);
 
         options.info.collisions = simulation.physics.collisionCounter;
-        options.info.mass = simulation.totalMass.toExponential(2);
-        options.info.charge = simulation.totalCharge.toExponential(2);
+        options.info.mass = simulation.stats.totalMass.toExponential(2);
+        options.info.charge = simulation.stats.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
         options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
         let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();

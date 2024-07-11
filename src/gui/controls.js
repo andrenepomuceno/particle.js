@@ -6,7 +6,6 @@ import {
     core,
 } from '../core.js';
 import { scenariosList } from '../scenarios.js';
-import { exportCSV } from '../components/csv';
 
 function log(msg) {
     console.log("menu/controls: " + msg);
@@ -52,20 +51,8 @@ export class GUIControls {
                 if (core.simulationIdx > 0)
                     options.scenarioSetup(--core.simulationIdx);
             },
-            snapshot: function () {
-                snapshot();
-            },
             snapshotJson: function () {
                 snapshotJson();
-            },
-            import: function () {
-                uploadFile('.csv', (name, content) => {
-                    options.particle.close();
-                    core.importCSV(name, content);
-                    options.guiInfo.refresh();
-                    options.guiParameters.refresh();
-                    options.guiControls.refresh();
-                });
             },
             importJson: function () {
                 uploadJsonZip((name, content) => {
@@ -148,7 +135,6 @@ export class GUIControls {
                 simulation.graphics.capture(simulation.name);
             },
             debug: () => {
-                console.log(exportCSV(simulation));
             },
         };
 
@@ -239,15 +225,6 @@ export class GUIControls {
         options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
         options.controls.mode2D = simulation.mode2D;
     }
-}
-
-function snapshot() {
-    let name = simulation.name;
-    let finalName = generateExportFilename(name)
-    log('snapshot ' + finalName);
-
-    downloadRenderPng(finalName)
-    downloadFile(exportCSV(simulation), finalName + '.csv', "text/plain;charset=utf-8");
 }
 
 function downloadRenderPng(name) {

@@ -348,9 +348,11 @@ export class GraphicsGPU {
             gpuCompute.setDataType(THREE.HalfFloatType);
         }
 
-        this.dtProperties = gpuCompute.createTexture();
         this.dtPosition = gpuCompute.createTexture();
         this.dtVelocity = gpuCompute.createTexture();
+
+        this.dtProperties = gpuCompute.createTexture();
+        this.dtProperties2 = gpuCompute.createTexture();
 
         this.#fillTextures();
 
@@ -367,6 +369,7 @@ export class GraphicsGPU {
 
         this.fillPhysicsUniforms();
         this.velocityVariable.material.uniforms['textureProperties'] = { value: this.dtProperties };
+        this.velocityVariable.material.uniforms['textureProperties2'] = { value: this.dtProperties2 };
 
         const error = gpuCompute.init();
         if (error !== null) {
@@ -400,9 +403,11 @@ export class GraphicsGPU {
     #fillTextures() {
         log("#fillTextures");
 
-        const propsArray = this.dtProperties.image.data;
         const posArray = this.dtPosition.image.data;
         const velocityArray = this.dtVelocity.image.data;
+
+        const propsArray = this.dtProperties.image.data;
+        const props2Array = this.dtProperties2.image.data;
 
         let particles = this.particleList.length;
         let maxParticles = propsArray.length / 4;
@@ -414,10 +419,6 @@ export class GraphicsGPU {
 
         this.particleList.forEach((p, i) => {
             let offset4 = 4 * i;
-            propsArray[offset4 + 0] = p.mass;
-            propsArray[offset4 + 1] = p.charge;
-            propsArray[offset4 + 2] = p.nuclearCharge;
-            propsArray[offset4 + 3] = p.colorCharge;
 
             posArray[offset4 + 0] = p.position.x;
             posArray[offset4 + 1] = p.position.y;
@@ -428,15 +429,20 @@ export class GraphicsGPU {
             velocityArray[offset4 + 1] = p.velocity.y;
             velocityArray[offset4 + 2] = p.velocity.z;
             velocityArray[offset4 + 3] = p.collisions;
+
+            propsArray[offset4 + 0] = p.mass;
+            propsArray[offset4 + 1] = p.charge;
+            propsArray[offset4 + 2] = p.nuclearCharge;
+            propsArray[offset4 + 3] = p.colorCharge;
+
+            props2Array[offset4 + 0] = p.radius;
+            props2Array[offset4 + 1] = 0;
+            props2Array[offset4 + 2] = 0;
+            props2Array[offset4 + 3] = 0;
         });
 
         for (let k = particles; k < maxParticles; k++) {
             let offset4 = 4 * k;
-
-            propsArray[offset4 + 0] = 0;
-            propsArray[offset4 + 1] = 0;
-            propsArray[offset4 + 2] = 0;
-            propsArray[offset4 + 3] = 0;
 
             posArray[offset4 + 0] = 0;
             posArray[offset4 + 1] = 0;
@@ -447,6 +453,16 @@ export class GraphicsGPU {
             velocityArray[offset4 + 1] = 0;
             velocityArray[offset4 + 2] = 0;
             velocityArray[offset4 + 3] = 0;
+
+            propsArray[offset4 + 0] = 0;
+            propsArray[offset4 + 1] = 0;
+            propsArray[offset4 + 2] = 0;
+            propsArray[offset4 + 3] = 0;
+
+            props2Array[offset4 + 0] = 0;
+            props2Array[offset4 + 1] = 0;
+            props2Array[offset4 + 2] = 0;
+            props2Array[offset4 + 3] = 0;
         }
     }
 

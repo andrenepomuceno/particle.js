@@ -64,13 +64,14 @@ export class GUIParameters {
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
             'Force Map 1': NuclearPotentialType.potential_forceMap1,
-            'Force Map 2': NuclearPotentialType.potential_forceMap2,
-            /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
+            /*'Force Map 2': NuclearPotentialType.potential_forceMap2,
+            'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }
         guiParametersConsts.add(options.parameters, 'nuclearPotential', potentialType).name('Nuclear Potential').listen().onFinishChange((val) => {
             core.updatePhysics('potential', val);
         });
+
         guiParametersConsts.add(options.parameters, 'forceMap').name('Force Map').listen().onFinishChange((val) => {
             let forceMap = String(val).split(',').map((x) => {
                 let v = parseFloat(x);
@@ -79,12 +80,13 @@ export class GUIParameters {
                 }
                 return v;
             });
-            if (forceMap.length < 1 || forceMap.length > 16) {
+            if (forceMap.length < 1 || forceMap.length > 128) {
                 alert('Invalid map.');
                 return;
             }
             core.updatePhysics('forceMap', forceMap);
         });
+
         guiParametersConsts.add(options.parameters, 'minDistance').name('Minimum Distance').listen().onFinishChange((val) => {
             let d = parseFloat(val);
             if (isNaN(d)) {

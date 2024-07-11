@@ -66,6 +66,7 @@ uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
+uniform sampler2D textureProperties2;
 uniform float frictionConstant;
 uniform vec4 forceConstants;
 /*vec4 forceConstants = vec4(
@@ -94,7 +95,83 @@ float sdSphere( vec3 p, float s )
     return length(p)-s;
 }
 
+float calcNuclearPotential(float distance1)
+{
+    float x = 0.0;
+
+    #if USE_HOOKS_LAW
+        x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+    #else
+        x = distance1/nuclearForceRange;
+        #if USE_POTENTIAL0 // 'powXR'
+            const float r = 1.0/3.0, log2 = log(2.0);
+            x = pow(x, -log2 / log(r));
+            x = sin(2.0 * PI * x);
+        #elif USE_POTENTIAL1 // 'exp'
+            const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
+            x = -exp(-log2 * x * r2 / r1);
+            x = sin(2.0 * PI * x);
+        #elif USE_POTENTIAL2 // 'powAX'
+            x = sin(7.22423 * (1.0 - pow(0.13026, x)));
+        #elif USE_POTENTIAL3 // 'powAXv2'
+            x = sin(6.64541 * (1.0 - pow(0.054507, x)));
+        #elif USE_POTENTIAL4 // 'powAXv3'
+            const float a = 3.0;
+            x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
+        #elif USE_FMAP1 // 'forceMap1'
+            int idx = int(forceMapLen * x);
+            x = forceMap[idx];
+        #elif USE_FMAP2
+            float fx = -x;
+            if (distance2 < 0.1 * nuclearForceRange2) {
+                fx += 10.0 * x;
+            }
+            x = fx;
+        #else
+            x = sin(2.0 * PI * x);
+        #endif
+    #endif
+
+    return x;
+}
+
+float calcColorPotential(float c1, float c2)
+{
+    float x = 0.0;
+
+    const vec3 color1[4] = vec3[](
+        vec3(0.0, 0.0, 0.0),
+
+        vec3(0.0, 1.0, -1.0),
+        vec3(-1.0, 0.0, 1.0),
+        vec3(1.0, -1.0, 0.0)
+    );
+    const vec3 color2[4] = vec3[](
+        vec3(0.0, 0.0, 0.0),
+        
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(0.0, 0.0, 1.0)
+    );
+
+    if (c1 != 0.0 || c2 != 0.0) {
+        float c = dot(color1[uint(c1)], color2[uint(c2)]);
+        const float colorMixConstant = 1.0/3.0;
+        x = x * (1.0 - colorMixConstant + colorMixConstant * c);
+        //float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
+        //force += nuclearForceConstant * c * (1.0 - d);
+        //force += nuclearForceConstant * c * x;
+        //x += (1.0 - d) * c;    
+        //x *= c;
+        //x += x * c;
+    }
+
+    return x;
+}
+
 void main() {
+    const vec4 ones = vec4(1.0);
+
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 tPos1 = texture2D(texturePosition, uv1);
     float type1 = tPos1.w;
@@ -123,30 +200,29 @@ void main() {
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
 
-            /*vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
-            float rng = 23.0 + 29.0 * vel1.x + 67.0 * vel1.y + 101.0 * vel2.x + 223.0 * vel2.y + 331.0 * dPos.x + 991.0 * dPos.y;
-            rng = mod(rng, 3.0);
-            if (rng == 0.0) continue;*/
-
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    float m2 = props2.x;
-                    vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
-                    float m = m1 + m2; // precision loss if m1 >> m2
-                    if (m == 0.0) {
-                        continue;
-                    }
-                    
-                    float s = 2.0 * m1 * m2 / m;
-                    vec3 dVel = vel2 - vel1;
-                    if (distance2 > 0.0) {
-                        vec3 res = s * dot(dVel, dPos) * dPos;
-                        res /= distance2;
-                        rForce += res;
-                    } else {
-                        rForce += s * dVel;
-                    }
+                    #if 1
+                        float m2 = props2.x;
+                        vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+                        float m = m1 + m2; // precision loss if m1 >> m2
+                        if (m == 0.0) {
+                            continue;
+                        }
+                        
+                        float s = 2.0 * m1 * m2 / m;
+                        vec3 dVel = vel2 - vel1;
+                        if (distance2 > 0.0) {
+                            vec3 res = s * dot(dVel, dPos) * dPos;
+                            res /= distance2;
+                            rForce += res;
+                        } else {
+                            rForce += s * dVel;
+                        }
+                    #else
+                        rForce += -1.0 * normalize(dPos);
+                    #endif
                     
                     ++collisions;
                     continue;
@@ -166,67 +242,11 @@ void main() {
                 #if !USE_DISTANCE1
                     float distance1 = sqrt(distance2);
                 #endif
-
-                #if USE_HOOKS_LAW
-                    x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
-                #else
-                    x = distance1/nuclearForceRange;
-                    #if USE_POTENTIAL0 // 'powXR'
-                        const float r = 1.0/3.0, log2 = log(2.0);
-                        x = pow(x, -log2 / log(r));
-                        x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL1 // 'exp'
-                        const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
-                        x = -exp(-log2 * x * r2 / r1);
-                        x = sin(2.0 * PI * x);
-                    #elif USE_POTENTIAL2 // 'powAX'
-                        x = sin(7.22423 * (1.0 - pow(0.13026, x)));
-                    #elif USE_POTENTIAL3 // 'powAXv2'
-                        x = sin(6.64541 * (1.0 - pow(0.054507, x)));
-                    #elif USE_POTENTIAL4 // 'powAXv3'
-                        const float a = 3.0;
-                        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
-                    #elif USE_FMAP1 // 'forceMap1'
-                        int idx = int(forceMapLen * x);
-                        x = forceMap[idx];
-                    #elif USE_FMAP2
-                        float fx = -x;
-                        if (distance2 < 0.1 * nuclearForceRange2) {
-                            fx += 10.0 * x;
-                        }
-                        x = fx;
-                    #else
-                        x = sin(2.0 * PI * x);
-                    #endif
-                #endif
+                
+                x = calcNuclearPotential(distance1);
 
                 #if ENABLE_COLOR_CHARGE
-                    const vec3 color1[4] = vec3[](
-                        vec3(0.0, 0.0, 0.0),
-
-                        vec3(0.0, 1.0, -1.0),
-                        vec3(-1.0, 0.0, 1.0),
-                        vec3(1.0, -1.0, 0.0)
-                    );
-                    const vec3 color2[4] = vec3[](
-                        vec3(0.0, 0.0, 0.0),
-                        
-                        vec3(1.0, 0.0, 0.0),
-                        vec3(0.0, 1.0, 0.0),
-                        vec3(0.0, 0.0, 1.0)
-                    );
-
-                    if (props1.w != 0.0 || props2.w != 0.0) {
-                        float c = dot(color1[uint(props1.w)], color2[uint(props2.w)]);
-                        const float colorMixConstant = 1.0/3.0;
-                        x = x * (1.0 - colorMixConstant + colorMixConstant * c);
-                        //float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
-                        //force += nuclearForceConstant * c * (1.0 - d);
-                        //force += nuclearForceConstant * c * x;
-                        //x += (1.0 - d) * c;    
-                        //x *= c;
-                        //x += x * c;
-                    }
+                    x *= calcColorPotential(props1.w, props2.w);
                 #endif
             }
 
@@ -238,7 +258,8 @@ void main() {
             vec4 props = props1 * props2;
             vec4 pot = vec4(d12, d12, x, 0);
             vec4 result = forceConstants * props * pot;
-            force += result.x + result.y + result.z;
+            //force += result.x + result.y + result.z;
+            force += dot(result, ones);
             rForce += force * normalize(dPos);
         }
     }

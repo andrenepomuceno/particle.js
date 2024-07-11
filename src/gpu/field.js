@@ -212,7 +212,7 @@ export class FieldGPU {
         particle.position.set(x, y, z)
             .add(center)
             //.sub(new Vector3(0, 0, 2 * this.simulation.particleRadius))
-            .sub(new Vector3(0, 0, 1))
+            .sub(new Vector3(0, 0, 10))
             ;        
     }
 

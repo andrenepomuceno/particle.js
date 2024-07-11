@@ -530,3 +530,29 @@ export function stringToCoordinates(text, font = "Arial", fontSize = 16, x0 = 0,
 
     return coordinates;
 }
+
+export function delayedAction(delay) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve();
+        }, delay);
+    })
+}
+
+export function caption(graphics, text, timeout = 3000) {
+    const color = 0xffffff;
+    const pos = mouseToWorldCoord(
+        mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.90}),
+        graphics.camera
+    );
+    const height = mouseToWorldCoord(
+        mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.94}),
+        graphics.camera
+    );
+    const size = Math.abs(pos.y - height.y);
+
+    let captions = graphics.drawText(text, size, pos, color);
+    delayedAction(timeout).then(() => {
+        graphics.scene.remove(captions);
+    });
+}

@@ -23,7 +23,7 @@ function addFolder(name, list) {
     scenariosList = scenariosList.concat(list);
 }
 
-// addFolder('Record', record);
+//addFolder('Record', record);
 addFolder('Force Map', forceMap);
 addFolder('Quark Model', quarkModel);
 addFolder('EPN Model', epnModel);

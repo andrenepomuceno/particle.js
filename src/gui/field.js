@@ -32,7 +32,7 @@ export class GUIField {
             q: '1',
             nq: '1',
             grid: '50',
-            automaticRefresh: false,
+            automaticRefresh: true,
             fieldResize: () => {
                 if (simulation.field.enable == false) return;
                 let center = simulation.graphics.controls.target.clone();

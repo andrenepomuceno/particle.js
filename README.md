@@ -33,12 +33,6 @@ Try to simulate 3 forces on point-like particles:
 
 [Photo Gallery](https://photos.app.goo.gl/1x41ZhipNKr5yrYa7)
 
-### Donate
-
-**BTC:** 187JHUUqszdB9fC6Nn52CpP7UsEeD8GsNh
-
-**Github Sponsor:** https://github.com/sponsors/andrenepomuceno
-
 ### Special Thanks
 
 Big thanks to [three.js](https://threejs.org/) guys who made this amazing WebGL library, making the entire process a lot easier and fun.

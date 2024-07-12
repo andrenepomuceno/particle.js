@@ -113,6 +113,17 @@ function scenarioSetup(idx) {
     log('setup done');
 }
 
+function showFirstTimeInstructionsPopup() {
+    // Check if the user has already seen the popup
+    if (localStorage.getItem('hasSeenInstructionsPopup')) {
+        return;
+    }
+
+    localStorage.setItem('hasSeenInstructionsPopup', 'true');
+
+    guiOptions.controls.showHelp();
+}
+
 export function viewSetup() {
     window.onresize = onWindowResize;
     document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
@@ -151,6 +162,8 @@ export function viewSetup() {
 
     log('Animating...');
     animate();
+
+    showFirstTimeInstructionsPopup();
 }
 
 /* HELPERS */
@@ -190,6 +203,9 @@ function onPointerDown(event) {
         selection.clear();
         selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
+    } else if (event.button == 1) {
+        //middle 
+        simulation.graphics.controls.zoomSpeed = 16.0;
     }
 }
 
@@ -206,6 +222,9 @@ function onPointerUp(event) {
                 guiParticle.open();
             }
         });
+    } else if (event.button == 1) {
+        //middle 
+        simulation.graphics.controls.zoomSpeed = 1.0;
     }
 }
 

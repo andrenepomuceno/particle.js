@@ -85,7 +85,7 @@ function experiments3(simulation) {
 
     physics.frictionConstant = 1e-5;
     physics.massConstant = 1e0; //6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
-    physics.chargeConstant = 137; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+    physics.chargeConstant = 500; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2;
     physics.forceConstant = 1;
     physics.minDistance2 = Math.pow(1e-3, 2);
@@ -138,22 +138,30 @@ function experiments3(simulation) {
         {
             cycle: 2 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', 1e4);
+                core.updatePhysics('massConstant', 2e4);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
-            cycle: 6 * 1e3 * cyclesPerMs,
+            cycle: 5 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', 1e1);
+                core.updatePhysics('massConstant', 5e1);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
-            cycle: 80 * 1e3 * cyclesPerMs,
+            cycle: 45 * 1e3 * cyclesPerMs,
             callback: () => {
                 core.updatePhysics('massConstant', 1);
-                caption(graphics,"Gravity: " + physics.massConstant);
+                core.updatePhysics('frictionConstant', 1e-4);
+                caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
+            }
+        },
+        {
+            cycle: 50 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('frictionConstant', 1e-6);
+                caption(graphics,"Friction: " + physics.frictionConstant);
             }
         }
     ]);

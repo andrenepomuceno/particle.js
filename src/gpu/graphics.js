@@ -56,6 +56,10 @@ export class GraphicsGPU {
         this.scene = new Scene();
         this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.zoomSpeed = 1.0;
+        this.controls.zoomToCursor = false;
+        this.controls.update();
+
         this.raycaster = new Raycaster();
 
         this.fontLoader = new FontLoader();
@@ -279,7 +283,7 @@ export class GraphicsGPU {
             new TextGeometry(text, {
                 font: this.font,
                 size: size,
-                height: height
+                depth: height
             }),
             new MeshBasicMaterial({
                 color: color,

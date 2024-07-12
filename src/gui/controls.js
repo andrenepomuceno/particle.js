@@ -94,6 +94,9 @@ export class GUIControls {
                 options.scenarioSetup(core.simulationIdx);
             },
             mouseHint: () => {
+                instructionsPopup();
+                return;
+
                 alert([
                     "LEFT BUTTON: select particle/camera rotation (when 3D mode is enabled)",
                     "MIDDLE BUTTON/SCROLL: zoom in/out.",
@@ -135,6 +138,9 @@ export class GUIControls {
                 simulation.graphics.capture(simulation.name);
             },
             debug: () => {
+            },
+            showHelp: () => {
+                instructionsPopup();
             },
         };
 
@@ -206,7 +212,7 @@ export class GUIControls {
             core.updatePhysics('radiusRange', val);
         });
 
-        controls.add(options.controls, 'mouseHint').name("Mouse Controls (click for more...)");
+        controls.add(options.controls, 'mouseHint').name("Mouse Controls [?] (click for more...)");
         controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
         controls.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
         controls.add(options.controls, 'snapshotJson').name("Export simulation [P]");
@@ -243,4 +249,75 @@ function snapshotJson() {
     downloadStringToZip(content, finalName + ".json");
 }
 
+let helpPopup = undefined;
+function instructionsPopup() {
+    if (helpPopup != undefined) {
+        document.body.removeChild(helpPopup);
+        helpPopup = undefined;
+        return;
+    }
+
+    // Create the popup container
+    helpPopup = document.createElement('div');
+
+    helpPopup.style.position = 'fixed';
+    helpPopup.style.top = '0';
+    helpPopup.style.left = '0';
+    helpPopup.style.width = '100%';
+    helpPopup.style.height = '100%';
+    helpPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    helpPopup.style.display = 'flex';
+    helpPopup.style.alignItems = 'center';
+    helpPopup.style.justifyContent = 'center';
+    helpPopup.style.zIndex = '1000';
+
+    // Create the popup content
+    const content = document.createElement('div');
+    content.style.backgroundColor = 'rgba(10, 10, 10, 0.7)';
+    content.style.padding = '20px';
+    content.style.borderRadius = '10px';
+    content.style.maxWidth = '600px';
+    content.style.textAlign = 'left';
+
+    // Add the instructions HTML
+    content.innerHTML = `
+        <h2>Welcome to particle.js!</h2>
+        <p>Here are the basic controls to get you started:</p>
+        <h3>Mouse Controls:</h3>
+        <ul>
+            <li><b>LEFT BUTTON:</b> Select particle/camera rotation (when 3D mode is enabled)</li>
+            <li><b>MIDDLE BUTTON/SCROLL:</b> Zoom in/out</li>
+            <li><b>RIGHT BUTTON:</b> Move camera position (pan)</li>
+            <li><b>SHIFT + LEFT CLICK:</b> Select a group of particles. Also acts as a ruler (see INFORMATION/Ruler)</li>
+        </ul>
+        <h3>Useful Keyboard Controls:</h3>
+        <p>Important: Keyboard shortcuts do not work when the mouse pointer is over the menus. So, move your mouse outside before pressing a command key.</p>
+        <ul>
+            <li><b>SPACE:</b> Pause/Resume simulation</li>
+            <li><b>R:</b> Reset simulation</li>
+            <li><b>PAGEDOWN:</b> Next simulation</li>
+            <li><b>PAGEUP:</b> Previous simulation</li>
+            <li><b>HOME:</b> First simulation</li>
+            <li><b>Z:</b> Move the selection to the mouse/pointer position. Also place clones and generated particles</li>
+            <li><b>X:</b> Generate clones of the selection</li>
+            <li><b>G:</b> Generate new particles</li>
+            <li>See the menus for more...</li>
+        </ul>
+        <p>Press <b>?</b> any time to show this popup again.<p>
+        <p>Check out the project on <a href="https://github.com/andrenepomuceno/particle.js" target="_blank" style="color: #4CAF50;">GitHub</a> for more details.</p>
+        <button id="closePopupBtn" style="margin-top: 20px;">Got it!</button>
+    `;
+
+    // Append the content to the popup
+    helpPopup.appendChild(content);
+
+    // Append the popup to the body
+    document.body.appendChild(helpPopup);
+
+    // Close button functionality
+    document.getElementById('closePopupBtn').onclick = () => {
+        document.body.removeChild(helpPopup);
+        helpPopup = undefined;
+    };
+}
 

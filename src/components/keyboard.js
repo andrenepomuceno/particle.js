@@ -32,6 +32,7 @@ export class Keyboard {
         this.onKeyDownMap.set('m', { callback: this.guiOptions.controls.collapseAll });
         this.onKeyDownMap.set('~', { callback: this.guiOptions.controls.debug });
         this.onKeyDownMap.set('*', { callback: this.guiOptions.controls.record });
+        this.onKeyDownMap.set('?', { callback: this.guiOptions.controls.showHelp });
 
         this.onKeyDownMap.set('z', { callback: this.guiOptions.selection.place });
         this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });

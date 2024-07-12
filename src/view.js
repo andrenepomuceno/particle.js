@@ -190,6 +190,9 @@ function onPointerDown(event) {
         selection.clear();
         selection.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
+    } else if (event.button == 1) {
+        //middle 
+        simulation.graphics.controls.zoomSpeed = 16.0;
     }
 }
 
@@ -206,6 +209,9 @@ function onPointerUp(event) {
                 guiParticle.open();
             }
         });
+    } else if (event.button == 1) {
+        //middle 
+        simulation.graphics.controls.zoomSpeed = 1.0;
     }
 }
 

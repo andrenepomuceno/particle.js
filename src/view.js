@@ -113,6 +113,17 @@ function scenarioSetup(idx) {
     log('setup done');
 }
 
+function showFirstTimeInstructionsPopup() {
+    // Check if the user has already seen the popup
+    if (localStorage.getItem('hasSeenInstructionsPopup')) {
+        return;
+    }
+
+    localStorage.setItem('hasSeenInstructionsPopup', 'true');
+
+    guiOptions.controls.showHelp();
+}
+
 export function viewSetup() {
     window.onresize = onWindowResize;
     document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
@@ -151,6 +162,8 @@ export function viewSetup() {
 
     log('Animating...');
     animate();
+
+    showFirstTimeInstructionsPopup();
 }
 
 /* HELPERS */

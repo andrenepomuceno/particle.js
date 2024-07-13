@@ -249,27 +249,39 @@ function snapshotJson() {
     downloadStringToZip(content, finalName + ".json");
 }
 
-let helpPopup = undefined;
+let helpPopupElement = undefined;
+let wasPausedBefonePopup = false;
+
+function closePopup() {
+    document.body.removeChild(helpPopupElement);
+    helpPopupElement = undefined;
+    if (!wasPausedBefonePopup) {
+        options.controls.pause = false;
+    }
+}
+
 function instructionsPopup() {
-    if (helpPopup != undefined) {
-        document.body.removeChild(helpPopup);
-        helpPopup = undefined;
+    if (helpPopupElement != undefined) {
+        closePopup();
         return;
     }
 
-    // Create the popup container
-    helpPopup = document.createElement('div');
+    wasPausedBefonePopup = options.controls.pause;
+    options.controls.pause = true;
 
-    helpPopup.style.position = 'fixed';
-    helpPopup.style.top = '0';
-    helpPopup.style.left = '0';
-    helpPopup.style.width = '100%';
-    helpPopup.style.height = '100%';
-    helpPopup.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    helpPopup.style.display = 'flex';
-    helpPopup.style.alignItems = 'center';
-    helpPopup.style.justifyContent = 'center';
-    helpPopup.style.zIndex = '1000';
+    // Create the popup container
+    helpPopupElement = document.createElement('div');
+
+    helpPopupElement.style.position = 'fixed';
+    helpPopupElement.style.top = '0';
+    helpPopupElement.style.left = '0';
+    helpPopupElement.style.width = '100%';
+    helpPopupElement.style.height = '100%';
+    helpPopupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    helpPopupElement.style.display = 'flex';
+    helpPopupElement.style.alignItems = 'center';
+    helpPopupElement.style.justifyContent = 'center';
+    helpPopupElement.style.zIndex = '1000';
 
     // Create the popup content
     const content = document.createElement('div');
@@ -309,15 +321,14 @@ function instructionsPopup() {
     `;
 
     // Append the content to the popup
-    helpPopup.appendChild(content);
+    helpPopupElement.appendChild(content);
 
     // Append the popup to the body
-    document.body.appendChild(helpPopup);
+    document.body.appendChild(helpPopupElement);
 
     // Close button functionality
     document.getElementById('closePopupBtn').onclick = () => {
-        document.body.removeChild(helpPopup);
-        helpPopup = undefined;
+        closePopup();
     };
 }
 

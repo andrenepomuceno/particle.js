@@ -289,11 +289,15 @@ function instructionsPopup() {
     content.style.padding = '20px';
     content.style.borderRadius = '10px';
     content.style.maxWidth = '600px';
+    content.style.width = '90%';
+    content.style.maxHeight = '100%';
     content.style.textAlign = 'left';
+    content.style.overflowY = 'auto';
 
     // Add the instructions HTML
     content.innerHTML = `
         <h2>Welcome to particle.js!</h2>
+        <p>particle.js is a simplified Particle Physics sandbox.</p>
         <p>Here are the basic controls to get you started:</p>
         <h3>Mouse Controls:</h3>
         <ul>

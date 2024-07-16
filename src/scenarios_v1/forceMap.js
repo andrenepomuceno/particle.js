@@ -107,7 +107,7 @@ function experiments3(simulation) {
         { m: 1/2, q: -1/3, nq: 1 },
         { m: 1/2, q: -1/3, nq: 1 },
 
-        { m: 1/12, q: -1, nq: -1/6 },
+        { m: 1/10, q: -1, nq: -1/6 },
     ]
 
     let n = graphics.maxParticles; //Math.min(10e3, );

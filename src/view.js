@@ -19,6 +19,7 @@ import { GUIControls } from './gui/controls.js';
 import { GUIAdvanced } from './gui/advanced.js';
 
 const viewUpdateDelay = 1000;
+const simulationStepDelay = 1000/60;
 let lastViewUpdate = 0;
 let lastAnimateTime = 0;
 
@@ -236,24 +237,16 @@ function onFinishMove(event) {
 function animate(time) {
     requestAnimationFrame(animate);
 
-    simulation.graphics.render();
+    if (isNaN(time)) {
+        return;
+    }
+
+    const dt = time - lastAnimateTime;
+    if (dt < simulationStepDelay) {
+        return;
+    }
+    lastAnimateTime = time;
     statsPanel.update();
-
-    if (guiOptions.particle.followParticle && guiOptions.particle.obj) {
-        let x = guiOptions.particle.obj.position;
-        cameraTargetSet(x);
-    }
-
-    if (!guiOptions.controls.pause || guiOptions.nextFrame) {
-        guiOptions.nextFrame = false;
-
-        let dt = 0;
-        if (!isNaN(time) && lastAnimateTime > 0) {
-            dt = time - lastAnimateTime;
-        }
-
-        simulation.step(dt);
-    }
 
     if (time - lastViewUpdate >= viewUpdateDelay) {
         new Promise(() => {
@@ -271,5 +264,16 @@ function animate(time) {
         });
     }
 
-    if (!isNaN(time)) lastAnimateTime = time;
+    if (!guiOptions.controls.pause || guiOptions.nextFrame) {
+        guiOptions.nextFrame = false;
+
+        simulation.step(dt);
+
+        if (guiOptions.particle.followParticle && guiOptions.particle.obj) {
+            let x = guiOptions.particle.obj.position;
+            cameraTargetSet(x);
+        }
+    }
+
+    simulation.graphics.render();
 }

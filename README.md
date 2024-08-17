@@ -94,7 +94,7 @@ $$m_1 \vec{v_1}^2 + m_2 \vec{v_2}^2 = m_1 \vec{u_1}^2 + m_2 \vec{u_2}^2$$
 
 Where $u_i$ is the final velocity of $P_i$.
 
-So, the force exerted by a collision is (a lot of omitted calculus here...)
+So, the force exerted by a collision is (a lot of omitted algebra here...)
 
 $$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
 

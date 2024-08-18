@@ -257,7 +257,7 @@ function animate(time) {
             cameraTargetSet(x);
         }
     }
-
+  
     if (time - lastViewUpdate >= viewUpdateDelay) {
         new Promise(() => {
             lastViewUpdate = time;

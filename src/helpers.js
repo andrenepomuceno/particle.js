@@ -539,7 +539,7 @@ export function delayedAction(delay) {
     })
 }
 
-export function caption(graphics, text, timeout = 3000) {
+export function caption(graphics, text, timeout = 2000) {
     const color = 0xffffff;
     const pos = mouseToWorldCoord(
         mouseToScreenCoord({clientX: window.innerWidth * 0.05, clientY: window.innerHeight * 0.90}),

@@ -49,6 +49,8 @@ export class Physics {
         enableLorentzFactor: false,
         fineStructureConstant: 1/137,
         enableFineStructure: false,
+        enableColorCharge: false,
+        colorChargeConstant: 1/3,
 
         collisionCounter: 0,
 
@@ -59,8 +61,6 @@ export class Physics {
         useDistance1: false,
         velocityShader: undefined,
         positionShader: undefined,
-
-        enableColorCharge: false,
 
         enableFriction: false,
         frictionConstant: 1e-4,
@@ -90,6 +90,8 @@ export class Physics {
         this.enableLorentzFactor = input.enableLorentzFactor;
         this.fineStructureConstant = input.fineStructureConstant;
         this.enableFineStructure = input.enableFineStructure;
+        this.enableColorCharge = input.enableColorCharge;
+        this.colorChargeConstant = input.colorChargeConstant;
 
         this.collisionCounter = input.collisionCounter;
 
@@ -101,8 +103,6 @@ export class Physics {
         this.useDistance1 = input.useDistance1;
         this.velocityShader = input.velocityShader;
         this.positionShader = input.positionShader;
-
-        this.enableColorCharge = input.enableColorCharge;
 
         this.enableFriction = input.enableFriction;
         this.frictionConstant = input.frictionConstant;

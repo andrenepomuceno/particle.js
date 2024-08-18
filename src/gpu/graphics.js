@@ -398,6 +398,7 @@ export class GraphicsGPU {
         uniforms['maxVel'] = { value: physics.maxVel };
         uniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
         uniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };
+        uniforms['colorChargeConstant'] = { value: physics.colorChargeConstant };
 
         uniforms['forceMap'] = { value: physics.forceMap };
         uniforms['forceMapLen'] = { value: physics.forceMap.length };

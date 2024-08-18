@@ -81,6 +81,7 @@ uniform vec4 forceConstants;
 uniform float maxVel;
 uniform float maxVel2;
 uniform float fineStructureConstant;
+uniform float colorChargeConstant;
 
 uniform float forceMap[16];
 uniform float forceMapLen;
@@ -144,7 +145,7 @@ float calcNuclearPotential(float distance1, float distance2)
     return x;
 }
 
-float calcColorPotential(float c1, float c2)
+float calcColorPotential(float c1, float c2, float distance1)
 {
     float x = 0.0;
 
@@ -163,16 +164,10 @@ float calcColorPotential(float c1, float c2)
         vec3(0.0, 0.0, 1.0)
     );
 
-    if (c1 != 0.0 || c2 != 0.0) {
-        float c = dot(color1[uint(c1)], color2[uint(c2)]);
-        const float colorMixConstant = 1.0/3.0;
-        x = x * (1.0 - colorMixConstant + colorMixConstant * c);
-        //float d = distance1 / nuclearForceRange; //(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
-        //force += nuclearForceConstant * c * (1.0 - d);
-        //force += nuclearForceConstant * c * x;
-        //x += (1.0 - d) * c;    
-        //x *= c;
-        //x += x * c;
+    //if (c1 != 0.0 && c2 != 0.0)
+    {
+        float f = dot(color1[uint(c1)], color2[uint(c2)]);
+        x = colorChargeConstant * (distance1/nuclearForceRange) * f;
     }
 
     return x;
@@ -251,7 +246,8 @@ void main() {
                 nPot = calcNuclearPotential(distance1, distance2);
 
                 #if ENABLE_COLOR_CHARGE
-                    nPot *= calcColorPotential(props1.w, props2.w);
+                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
+                    nPot += calcColorPotential(props1.w, props2.w, distance1);
                 #endif
             }
 
@@ -271,8 +267,9 @@ void main() {
 
             #if 1
                 //gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
-                // gPot += (m1 + m2)/(1e-1 * maxVel2 * distance1);
-                gPot += (m1 + m2)/(2.0 * distance1);
+                // gPot += (m1 + m2)/(maxVel2 * distance1);
+                //gPot += (m1 + m2)/(1.0 * distance1);
+                gPot += 1.0/distance1;
 
                 /*float p = -(m1 + m2) / (maxVel2 * distance1);
                 p += 3.0 / (2.0 * maxVel2) * dot(vel1, vel1);

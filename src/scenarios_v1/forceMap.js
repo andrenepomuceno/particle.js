@@ -113,10 +113,12 @@ function experiments4(simulation) {
     physics.maxVel = 10e6 * 3e8 * M / S;
     physics.fineStructureConstant = 1/137;
 
+    physics.enableColorCharge = true;
+    physics.colorChargeConstant = 1/3;
+
     physics.minDistance2 = Math.pow(1e-3, 2);
 
     physics.useBoxBoundary = true;
-    //physics.enableColorCharge = true;
     physics.useDistance1 = false;
     //simulation.mode2D = false;
     physics.enableFriction = true;
@@ -135,7 +137,7 @@ function experiments4(simulation) {
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [0.05, 1.0, 1.0];
+    physics.forceMap = [0.05, 1.0, 2.0];
 
     const nq = 10;
     let typeList = [

@@ -265,7 +265,7 @@ void main() {
                 ePot += fineStructureConstant / distance1;
             #endif
 
-            #if 1
+            #if 0
                 //gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
                 // gPot += (m1 + m2)/(maxVel2 * distance1);
                 //gPot += (m1 + m2)/(1.0 * distance1);

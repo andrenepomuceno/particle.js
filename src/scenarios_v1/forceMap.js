@@ -119,7 +119,7 @@ function experiments4(simulation) {
     physics.minDistance2 = Math.pow(1e-3, 2);
 
     physics.useBoxBoundary = true;
-    physics.useDistance1 = false;
+    physics.useDistance1 = true;
     //simulation.mode2D = false;
     physics.enableFriction = true;
     physics.frictionConstant = 1e-5;

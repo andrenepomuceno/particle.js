@@ -24,6 +24,7 @@ function addFolder(name, list) {
 }
 
 //addFolder('Record', record);
+//addFolder('Fields', fields);
 addFolder('Force Map', forceMap);
 addFolder('Quark Model', quarkModel);
 addFolder('EPN Model', epnModel);

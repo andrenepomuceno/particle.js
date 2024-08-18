@@ -84,7 +84,7 @@ export class GUIParticle {
         guiParticleProperties.add(options.particle, 'nuclearCharge').name('Nuclear Charge ✏️').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
-        guiParticleProperties.add(options.particle, 'colorCharge').name('Color Charge').listen();
+        //guiParticleProperties.add(options.particle, 'colorCharge').name('Color Charge').listen();
         guiParticleProperties.open();
 
         const guiParticleVariables = controls.addFolder("[+] Variables ✏️");

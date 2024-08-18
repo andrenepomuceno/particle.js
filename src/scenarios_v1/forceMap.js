@@ -7,6 +7,8 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
+    //nuclearField,
+    experiments4,
     experiments3,
     //experiments2,
     //experiments1,
@@ -53,6 +55,163 @@ function createParticle(particleList, mass = 1, charge = 0, nuclearCharge = 0, p
     particleList.push(p);
 }
 
+function nuclearField(simulation) {
+    const graphics = simulation.graphics;
+    const physics = simulation.physics;
+    const grid = 100;
+    const particleList = simulation.particleList;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.05, 1.0, 1.0];
+
+    physics.forceConstant = 1;
+    physics.massConstant = 1;
+    physics.chargeConstant = 1;
+    physics.nuclearForceConstant = 1;
+    physics.nuclearForceRange = 1e3;
+
+    const distance = 2 * physics.nuclearForceRange;
+    graphics.cameraDistance = distance;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+    graphics.cameraSetup();
+
+    simulation.bidimensionalMode(true);
+    simulation.setParticleRadius(0.05 * physics.nuclearForceRange, 0);
+
+    simulation.field.probeConfig(0, 0, 1e2);
+    simulation.field.setup('2d', grid);
+
+    let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);
+    let v = new Vector3(1, 0, 0);
+    let fixed = true;
+    let q = 1;
+    let m = 1;
+    let nq = 1;
+
+    createParticle(particleList, m, q, nq, new Vector3().sub(x), new Vector3().add(v), fixed);
+    createParticle(particleList, m, -q, -nq, new Vector3().add(x), new Vector3().sub(v), fixed);
+}
+
+function experiments4(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    const M = (3) * 1e18;
+    const S = (1/2) * 1e27;
+    const C = (10 / 1.602176634) * 1e18;
+    const KG = (1 / 10) * 1e30;
+
+    physics.nuclearForceRange = 3.0e-15 * M;
+    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+    physics.forceConstant = 1;
+
+    physics.enableLorentzFactor = true;
+    physics.enableFineStructure = true;
+    physics.maxVel = 10e6 * 3e8 * M / S;
+    physics.fineStructureConstant = 1/137;
+
+    physics.enableColorCharge = true;
+    physics.colorChargeConstant = 1/3;
+
+    physics.minDistance2 = Math.pow(1e-3, 2);
+
+    physics.useBoxBoundary = true;
+    physics.useDistance1 = true;
+    //simulation.mode2D = false;
+    physics.enableFriction = true;
+    physics.frictionConstant = 1e-5;
+
+    /*physics.roundPosition = true;
+    physics.roundVelocity = true;*/
+
+    physics.boundaryDistance = 1e6;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 4e5;
+    graphics.cameraSetup();
+
+    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.05, 1.0, 2.0];
+
+    const nq = 10;
+    let typeList = [
+        // proton
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
+
+        // neutron
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
+
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+    ]
+
+    let n = graphics.maxParticles; //Math.min(10e3, );
+    let options = {
+        randomSequence: true,
+        //randomM: true,
+        randomQ: false,
+        randomQSignal: false,
+        randomNQSignal: false,
+        v1: 1,
+        r0: 20 * physics.nuclearForceRange
+    }
+    createParticles(simulation, typeList, n, options);
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+
+    const cyclesPerMs = (60/1000);
+    simulation.addActionArray([
+        {
+            cycle: 0.1 * 1e3 * cyclesPerMs,
+            callback: () => {
+                //graphics.drawCursor(false);
+                caption(graphics,"Gravity: " + physics.massConstant);
+            }
+        },
+        {
+            cycle: 2 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e41
+                );
+                caption(graphics,"Gravity: " + physics.massConstant);
+            }
+        },
+        {
+            cycle: 5 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                caption(graphics,"Gravity: " + physics.massConstant);
+            }
+        },
+        {
+            cycle: 60 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
+            }
+        },
+        {
+            cycle: 100 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
+                caption(graphics,"Friction: " + physics.frictionConstant);
+            }
+        }
+    ]);
+}
+
 function experiments3(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
@@ -60,8 +219,9 @@ function experiments3(simulation) {
 
     const M = 1e18;
     const KG = 1e30;
-    const S = (0.25) * 1e27;
+    const S = 1e27;
     const C = (1 / 1.602176634) * 1e21;
+
     const nuclearForceRange = 1e4;
 
     physics.useBoxBoundary = true;

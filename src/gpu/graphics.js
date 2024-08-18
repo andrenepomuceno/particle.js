@@ -395,6 +395,9 @@ export class GraphicsGPU {
         uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         uniforms['frictionConstant'] = { value: physics.frictionConstant };
         uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
+        uniforms['maxVel'] = { value: physics.maxVel };
+        uniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
+        uniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };
 
         uniforms['forceMap'] = { value: physics.forceMap };
         uniforms['forceMapLen'] = { value: physics.forceMap.length };

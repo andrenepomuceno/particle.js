@@ -35,6 +35,9 @@ export function generateComputeVelocity(physics) {
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
     config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
 
+    config += define("USE_LORENTZ_FACTOR", physics.enableLorentzFactor);
+    config += define("USE_FINE_STRUCTURE", physics.enableFineStructure);
+
     let shader = config + computeVelocityV2;
     return shader;
 }
@@ -75,6 +78,9 @@ uniform vec4 forceConstants;
     nuclearForceConstant,
     0
 );*/
+uniform float maxVel;
+uniform float maxVel2;
+uniform float fineStructureConstant;
 
 uniform float forceMap[16];
 uniform float forceMapLen;
@@ -95,7 +101,7 @@ float sdSphere( vec3 p, float s )
     return length(p)-s;
 }
 
-float calcNuclearPotential(float distance1)
+float calcNuclearPotential(float distance1, float distance2)
 {
     float x = 0.0;
 
@@ -121,12 +127,15 @@ float calcNuclearPotential(float distance1)
         #elif USE_FMAP1 // 'forceMap1'
             int idx = int(forceMapLen * x);
             x = forceMap[idx];
-        #elif USE_FMAP2
-            float fx = -x;
-            if (distance2 < 0.1 * nuclearForceRange2) {
-                fx += 10.0 * x;
-            }
-            x = fx;
+        #elif USE_FMAP2 // QCD test
+            float lambda = forceMap[0];
+            float sigma = forceMap[1];
+            float xMax = forceMap[2];
+            float d = x;
+            x = exp(-d / lambda); // yukawa
+            x /= (d * d);
+            x = min(x, xMax);
+            x -= sigma * d; // string tension
         #else
             x = sin(2.0 * PI * x);
         #endif
@@ -200,12 +209,14 @@ void main() {
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
 
+            vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+            float m2 = props2.x;
+
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
                     #if 1
-                        float m2 = props2.x;
-                        vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+                        // vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
                         float m = m1 + m2; // precision loss if m1 >> m2
                         if (m == 0.0) {
                             continue;
@@ -232,47 +243,68 @@ void main() {
                 }
             }
 
-            #if USE_DISTANCE1
-                float distance1 = sqrt(distance2);
-            #endif
+            float distance1 = sqrt(distance2);
             
             float force = 0.0;
-            float x = 0.0;
-            if (distance2 < nuclearForceRange2) {
-                #if !USE_DISTANCE1
-                    float distance1 = sqrt(distance2);
-                #endif
-                
-                x = calcNuclearPotential(distance1);
+            float nPot = 0.0;
+            if (distance2 < nuclearForceRange2) {               
+                nPot = calcNuclearPotential(distance1, distance2);
 
                 #if ENABLE_COLOR_CHARGE
-                    x *= calcColorPotential(props1.w, props2.w);
+                    nPot *= calcColorPotential(props1.w, props2.w);
                 #endif
             }
 
-            #if !USE_DISTANCE1
-                float d12 = 1.0/distance2;
-            #else
-                float d12 = 1.0/distance1;
+            float d12 = 1.0/distance2;
+            float gPot = d12;
+            float ePot = d12;
+
+            #if USE_DISTANCE1
+                gPot += 1.0 / distance1;
+                ePot += 1.0 / distance1;
             #endif
+
+            #if USE_FINE_STRUCTURE
+                //ePot *= (1.0 + fineStructureConstant / distance1);
+                ePot += fineStructureConstant / distance1;
+            #endif
+
+            #if 1
+                //gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
+                // gPot += (m1 + m2)/(1e-1 * maxVel2 * distance1);
+                gPot += (m1 + m2)/(2.0 * distance1);
+
+                /*float p = -(m1 + m2) / (maxVel2 * distance1);
+                p += 3.0 / (2.0 * maxVel2) * dot(vel1, vel1);
+                p += 3.0 / (2.0 * maxVel2) * dot(vel2, vel2);
+                p += -4.0 / (maxVel2) * dot(vel1, vel2);
+                gPot += p;*/
+            #endif
+
             vec4 props = props1 * props2;
-            vec4 pot = vec4(d12, d12, x, 0);
+            vec4 pot = vec4(gPot, ePot, nPot, 0.0);
             vec4 result = forceConstants * props * pot;
             //force += result.x + result.y + result.z;
             force += dot(result, ones);
+            
+            #if USE_LORENTZ_FACTOR
+                float vel2Abs = dot(vel2, vel2);
+                force /= sqrt(1.0 - vel2Abs / maxVel2);
+            #endif
+
             rForce += force * normalize(dPos);
         }
     }
 
     #if ENABLE_FRICTION
-        float velAbs = dot(vel1, vel1);
-        if (velAbs > 0.0) {
-            //velAbs = min(velAbs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
+        float vel1Abs = dot(vel1, vel1);
+        if (vel1Abs > 0.0) {
+            //vel1Abs = min(vel1Abs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
             vec3 f = -frictionConstant * normalize(vel1);
             #if FRICTION_DEFAULT
-                velAbs = sqrt(velAbs);
+                vel1Abs = sqrt(vel1Abs);
             #endif
-            f *= velAbs;
+            f *= vel1Abs;
             rForce += f;
         }
     #endif
@@ -286,10 +318,14 @@ void main() {
         } else {
             vel1 += rForce;
         }
+
+        // velocity clamp
+        vel1 = clamp(vel1, -maxVel, maxVel);
         
         #if ENABLE_BOUNDARY
             // check boundary colision
             vec3 nextPos = pos1 + vel1;
+
             #if !USE_BOX_BOUNDARY
                 if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
                     if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
@@ -310,25 +346,18 @@ void main() {
                     }
                 }
             #endif
+
+            #if MODE_2D
+                vel1.z = 0.0;
+            #endif
         #endif
     } else if (type1 == PROBE) {
         vel1 = rForce;
     }
 
-    // velocity clamp / sanity checks
-    #if ENABLE_BOUNDARY
-        vel1 = clamp(vel1, -boundaryDistance, boundaryDistance);
-    #else
-        vel1 = clamp(vel1, -1e15, 1e15);
-    #endif
-
     #if ROUND_VELOCITY
         vel1 = round(vel1);
     #endif
-
-    /*#if MODE_2D
-        vel1.z = 0.0;
-    #endif*/
 
     // vel1 *= velocityConstant;
 

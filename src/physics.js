@@ -45,6 +45,11 @@ export class Physics {
         nuclearForceConstant: 1.0,
         nuclearForceRange: 1e3,
 
+        maxVel: 1e12,
+        enableLorentzFactor: false,
+        fineStructureConstant: 1/137,
+        enableFineStructure: false,
+
         collisionCounter: 0,
 
         //particleList: [],
@@ -80,6 +85,11 @@ export class Physics {
         this.chargeConstant = input.chargeConstant;
         this.nuclearForceConstant = input.nuclearForceConstant;
         this.nuclearForceRange = input.nuclearForceRange;
+
+        this.maxVel = input.maxVel;
+        this.enableLorentzFactor = input.enableLorentzFactor;
+        this.fineStructureConstant = input.fineStructureConstant;
+        this.enableFineStructure = input.enableFineStructure;
 
         this.collisionCounter = input.collisionCounter;
 

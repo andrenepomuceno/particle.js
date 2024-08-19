@@ -109,15 +109,17 @@ function experiments4(simulation) {
     physics.forceConstant = 1;
 
     physics.enableLorentzFactor = true;
+    physics.maxVel = 10e6 * 299792458 * M / S;
+
     physics.enableFineStructure = true;
-    physics.maxVel = 10e6 * 3e8 * M / S;
     physics.fineStructureConstant = 1/137;
 
     physics.enableColorCharge = true;
-    physics.colorChargeConstant = 1/3;
+    physics.colorChargeConstant = 1;
 
     physics.minDistance2 = Math.pow(1e-3, 2);
 
+    physics.enableRandomNoise = true;
     physics.useBoxBoundary = true;
     physics.useDistance1 = true;
     //simulation.mode2D = false;
@@ -137,7 +139,7 @@ function experiments4(simulation) {
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [0.05, 1.0, 2.0];
+    physics.forceMap = [0.05, 1.0, 1.0];
 
     const nq = 10;
     let typeList = [
@@ -151,12 +153,12 @@ function experiments4(simulation) {
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
 
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/3, name: 'electron' },
     ]
 
     let n = graphics.maxParticles; //Math.min(10e3, );
     let options = {
-        randomSequence: true,
+        randomSequence: false,
         //randomM: true,
         randomQ: false,
         randomQSignal: false,

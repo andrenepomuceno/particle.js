@@ -250,7 +250,7 @@ function animate(time) {
     if (!guiOptions.controls.pause || guiOptions.nextFrame) {
         guiOptions.nextFrame = false;
 
-        simulation.step(dt);
+        simulation.step(dt, time);
 
         if (guiOptions.particle.followParticle && guiOptions.particle.obj) {
             let x = guiOptions.particle.obj.position;

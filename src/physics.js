@@ -50,7 +50,9 @@ export class Physics {
         fineStructureConstant: 1/137,
         enableFineStructure: false,
         enableColorCharge: false,
-        colorChargeConstant: 1/3,
+        colorChargeConstant: 1.0,
+        enableRandomNoise: false,
+        randomNoiseConstant: 1e-3,
 
         collisionCounter: 0,
 
@@ -92,6 +94,8 @@ export class Physics {
         this.enableFineStructure = input.enableFineStructure;
         this.enableColorCharge = input.enableColorCharge;
         this.colorChargeConstant = input.colorChargeConstant;
+        this.enableRandomNoise = input.enableRandomNoise;
+        this.randomNoiseConstant = input.randomNoiseConstant;
 
         this.collisionCounter = input.collisionCounter;
 

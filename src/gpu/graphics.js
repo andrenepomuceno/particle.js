@@ -382,30 +382,34 @@ export class GraphicsGPU {
     }
 
     fillPhysicsUniforms() {
-        let physics = this.physics;
-        let uniforms = this.velocityVariable.material.uniforms;
-        uniforms['minDistance2'] = { value: physics.minDistance2 };
-        // uniforms['massConstant'] = { value: physics.massConstant };
-        // uniforms['chargeConstant'] = { value: physics.chargeConstant };
-        // uniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
-        uniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
-        uniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
-        uniforms['forceConstant'] = { value: physics.forceConstant };
-        uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
-        uniforms['boundaryDamping'] = { value: physics.boundaryDamping };
-        uniforms['frictionConstant'] = { value: physics.frictionConstant };
-        uniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
-        uniforms['maxVel'] = { value: physics.maxVel };
-        uniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
-        uniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };
-        uniforms['colorChargeConstant'] = { value: physics.colorChargeConstant };
+        const physics = this.physics;
+        const velocityUniforms = this.velocityVariable.material.uniforms;
 
-        uniforms['forceMap'] = { value: physics.forceMap };
-        uniforms['forceMapLen'] = { value: physics.forceMap.length };
+        velocityUniforms['uTime'] = { value: 0.0 };
+        velocityUniforms['minDistance2'] = { value: physics.minDistance2 };
+        // velocityUniforms['massConstant'] = { value: physics.massConstant };
+        // velocityUniforms['chargeConstant'] = { value: physics.chargeConstant };
+        // velocityUniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
+        velocityUniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
+        velocityUniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
+        velocityUniforms['forceConstant'] = { value: physics.forceConstant };
+        velocityUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        velocityUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
+        velocityUniforms['frictionConstant'] = { value: physics.frictionConstant };
+        velocityUniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
+        velocityUniforms['maxVel'] = { value: physics.maxVel };
+        velocityUniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
+        velocityUniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };
+        velocityUniforms['colorChargeConstant'] = { value: physics.colorChargeConstant };
+        velocityUniforms['randomNoiseConstant'] = { value: physics.randomNoiseConstant };
 
-        uniforms = this.positionVariable.material.uniforms;
-        uniforms['boundaryDistance'] = { value: physics.boundaryDistance };
-        uniforms['forceConstant'] = { value: physics.forceConstant };
+        velocityUniforms['forceMap'] = { value: physics.forceMap };
+        velocityUniforms['forceMapLen'] = { value: physics.forceMap.length };
+
+        const positionUniforms = this.positionVariable.material.uniforms;
+
+        positionUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
+        positionUniforms['forceConstant'] = { value: physics.forceConstant };
     }
 
     #fillTextures() {
@@ -583,7 +587,7 @@ export class GraphicsGPU {
         this.pointsGeometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
     }
 
-    compute() {
+    compute(dt, time) {
         if (!this.initialized) return;
 
         let current = (this.renderTarget % 2);
@@ -593,6 +597,8 @@ export class GraphicsGPU {
         let velocityVariable = this.velocityVariable;
         let positionVariable = this.positionVariable;
         let gpuCompute = this.gpuCompute;
+
+        velocityVariable.material.uniforms['uTime'].value = time;
 
         velocityVariable.material.uniforms['textureVelocity'].value = velocityVariable.renderTargets[current].texture;
         velocityVariable.material.uniforms['texturePosition'].value = positionVariable.renderTargets[current].texture;

@@ -37,6 +37,7 @@ export function generateComputeVelocity(physics) {
 
     config += define("USE_LORENTZ_FACTOR", physics.enableLorentzFactor);
     config += define("USE_FINE_STRUCTURE", physics.enableFineStructure);
+    config += define("USE_RANDOM_NOISE", physics.enableRandomNoise);
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -59,6 +60,7 @@ const computeVelocityV2 = /* glsl */ `
 #include <common>
 precision highp float;
 
+uniform float uTime;
 uniform float minDistance2;
 /*uniform float massConstant;
 uniform float chargeConstant;*/
@@ -82,6 +84,7 @@ uniform float maxVel;
 uniform float maxVel2;
 uniform float fineStructureConstant;
 uniform float colorChargeConstant;
+uniform float randomNoiseConstant;
 
 uniform float forceMap[16];
 uniform float forceMapLen;
@@ -105,88 +108,97 @@ float sdSphere( vec3 p, float s )
 float calcNuclearPotential(float distance1, float distance2)
 {
     float x = 0.0;
+    x = distance1/nuclearForceRange;
 
     #if USE_HOOKS_LAW
-        x = -(2.0 * distance1 - nuclearForceRange)/nuclearForceRange;
-    #else
-        x = distance1/nuclearForceRange;
-        #if USE_POTENTIAL0 // 'powXR'
-            const float r = 1.0/3.0, log2 = log(2.0);
-            x = pow(x, -log2 / log(r));
-            x = sin(2.0 * PI * x);
-        #elif USE_POTENTIAL1 // 'exp'
-            const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
-            x = -exp(-log2 * x * r2 / r1);
-            x = sin(2.0 * PI * x);
-        #elif USE_POTENTIAL2 // 'powAX'
-            x = sin(7.22423 * (1.0 - pow(0.13026, x)));
-        #elif USE_POTENTIAL3 // 'powAXv2'
-            x = sin(6.64541 * (1.0 - pow(0.054507, x)));
-        #elif USE_POTENTIAL4 // 'powAXv3'
-            const float a = 3.0;
-            x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
-        #elif USE_FMAP1 // 'forceMap1'
-            int idx = int(forceMapLen * x);
-            x = forceMap[idx];
-        #elif USE_FMAP2 // QCD test
-            float lambda = forceMap[0];
-            float sigma = forceMap[1];
-            float xMax = forceMap[2];
-            float d = x;
-            x = exp(-d / lambda); // yukawa
-            x /= (d * d);
-            x = min(x, xMax);
-            x -= sigma * d; // string tension
-        #else
-            x = sin(2.0 * PI * x);
-        #endif
+        x = -(2.0 * x - 1.0);
+
+    #elif USE_POTENTIAL0 // 'powXR'
+        const float r = 1.0/3.0, log2 = log(2.0);
+        x = pow(x, -log2 / log(r));
+        x = sin(2.0 * PI * x);
+
+    #elif USE_POTENTIAL1 // 'exp'
+        const float r1 = 1.0/3.0, r2 = 3.0, log2 = log(2.0);
+        x = -exp(-log2 * x * r2 / r1);
+        x = sin(2.0 * PI * x);
+
+    #elif USE_POTENTIAL2 // 'powAX'
+        x = sin(7.22423 * (1.0 - pow(0.13026, x)));
+
+    #elif USE_POTENTIAL3 // 'powAXv2'
+        x = sin(6.64541 * (1.0 - pow(0.054507, x)));
+
+    #elif USE_POTENTIAL4 // 'powAXv3'
+        const float a = 3.0;
+        x = sin(6.64541 * (1.0 - pow(0.054507, x))) * exp(-a * x) * a;
+
+    #elif USE_FMAP1 // 'forceMap1'
+        int idx = int(forceMapLen * x);
+        x = forceMap[idx];
+
+    #elif USE_FMAP2 // QCD test
+        float lambda = forceMap[0];
+        float sigma = forceMap[1];
+        float xMax = forceMap[2];
+        float d = x;
+        x = exp(-d / lambda); // yukawa
+        x /= (d * d);
+        x = min(x, xMax);
+        x -= sigma * d; // string tension
+
+    #else // default
+        x = sin(2.0 * PI * x);
     #endif
 
     return x;
 }
 
+const vec3 color1Mat[4] = vec3[](
+    vec3(0.0, 0.0, 0.0),
+    
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+);
+
+const vec3 color2Mat[4] = vec3[](
+    vec3(0.0, 0.0, 0.0),
+#if 0
+    vec3(-1.0, 0.5, 0.5),
+    vec3(0.5, -1.0, 0.5),
+    vec3(0.5, 0.5, -1.0)
+#elif 1
+    vec3(-1.0, 1.0, 0.0),
+    vec3(0.0, -1.0, 1.0),
+    vec3(1.0, 0.0, -1.0)
+#endif
+);
+
 float calcColorPotential(float c1, float c2, float distance1)
 {
-    float x = 0.0;
-
-    const vec3 color1[4] = vec3[](
-        vec3(0.0, 0.0, 0.0),
-
-        vec3(0.0, 1.0, -1.0),
-        vec3(-1.0, 0.0, 1.0),
-        vec3(1.0, -1.0, 0.0)
-    );
-    const vec3 color2[4] = vec3[](
-        vec3(0.0, 0.0, 0.0),
-        
-        vec3(1.0, 0.0, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        vec3(0.0, 0.0, 1.0)
-    );
-
-    //if (c1 != 0.0 && c2 != 0.0)
-    {
-        float f = dot(color1[uint(c1)], color2[uint(c2)]);
-        x = colorChargeConstant * (distance1/nuclearForceRange) * f;
-    }
-
-    return x;
+    float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
+    return colorChargeConstant * (distance1/nuclearForceRange) * f;
 }
 
-void main() {
-    const vec4 ones = vec4(1.0);
+float rand2(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
+const vec4 ones = vec4(1.0);
+
+void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
-    vec4 tPos1 = texture2D(texturePosition, uv1);
-    float type1 = tPos1.w;
+    vec4 texPos1 = texture2D(texturePosition, uv1);
+    float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
 
-    vec3 pos1 = tPos1.xyz;
+    vec3 pos1 = texPos1.xyz;
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
-    vec4 tVel1 = texture2D(textureVelocity, uv1);
-    vec3 vel1 = tVel1.xyz;
-    float collisions = tVel1.w;
+    vec4 texVel1 = texture2D(textureVelocity, uv1);
+    vec3 vel1 = texVel1.xyz;
+    float collisions = texVel1.w;
 
     vec3 rForce = vec3(0.0);
     for (float texY = 0.5; texY < resolution.y; texY++) {
@@ -194,11 +206,11 @@ void main() {
             vec2 uv2 = vec2(texX, texY) / resolution.xy;
             if (uv1 == uv2) continue;
 
-            vec4 tPos2 = texture2D(texturePosition, uv2);
-            float type2 = tPos2.w;
+            vec4 texPos2 = texture2D(texturePosition, uv2);
+            float type2 = texPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
 
-            vec3 pos2 = tPos2.xyz;            
+            vec3 pos2 = texPos2.xyz;            
             vec4 props2 = texture2D(textureProperties, uv2);
 
             vec3 dPos = pos2 - pos1;
@@ -210,32 +222,28 @@ void main() {
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    #if 1
-                        // vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
-                        float m = m1 + m2; // precision loss if m1 >> m2
-                        if (m == 0.0) {
-                            continue;
-                        }
-                        
-                        float s = 2.0 * m1 * m2 / m;
-                        vec3 dVel = vel2 - vel1;
-                        if (distance2 > 0.0) {
-                            vec3 res = s * dot(dVel, dPos) * dPos;
-                            res /= distance2;
-                            rForce += res;
-                        } else {
-                            rForce += s * dVel;
-                        }
-                    #else
-                        rForce += -1.0 * normalize(dPos);
-                    #endif
+                    // vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
+                    float m = m1 + m2; // precision loss if m1 >> m2
+                    if (m == 0.0) {
+                        continue;
+                    }
+                    
+                    float s = 2.0 * m1 * m2 / m;
+                    vec3 dVel = vel2 - vel1;
+                    if (distance2 > 0.0) {
+                        vec3 res = s * dot(dVel, dPos) * dPos;
+                        res /= distance2;
+                        rForce += res;
+                    } else {
+                        rForce += s * dVel;
+                    }
                     
                     ++collisions;
                     continue;
-                } else {
-                    // for probe
-                    distance2 = minDistance2;
                 }
+                
+                // for probe
+                distance2 = minDistance2;
             }
 
             float distance1 = sqrt(distance2);
@@ -246,30 +254,33 @@ void main() {
                 nPot = calcNuclearPotential(distance1, distance2);
 
                 #if ENABLE_COLOR_CHARGE
+                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
                     //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
                     nPot += calcColorPotential(props1.w, props2.w, distance1);
                 #endif
             }
 
-            float d12 = 1.0/distance2;
-            float gPot = d12;
-            float ePot = d12;
+            float distance2inv = 1.0/distance2;
+            float distance1inv = 1.0/distance1;
+
+            float gPot = distance2inv;
+            float ePot = distance2inv;
 
             #if USE_DISTANCE1
-                gPot += 1.0 / distance1;
-                ePot += 1.0 / distance1;
+                gPot += distance1inv;
+                ePot += distance1inv;
             #endif
 
             #if USE_FINE_STRUCTURE
                 //ePot *= (1.0 + fineStructureConstant / distance1);
-                ePot += fineStructureConstant / distance1;
+                ePot += fineStructureConstant * distance1inv;
             #endif
 
             #if 0
                 //gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
                 // gPot += (m1 + m2)/(maxVel2 * distance1);
                 //gPot += (m1 + m2)/(1.0 * distance1);
-                gPot += 1.0/distance1;
+                gPot += distance1inv;
 
                 /*float p = -(m1 + m2) / (maxVel2 * distance1);
                 p += 3.0 / (2.0 * maxVel2) * dot(vel1, vel1);
@@ -279,14 +290,14 @@ void main() {
             #endif
 
             vec4 props = props1 * props2;
-            vec4 pot = vec4(gPot, ePot, nPot, 0.0);
-            vec4 result = forceConstants * props * pot;
-            //force += result.x + result.y + result.z;
+            vec4 potential = vec4(gPot, ePot, nPot, 0.0);
+            vec4 result = forceConstants * props * potential;
             force += dot(result, ones);
             
             #if USE_LORENTZ_FACTOR
                 float vel2Abs = dot(vel2, vel2);
                 force /= sqrt(1.0 - vel2Abs / maxVel2);
+                //force *= pow(1.0 - vel2Abs / maxVel2, -0.5);
             #endif
 
             rForce += force * normalize(dPos);
@@ -296,14 +307,22 @@ void main() {
     #if ENABLE_FRICTION
         float vel1Abs = dot(vel1, vel1);
         if (vel1Abs > 0.0) {
-            //vel1Abs = min(vel1Abs, m1/frictionConstant); // v' = v + F/m, F = -cv^2; v' = 0 -> v = m/c
             vec3 f = -frictionConstant * normalize(vel1);
-            #if FRICTION_DEFAULT
-                vel1Abs = sqrt(vel1Abs);
+            #if FRICTION_DEFAULT // -cv
+                f *= sqrt(vel1Abs);
+            #else // -cv^2
+                f *= vel1Abs;
             #endif
-            f *= vel1Abs;
             rForce += f;
         }
+    #endif
+
+    #if USE_RANDOM_NOISE
+        rForce.xy += randomNoiseConstant * vec2(
+            (rand2(vec2(uTime, vel1.x)) - 0.5),
+            (rand2(vec2(uTime, vel1.y)) - 0.5)
+        );
+        //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
     #endif
 
     rForce *= forceConstant;

@@ -7,6 +7,13 @@ import {
 let options;
 let controls;
 
+function addFloatPhysicsControl(gui, title, variable) {
+    options.parameters[variable] = '';
+    gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
+        core.updatePhysics(variable, val);
+    });
+}
+
 export class GUIParameters {
     constructor(guiOptions, guiParameters) { 
         options = guiOptions;
@@ -99,9 +106,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'enableFriction').name('Enable Friction').listen().onFinishChange((val) => {
             core.updatePhysics('enableFriction', val);
         });
-        guiParametersConsts.add(options.parameters, 'frictionConstant').name('Friction Constant').listen().onFinishChange((val) => {
-            core.updatePhysics('frictionConstant', val);
-        });
+        
+        addFloatPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
             '-cv (default)': FrictionModel.default,
             '-cv^2': FrictionModel.square,
@@ -109,12 +115,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
         });
-        guiParametersConsts.add(options.parameters, 'forceConstant').name('Force Multiplier').listen().onFinishChange((val) => {
-            core.updatePhysics('forceConstant', val);
-        });
-        guiParametersConsts.add(options.parameters, 'maxVel').name('maxVel').listen().onFinishChange((val) => {
-            core.updatePhysics('maxVel', val);
-        });
+        addFloatPhysicsControl(guiParametersConsts, 'Force Multiplier', 'forceConstant');
+        addFloatPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");

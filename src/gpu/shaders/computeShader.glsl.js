@@ -193,13 +193,22 @@ void main() {
     vec4 texPos1 = texture2D(texturePosition, uv1);
     float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
-
-    vec3 pos1 = texPos1.xyz;
+    
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
+
     vec4 texVel1 = texture2D(textureVelocity, uv1);
-    vec3 vel1 = texVel1.xyz;
     float collisions = texVel1.w;
+    float outOfBoundaryCount = 0.0;
+
+    #if MODE_2D
+        vec3 pos1 = vec3(texPos1.xy, 0.0);
+        vec3 vel1 = vec3(texVel1.xy, 0.0);
+        outOfBoundaryCount = texVel1.z;
+    #else
+        vec3 pos1 = texPos1.xyz;
+        vec3 vel1 = texVel1.xyz;
+    #endif
 
     float vel1Abs = dot(vel1, vel1);
 
@@ -212,20 +221,26 @@ void main() {
             vec4 texPos2 = texture2D(texturePosition, uv2);
             float type2 = texPos2.w;
             if (type2 != DEFAULT && type2 != FIXED) continue;
-
-            vec3 pos2 = texPos2.xyz;            
+         
             vec4 props2 = texture2D(textureProperties, uv2);
+            float m2 = props2.x;
+
+            vec4 texVel2 = texture2D(textureVelocity, uv2);
+
+            #if MODE_2D
+                vec3 pos2 = vec3(texPos2.xy, 0.0);
+                vec3 vel2 = vec3(texVel2.xy, 0.0);
+            #else
+                vec3 pos2 = texPos2.xyz;
+                vec3 vel2 = texVel2.xyz;
+            #endif
 
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
 
-            vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
-            float m2 = props2.x;
-
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    // vec3 vel2 = texture2D(textureVelocity, uv2).xyz;
                     float m = m1 + m2; // precision loss if m1 >> m2
                     if (m == 0.0) {
                         continue;
@@ -284,11 +299,6 @@ void main() {
 
             #if USE_POST_GRAVITY
             {
-                // gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
-                // gPot += (m1 + m2)/(maxVel2 * distance1);
-                // gPot += (m1 + m2)/(2.0 * distance1);
-                // gPot += distance1inv;
-
                 float p = -forceConstants.x * (m1 + m2) * distance1inv;
                 p += (3.0 / 2.0) * vel1Abs;
                 p += (3.0 / 2.0) * dot(vel2, vel2);
@@ -308,6 +318,7 @@ void main() {
     }
 
     #if ENABLE_FRICTION
+    {
         if (vel1Abs > 0.0) {
             vec3 f = -frictionConstant * normalize(vel1);
             #if FRICTION_DEFAULT // -cv
@@ -317,20 +328,25 @@ void main() {
             #endif
             rForce += f;
         }
+    }
     #endif
 
     #if USE_LORENTZ_FACTOR
+    {
         float lf = 1.0 - vel1Abs / maxVel2;
         lf = max(lf, 0.001);
         rForce /= sqrt(lf);
+    }
     #endif
 
     #if USE_RANDOM_NOISE
+    {
         rForce.xy += randomNoiseConstant * vec2(
             (rand2(vec2(uTime, vel1.x)) - 0.5),
             (rand2(vec2(vel1.y, uTime)) - 0.5)
         );
         //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
+    }
     #endif
 
     rForce *= forceConstant;
@@ -359,6 +375,7 @@ void main() {
                         vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
                     } else {
                         vel1 = normalize(vel1);
+                        ++outOfBoundaryCount;
                     }
                 }
             #else
@@ -370,6 +387,7 @@ void main() {
                         if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
                     } else {
                         vel1 = normalize(vel1);
+                        ++outOfBoundaryCount;
                     }
                 }
             #endif
@@ -385,7 +403,7 @@ void main() {
     // vel1 *= velocityConstant;
 
     #if MODE_2D
-        gl_FragColor = vec4(vel1.xy, 0.0, collisions);
+        gl_FragColor = vec4(vel1.xy, outOfBoundaryCount, collisions);
     #else
         gl_FragColor = vec4(vel1, collisions);
     #endif

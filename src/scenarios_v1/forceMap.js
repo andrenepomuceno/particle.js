@@ -179,7 +179,7 @@ function experiments4(simulation) {
     defaultParameters(simulation);
 
     const M = (1/3) * 1e19;
-    const S = (1) * 1e27;
+    const S = (5) * 1e26;
     const KG = (1) * 1e29;
     const C = (1 / 1.602176634) * 1e19;
 
@@ -218,8 +218,8 @@ function experiments4(simulation) {
     graphics.cameraDistance = 4e5;
     graphics.cameraSetup();
 
-    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
     physics.forceMap = [0.05, 1.0, 1.0];

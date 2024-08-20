@@ -38,6 +38,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_LORENTZ_FACTOR", physics.enableLorentzFactor);
     config += define("USE_FINE_STRUCTURE", physics.enableFineStructure);
     config += define("USE_RANDOM_NOISE", physics.enableRandomNoise);
+    config += define("USE_POST_GRAVITY", physics.enablePostGravity);
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -200,6 +201,8 @@ void main() {
     vec3 vel1 = texVel1.xyz;
     float collisions = texVel1.w;
 
+    float vel1Abs = dot(vel1, vel1);
+
     vec3 rForce = vec3(0.0);
     for (float texY = 0.5; texY < resolution.y; texY++) {
         for (float texX = 0.5; texX < resolution.x; texX++) {
@@ -272,40 +275,39 @@ void main() {
             #endif
 
             #if USE_FINE_STRUCTURE
-                //ePot *= (1.0 + fineStructureConstant / distance1);
-                ePot += fineStructureConstant * distance1inv;
+            {
+                float p = fineStructureConstant * distance1inv;
+                ePot *= (1.0 + p);
+                //ePot += p;
+            }
             #endif
 
-            #if 0
-                //gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
+            #if USE_POST_GRAVITY
+            {
+                // gPot *= (1.0 + (m1 + m2)/(maxVel2 * distance1));
                 // gPot += (m1 + m2)/(maxVel2 * distance1);
-                //gPot += (m1 + m2)/(1.0 * distance1);
-                gPot += distance1inv;
+                // gPot += (m1 + m2)/(2.0 * distance1);
+                // gPot += distance1inv;
 
-                /*float p = -(m1 + m2) / (maxVel2 * distance1);
-                p += 3.0 / (2.0 * maxVel2) * dot(vel1, vel1);
-                p += 3.0 / (2.0 * maxVel2) * dot(vel2, vel2);
-                p += -4.0 / (maxVel2) * dot(vel1, vel2);
-                gPot += p;*/
+                float p = -forceConstants.x * (m1 + m2) * distance1inv;
+                p += (3.0 / 2.0) * vel1Abs;
+                p += (3.0 / 2.0) * dot(vel2, vel2);
+                p += -4.0 * dot(vel1, vel2);
+                p /= maxVel2;
+                gPot *= (1.0 + p);
+            }
             #endif
 
             vec4 props = props1 * props2;
             vec4 potential = vec4(gPot, ePot, nPot, 0.0);
             vec4 result = forceConstants * props * potential;
             force += dot(result, ones);
-            
-            #if USE_LORENTZ_FACTOR
-                float vel2Abs = dot(vel2, vel2);
-                force /= sqrt(1.0 - vel2Abs / maxVel2);
-                //force *= pow(1.0 - vel2Abs / maxVel2, -0.5);
-            #endif
 
             rForce += force * normalize(dPos);
         }
     }
 
     #if ENABLE_FRICTION
-        float vel1Abs = dot(vel1, vel1);
         if (vel1Abs > 0.0) {
             vec3 f = -frictionConstant * normalize(vel1);
             #if FRICTION_DEFAULT // -cv
@@ -317,10 +319,16 @@ void main() {
         }
     #endif
 
+    #if USE_LORENTZ_FACTOR
+        float lf = 1.0 - vel1Abs / maxVel2;
+        lf = max(lf, 0.001);
+        rForce /= sqrt(lf);
+    #endif
+
     #if USE_RANDOM_NOISE
         rForce.xy += randomNoiseConstant * vec2(
             (rand2(vec2(uTime, vel1.x)) - 0.5),
-            (rand2(vec2(uTime, vel1.y)) - 0.5)
+            (rand2(vec2(vel1.y, uTime)) - 0.5)
         );
         //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
     #endif
@@ -336,7 +344,10 @@ void main() {
         }
 
         // velocity clamp
-        vel1 = clamp(vel1, -maxVel, maxVel);
+        //vel1 = clamp(vel1, -maxVel, maxVel);
+        if (vel1Abs >= maxVel2) {
+            vel1 = maxVel * normalize(vel1);
+        }
         
         #if ENABLE_BOUNDARY
             // check boundary colision
@@ -362,10 +373,6 @@ void main() {
                     }
                 }
             #endif
-
-            #if MODE_2D
-                vel1.z = 0.0;
-            #endif
         #endif
     } else if (type1 == PROBE) {
         vel1 = rForce;
@@ -377,7 +384,11 @@ void main() {
 
     // vel1 *= velocityConstant;
 
-    gl_FragColor = vec4(vel1, collisions);
+    #if MODE_2D
+        gl_FragColor = vec4(vel1.xy, 0.0, collisions);
+    #else
+        gl_FragColor = vec4(vel1, collisions);
+    #endif
 }
 `;
 
@@ -429,9 +440,6 @@ void main() {
                     pos = mod(pos, boundaryDistance);
                     pos *= 2.0;
                     pos -= boundaryDistance;
-                    #if MODE_2D
-                        pos.z = 0.0;
-                    #endif
                 }
             #endif
         #else
@@ -443,10 +451,10 @@ void main() {
         pos = round(pos);
     #endif
 
-    /*#if MODE_2D
-        pos.z = 0.0;
-    #endif*/
-
-    gl_FragColor = vec4(pos, type);
+    #if MODE_2D
+        gl_FragColor = vec4(pos.xy, 0.0, type);
+    #else
+        gl_FragColor = vec4(pos, type);
+    #endif
 }
 `;

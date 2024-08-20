@@ -36,9 +36,10 @@ export class GUIParameters {
             enableFriction: false,
             frictionConstant: '',
             frictionModel: '',
+            maxVel: '',
             close: () => {
                 controls.close();
-            },
+            }
         };
 
         const guiParametersConsts = controls.addFolder("[+] Constants ✏️");
@@ -111,6 +112,9 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'forceConstant').name('Force Multiplier').listen().onFinishChange((val) => {
             core.updatePhysics('forceConstant', val);
         });
+        guiParametersConsts.add(options.parameters, 'maxVel').name('maxVel').listen().onFinishChange((val) => {
+            core.updatePhysics('maxVel', val);
+        });
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -157,5 +161,6 @@ export class GUIParameters {
         edit.enableFriction = simulation.physics.enableFriction;
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
         edit.frictionModel = simulation.physics.frictionModel;
+        edit.maxVel = simulation.physics.maxVel;
     }
 }

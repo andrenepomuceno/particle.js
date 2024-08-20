@@ -53,6 +53,7 @@ export class Physics {
         colorChargeConstant: 1.0,
         enableRandomNoise: false,
         randomNoiseConstant: 1e-3,
+        enablePostGravity: false,
 
         collisionCounter: 0,
 
@@ -96,6 +97,7 @@ export class Physics {
         this.colorChargeConstant = input.colorChargeConstant;
         this.enableRandomNoise = input.enableRandomNoise;
         this.randomNoiseConstant = input.randomNoiseConstant;
+        this.enablePostGravity = input.enablePostGravity;
 
         this.collisionCounter = input.collisionCounter;
 

@@ -218,6 +218,12 @@ class Core {
                 updateShader = false;
                 break;
 
+            case 'maxVel':
+                physics.maxVel = safeParseFloat(value, physics.maxVel);
+                updatePhysics = true;
+                updateShader = false;
+                break;
+
             default:
                 updatePhysics = false;
                 break;

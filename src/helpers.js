@@ -397,6 +397,7 @@ export function createParticles(simulation, typeList, n, options) {
         center: new Vector3(),
 
         randomVelocity: true,
+        radialVelocity: false,
 
         r0: 0,
         r1: 1,
@@ -437,8 +438,29 @@ export function createParticles(simulation, typeList, n, options) {
         p.position = randomSphericVector(options.r0, options.r1, simulation.mode2D);
         p.position.add(options.center);
 
+        p.velocity = options.v1;
         if (options.randomVelocity == true) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
-        else p.velocity = options.v1;
+        if (options.radialVelocity == true) {
+            let dir = p.position.clone().normalize();
+            dir.applyAxisAngle(
+                new Vector3( 0, 0, 1 ),
+                Math.PI / 2
+            );
+
+            let dirLen = dir.length();
+            let vel = options.v1;
+            if (options.randomVelocity == true) {
+                let order = 2;
+                let x = Math.pow(dirLen, order);
+                x = random(0,  x); //p.velocity.lengthSq();
+                x = Math.pow(dirLen, 1/order);
+                vel *= x;
+            }
+            
+            let f = vel;
+            //f = Math.sqrt(f);
+            p.velocity = dir.multiplyScalar(f);
+        }
 
         p.name = typeList[type].name;
         p.colorCharge = (typeList[type].colorCharge != undefined) ? typeList[type].colorCharge : 0.0;

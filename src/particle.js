@@ -28,8 +28,10 @@ export class Particle {
 
         color: 0,
         radius: 0,
+        name: '',
+
         collisions: 0,
-        name: ''
+        outOfBoundary: 0,
     }) {
         //this.id = input.id;
         this.id = gParticleId++;
@@ -45,8 +47,10 @@ export class Particle {
 
         this.color = new Color(input.color);
         this.radius = input.radius;
-        this.collisions = input.collisions;
         this.name = input.name;
+
+        this.collisions = input.collisions;
+        this.outOfBoundary = input.outOfBoundary;
 
         this.force = new Vector3();
         this.uv = [];

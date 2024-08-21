@@ -28,6 +28,7 @@ export class GUIInfo {
             maxParticles: '',
             time: '',
             collisions: 0,
+            outOfBoundary: 0,
 
             mass: '',
             charge: '',
@@ -104,6 +105,7 @@ export class GUIInfo {
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
         guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
         guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
+        guiInfoMore.add(options.info, 'outOfBoundary').name('Out of Boundary').listen();
 
         const guiInfoRuler = controls.addFolder("[+] Ruler");
         guiInfoRuler.add(options.info, 'rulerLen').name('Length').listen();
@@ -131,10 +133,7 @@ export class GUIInfo {
     refresh() {
         simulation.stats = calcListStatistics(simulation.particleList);
 
-        simulation.physics.collisionCounter = simulation.stats.collisions;
-        let avgEnergy = simulation.stats.avgEnergy;
         let avgVelocity = Math.sqrt(simulation.stats.totalEnergy / simulation.stats.totalMass);
-        simulation.physics.avgEnergy = avgEnergy;
         simulation.physics.avgVelocity = avgVelocity;
         simulation.graphics.updateAvgVelocity(avgVelocity);
         simulation.field.refreshMaxVelocity();
@@ -150,10 +149,11 @@ export class GUIInfo {
         options.info.fieldMaxVel = simulation.field.maxVelocity.toExponential(2);
         options.info.fieldAvgVel = simulation.field.avgVelocity.toExponential(2);
 
-        options.info.energy = avgEnergy.toExponential(2);
+        options.info.energy = simulation.stats.avgEnergy.toExponential(2);
         options.info.velocity = avgVelocity.toExponential(2);
 
-        options.info.collisions = simulation.physics.collisionCounter;
+        options.info.collisions = simulation.stats.collisions;
+        options.info.outOfBoundary = simulation.stats.outOfBoundary;
         options.info.mass = simulation.stats.totalMass.toExponential(2);
         options.info.charge = simulation.stats.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);

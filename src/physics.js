@@ -50,9 +50,10 @@ export class Physics {
         fineStructureConstant: 1/137,
         enableFineStructure: false,
         enableColorCharge: false,
-        colorChargeConstant: 1/3,
-
-        collisionCounter: 0,
+        colorChargeConstant: 1.0,
+        enableRandomNoise: false,
+        randomNoiseConstant: 1e-3,
+        enablePostGravity: false,
 
         //particleList: [],
 
@@ -92,8 +93,9 @@ export class Physics {
         this.enableFineStructure = input.enableFineStructure;
         this.enableColorCharge = input.enableColorCharge;
         this.colorChargeConstant = input.colorChargeConstant;
-
-        this.collisionCounter = input.collisionCounter;
+        this.enableRandomNoise = input.enableRandomNoise;
+        this.randomNoiseConstant = input.randomNoiseConstant;
+        this.enablePostGravity = input.enablePostGravity;
 
         //this.particleList = input.particleList;
         this.particleList = [];
@@ -109,7 +111,6 @@ export class Physics {
         this.frictionModel = input.frictionModel;
 
         this.avgVelocity = input.avgVelocity;
-        this.avgEnergy = input.avgEnergy;
 
         this.forceMap = input.forceMap;
     }
@@ -145,6 +146,7 @@ export function calcListStatistics(list) {
     stats.fixed = 0;
     stats.totalEnergy = 0.0;
     stats.collisions = 0.0;
+    stats.outOfBoundary = 0.0;
 
     stats.mMin = Infinity;
     stats.mMax = -Infinity;
@@ -165,6 +167,7 @@ export function calcListStatistics(list) {
                 stats.totalNuclearCharge += p.nuclearCharge;
                 stats.totalEnergy += p.energy();
                 stats.collisions += p.collisions;
+                stats.outOfBoundary += p.outOfBoundary;
 
                 if (p.mass > stats.mMax) {
                     stats.mMax = p.mass;

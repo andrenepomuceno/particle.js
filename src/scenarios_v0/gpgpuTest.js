@@ -4,12 +4,12 @@ import { cubeGenerator, random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 
 export const gpgpu = [
+    GPU_shootedBarrier,
     //GPU_string,
     //GPU_string_m20,
     //GPU_string_m50,
     GPU_blob1,
     GPU_nucleiGrid,
-    GPU_shootedBarrier,
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

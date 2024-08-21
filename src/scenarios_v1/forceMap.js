@@ -9,7 +9,8 @@ import { Particle, ParticleType } from '../particle';
 export const forceMap = [
     //nuclearField,
     experiments4,
-    experiments3,
+    gravity,
+    //experiments3,
     //experiments2,
     //experiments1,
     welcome,
@@ -70,16 +71,19 @@ function nuclearField(simulation) {
     physics.nuclearForceConstant = 1;
     physics.nuclearForceRange = 1e3;
 
-    const distance = 2 * physics.nuclearForceRange;
-    graphics.cameraDistance = distance;
-    graphics.cameraPhi = graphics.cameraTheta = 0;
-    graphics.cameraSetup();
+    physics.enableRandomNoise = false;
+    physics.randomNoiseConstant = 1.0;
 
     simulation.bidimensionalMode(true);
     simulation.setParticleRadius(0.05 * physics.nuclearForceRange, 0);
 
     simulation.field.probeConfig(0, 0, 1e2);
     simulation.field.setup('2d', grid);
+
+    const distance = 2 * physics.nuclearForceRange;
+    graphics.cameraDistance = distance;
+    graphics.cameraPhi = graphics.cameraTheta = 0;
+    graphics.cameraSetup();
 
     let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);
     let v = new Vector3(1, 0, 0);
@@ -92,38 +96,129 @@ function nuclearField(simulation) {
     createParticle(particleList, m, -q, -nq, new Vector3().add(x), new Vector3().sub(v), fixed);
 }
 
+function gravity(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    const M = (1) * 1e-16;
+    const S = (1) * 1e-15;
+    const KG = (1) * 1e-30;
+    const C = (1 / 1.602176634) * 1e-18;
+
+    physics.nuclearForceRange = 1e2;//3.0e-15 * M;
+    physics.nuclearForceConstant = 1e-1;//30e3 * KG * M * S ** -2;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.05, 1.0, 1.0];
+
+    physics.useDistance1 = true;
+    physics.enablePostGravity = true;
+
+    physics.maxVel = 299792458 * M / S;
+    physics.enableLorentzFactor = true;
+
+    physics.enableFineStructure = false;
+    physics.fineStructureConstant = 1/137;
+
+    physics.enableColorCharge = false;
+    physics.colorChargeConstant = 1.0;
+ 
+    physics.minDistance2 = Math.pow(1e-3, 2);
+
+    physics.enableRandomNoise = false;
+    physics.randomNoiseConstant = 1.0e-2;
+
+    physics.enableFriction = false;
+    physics.frictionConstant = 1e-6;
+
+    physics.useBoxBoundary = true;
+
+    simulation.mode2D = true;
+    /*physics.roundPosition = true;
+    physics.roundVelocity = true;*/
+
+    physics.boundaryDistance = 1e8;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 4e5;
+    graphics.cameraSetup();
+
+    simulation.particleRadius = 3e2;
+    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
+
+    let typeList = [
+        { m: 5, q: 1, nq: 10, name: '', colorCharge: 0.0 },
+    ]
+
+    let n = graphics.maxParticles;
+    let scale = n/30976;
+    let r = 4e5 * scale;
+    let vel = 50e-6 * physics.maxVel * scale;
+    let options = {
+        randomSequence: false,
+
+        randomM: true,
+
+        randomQ: true,
+        randomQSignal: true,
+
+        randomNQ: true,
+        randomNQSignal: true,
+
+        v1: vel,
+        radialVelocity: true,
+
+        r0: 0.5 * r,
+        r1: r,
+    }
+    createParticles(simulation, typeList, n, options);
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e12 * M, true, '1e12 m');
+}
+
 function experiments4(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation);
 
-    const M = (3) * 1e18;
-    const S = (1/2) * 1e27;
-    const C = (10 / 1.602176634) * 1e18;
-    const KG = (1 / 10) * 1e30;
+    const M = (1/3) * 1e19;
+    const S = (5) * 1e26;
+    const KG = (1) * 1e29;
+    const C = (1 / 1.602176634) * 1e21;
 
     physics.nuclearForceRange = 3.0e-15 * M;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
-    physics.forceConstant = 1;
 
+    physics.useDistance1 = true;
+    const lightSpeed = 299792458 * M / S;
+    physics.maxVel = 1e6 * lightSpeed;
     physics.enableLorentzFactor = true;
+
     physics.enableFineStructure = true;
-    physics.maxVel = 10e6 * 3e8 * M / S;
-    physics.fineStructureConstant = 1/137;
+    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
+    physics.fineStructureConstant = (1e-6) * (1/137) * planckConstant * lightSpeed;
 
     physics.enableColorCharge = true;
-    physics.colorChargeConstant = 1/3;
+    physics.colorChargeConstant = 1.0;
 
     physics.minDistance2 = Math.pow(1e-3, 2);
 
-    physics.useBoxBoundary = true;
-    physics.useDistance1 = true;
-    //simulation.mode2D = false;
+    physics.enableRandomNoise = true;
+    physics.randomNoiseConstant = 1e-3;
+
     physics.enableFriction = true;
     physics.frictionConstant = 1e-5;
 
+    physics.useBoxBoundary = true;
+
+    //simulation.mode2D = false;
     /*physics.roundPosition = true;
     physics.roundVelocity = true;*/
 
@@ -133,11 +228,11 @@ function experiments4(simulation) {
     graphics.cameraDistance = 4e5;
     graphics.cameraSetup();
 
-    simulation.particleRadius = 0.03 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [0.05, 1.0, 2.0];
+    physics.forceMap = [0.05, 1.0, 1.0];
 
     const nq = 10;
     let typeList = [
@@ -151,17 +246,17 @@ function experiments4(simulation) {
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
 
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/3, name: 'electron' },
     ]
 
     let n = graphics.maxParticles; //Math.min(10e3, );
     let options = {
-        randomSequence: true,
+        randomSequence: false,
         //randomM: true,
         randomQ: false,
         randomQSignal: false,
         randomNQSignal: false,
-        v1: 1,
+        v1: 100,
         r0: 20 * physics.nuclearForceRange
     }
     createParticles(simulation, typeList, n, options);
@@ -169,7 +264,7 @@ function experiments4(simulation) {
     shuffleArray(physics.particleList);
 
     graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
-
+    
     const cyclesPerMs = (60/1000);
     simulation.addActionArray([
         {

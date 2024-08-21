@@ -64,16 +64,16 @@ export class SimulationGPU {
         this.drawParticles();
     }
 
-    step(dt) {
+    step(dt, time) {
         // log('step');
 
         let t0 = performance.now();
+        this.graphics.compute(dt, time);
+        let t1 = performance.now();
 
-        this.graphics.compute();
         ++this.cycles;
         if (dt < 1e3) this.totalTime += dt;
 
-        let t1 = performance.now();
         this.computeTime.push(t1 - t0);
         if (this.computeTime.length > 10 * 60) this.computeTime.shift();
 
@@ -174,6 +174,8 @@ export class SimulationGPU {
 
     bidimensionalMode(enable) {
         log('bidimensionalMode ' + enable);
+
+        // TODO update shader if running
 
         if (enable != undefined) this.mode2D = enable;
 

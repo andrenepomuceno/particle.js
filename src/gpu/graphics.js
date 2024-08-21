@@ -439,7 +439,11 @@ export class GraphicsGPU {
 
             velocityArray[offset4 + 0] = p.velocity.x;
             velocityArray[offset4 + 1] = p.velocity.y;
-            velocityArray[offset4 + 2] = p.velocity.z;
+            if (this.physics.mode2D) {
+                velocityArray[offset4 + 2] = p.outOfBoundary;
+            } else {
+                velocityArray[offset4 + 2] = p.velocity.z;
+            }
             velocityArray[offset4 + 3] = p.collisions;
 
             propsArray[offset4 + 0] = p.mass;
@@ -639,7 +643,13 @@ export class GraphicsGPU {
             p.position.set(particlePosition[offset + 0], particlePosition[offset + 1], particlePosition[offset + 2])
             positions.push(p.position.x, p.position.y, p.position.z);
 
-            p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2])
+            if (this.physics.mode2D) {
+                p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], 0.0);
+                p.outOfBoundary = particleVelocity[offset + 2];
+            } else {
+                p.velocity.set(particleVelocity[offset + 0], particleVelocity[offset + 1], particleVelocity[offset + 2]);
+            }
+
             p.collisions = particleVelocity[offset + 3];
         });
 

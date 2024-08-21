@@ -3,11 +3,11 @@ import { Vector3 } from 'three';
 import { createNuclei0, atom0, createCloud3 } from '../scenariosHelpers.js';
 
 export const elements = [
-    h2,
+    //h2,
     hydrogen,
     helium,
     //lithium,
-    carbon,
+    //carbon,
     //nitrogen,
     oxigen,
     water,

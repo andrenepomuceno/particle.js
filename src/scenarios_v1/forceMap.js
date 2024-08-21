@@ -8,9 +8,9 @@ import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
     //nuclearField,
-    gravity,
     experiments4,
-    experiments3,
+    gravity,
+    //experiments3,
     //experiments2,
     //experiments1,
     welcome,
@@ -106,10 +106,13 @@ function gravity(simulation) {
     const KG = (1) * 1e-30;
     const C = (1 / 1.602176634) * 1e-18;
 
-    physics.nuclearForceRange = 3.0e-15 * M;
-    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
+    physics.nuclearForceRange = 1e2;//3.0e-15 * M;
+    physics.nuclearForceConstant = 1e-1;//30e3 * KG * M * S ** -2;
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.05, 1.0, 1.0];
 
     physics.useDistance1 = true;
     physics.enablePostGravity = true;
@@ -146,23 +149,28 @@ function gravity(simulation) {
     simulation.particleRadius = 3e2;
     simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
 
-    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [0.05, 1.0, 1.0];
-
     let typeList = [
-        { m: 5, q: 1, nq: 1, name: '', colorCharge: 0.0 },
+        { m: 5, q: 1, nq: 10, name: '', colorCharge: 0.0 },
     ]
 
-    let n = graphics.maxParticles; //Math.min(10e3, );
-    let r = 4e5;
+    let n = graphics.maxParticles;
+    let scale = n/30976;
+    let r = 4e5 * scale;
+    let vel = 50e-6 * physics.maxVel * scale;
     let options = {
-        randomSequence: true,
+        randomSequence: false,
+
         randomM: true,
+
         randomQ: true,
         randomQSignal: true,
-        randomNQSignal: false,
-        v1: 20e-6 * physics.maxVel,
+
+        randomNQ: true,
+        randomNQSignal: true,
+
+        v1: vel,
         radialVelocity: true,
+
         r0: 0.5 * r,
         r1: r,
     }
@@ -181,7 +189,7 @@ function experiments4(simulation) {
     const M = (1/3) * 1e19;
     const S = (5) * 1e26;
     const KG = (1) * 1e29;
-    const C = (1 / 1.602176634) * 1e19;
+    const C = (1 / 1.602176634) * 1e21;
 
     physics.nuclearForceRange = 3.0e-15 * M;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
@@ -189,11 +197,13 @@ function experiments4(simulation) {
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
 
     physics.useDistance1 = true;
-    physics.maxVel = 1e6 * 299792458 * M / S;
+    const lightSpeed = 299792458 * M / S;
+    physics.maxVel = 1e6 * lightSpeed;
     physics.enableLorentzFactor = true;
 
-    physics.enableFineStructure = false;
-    physics.fineStructureConstant = 1/137;
+    physics.enableFineStructure = true;
+    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
+    physics.fineStructureConstant = (1e-6) * (1/137) * planckConstant * lightSpeed;
 
     physics.enableColorCharge = true;
     physics.colorChargeConstant = 1.0;

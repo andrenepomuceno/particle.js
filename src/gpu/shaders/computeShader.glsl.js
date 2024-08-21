@@ -188,6 +188,12 @@ float rand2(vec2 co) {
 
 const vec4 ones = vec4(1.0);
 
+#if MODE_2D
+#define vec vec3;
+#else
+#define vec vec2;
+#endif
+
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 texPos1 = texture2D(texturePosition, uv1);
@@ -293,7 +299,6 @@ void main() {
             {
                 float p = fineStructureConstant * distance1inv;
                 ePot *= (1.0 + p);
-                //ePot += p;
             }
             #endif
 
@@ -399,8 +404,6 @@ void main() {
     #if ROUND_VELOCITY
         vel1 = round(vel1);
     #endif
-
-    // vel1 *= velocityConstant;
 
     #if MODE_2D
         gl_FragColor = vec4(vel1.xy, outOfBoundaryCount, collisions);

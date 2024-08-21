@@ -12,7 +12,7 @@ export const scenarios1 = [
     simulationStrongCube0,
     simulationStrongBlob0,
     //simulationNuclei2,
-    simulationNuclei0,
+    //simulationNuclei0,
     simulationNuclei1,
     //simulationStrong2,
     //simulationStrong1,
@@ -20,8 +20,8 @@ export const scenarios1 = [
     //simulationMove1,
     //simulationMove0,
     simulationBlob0,
-    simulationAtom1,
-    simulationAtom0,
+    //simulationAtom1,
+    //simulationAtom0,
 ];
 
 function createParticles__(n, massFunc, chargeFunc, positionFunc, velocityFunc) {

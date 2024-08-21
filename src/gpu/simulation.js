@@ -175,6 +175,8 @@ export class SimulationGPU {
     bidimensionalMode(enable) {
         log('bidimensionalMode ' + enable);
 
+        // TODO update shader if running
+
         if (enable != undefined) this.mode2D = enable;
 
         if (this.mode2D) {

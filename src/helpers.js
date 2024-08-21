@@ -6,7 +6,7 @@ const JSZip = require('jszip');
 export function randomSphericVector(r1, r2, mode2D = true, mode = 0) {
     let x, y, z = 0;
     if (mode2D) [x, y, z] = randomDisc(r1, r2, mode);
-    else[x, y, z] = randomSpheric(r1, r2, mode);
+    else [x, y, z] = randomSpheric(r1, r2, mode);
     return new Vector3(x, y, z);
 }
 
@@ -441,25 +441,22 @@ export function createParticles(simulation, typeList, n, options) {
         p.velocity = options.v1;
         if (options.randomVelocity == true) p.velocity = randomSphericVector(0, options.v1, simulation.mode2D);
         if (options.radialVelocity == true) {
-            let dir = p.position.clone().normalize();
+            const pos = p.position;
+
+            const dirLen2 = pos.lengthSq();
+            let vel = options.v1;
+            vel *= Math.sqrt(dirLen2 / (options.r1 * options.r1));
+            if (options.randomVelocity == true) {
+                vel *= random(0, 1);
+            }
+            
+            const dir = pos.clone().normalize();
             dir.applyAxisAngle(
                 new Vector3( 0, 0, 1 ),
                 Math.PI / 2
             );
 
-            let dirLen = dir.length();
-            let vel = options.v1;
-            if (options.randomVelocity == true) {
-                let order = 2;
-                let x = Math.pow(dirLen, order);
-                x = random(0,  x); //p.velocity.lengthSq();
-                x = Math.pow(dirLen, 1/order);
-                vel *= x;
-            }
-            
-            let f = vel;
-            //f = Math.sqrt(f);
-            p.velocity = dir.multiplyScalar(f);
+            p.velocity = dir.multiplyScalar(vel);
         }
 
         p.name = typeList[type].name;

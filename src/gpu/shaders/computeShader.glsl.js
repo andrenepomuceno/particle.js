@@ -93,6 +93,8 @@ uniform float forceMapLen;
 #define PROBE 1.0
 #define FIXED 2.0
 
+const vec4 ones = vec4(1.0);
+
 float sdBox( vec3 p, vec3 b )
 {
     vec3 q = abs(p) - b;
@@ -184,14 +186,6 @@ float calcColorPotential(float c1, float c2, float distance1)
     return colorChargeConstant * (distance1/nuclearForceRange) * f;
 }
 
-const vec4 ones = vec4(1.0);
-
-#if MODE_2D
-#define vec vec3;
-#else
-#define vec vec2;
-#endif
-
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 texPos1 = texture2D(texturePosition, uv1);
@@ -270,7 +264,6 @@ void main() {
 
             float distance1 = sqrt(distance2);
             
-            float force = 0.0;
             float nPot = 0.0;
             if (distance2 < nuclearForceRange2) {               
                 nPot = calcNuclearPotential(distance1, distance2);
@@ -285,12 +278,15 @@ void main() {
             float distance2inv = 1.0/distance2;
             float distance1inv = 1.0/distance1;
 
-            float gPot = distance2inv;
-            float ePot = distance2inv;
+            float gPot = 0.0;
+            float ePot = 0.0;
 
             #if USE_DISTANCE1
                 gPot += distance1inv;
                 ePot += distance1inv;
+            #else
+                gPot += distance2inv;
+                ePot += distance2inv;
             #endif
 
             #if USE_FINE_STRUCTURE
@@ -309,10 +305,12 @@ void main() {
                 p += (3.0 / 2.0) * dot(vel2, vel2);
                 p += -4.0 * dot(vel1, vel2);
                 p /= maxVel2;
-
-                const float alpha = 3.0;
-                const float lambda = 2.0;
-                p += alpha * exp(-distance1/lambda); // lambda-CDM
+                
+                #if 0
+                    const float alpha = 1.0;
+                    const float lambda = 1.0;
+                    p += alpha * exp(-distance1/lambda); // lambda-CDM
+                #endif
 
                 gPot *= (1.0 + p);
             }
@@ -321,7 +319,7 @@ void main() {
             vec4 props = props1 * props2;
             vec4 potential = vec4(gPot, ePot, nPot, 0.0);
             vec4 result = forceConstants * props * potential;
-            force += dot(result, ones);
+            float force = dot(result, ones);
 
             rForce += force * normalize(dPos);
         }
@@ -352,10 +350,9 @@ void main() {
     #if USE_RANDOM_NOISE
     {
         rForce.xy += randomNoiseConstant * vec2(
-            (rand2(vec2(uTime, vel1.x)) - 0.5),
-            (rand2(vec2(vel1.y, uTime)) - 0.5)
+            (rand2(vec2(uTime, uv1.x)) - 0.5),
+            (rand2(vec2(uTime, uv1.y)) - 0.5)
         );
-        //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
     }
     #endif
     

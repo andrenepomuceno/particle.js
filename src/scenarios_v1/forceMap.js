@@ -8,7 +8,7 @@ import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
     //nuclearField,
-    experiments4,
+    //experiments4,
     gravity,
     //experiments3,
     //experiments2,
@@ -25,7 +25,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -65,7 +64,7 @@ function nuclearField(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
     physics.forceMap = [0.05, 1.0, 1.0];
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -106,8 +105,8 @@ function gravity(simulation) {
     const KG = (1) * 1e-30;
     const C = (1 / 1.602176634) * 1e-18;
 
-    physics.nuclearForceRange = 1e2;//3.0e-15 * M;
-    physics.nuclearForceConstant = 1e-1;//30e3 * KG * M * S ** -2;
+    physics.nuclearForceRange = 0;//1e2;//3.0e-15 * M;
+    physics.nuclearForceConstant = 0;//1e-1;//30e3 * KG * M * S ** -2;
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
 
@@ -342,7 +341,7 @@ function experiments3(simulation) {
     physics.massConstant = 1e0; //6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 500; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(1e-3, 2);
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap1
@@ -459,7 +458,7 @@ function experiments2(simulation) {
     physics.massConstant = 0; //6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 0; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(1, 2);
 
     let x = new Vector3(1.1 * physics.nuclearForceRange, 0, 0);
@@ -514,7 +513,7 @@ function experiments1(simulation) {
     physics.massConstant = 1e-2; //6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 1e-4; //8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 1; //30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(1, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -592,7 +591,7 @@ function welcome(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let nucleusList = [
@@ -669,7 +668,7 @@ function hexagonalCrystal(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;

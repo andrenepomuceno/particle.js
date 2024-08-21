@@ -153,9 +153,9 @@ class Core {
             case 'minDistance2':
                 physics.minDistance2 = safeParseFloat(value, physics.minDistance2);
                 break;
-
-            case 'forceConstant':
-                physics.forceConstant = safeParseFloat(value, physics.forceConstant);
+            
+            case 'timeStep':
+                physics.timeStep = safeParseFloat(value, physics.timeStep);
                 break;
 
             case 'radius':

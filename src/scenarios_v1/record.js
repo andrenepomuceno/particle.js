@@ -19,7 +19,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -106,7 +105,7 @@ function planetoidFormation3(simulation) {
     physics.massConstant = 1e-1;//6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 1e-4;//8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 3; //30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let nucleusList = [
@@ -314,7 +313,7 @@ function planetoidFormation2(simulation) {
     physics.massConstant = 1e-1;//6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 1e-4;//8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 3; //30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let nucleusList = [
@@ -566,7 +565,7 @@ function planetoidFormation(simulation) {
     physics.massConstant = 1e-1;//6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 1e-4;//8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 3; //30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let nucleusList = [

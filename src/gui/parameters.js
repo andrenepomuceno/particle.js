@@ -7,7 +7,7 @@ import {
 let options;
 let controls;
 
-function addFloatPhysicsControl(gui, title, variable) {
+function addFloatControl(gui, title, variable) {
     options.parameters[variable] = '';
     gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
@@ -31,7 +31,6 @@ export class GUIParameters {
             boundaryDamping: '',
             boundaryDistance: '',
             minDistance: '',
-            forceConstant: '',
             maxParticles: '',
             radius: '',
             radiusRange: '',
@@ -107,7 +106,7 @@ export class GUIParameters {
             core.updatePhysics('enableFriction', val);
         });
         
-        addFloatPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
+        addFloatControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
             '-cv (default)': FrictionModel.default,
             '-cv^2': FrictionModel.square,
@@ -115,8 +114,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
         });
-        addFloatPhysicsControl(guiParametersConsts, 'Force Multiplier', 'forceConstant');
-        addFloatPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
+        addFloatControl(guiParametersConsts, 'Time Step', 'timeStep');
+        addFloatControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -153,7 +152,7 @@ export class GUIParameters {
         edit.boundaryDamping = simulation.physics.boundaryDamping;
         edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
         edit.minDistance = Math.sqrt(simulation.physics.minDistance2).toExponential(2);
-        edit.forceConstant = simulation.physics.forceConstant;
+        edit.timeStep = simulation.physics.timeStep;
         edit.maxParticles = simulation.graphics.maxParticles;
         edit.boxBoundary = simulation.physics.useBoxBoundary;
         edit.distance1 = simulation.physics.useDistance1;

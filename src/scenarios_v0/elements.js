@@ -1,6 +1,7 @@
 
 import { Vector3 } from 'three';
 import { createNuclei0, atom0, createCloud3 } from '../scenariosHelpers.js';
+import { FrictionModel, NuclearPotentialType } from '../physics';
 
 export const elements = [
     //h2,
@@ -24,17 +25,22 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     graphics.cameraSetup();
     //if (mode2d) graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 8;
+    physics.timeStep = 1.0;
     physics.massConstant = 1e-6;
-    physics.nuclearForceConstant = -1;
+    physics.nuclearForceConstant = 1;
     physics.nuclearForceRange = 200;
-    physics.chargeConstant = Math.abs(physics.nuclearForceConstant) / 60;
+    physics.chargeConstant = 5e-1;
+    physics.useDistance1 = true;
+    physics.enableFriction = false;
+    physics.frictionConstant = 1e-5;
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.05, 1.0, 1.0];
 
     simulation.setParticleRadius(30, 10);
     simulation.physics.boundaryDistance = 1e5;
 
     //simulation.field.probeConfig(1e12, 0, 0);
-    simulation.field.probeConfig(0, 1e6, 0);
+    simulation.field.probeConfig(0, 1e4, 0);
     //simulation.field.probeConfig(0, 0, 1e2);
     //simulation.field.probeConfig(1e10, 1e6, 1e2);
 
@@ -43,11 +49,11 @@ function defaultParameters(simulation, cameraDistance = 5000) {
 }
 
 function atom(physics, n, center = new Vector3()) {
-    let m = 1 / 100;
-    let q = 100;
+    let m = 1/100;
+    let q = 1;
     let nq = 1;
 
-    let r0 = physics.nuclearForceRange / 2;
+    let r0 = physics.nuclearForceRange / 10;
     let r1 = 3 * r0;
     let r2 = 2 * r1 * n;
 

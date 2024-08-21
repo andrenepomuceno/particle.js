@@ -24,7 +24,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -56,7 +55,7 @@ function randomElements(simulation) {
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -127,7 +126,7 @@ function periodicTable(simulation) {
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1e-2;
     physics.nuclearForceConstant = 1;
@@ -202,7 +201,7 @@ function carbonCrystal(simulation) {
     simulation.particleRadius = 0.04 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.2 * simulation.particleRadius;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -271,7 +270,6 @@ function superNucleus3D(simulation) {
     simulation.particleRadius = 0.001 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.25 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1e-2;
     physics.nuclearForceConstant = 1;
@@ -306,7 +304,6 @@ function hexagonalCrystal(simulation) {
     simulation.particleRadius = 0.05 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -348,7 +345,6 @@ function tetragonalCrystal(simulation) {
     simulation.particleRadius = 0.05 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.49 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -396,7 +392,6 @@ function standardModel3(simulation) {
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -428,7 +423,6 @@ function standardModel2(simulation) {
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -458,7 +452,6 @@ function standardModel1(simulation) {
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -486,7 +479,6 @@ function plasmaBall(simulation) {
     physics.nuclearForceRange = 1e4;
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1 / 60;
     physics.nuclearForceConstant = 1;

@@ -38,8 +38,8 @@ export class Physics {
         minDistance2: Math.pow(0.5, 2),
         boundaryDistance: 1e12,
         boundaryDamping: 0.99,
+        timeStep: 1.0,
 
-        forceConstant: 1.0,
         massConstant: 1.0,
         chargeConstant: 1.0,
         nuclearForceConstant: 1.0,
@@ -80,8 +80,8 @@ export class Physics {
         this.minDistance2 = input.minDistance2;
         this.boundaryDistance = input.boundaryDistance;
         this.boundaryDamping = input.boundaryDamping;
+        this.timeStep = input.timeStep;
 
-        this.forceConstant = input.forceConstant;
         this.massConstant = input.massConstant;
         this.chargeConstant = input.chargeConstant;
         this.nuclearForceConstant = input.nuclearForceConstant;
@@ -116,13 +116,12 @@ export class Physics {
     }
 
     header() {
-        return "enableColision,minDistance2,forceConstant,massConstant,chargeConstant,nuclearForceConstant,nuclearForceRange,boundaryDistance,boundaryDamping";
+        return "enableColision,minDistance2,massConstant,chargeConstant,nuclearForceConstant,nuclearForceRange,boundaryDistance,boundaryDamping";
     }
 
     csv() {
         return this.enableColision + ","
             + this.minDistance2 + ","
-            + this.forceConstant + ","
             + this.massConstant + ","
             + this.chargeConstant + ","
             + this.nuclearForceConstant + ","

@@ -68,7 +68,6 @@ uniform float chargeConstant;*/
 uniform float nuclearForceConstant;
 uniform float nuclearForceRange;
 uniform float nuclearForceRange2;
-uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
@@ -104,6 +103,10 @@ float sdBox( vec3 p, vec3 b )
 float sdSphere( vec3 p, float s )
 {
     return length(p)-s;
+}
+
+float rand2(vec2 co) {
+    return abs(fract(sin(dot(co, vec2(17.6546, 83.6511))) * 83521.1122));
 }
 
 float calcNuclearPotential(float distance1, float distance2)
@@ -180,10 +183,6 @@ float calcColorPotential(float c1, float c2, float distance1)
 {
     float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
     return colorChargeConstant * (distance1/nuclearForceRange) * f;
-}
-
-float rand2(vec2 co) {
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 const vec4 ones = vec4(1.0);
@@ -304,11 +303,18 @@ void main() {
 
             #if USE_POST_GRAVITY
             {
-                float p = -forceConstants.x * (m1 + m2) * distance1inv;
+                float p = 0.0;
+
+                p += -forceConstants.x * (m1 + m2) * distance1inv;
                 p += (3.0 / 2.0) * vel1Abs;
                 p += (3.0 / 2.0) * dot(vel2, vel2);
                 p += -4.0 * dot(vel1, vel2);
                 p /= maxVel2;
+
+                const float alpha = 1.0;
+                const float lambda = 2.0;
+                p += alpha * exp(-distance1/lambda); // lambda-CDM
+
                 gPot *= (1.0 + p);
             }
             #endif
@@ -353,8 +359,6 @@ void main() {
         //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
     }
     #endif
-
-    rForce *= forceConstant;
     
     // update velocity
     if (type1 == DEFAULT) {
@@ -422,6 +426,7 @@ precision highp float;
 #define FIXED 2.0
 
 uniform float boundaryDistance;
+uniform float timeStep;
 
 float sdBox( vec3 p, vec3 b )
 {
@@ -445,7 +450,7 @@ void main() {
         vec4 tVel = texture2D( textureVelocity, uv );
         vec3 vel = tVel.xyz;
         
-        pos += vel;
+        pos += timeStep * vel;
 
         #if ENABLE_BOUNDARY
             #if !USE_BOX_BOUNDARY

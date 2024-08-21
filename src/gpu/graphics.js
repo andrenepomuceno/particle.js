@@ -392,7 +392,6 @@ export class GraphicsGPU {
         // velocityUniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
         velocityUniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
         velocityUniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
-        velocityUniforms['forceConstant'] = { value: physics.forceConstant };
         velocityUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         velocityUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         velocityUniforms['frictionConstant'] = { value: physics.frictionConstant };
@@ -409,7 +408,7 @@ export class GraphicsGPU {
         const positionUniforms = this.positionVariable.material.uniforms;
 
         positionUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
-        positionUniforms['forceConstant'] = { value: physics.forceConstant };
+        positionUniforms['timeStep'] = { value: physics.timeStep };
     }
 
     #fillTextures() {

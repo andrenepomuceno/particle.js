@@ -10,8 +10,6 @@ function define(define, value = false) {
 }
 
 export function generateComputeVelocity(physics) {
-    //physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
-
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
@@ -62,6 +60,7 @@ const computeVelocityV2 = /* glsl */ `
 precision highp float;
 
 uniform float uTime;
+uniform float timeStep;
 uniform float minDistance2;
 /*uniform float massConstant;
 uniform float chargeConstant;*/
@@ -311,7 +310,7 @@ void main() {
                 p += -4.0 * dot(vel1, vel2);
                 p /= maxVel2;
 
-                const float alpha = 1.0;
+                const float alpha = 3.0;
                 const float lambda = 2.0;
                 p += alpha * exp(-distance1/lambda); // lambda-CDM
 
@@ -362,11 +361,11 @@ void main() {
     
     // update velocity
     if (type1 == DEFAULT) {
+        vec3 accel = rForce;
         if (m1 != 0.0) {
-            vel1 += rForce / abs(m1);
-        } else {
-            vel1 += rForce;
+            accel /= abs(m1);
         }
+        vel1 += timeStep * accel;
 
         // velocity clamp
         //vel1 = clamp(vel1, -maxVel, maxVel);

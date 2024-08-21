@@ -386,6 +386,7 @@ export class GraphicsGPU {
         const velocityUniforms = this.velocityVariable.material.uniforms;
 
         velocityUniforms['uTime'] = { value: 0.0 };
+        velocityUniforms['timeStep'] = { value: physics.timeStep };
         velocityUniforms['minDistance2'] = { value: physics.minDistance2 };
         // velocityUniforms['massConstant'] = { value: physics.massConstant };
         // velocityUniforms['chargeConstant'] = { value: physics.chargeConstant };

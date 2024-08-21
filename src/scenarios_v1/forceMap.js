@@ -100,19 +100,22 @@ function gravity(simulation) {
     let physics = simulation.physics;
     defaultParameters(simulation);
 
+    simulation.mode2D = true;
+
     const M = (1) * 1e-16;
     const S = (1) * 1e-15;
     const KG = (1) * 1e-30;
     const C = (1 / 1.602176634) * 1e-18;
 
-    physics.nuclearForceRange = 0;//1e2;//3.0e-15 * M;
-    physics.nuclearForceConstant = 0;//1e-1;//30e3 * KG * M * S ** -2;
+    physics.nuclearForceRange = 3.0e-15 * M;
+    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
 
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
     physics.forceMap = [0.05, 1.0, 1.0];
 
+    physics.timeStep = 1.0;
     physics.useDistance1 = true;
     physics.enablePostGravity = true;
 
@@ -133,13 +136,11 @@ function gravity(simulation) {
     physics.enableFriction = false;
     physics.frictionConstant = 1e-6;
 
-    physics.useBoxBoundary = true;
-
-    simulation.mode2D = true;
     /*physics.roundPosition = true;
     physics.roundVelocity = true;*/
 
-    physics.boundaryDistance = 1e8;
+    physics.useBoxBoundary = false;
+    physics.boundaryDistance = 1e9;
     physics.boundaryDamping = 0.9;
 
     graphics.cameraDistance = 4e5;
@@ -149,13 +150,14 @@ function gravity(simulation) {
     simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
 
     let typeList = [
-        { m: 5, q: 1, nq: 10, name: '', colorCharge: 0.0 },
+        { m: 1e31 * KG, q: 1e8 * C, nq: 1, name: '', colorCharge: 0.0 },
     ]
 
     let n = graphics.maxParticles;
     let scale = n/30976;
     let r = 4e5 * scale;
-    let vel = 50e-6 * physics.maxVel * scale;
+    let vel = 1e4 * M / S * scale;
+
     let options = {
         randomSequence: false,
 
@@ -177,7 +179,7 @@ function gravity(simulation) {
 
     shuffleArray(physics.particleList);
 
-    graphics.showAxis(true, simulation.mode2D, 1e12 * M, true, '1e12 m');
+    graphics.showAxis(true, simulation.mode2D, 1e15 * M, true, '1e15 m');
 }
 
 function experiments4(simulation) {

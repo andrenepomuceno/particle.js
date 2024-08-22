@@ -17,7 +17,7 @@ export class Particle {
         mass: 0.0,
         charge: 0.0,
         nuclearCharge: 0.0,
-        colorCharge: 0,
+        colorCharge: 0.0,
 
         position: {
             x: 0.0, y: 0.0, z: 0.0

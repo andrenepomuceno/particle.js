@@ -95,22 +95,54 @@ uniform float forceMapLen;
 
 const vec4 ones = vec4(1.0);
 
-float sdBox( vec3 p, vec3 b )
+float sdBox(vec3 p, vec3 b)
 {
     vec3 q = abs(p) - b;
     return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
-float sdSphere( vec3 p, float s )
+float sdSphere(vec3 p, float s)
 {
-    return length(p)-s;
+    return length(p) - s;
 }
 
-float rand2(vec2 co) {
-    return abs(fract(sin(dot(co, vec2(17.6546, 83.6511))) * 83521.1122));
+uint hash(uint x) {
+    x += (x << 10u);
+    x ^= (x >> 6u);
+    x += (x << 3u);
+    x ^= (x >> 11u);
+    x += (x << 15u);
+    return x;
 }
 
-float calcNuclearPotential(float distance1, float distance2)
+uint hash(uvec3 v) {
+    return hash(v.x ^ hash(v.y) ^ hash(v.z));
+}
+
+float floatConstruct(uint m) {
+    const uint ieeeMantissa = 0x007FFFFFu;
+    const uint ieeeOne      = 0x3F800000u;
+
+    m &= ieeeMantissa;
+    m |= ieeeOne;
+
+    float  f = uintBitsToFloat(m);
+    return f - 1.0;
+}
+
+float randomSeed = 0.0;
+
+void srandom(float seed) {
+    randomSeed = seed;
+}
+
+float random(vec2 v) {
+    vec3 x = vec3(v, randomSeed);
+    randomSeed += 1.0;
+    return floatConstruct(hash(floatBitsToUint(x)));
+}
+
+float calcNuclearPotential(float distance1)
 {
     float x = 0.0;
     x = distance1/nuclearForceRange;
@@ -177,12 +209,19 @@ const vec3 color2Mat[4] = vec3[](
     vec3(-1.0, 1.0, 0.0),
     vec3(0.0, -1.0, 1.0),
     vec3(1.0, 0.0, -1.0)
+#elif 0
+    vec3(-0.5, 1.0, -0.5),
+    vec3(-0.5, -0.5, 1.0),
+    vec3(1.0, -0.5, -0.5)
 #endif
 );
 
 float calcColorPotential(float c1, float c2, float distance1)
 {
+    //if (c1 == 0.0 || c2 == 0.0) return 0.0;
+
     float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
+    //return f;
     return colorChargeConstant * (distance1/nuclearForceRange) * f;
 }
 
@@ -191,6 +230,8 @@ void main() {
     vec4 texPos1 = texture2D(texturePosition, uv1);
     float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
+
+    srandom(uTime);
     
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
@@ -265,13 +306,18 @@ void main() {
             float distance1 = sqrt(distance2);
             
             float nPot = 0.0;
+            float cPot = 0.0;
             if (distance2 < nuclearForceRange2) {               
-                nPot = calcNuclearPotential(distance1, distance2);
+                nPot = calcNuclearPotential(distance1);
 
                 #if ENABLE_COLOR_CHARGE
                     //nPot *= calcColorPotential(props1.w, props2.w, distance1);
                     //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
                     nPot += calcColorPotential(props1.w, props2.w, distance1);
+
+                    /*props2.w = calcColorPotential(props1.w, props2.w, distance1);
+                    props1.w = 1.0;
+                    cPot += colorChargeConstant * (distance1/nuclearForceRange);*/
                 #endif
             }
 
@@ -317,7 +363,7 @@ void main() {
             #endif
 
             vec4 props = props1 * props2;
-            vec4 potential = vec4(gPot, ePot, nPot, 0.0);
+            vec4 potential = vec4(gPot, ePot, nPot, cPot);
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);
 
@@ -350,8 +396,8 @@ void main() {
     #if USE_RANDOM_NOISE
     {
         rForce.xy += randomNoiseConstant * vec2(
-            (rand2(vec2(uTime, uv1.x)) - 0.5),
-            (rand2(vec2(uTime, uv1.y)) - 0.5)
+            random(uv1) - 0.5,
+            random(uv1) - 0.5
         );
     }
     #endif

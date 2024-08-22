@@ -396,7 +396,12 @@ export class GraphicsGPU {
         velocityUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         velocityUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         velocityUniforms['frictionConstant'] = { value: physics.frictionConstant };
-        velocityUniforms['forceConstants'] = { value: [physics.massConstant, -physics.chargeConstant, physics.nuclearForceConstant, 0.0] };
+        velocityUniforms['forceConstants'] = { value: [
+            physics.massConstant,
+            -physics.chargeConstant,
+            physics.nuclearForceConstant,
+            1.0
+        ] };
         velocityUniforms['maxVel'] = { value: physics.maxVel };
         velocityUniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
         velocityUniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };

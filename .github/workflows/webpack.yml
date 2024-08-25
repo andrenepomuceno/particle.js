@@ -72,7 +72,7 @@ jobs:
       with:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ env.VERSION }}
+        tag: ${{ env.BUILD_VERSION }}
         draft: true
         commit: ${{ github.ref }}
 

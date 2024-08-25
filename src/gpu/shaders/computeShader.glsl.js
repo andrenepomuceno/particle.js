@@ -219,7 +219,6 @@ const vec3 color2Mat[4] = vec3[](
 float calcColorPotential(float c1, float c2, float distance1)
 {
     //if (c1 == 0.0 || c2 == 0.0) return 0.0;
-
     float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
     //return f;
     return colorChargeConstant * (distance1/nuclearForceRange) * f;

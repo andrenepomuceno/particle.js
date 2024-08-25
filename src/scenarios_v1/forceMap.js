@@ -7,15 +7,16 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
+    //uncertainty,
+    experiments4,
+    gravity,
+    welcome,
     uncertainty,
     //rngTest,
     //nuclearField,
-    experiments4,
-    gravity,
     //experiments3,
     //experiments2,
     //experiments1,
-    welcome,
     hexagonalCrystal,
 ];
 
@@ -80,12 +81,12 @@ function uncertainty(simulation) {
     physics.forceMap = [0.05, 1.0, 1.0];
 
     physics.timeStep = 1e3;
-    physics.useDistance1 = false;
+    physics.useDistance1 = true;
     const lightSpeed = 299792458 * M / S;
     physics.maxVel = lightSpeed;
     physics.enableLorentzFactor = true;
 
-    physics.enableFineStructure = true;
+    physics.enableFineStructure = false;
     const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
     physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
 
@@ -381,11 +382,11 @@ function experiments4(simulation) {
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
     physics.forceMap = [0.05, 1.0, 1.0];
 
-    physics.timeStep = 1;
+    physics.timeStep = 1.0;
     physics.useDistance1 = true;
     const lightSpeed = 299792458 * M / S;
-    physics.maxVel = lightSpeed * 1e6;
-    physics.enableLorentzFactor = true;
+    physics.maxVel = lightSpeed * 1e7;
+    physics.enableLorentzFactor = false;
 
     physics.enableFineStructure = true;
     const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S

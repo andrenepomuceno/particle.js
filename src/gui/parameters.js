@@ -178,7 +178,7 @@ export class GUIParameters {
         edit.enableFriction = simulation.physics.enableFriction;
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
         edit.frictionModel = simulation.physics.frictionModel;
-        edit.maxVel = simulation.physics.maxVel;
+        edit.maxVel = simulation.physics.maxVel.toExponential(2);
 
         refreshCallbackList.forEach((callback) => {
             if (callback != undefined) {

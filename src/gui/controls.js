@@ -297,7 +297,7 @@ function instructionsPopup() {
     // Add the instructions HTML
     content.innerHTML = `
         <h2>Welcome to particle.js!</h2>
-        <p>particle.js is a simplified Particle Physics sandbox.</p>
+        <p>particle.js is a simplified n-body Particle Physics simulator and sandbox.</p>
         <p>Here are the basic controls to get you started:</p>
         <h3>Mouse Controls:</h3>
         <ul>
@@ -320,7 +320,7 @@ function instructionsPopup() {
             <li>See the menus for more...</li>
         </ul>
         <p>Press <b>?</b> any time to show this popup again.<p>
-        <p>Check out the project on <a href="https://github.com/andrenepomuceno/particle.js" target="_blank" style="color: #4CAF50;">GitHub</a> for more details.</p>
+        <p>Check out the project on <a href="https://github.com/andrenepomuceno/particle.js" target="_blank" style="color: #4CAF50">GitHub</a> for more details.</p>
         <button id="closePopupBtn" style="margin-top: 20px;">Got it!</button>
     `;
 

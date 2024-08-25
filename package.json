@@ -1,6 +1,6 @@
 {
   "name": "particle.js",
-  "version": "0.105.0",
+  "version": "0.105.1",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
     "madge0": "madge --image img/graph0.svg src",
     "madge1": "madge --image img/graph1.svg src -x 'scenarios_v.*/.*.js|cpu/.*.js'",
     "madge2": "madge --image img/graph2.svg src -x 'scenarios_v.*/.*.js|cpu/.*.js' --include-npm",
-    "madge-simple": "madge --image img/simple.svg src -x 'scenarios_v.*/.*.js|gui/.*.js|components/.*.js|gpu/shaders/.*.js|mock/.*.js'"
+    "madge-simple": "madge --image img/simple.svg src -x 'scenarios_v.*/.*.js|gui/.*.js|components/.*.js|mock/.*.js'"
   },
   "repository": {
     "type": "git",

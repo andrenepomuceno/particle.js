@@ -142,6 +142,27 @@ float random(vec2 v) {
     return floatConstruct(hash(floatBitsToUint(x)));
 }
 
+vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distance2) {
+    vec3 rForce = vec3(0.0);
+
+    float m = m1 + m2; // precision loss if m1 >> m2
+    if (m == 0.0) {
+        return rForce;
+    }
+    
+    float s = 2.0 * m1 * m2 / m;
+    vec3 dVel = vel2 - vel1;
+    if (distance2 > 0.0) {
+        vec3 res = s * dot(dVel, dPos) * dPos;
+        res /= distance2;
+        rForce += res;
+    } else {
+        rForce += s * dVel;
+    }
+        
+    return rForce;
+}
+
 float calcNuclearPotential(float distance1)
 {
     float x = 0.0;
@@ -218,31 +239,12 @@ const vec3 color2Mat[4] = vec3[](
 
 float calcColorPotential(float c1, float c2, float distance1)
 {
-    //if (c1 == 0.0 || c2 == 0.0) return 0.0;
-    float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
-    //return f;
-    return colorChargeConstant * (distance1/nuclearForceRange) * f;
-}
-
-vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distance2) {
-    vec3 rForce = vec3(0.0);
-
-    float m = m1 + m2; // precision loss if m1 >> m2
-    if (m == 0.0) {
-        return rForce;
-    }
-    
-    float s = 2.0 * m1 * m2 / m;
-    vec3 dVel = vel2 - vel1;
-    if (distance2 > 0.0) {
-        vec3 res = s * dot(dVel, dPos) * dPos;
-        res /= distance2;
-        rForce += res;
-    } else {
-        rForce += s * dVel;
-    }
-        
-    return rForce;
+    float d = distance1/nuclearForceRange;
+    float x = colorChargeConstant * d;
+    //return -x;
+    //if (c1 == 0.0 || c2 == 0.0) { return x; }
+    float c = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
+    return x * c;
 }
 
 void main() {

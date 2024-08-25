@@ -388,12 +388,12 @@ function experiments4(simulation) {
     physics.maxVel = lightSpeed * 1e7;
     physics.enableLorentzFactor = false;
 
-    physics.enableFineStructure = true;
+    physics.enableFineStructure = false;
     const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
-    physics.fineStructureConstant = (1e-6) * (1/137) * planckConstant * lightSpeed;
+    physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
 
     physics.enableColorCharge = true;
-    physics.colorChargeConstant = 1.0;
+    physics.colorChargeConstant = 0.5;
 
     physics.minDistance2 = Math.pow(1e-3, 2);
 
@@ -481,13 +481,13 @@ function experiments4(simulation) {
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         },
-        {
+        /*{
             cycle: 80 * 1e3 * cyclesPerMs,
             callback: () => {
                 core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
-        }
+        }*/
     ]);
 }
 

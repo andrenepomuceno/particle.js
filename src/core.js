@@ -142,7 +142,20 @@ class Core {
             },
             'fineStructureConstant': (value) => {
                 physics.fineStructureConstant = safeParseFloat(value, physics.fineStructureConstant);
-            }
+            },
+            'enablePostGravity': (value) => {
+                physics.enablePostGravity = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'enableRandomNoise': (value) => {
+                physics.enableRandomNoise = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'randomNoiseConstant': (value) => {
+                physics.randomNoiseConstant = safeParseFloat(value, physics.randomNoiseConstant);
+            },
         };
 
 

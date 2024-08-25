@@ -8,7 +8,7 @@ let options;
 let controls;
 let refreshCallbackList = []
 
-function addControl(gui, title, variable, defaultValue = '', refreshCallback = undefined) {
+function addPhysicsControl(gui, title, variable, defaultValue = '', refreshCallback = undefined) {
     console.log('add control ' + variable);
     options.parameters[variable] = defaultValue;
     gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
@@ -110,7 +110,7 @@ export class GUIParameters {
             core.updatePhysics('enableFriction', val);
         });
         
-        addControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
+        addPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
             '-cv (default)': FrictionModel.default,
             '-cv^2': FrictionModel.square,
@@ -118,8 +118,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
         });
-        addControl(guiParametersConsts, 'Time Step', 'timeStep');
-        addControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
+        addPhysicsControl(guiParametersConsts, 'Time Step', 'timeStep');
+        addPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -138,25 +138,38 @@ export class GUIParameters {
         //guiParametersBoundary.open();
 
         const guiParametersExp = controls.addFolder("[+] Experimental ✏️");
-        addControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
+        addPhysicsControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
             options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
         });
-        addControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
+        addPhysicsControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
             options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(2); 
         });
-        addControl(guiParametersExp, 'Enable Color Charge', 'enableColorCharge', false, () => {
+        addPhysicsControl(guiParametersExp, 'Enable Color Charge', 'enableColorCharge', false, () => {
             options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
         });
-        addControl(guiParametersExp, 'Color Force Constant', 'colorChargeConstant', '', () => {
-            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant;
+        addPhysicsControl(guiParametersExp, 'Color Force Constant', 'colorChargeConstant', '', () => {
+            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(2);
         });
+        addPhysicsControl(guiParametersExp, 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
+            options.parameters.enableLorentzFactor = simulation.physics.enableLorentzFactor;
+        });
+        addPhysicsControl(guiParametersExp, 'Post-Newtonian Gravity', 'enablePostGravity', false, () => {
+            options.parameters.enablePostGravity = simulation.physics.enablePostGravity;
+        });
+        addPhysicsControl(guiParametersExp, 'Enable Random Noise', 'enableRandomNoise', false, () => {
+            options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
+        });
+        addPhysicsControl(guiParametersExp, 'Random Noise Constant', 'randomNoiseConstant', '', () => {
+            options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(2);
+        });
+        //guiParametersExp.open();
 
         controls.add(options.parameters, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiParametersBoundary);
         options.collapseList.push(guiParametersConsts);
-        // options.collapseList.push(guiParametersInteractions);
+        options.collapseList.push(guiParametersExp);
     }
 
     refresh() {

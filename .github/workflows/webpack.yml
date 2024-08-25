@@ -74,6 +74,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ env.VERSION }}
         draft: true
+        commit: ${{ github.ref }}
 
     - name: Deploy gh-pages
       uses: JamesIves/github-pages-deploy-action@v4

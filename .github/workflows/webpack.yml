@@ -73,6 +73,7 @@ jobs:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ env.VERSION }}
+        draft: true
 
     - name: Deploy gh-pages
       uses: JamesIves/github-pages-deploy-action@v4

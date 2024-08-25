@@ -8,10 +8,10 @@ let options;
 let controls;
 let refreshCallbackList = []
 
-function addPhysicsControl(gui, title, variable, defaultValue = '', refreshCallback = undefined) {
+function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined) {
     console.log('add control ' + variable);
     options.parameters[variable] = defaultValue;
-    gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
+    folder.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
     });
     refreshCallbackList.push(refreshCallback);

@@ -6,12 +6,15 @@ import {
 
 let options;
 let controls;
+let refreshCallbackList = []
 
-function addFloatControl(gui, title, variable) {
-    options.parameters[variable] = '';
+function addControl(gui, title, variable, defaultValue = '', refreshCallback = undefined) {
+    console.log('add control ' + variable);
+    options.parameters[variable] = defaultValue;
     gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
     });
+    refreshCallbackList.push(refreshCallback);
 }
 
 export class GUIParameters {
@@ -55,7 +58,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'chargeConstant').name('Electric Constant').listen().onFinishChange((val) => {
             core.updatePhysics('chargeConstant', val);
         });
-        guiParametersConsts.add(options.parameters, 'distance1').name("Use 1/x potential (gravity and charge)").listen().onFinishChange((val) => {
+
+        guiParametersConsts.add(options.parameters, 'distance1').name("Use x^-1 potential (gravity & charge)").listen().onFinishChange((val) => {
             core.updatePhysics('distance1', val);
         });
         guiParametersConsts.add(options.parameters, 'nuclearForceConstant').name('Nuclear Force Constant').listen().onFinishChange((val) => {
@@ -66,12 +70,12 @@ export class GUIParameters {
         });
         const potentialType = {
             'Sin[ax]': NuclearPotentialType.default,
-            'Hooks Law': NuclearPotentialType.hooksLaw,
+            "2x-1": NuclearPotentialType.hooksLaw,
             'Sin[a(1-b^x)] (v1)': NuclearPotentialType.potential_powAX,
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
-            'Force Map 1': NuclearPotentialType.potential_forceMap1,
-            'Force Map 2': NuclearPotentialType.potential_forceMap2,
+            '[a,b,c,d,...,x] (param.)': NuclearPotentialType.potential_forceMap1,
+            'Min[Exp(-x/a)/x^2,c]-bx (param.)': NuclearPotentialType.potential_forceMap2,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }
@@ -79,7 +83,7 @@ export class GUIParameters {
             core.updatePhysics('potential', val);
         });
 
-        guiParametersConsts.add(options.parameters, 'forceMap').name('Force Map').listen().onFinishChange((val) => {
+        guiParametersConsts.add(options.parameters, 'forceMap').name('Nuclear Parameters').listen().onFinishChange((val) => {
             let forceMap = String(val).split(',').map((x) => {
                 let v = parseFloat(x);
                 if (isNaN(v)) {
@@ -106,7 +110,7 @@ export class GUIParameters {
             core.updatePhysics('enableFriction', val);
         });
         
-        addFloatControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
+        addControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
             '-cv (default)': FrictionModel.default,
             '-cv^2': FrictionModel.square,
@@ -114,8 +118,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
         });
-        addFloatControl(guiParametersConsts, 'Time Step', 'timeStep');
-        addFloatControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
+        addControl(guiParametersConsts, 'Time Step', 'timeStep');
+        addControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -133,7 +137,19 @@ export class GUIParameters {
         });
         //guiParametersBoundary.open();
 
-        // const guiParametersInteractions = controls.addFolder("[+] Interactions");
+        const guiParametersExp = controls.addFolder("[+] Experimental ✏️");
+        addControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
+            options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
+        });
+        addControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
+            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(2); 
+        });
+        addControl(guiParametersExp, 'Enable Color Charge', 'enableColorCharge', false, () => {
+            options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
+        });
+        addControl(guiParametersExp, 'Color Force Constant', 'colorChargeConstant', '', () => {
+            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant;
+        });
 
         controls.add(options.parameters, 'close').name('Close 🔺');
 
@@ -163,5 +179,11 @@ export class GUIParameters {
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
         edit.frictionModel = simulation.physics.frictionModel;
         edit.maxVel = simulation.physics.maxVel;
+
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        })
     }
 }

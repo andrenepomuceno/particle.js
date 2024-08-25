@@ -125,6 +125,8 @@ export class Selection {
                             break;
                     }
 
+                    if (width <= 0 || height <= 0) return;
+
                     image.crop({
                         x: topLeft.x,
                         y: bottomRight.y,

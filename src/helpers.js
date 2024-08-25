@@ -381,6 +381,8 @@ export function createParticles(simulation, typeList, n, options) {
         randomM: false,
         roundM: false,
         allowZeroM: false,
+        exponentialMass: false,
+        expoent: 2,
 
         q: 1,
         randomQSignal: false, randomQThresh: 0.5,
@@ -413,7 +415,14 @@ export function createParticles(simulation, typeList, n, options) {
         let m = options.m;
         m *= typeList[type].m;
         if ((options.randomMSignal == true) && (random(0, 1) >= options.randomMThresh)) m *= -1;
-        if (options.randomM == true) m *= random(0, 1);
+        if (options.randomM == true) {
+            if (options.exponentialMass) {
+                let x = random(0, Math.pow(m, options.expoent));
+                m = Math.pow(x, 1/options.expoent);
+            } else {
+                m *= random(0, 1);
+            }
+        }
         if (options.randomMr2 == true) m = Math.pow(m, 2);
         if (options.roundM == true) m = Math.round(m);
         if (options.allowZeroM == false && m == 0) m = options.m * typeList[type].m;

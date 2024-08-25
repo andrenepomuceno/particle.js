@@ -121,7 +121,7 @@ uint hash(uvec3 v) {
 
 float floatConstruct(uint m) {
     const uint ieeeMantissa = 0x007FFFFFu;
-    const uint ieeeOne      = 0x3F800000u;
+    const uint ieeeOne = 0x3F800000u;
 
     m &= ieeeMantissa;
     m |= ieeeOne;
@@ -225,6 +225,27 @@ float calcColorPotential(float c1, float c2, float distance1)
     return colorChargeConstant * (distance1/nuclearForceRange) * f;
 }
 
+vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distance2) {
+    vec3 rForce = vec3(0.0);
+
+    float m = m1 + m2; // precision loss if m1 >> m2
+    if (m == 0.0) {
+        return rForce;
+    }
+    
+    float s = 2.0 * m1 * m2 / m;
+    vec3 dVel = vel2 - vel1;
+    if (distance2 > 0.0) {
+        vec3 res = s * dot(dVel, dPos) * dPos;
+        res /= distance2;
+        rForce += res;
+    } else {
+        rForce += s * dVel;
+    }
+        
+    return rForce;
+}
+
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 texPos1 = texture2D(texturePosition, uv1);
@@ -280,46 +301,16 @@ void main() {
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    float m = m1 + m2; // precision loss if m1 >> m2
-                    if (m == 0.0) {
-                        continue;
-                    }
-                    
-                    float s = 2.0 * m1 * m2 / m;
-                    vec3 dVel = vel2 - vel1;
-                    if (distance2 > 0.0) {
-                        vec3 res = s * dot(dVel, dPos) * dPos;
-                        res /= distance2;
-                        rForce += res;
-                    } else {
-                        rForce += s * dVel;
-                    }
-                    
+                    rForce += collision(m1, m2, vel1, vel2, dPos, distance2);
                     ++collisions;
                     continue;
                 }
-                
+
                 // for probe
                 distance2 = minDistance2;
             }
 
             float distance1 = sqrt(distance2);
-            
-            float nPot = 0.0;
-            float cPot = 0.0;
-            if (distance2 < nuclearForceRange2) {               
-                nPot = calcNuclearPotential(distance1);
-
-                #if ENABLE_COLOR_CHARGE
-                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
-                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
-                    nPot += calcColorPotential(props1.w, props2.w, distance1);
-
-                    /*props2.w = calcColorPotential(props1.w, props2.w, distance1);
-                    props1.w = 1.0;
-                    cPot += colorChargeConstant * (distance1/nuclearForceRange);*/
-                #endif
-            }
 
             float distance2inv = 1.0/distance2;
             float distance1inv = 1.0/distance1;
@@ -361,6 +352,23 @@ void main() {
                 gPot *= (1.0 + p);
             }
             #endif
+
+            float nPot = 0.0;
+            float cPot = 0.0;
+            
+            if (distance2 < nuclearForceRange2) {               
+                nPot = calcNuclearPotential(distance1);
+
+                #if ENABLE_COLOR_CHARGE
+                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
+                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
+                    nPot += calcColorPotential(props1.w, props2.w, distance1);
+
+                    /*props2.w = calcColorPotential(props1.w, props2.w, distance1);
+                    props1.w = 1.0;
+                    cPot += colorChargeConstant * (distance1/nuclearForceRange);*/
+                #endif
+            }
 
             vec4 props = props1 * props2;
             vec4 potential = vec4(gPot, ePot, nPot, cPot);
@@ -412,6 +420,7 @@ void main() {
 
         // velocity clamp
         //vel1 = clamp(vel1, -maxVel, maxVel);
+        vel1Abs = dot(vel1, vel1);
         if (vel1Abs >= maxVel2) {
             vel1 = maxVel * normalize(vel1);
         }

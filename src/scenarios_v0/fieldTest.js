@@ -32,7 +32,7 @@ function defaultConfig(simulation, distance = 4.0e2) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;

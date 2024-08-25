@@ -64,7 +64,7 @@ export class GUIField {
             if (val == simulation.field.grid[0]) return;
             if (simulation.field.enabled == false || simulation.field.arrowList.length == 0) return;
             if (simulation.field.checkGridSize(val) == false) {
-                alert('Field is too big!');
+                alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + probeCount);
                 return;
             }
             core.deleteParticleList(simulation.field.arrowList);

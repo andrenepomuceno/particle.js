@@ -24,7 +24,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -53,7 +52,6 @@ function standardModel3(simulation) {
     simulation.particleRadius = 0.01 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.5 * simulation.particleRadius;
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -100,7 +98,7 @@ function colorTests(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -166,7 +164,7 @@ function colorCharge(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -239,7 +237,7 @@ function crystal(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -312,7 +310,7 @@ function fullScaleModel(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     const density = 0.5e33 * M ** -2;
@@ -374,7 +372,7 @@ function water2(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.01 * physics.nuclearForceRange;
@@ -450,7 +448,7 @@ function miniverse2(simulation) {
     physics.massConstant = 1e39 * 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 25e3 * KG * M * S ** -2; // fine structure
-    physics.forceConstant = 1 / 3;
+    physics.timeStep = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1e0 * nuclearForceRange;
@@ -499,7 +497,7 @@ function cosmological(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 1;
@@ -554,7 +552,7 @@ function essentialElements(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -662,7 +660,7 @@ function air(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;

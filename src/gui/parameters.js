@@ -6,12 +6,15 @@ import {
 
 let options;
 let controls;
+let refreshCallbackList = []
 
-function addFloatPhysicsControl(gui, title, variable) {
-    options.parameters[variable] = '';
-    gui.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
+function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined) {
+    console.log('add control ' + variable);
+    options.parameters[variable] = defaultValue;
+    folder.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
     });
+    refreshCallbackList.push(refreshCallback);
 }
 
 export class GUIParameters {
@@ -31,7 +34,6 @@ export class GUIParameters {
             boundaryDamping: '',
             boundaryDistance: '',
             minDistance: '',
-            forceConstant: '',
             maxParticles: '',
             radius: '',
             radiusRange: '',
@@ -56,7 +58,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'chargeConstant').name('Electric Constant').listen().onFinishChange((val) => {
             core.updatePhysics('chargeConstant', val);
         });
-        guiParametersConsts.add(options.parameters, 'distance1').name("Use 1/x potential (gravity and charge)").listen().onFinishChange((val) => {
+
+        guiParametersConsts.add(options.parameters, 'distance1').name("Use x^-1 potential (gravity & charge)").listen().onFinishChange((val) => {
             core.updatePhysics('distance1', val);
         });
         guiParametersConsts.add(options.parameters, 'nuclearForceConstant').name('Nuclear Force Constant').listen().onFinishChange((val) => {
@@ -67,12 +70,12 @@ export class GUIParameters {
         });
         const potentialType = {
             'Sin[ax]': NuclearPotentialType.default,
-            'Hooks Law': NuclearPotentialType.hooksLaw,
+            "2x-1": NuclearPotentialType.hooksLaw,
             'Sin[a(1-b^x)] (v1)': NuclearPotentialType.potential_powAX,
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
-            'Force Map 1': NuclearPotentialType.potential_forceMap1,
-            'Force Map 2': NuclearPotentialType.potential_forceMap2,
+            '[a,b,c,d,...,x] (param.)': NuclearPotentialType.potential_forceMap1,
+            'Min[Exp(-x/a)/x^2,c]-bx (param.)': NuclearPotentialType.potential_forceMap2,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }
@@ -80,7 +83,7 @@ export class GUIParameters {
             core.updatePhysics('potential', val);
         });
 
-        guiParametersConsts.add(options.parameters, 'forceMap').name('Force Map').listen().onFinishChange((val) => {
+        guiParametersConsts.add(options.parameters, 'forceMap').name('Nuclear Parameters').listen().onFinishChange((val) => {
             let forceMap = String(val).split(',').map((x) => {
                 let v = parseFloat(x);
                 if (isNaN(v)) {
@@ -107,7 +110,7 @@ export class GUIParameters {
             core.updatePhysics('enableFriction', val);
         });
         
-        addFloatPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
+        addPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
             '-cv (default)': FrictionModel.default,
             '-cv^2': FrictionModel.square,
@@ -115,8 +118,8 @@ export class GUIParameters {
         guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
             core.updatePhysics('frictionModel', val);
         });
-        addFloatPhysicsControl(guiParametersConsts, 'Force Multiplier', 'forceConstant');
-        addFloatPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
+        addPhysicsControl(guiParametersConsts, 'Time Step', 'timeStep');
+        addPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
         //guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -134,14 +137,39 @@ export class GUIParameters {
         });
         //guiParametersBoundary.open();
 
-        // const guiParametersInteractions = controls.addFolder("[+] Interactions");
+        const guiParametersExp = controls.addFolder("[+] Experimental ✏️");
+        addPhysicsControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
+            options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
+        });
+        addPhysicsControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
+            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(2); 
+        });
+        addPhysicsControl(guiParametersExp, 'Enable Color Charge', 'enableColorCharge', false, () => {
+            options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
+        });
+        addPhysicsControl(guiParametersExp, 'Color Force Constant', 'colorChargeConstant', '', () => {
+            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(2);
+        });
+        addPhysicsControl(guiParametersExp, 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
+            options.parameters.enableLorentzFactor = simulation.physics.enableLorentzFactor;
+        });
+        addPhysicsControl(guiParametersExp, 'Post-Newtonian Gravity', 'enablePostGravity', false, () => {
+            options.parameters.enablePostGravity = simulation.physics.enablePostGravity;
+        });
+        addPhysicsControl(guiParametersExp, 'Enable Random Noise', 'enableRandomNoise', false, () => {
+            options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
+        });
+        addPhysicsControl(guiParametersExp, 'Random Noise Constant', 'randomNoiseConstant', '', () => {
+            options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(2);
+        });
+        //guiParametersExp.open();
 
         controls.add(options.parameters, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
         options.collapseList.push(guiParametersBoundary);
         options.collapseList.push(guiParametersConsts);
-        // options.collapseList.push(guiParametersInteractions);
+        options.collapseList.push(guiParametersExp);
     }
 
     refresh() {
@@ -153,7 +181,7 @@ export class GUIParameters {
         edit.boundaryDamping = simulation.physics.boundaryDamping;
         edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
         edit.minDistance = Math.sqrt(simulation.physics.minDistance2).toExponential(2);
-        edit.forceConstant = simulation.physics.forceConstant;
+        edit.timeStep = simulation.physics.timeStep;
         edit.maxParticles = simulation.graphics.maxParticles;
         edit.boxBoundary = simulation.physics.useBoxBoundary;
         edit.distance1 = simulation.physics.useDistance1;
@@ -163,6 +191,12 @@ export class GUIParameters {
         edit.enableFriction = simulation.physics.enableFriction;
         edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
         edit.frictionModel = simulation.physics.frictionModel;
-        edit.maxVel = simulation.physics.maxVel;
+        edit.maxVel = simulation.physics.maxVel.toExponential(2);
+
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        })
     }
 }

@@ -88,7 +88,7 @@ export class GUIAdvanced {
         controls.add(options.advanced, 'zeroVelocity').name("Zero Velocity [B]"); // [Numpad 0]
         controls.add(options.advanced, 'reverseVelocity').name('Reverse Velocity');
     
-        controls.add(options.advanced, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
+        /*controls.add(options.advanced, 'dampVelocity').name("Damp Velocity [T]"); // [Numpad -]
         controls.add(options.advanced, 'kickVelocity').name("Kick Velocity [Y]"); // [Numpad +]
         controls.add(options.advanced, 'dampKickFactor').name("Damp/Kick Factor ✏️").listen().onFinishChange((val) => {
             let factor = parseFloat(val);
@@ -101,7 +101,7 @@ export class GUIAdvanced {
         });
     
         controls.add(options.advanced, 'addRandomVelocity').name('Add Random Velocity');
-        controls.add(options.advanced, 'randomVelocity').name('Random Velocity ✏️').listen();
+        controls.add(options.advanced, 'randomVelocity').name('Random Velocity ✏️').listen();*/
     
         controls.add(options.advanced, 'particleCleanup').name("Automatic Particle Cleanup [U]"); // [Numpad .]
         controls.add(options.advanced, 'cleanupThreshold').name('Cleanup Threshold ✏️').listen();

@@ -96,9 +96,13 @@ export class Ruler {
     }
 
     finish(event) {
+        if (!this.started) {
+            return;
+        }
+
         this.p1 = mouseToWorldCoord(mouseToScreenCoord(event), this.graphics.camera, 0);
         this.refreshRulerControls();
-
+        
         this.graphics.scene.remove(this.arrow);
         this.arrow.dispose();
         this.arrow = undefined;

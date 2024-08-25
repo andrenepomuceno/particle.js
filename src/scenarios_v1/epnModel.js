@@ -17,7 +17,6 @@ function defaultParameters(simulation, cameraDistance = 1e4) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -62,7 +61,7 @@ function periodicTable(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG ** 1 * M ** 3 * S ** -2 * C ** -2;
     physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
-    physics.forceConstant = 1/3;
+    physics.timeStep = 1/3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;
@@ -136,7 +135,7 @@ function randomElements(simulation) {
     physics.massConstant = 6.6743e-11 * kg ** -1 * m ** 3 * s ** -2;
     physics.chargeConstant = 8.988e9 * kg ** 1 * m ** 3 * s ** -2 * c ** -2;
     physics.nuclearForceConstant = 3.0;
-    physics.forceConstant = 1 / 3;
+    physics.timeStep = 1 / 3;
     physics.minDistance2 = Math.pow(2 * 0.001 * physics.nuclearForceRange, 2);
 
     let r0 = 0.05 * physics.nuclearForceRange;

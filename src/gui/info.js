@@ -51,10 +51,10 @@ export class GUIInfo {
             fieldAvgVel: '0',
         };
 
-        controls.add(options.info, 'name').name('Name ✏️').listen().onFinishChange((val) => {
+        controls.add(options.info, 'name').name('Scenario Name ✏️').listen().onFinishChange((val) => {
             simulation.name = val;
         });
-        controls.add(options.info, 'folderName').name('Folder').listen();
+        controls.add(options.info, 'folderName').name('Scenario Folder').listen();
         controls.add(options.info, 'particles').name('Particles').listen();
         controls.add(options.info, 'maxParticles').name('Max Particles ✏️').listen().onFinishChange((val) => {
             val = parseFloat(val);
@@ -77,7 +77,7 @@ export class GUIInfo {
                 // equal
             }
         });
-        controls.add(options.info, 'time').name('Time').listen();
+        controls.add(options.info, 'time').name('Elapsed Time (steps)').listen();
         /*controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
         });*/
@@ -118,7 +118,7 @@ export class GUIInfo {
             guiInfoDebug.add(options.info, 'cameraNormal').name('cameraNormal').listen();
             guiInfoDebug.add(options.info, 'fieldMaxVel').name('fieldMaxVel').listen();
             guiInfoDebug.add(options.info, 'fieldAvgVel').name('fieldAvgVel').listen();
-            guiInfoDebug.open();
+            //guiInfoDebug.open();
             options.collapseList.push(guiInfoDebug);
         }
 

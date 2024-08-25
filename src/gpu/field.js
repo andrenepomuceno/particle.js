@@ -157,7 +157,7 @@ export class FieldGPU {
         if (!this.checkGridSize(this.grid[0])) {
             let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
             log("error: field is to big " + probeCount);
-            alert('Field is too big! ' + probeCount);
+            alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + probeCount);
             return false;
         }        
 

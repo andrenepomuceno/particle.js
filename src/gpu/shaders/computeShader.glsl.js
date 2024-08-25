@@ -10,8 +10,6 @@ function define(define, value = false) {
 }
 
 export function generateComputeVelocity(physics) {
-    //physics.nuclearPotential = NuclearPotentialType.potential_forceMap1;
-
     let config = '';
     config += '#define BOUNDARY_TOLERANCE 1.01\n';
 
@@ -62,13 +60,13 @@ const computeVelocityV2 = /* glsl */ `
 precision highp float;
 
 uniform float uTime;
+uniform float timeStep;
 uniform float minDistance2;
 /*uniform float massConstant;
 uniform float chargeConstant;*/
 uniform float nuclearForceConstant;
 uniform float nuclearForceRange;
 uniform float nuclearForceRange2;
-uniform float forceConstant;
 uniform float boundaryDistance;
 uniform float boundaryDamping;
 uniform sampler2D textureProperties;
@@ -95,18 +93,56 @@ uniform float forceMapLen;
 #define PROBE 1.0
 #define FIXED 2.0
 
-float sdBox( vec3 p, vec3 b )
+const vec4 ones = vec4(1.0);
+
+float sdBox(vec3 p, vec3 b)
 {
     vec3 q = abs(p) - b;
     return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
-float sdSphere( vec3 p, float s )
+float sdSphere(vec3 p, float s)
 {
-    return length(p)-s;
+    return length(p) - s;
 }
 
-float calcNuclearPotential(float distance1, float distance2)
+uint hash(uint x) {
+    x += (x << 10u);
+    x ^= (x >> 6u);
+    x += (x << 3u);
+    x ^= (x >> 11u);
+    x += (x << 15u);
+    return x;
+}
+
+uint hash(uvec3 v) {
+    return hash(v.x ^ hash(v.y) ^ hash(v.z));
+}
+
+float floatConstruct(uint m) {
+    const uint ieeeMantissa = 0x007FFFFFu;
+    const uint ieeeOne = 0x3F800000u;
+
+    m &= ieeeMantissa;
+    m |= ieeeOne;
+
+    float  f = uintBitsToFloat(m);
+    return f - 1.0;
+}
+
+float randomSeed = 0.0;
+
+void srandom(float seed) {
+    randomSeed = seed;
+}
+
+float random(vec2 v) {
+    vec3 x = vec3(v, randomSeed);
+    randomSeed += 1.0;
+    return floatConstruct(hash(floatBitsToUint(x)));
+}
+
+float calcNuclearPotential(float distance1)
 {
     float x = 0.0;
     x = distance1/nuclearForceRange;
@@ -173,32 +209,49 @@ const vec3 color2Mat[4] = vec3[](
     vec3(-1.0, 1.0, 0.0),
     vec3(0.0, -1.0, 1.0),
     vec3(1.0, 0.0, -1.0)
+#elif 0
+    vec3(-0.5, 1.0, -0.5),
+    vec3(-0.5, -0.5, 1.0),
+    vec3(1.0, -0.5, -0.5)
 #endif
 );
 
 float calcColorPotential(float c1, float c2, float distance1)
 {
+    //if (c1 == 0.0 || c2 == 0.0) return 0.0;
     float f = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
+    //return f;
     return colorChargeConstant * (distance1/nuclearForceRange) * f;
 }
 
-float rand2(vec2 co) {
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distance2) {
+    vec3 rForce = vec3(0.0);
+
+    float m = m1 + m2; // precision loss if m1 >> m2
+    if (m == 0.0) {
+        return rForce;
+    }
+    
+    float s = 2.0 * m1 * m2 / m;
+    vec3 dVel = vel2 - vel1;
+    if (distance2 > 0.0) {
+        vec3 res = s * dot(dVel, dPos) * dPos;
+        res /= distance2;
+        rForce += res;
+    } else {
+        rForce += s * dVel;
+    }
+        
+    return rForce;
 }
-
-const vec4 ones = vec4(1.0);
-
-#if MODE_2D
-#define vec vec3;
-#else
-#define vec vec2;
-#endif
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
     vec4 texPos1 = texture2D(texturePosition, uv1);
     float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
+
+    srandom(uTime);
     
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
@@ -247,52 +300,29 @@ void main() {
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
-                    float m = m1 + m2; // precision loss if m1 >> m2
-                    if (m == 0.0) {
-                        continue;
-                    }
-                    
-                    float s = 2.0 * m1 * m2 / m;
-                    vec3 dVel = vel2 - vel1;
-                    if (distance2 > 0.0) {
-                        vec3 res = s * dot(dVel, dPos) * dPos;
-                        res /= distance2;
-                        rForce += res;
-                    } else {
-                        rForce += s * dVel;
-                    }
-                    
+                    rForce += collision(m1, m2, vel1, vel2, dPos, distance2);
                     ++collisions;
                     continue;
                 }
-                
+
                 // for probe
                 distance2 = minDistance2;
             }
 
             float distance1 = sqrt(distance2);
-            
-            float force = 0.0;
-            float nPot = 0.0;
-            if (distance2 < nuclearForceRange2) {               
-                nPot = calcNuclearPotential(distance1, distance2);
-
-                #if ENABLE_COLOR_CHARGE
-                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
-                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
-                    nPot += calcColorPotential(props1.w, props2.w, distance1);
-                #endif
-            }
 
             float distance2inv = 1.0/distance2;
             float distance1inv = 1.0/distance1;
 
-            float gPot = distance2inv;
-            float ePot = distance2inv;
+            float gPot = 0.0;
+            float ePot = 0.0;
 
             #if USE_DISTANCE1
                 gPot += distance1inv;
                 ePot += distance1inv;
+            #else
+                gPot += distance2inv;
+                ePot += distance2inv;
             #endif
 
             #if USE_FINE_STRUCTURE
@@ -304,19 +334,45 @@ void main() {
 
             #if USE_POST_GRAVITY
             {
-                float p = -forceConstants.x * (m1 + m2) * distance1inv;
+                float p = 0.0;
+
+                p += -forceConstants.x * (m1 + m2) * distance1inv;
                 p += (3.0 / 2.0) * vel1Abs;
                 p += (3.0 / 2.0) * dot(vel2, vel2);
                 p += -4.0 * dot(vel1, vel2);
                 p /= maxVel2;
+                
+                #if 0
+                    const float alpha = 1.0;
+                    const float lambda = 1.0;
+                    p += alpha * exp(-distance1/lambda); // lambda-CDM
+                #endif
+
                 gPot *= (1.0 + p);
             }
             #endif
 
+            float nPot = 0.0;
+            float cPot = 0.0;
+            
+            if (distance2 < nuclearForceRange2) {               
+                nPot = calcNuclearPotential(distance1);
+
+                #if ENABLE_COLOR_CHARGE
+                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
+                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
+                    nPot += calcColorPotential(props1.w, props2.w, distance1);
+
+                    /*props2.w = calcColorPotential(props1.w, props2.w, distance1);
+                    props1.w = 1.0;
+                    cPot += colorChargeConstant * (distance1/nuclearForceRange);*/
+                #endif
+            }
+
             vec4 props = props1 * props2;
-            vec4 potential = vec4(gPot, ePot, nPot, 0.0);
+            vec4 potential = vec4(gPot, ePot, nPot, cPot);
             vec4 result = forceConstants * props * potential;
-            force += dot(result, ones);
+            float force = dot(result, ones);
 
             rForce += force * normalize(dPos);
         }
@@ -347,25 +403,23 @@ void main() {
     #if USE_RANDOM_NOISE
     {
         rForce.xy += randomNoiseConstant * vec2(
-            (rand2(vec2(uTime, vel1.x)) - 0.5),
-            (rand2(vec2(vel1.y, uTime)) - 0.5)
+            random(uv1) - 0.5,
+            random(uv1) - 0.5
         );
-        //rForce += 1e-3 * (rand2(vel1.xy) - 0.5) * normalize(vel1);
     }
     #endif
-
-    rForce *= forceConstant;
     
     // update velocity
     if (type1 == DEFAULT) {
+        vec3 accel = rForce;
         if (m1 != 0.0) {
-            vel1 += rForce / abs(m1);
-        } else {
-            vel1 += rForce;
+            accel /= abs(m1);
         }
+        vel1 += timeStep * accel;
 
         // velocity clamp
         //vel1 = clamp(vel1, -maxVel, maxVel);
+        vel1Abs = dot(vel1, vel1);
         if (vel1Abs >= maxVel2) {
             vel1 = maxVel * normalize(vel1);
         }
@@ -374,22 +428,22 @@ void main() {
             // check boundary colision
             vec3 nextPos = pos1 + vel1;
 
-            #if !USE_BOX_BOUNDARY
-                if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
-                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
-                        vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
-                    } else {
-                        vel1 = normalize(vel1);
-                        ++outOfBoundaryCount;
-                    }
-                }
-            #else
+            #if USE_BOX_BOUNDARY
                 vec3 box = vec3(boundaryDistance);
                 if (sdBox(nextPos, box) >= 0.0) {
                     if (sdBox(nextPos, BOUNDARY_TOLERANCE * box) < 0.0) {
                         if (abs(nextPos.x) >= boundaryDistance) vel1.x = -boundaryDamping * vel1.x;
                         if (abs(nextPos.y) >= boundaryDistance) vel1.y = -boundaryDamping * vel1.y;
                         if (abs(nextPos.z) >= boundaryDistance) vel1.z = -boundaryDamping * vel1.z;
+                    } else {
+                        vel1 = normalize(vel1);
+                        ++outOfBoundaryCount;
+                    }
+                }
+            #else
+                if (sdSphere(nextPos, boundaryDistance) >= 0.0) {
+                    if (sdSphere(nextPos, BOUNDARY_TOLERANCE * boundaryDistance) < 0.0) {
+                        vel1 = boundaryDamping * reflect(vel1, normalize(-pos1));
                     } else {
                         vel1 = normalize(vel1);
                         ++outOfBoundaryCount;
@@ -422,6 +476,7 @@ precision highp float;
 #define FIXED 2.0
 
 uniform float boundaryDistance;
+uniform float timeStep;
 
 float sdBox( vec3 p, vec3 b )
 {
@@ -445,22 +500,22 @@ void main() {
         vec4 tVel = texture2D( textureVelocity, uv );
         vec3 vel = tVel.xyz;
         
-        pos += vel;
+        pos += timeStep * vel;
 
         #if ENABLE_BOUNDARY
-            #if !USE_BOX_BOUNDARY
+            #if USE_BOX_BOUNDARY
                 // check out of boundary
-                if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
-                    float len = length(pos);
-                    vec3 n = normalize(pos);
-                    pos = n * mod(len, boundaryDistance);
-                }
-            #else
                 vec3 box = vec3(boundaryDistance);
                 if (sdBox(pos, BOUNDARY_TOLERANCE * box) >= 0.0) {
                     pos = mod(pos, boundaryDistance);
                     pos *= 2.0;
                     pos -= boundaryDistance;
+                }
+            #else
+                if (sdSphere(pos, BOUNDARY_TOLERANCE * boundaryDistance) >= 0.0) {
+                    float len = length(pos);
+                    vec3 n = normalize(pos);
+                    pos = n * mod(len, boundaryDistance);
                 }
             #endif
         #else

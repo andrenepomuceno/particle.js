@@ -58,7 +58,7 @@ function simulationNuclei4(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(30, 10);
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-9;
     physics.chargeConstant = 1e-6;
     physics.nuclearForceConstant = -60;
@@ -142,7 +142,7 @@ function simulationNuclei3(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(30, 10);
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = -60;
@@ -208,7 +208,7 @@ function simulationStrongCube0(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(30, 10);
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 60;
@@ -278,7 +278,7 @@ function simulationStrongBlob0(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(50, 10);
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1/137;
     physics.nuclearForceConstant = 1;
@@ -325,7 +325,7 @@ function simulationNuclei2(simulation) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     simulation.setParticleRadius(100, 50);
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 5e3;
     physics.nuclearForceConstant = 60;
@@ -360,7 +360,7 @@ function simulationNuclei1(simulation) {
     graphics.cameraDistance = 1000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 1;
@@ -391,7 +391,7 @@ function simulationNuclei0(simulation) {
     graphics.cameraDistance = 2000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 64;
@@ -440,7 +440,7 @@ function simulationStrong2(simulation) {
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-6;
     physics.chargeConstant = 1;
     physics.nuclearForceConstant = 10;
@@ -486,7 +486,7 @@ function simulationStrong1(simulation) {
     graphics.cameraDistance = 4000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = Math.pow(80, 2);
     physics.nuclearForceConstant = Math.pow(5, 2);
@@ -513,7 +513,7 @@ function simulationStrong0(simulation) {
     graphics.cameraDistance = 2000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 0;
     physics.chargeConstant = 0;
     physics.nuclearForceConstant = 1;
@@ -537,7 +537,7 @@ function simulationMove1(simulation) {
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 5e-3;
     physics.chargeConstant = 1e-2;
 
@@ -585,7 +585,7 @@ function simulationMove0(simulation) {
     graphics.cameraDistance = 3000;
     //graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 5e-2;
     physics.chargeConstant = 1;
 
@@ -616,7 +616,7 @@ function simulationBlob0(simulation) {
     graphics.cameraDistance = 4000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 10;
+    physics.timeStep = 10;
     physics.massConstant = 1;
     physics.chargeConstant = 7;
 
@@ -641,7 +641,7 @@ function simulationAtom1(simulation) {
     graphics.cameraDistance = 3000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1e2;
     physics.nuclearForceConstant = 1e2;
@@ -679,7 +679,7 @@ function simulationAtom0(simulation) {
     graphics.cameraDistance = 1000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant = 1e-2;
     physics.chargeConstant = 1;
 

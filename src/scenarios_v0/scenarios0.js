@@ -54,7 +54,7 @@ function simulationAtom(simulation) {
     const pMass = 1.67262192369e-27;
     const nMass = 1.67492749804e-27;*/
 
-    physics.forceConstant = 1;
+    physics.timeStep = 1;
     physics.massConstant =5e-2;
     physics.chargeConstant = 100;
     let massRange = [1, 1839];
@@ -200,7 +200,7 @@ function simulationCross(simulation) {
 
     graphics.cameraDistance = 5000;
     graphics.cameraPhi = graphics.cameraTheta = 0;
-    physics.forceConstant = 5;
+    physics.timeStep = 5;
     physics.massConstant = 1;
     physics.chargeConstant = 1;
     let massRange = [1, 9];

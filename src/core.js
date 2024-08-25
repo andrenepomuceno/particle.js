@@ -122,8 +122,42 @@ class Core {
 
         if (value == undefined || value === '') return;
 
-        let updatePhysics = true;
+        let fillPhysics = true;
         let updateShader = false;
+
+        // TODO update legacy code
+        const updateMap = {
+            'enableColorCharge': (value) => {
+                physics.enableColorCharge = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'colorChargeConstant': (value) => {
+                physics.colorChargeConstant = safeParseFloat(value, physics.colorChargeConstant);
+            },
+            'enableFineStructure': (value) => {
+                physics.enableFineStructure = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'fineStructureConstant': (value) => {
+                physics.fineStructureConstant = safeParseFloat(value, physics.fineStructureConstant);
+            },
+            'enablePostGravity': (value) => {
+                physics.enablePostGravity = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'enableRandomNoise': (value) => {
+                physics.enableRandomNoise = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'randomNoiseConstant': (value) => {
+                physics.randomNoiseConstant = safeParseFloat(value, physics.randomNoiseConstant);
+            },
+        };
+
 
         switch (key) {
             case 'massConstant':
@@ -153,79 +187,83 @@ class Core {
             case 'minDistance2':
                 physics.minDistance2 = safeParseFloat(value, physics.minDistance2);
                 break;
-
-            case 'forceConstant':
-                physics.forceConstant = safeParseFloat(value, physics.forceConstant);
+            
+            case 'timeStep':
+                physics.timeStep = safeParseFloat(value, physics.timeStep);
                 break;
 
             case 'radius':
                 simulation.particleRadius = safeParseFloat(value, simulation.particleRadius);
                 simulation.setParticleRadius();
-                updatePhysics = false;
+                fillPhysics = false;
                 break;
 
             case 'radiusRange':
                 simulation.particleRadiusRange = safeParseFloat(value, simulation.particleRadiusRange);
                 simulation.setParticleRadius();
-                updatePhysics = false;
+                fillPhysics = false;
                 break;
 
             case 'potential':
                 physics.nuclearPotential = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'boxBoundary':
                 physics.useBoxBoundary = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'distance1':
                 physics.useDistance1 = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'enableBoundary':
                 physics.enableBoundary = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'enableFriction':
                 physics.enableFriction = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'frictionConstant':
                 physics.frictionConstant = safeParseFloat(value, physics.frictionConstant);
-                updatePhysics = true;
+                fillPhysics = true;
                 updateShader = false;
                 break;
 
             case 'frictionModel':
                 physics.frictionModel = value;
-                updatePhysics = false;
+                fillPhysics = false;
                 updateShader = true;
                 break;
 
             case 'forceMap':
                 physics.forceMap = value;
-                updatePhysics = true;
+                fillPhysics = true;
                 updateShader = false;
                 break;
 
             case 'maxVel':
                 physics.maxVel = safeParseFloat(value, physics.maxVel);
-                updatePhysics = true;
+                fillPhysics = true;
                 updateShader = false;
                 break;
 
             default:
-                updatePhysics = false;
+                if (Object.hasOwn(updateMap, key)) {
+                    updateMap[key](value);
+                } else {
+                    fillPhysics = false;
+                }
                 break;
         }
 
@@ -237,7 +275,7 @@ class Core {
             graphics.drawParticles();
         }
 
-        if (updatePhysics) {
+        if (fillPhysics) {
             graphics.fillPhysicsUniforms();
         }
     }

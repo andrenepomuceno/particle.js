@@ -17,7 +17,6 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     graphics.cameraPhi = graphics.cameraTheta = 0;
     graphics.cameraSetup();
 
-    physics.forceConstant = 1.0;
     physics.massConstant = 1e-3;
     physics.chargeConstant = 1.0 / 137;
     physics.nuclearForceConstant = 1;

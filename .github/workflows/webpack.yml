@@ -5,11 +5,6 @@ on:
     branches:
       - main
       - dev
-      - release_v*
-    tags:
-      - v*
-  pull_request:
-    types: [opened, reopened]
 
 permissions: write-all
 
@@ -29,39 +24,41 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Extract branch name
+    - name: Get version
+      id: get_version
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/release_})"
-      id: extract_branch
+      run: |
+        BUILD_VERSION=$(jq -r .version package.json)
+        echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
 
     - name: Build
       run: |
         npm install
-        npm run build --env 'version= ${{ steps.extract_branch.outputs.branch }}'
+        npm run build --env 'version= ${{ env.BUILD_VERSION }}'
 
     - name: Pack
-      if: startsWith(github.ref, 'refs/heads/release_v')
       run: |
-        zip -r particle.js_${{ steps.extract_branch.outputs.branch }}.zip dist
+        zip -r particle.js_${{ env.BUILD_VERSION }}.zip dist
 
     - uses: actions/upload-artifact@v3
-      if: startsWith(github.ref, 'refs/heads/release_v')
       with:
         name: build
-        path: particle.js_${{ steps.extract_branch.outputs.branch }}.zip
+        path: particle.js_${{ env.BUILD_VERSION }}.zip
 
   deploy:
-    if: startsWith(github.ref, 'refs/heads/release_v')
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Extract branch name
+    - name: Get version
+      id: get_version
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/*/release_})"
-      id: extract_branch
+      run: |
+        BUILD_VERSION=$(jq -r .version package.json)
+        echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
 
     - uses: actions/download-artifact@v3
       with:
@@ -69,34 +66,14 @@ jobs:
 
     - name: Extract
       run: |
-        unzip -o particle.js_${{ steps.extract_branch.outputs.branch }}.zip
-
-    - name: Create Pull Request
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { repo, owner } = context.repo;
-
-          let branch = '${{ github.ref_name }}';
-          branch = branch.replace(/^.*[\\\/]/, '')
-
-          let result = await github.rest.pulls.create({
-            head: '${{ github.ref_name }}',
-            owner,
-            repo,
-            base: 'main',
-            title: 'Merge ' + branch,
-            body: [
-              'Automated PR for RC ' + branch
-            ].join('\n')
-          });
-          console.log(result);
+        unzip -o particle.js_${{ env.BUILD_VERSION }}.zip
 
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "particle.js*.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ steps.extract_branch.outputs.branch }}
+        tag: ${{ env.VERSION }}
+        draft: true
 
     - name: Deploy gh-pages
       uses: JamesIves/github-pages-deploy-action@v4

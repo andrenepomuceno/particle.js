@@ -319,8 +319,8 @@ function gravity(simulation) {
     physics.boundaryDistance = 1e9;
     physics.boundaryDamping = 0.9;
 
-    graphics.cameraDistance = 6e5;
-    graphics.cameraSetup();
+    const n = graphics.maxParticles;
+    const scaling = n/30976;
 
     simulation.particleRadius = 3e2;
     simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
@@ -328,17 +328,15 @@ function gravity(simulation) {
     let typeList = [
         { m: 2e31 * KG, q: 2e9 * C, nq: 10, name: '', colorCharge: 0.0 },
     ]
-
-    let n = graphics.maxParticles;
-    let scale = n/30976;
-    let r = 4e5 * scale;
-    let vel = 2 * 2.4e4 * M / S * scale;
+    let r = 4e5 * scaling;
+    let vel = 2 * 2.4e4 * M / S * scaling;
 
     let options = {
         randomSequence: false,
 
         randomM: true,
         exponentialMass: true,
+        expoent: 3,
 
         randomQ: true,
         randomQSignal: true,
@@ -357,6 +355,8 @@ function gravity(simulation) {
 
     shuffleArray(physics.particleList);
 
+    graphics.cameraDistance = 6e5 * scaling;
+    graphics.cameraSetup();
     graphics.showAxis(true, simulation.mode2D, 1e18 * M, true, '1e18 m');
 }
 

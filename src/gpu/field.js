@@ -23,6 +23,7 @@ export class FieldGPU {
         this.populateMode = undefined;
         this.probeParam = { m: 1, q: 1, nq: 1 };
         this.firstProbeIdx = undefined;
+        this.probeCount = 0;
 
         this.arrowList = [];
 
@@ -141,9 +142,9 @@ export class FieldGPU {
         log('checkGridSize');
         log('width = ' + width);
         let ret = this.calcGridSize(width);
-        let probeCount = ret.grid[0] * ret.grid[1] * ret.grid[2];
-        log("probeCount = " + probeCount);
-        let total = this.particleList.length - this.arrowList.length + probeCount;
+        this.probeCount = ret.grid[0] * ret.grid[1] * ret.grid[2];
+        log("probeCount = " + this.probeCount);
+        let total = this.particleList.length - this.arrowList.length + this.probeCount;
         log("total = " + total);
         if (total > this.graphics.maxParticles) {
             return false;
@@ -155,9 +156,8 @@ export class FieldGPU {
         log("#populateField");
 
         if (!this.checkGridSize(this.grid[0])) {
-            let probeCount = this.grid[0] * this.grid[1] * this.grid[2];
-            log("error: field is to big " + probeCount);
-            alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + probeCount);
+            log("error: field is to big " + this.probeCount);
+            alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + this.probeCount);
             return false;
         }        
 

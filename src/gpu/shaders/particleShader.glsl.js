@@ -43,12 +43,12 @@ void main() {
     
     vParticleType = tPos.w;
     vParticlePos = pos;
-    vParticleVel = texture2D( textureVelocity, uv ).xyz;    
+    vParticleVel = texture2D( textureVelocity, uv ).xyz; 
     vParticleColor = vec4(color, 1.0);
 
     vec4 mvParticlePosition = modelViewMatrix * vec4(pos, 1.0);
     float radius = r * uCameraConstant / (-mvParticlePosition.z);
-    gl_PointSize = max(2.0, radius);
+    gl_PointSize = max(1.0, radius);
     gl_Position = projectionMatrix * mvParticlePosition;
 }
 `;
@@ -190,7 +190,12 @@ float arrowSdf(vec3 position, vec3 start, vec3 end, float baseRadius, float tipR
 }
 
 float fieldArrowSdf(vec3 position) {
-    vec3 dir = normalize(vParticleVel);
+    float len = dot(vParticleVel, vParticleVel);
+    vec3 dir = vec3(0.0, 1.0, 0.0);
+    if (len > 0.0) {
+        // normalize() may cause particle not showing if vel=0
+        dir = vParticleVel/len;
+    }
 
     float angle = atan(dir.y, dir.x);
     position = rotate(position, vec3(0.0, 0.0, 1.0), angle);
@@ -209,7 +214,12 @@ float fieldArrowSdf(vec3 position) {
 }
 
 float particleArrowSdf(vec3 position) {
-    vec3 dir = normalize(vParticleVel);
+    float len = dot(vParticleVel, vParticleVel);
+    vec3 dir = vec3(0.0, 1.0, 0.0);
+    if (len > 0.0) {
+        // normalize() may cause particle not showing if vel=0
+        dir = vParticleVel/len;
+    }
 
     float angle = atan(dir.y, dir.x);
     position = rotate(position, vec3(0.0, 0.0, 1.0), angle);

@@ -299,7 +299,8 @@ class Core {
         if (value == undefined || value === '') return;
 
         graphics.readbackParticleData();
-
+        
+        let bypassColor = false;
         switch (key) {
             case 'mass':
                 particle.mass = safeParseFloat(value, particle.mass);
@@ -380,13 +381,14 @@ class Core {
                 let color = value.replace('#', '');
                 color = parseInt(color, 16);
                 particle.setColor(color);
+                bypassColor = true;
                 break;
 
             default:
                 break;
         }
 
-        simulation.drawParticles();
+        simulation.drawParticles(bypassColor);
     }
 
     deleteParticleList(list) {

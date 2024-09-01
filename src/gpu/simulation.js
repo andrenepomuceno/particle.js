@@ -144,7 +144,7 @@ export class SimulationGPU {
         }
     }
 
-    drawParticles() {
+    drawParticles(bypassColor = false) {
         log('drawParticles');
 
         if (this.particleList == undefined) {
@@ -158,7 +158,9 @@ export class SimulationGPU {
 
         this.stats = calcListStatistics(this.particleList);
         this.#fillParticleRadius();
-        this.#fillParticleColor();
+        if (!bypassColor) {
+            this.#fillParticleColor();
+        }
         this.graphics.drawParticles(this.particleList, this.physics);
     }
 

@@ -47,7 +47,8 @@ void main() {
     vParticleColor = vec4(color, 1.0);
 
     vec4 mvParticlePosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = r * uCameraConstant / (- mvParticlePosition.z);
+    float radius = r * uCameraConstant / (-mvParticlePosition.z);
+    gl_PointSize = max(2.0, radius);
     gl_Position = projectionMatrix * mvParticlePosition;
 }
 `;

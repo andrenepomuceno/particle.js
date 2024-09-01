@@ -51,14 +51,20 @@ export class GUIParticle {
         };
 
         controls.add(options.particle, 'id').name('ID 🔍').listen().onFinishChange((val) => {
+            if (val == "") return;
             let obj = core.findParticle(parseInt(val));
             if (obj == undefined) {
                 if (simulation.physics.particleList == undefined ||
                     simulation.physics.particleList.length == 0) {
                     alert("There's no particles in the simulation!");
                 } else {
+                    let idMin = Infinity, idMax = 0;
+                    simulation.physics.particleList.forEach((particle) => {
+                        idMin = Math.min(particle.id, idMin);
+                        idMax = Math.max(particle.id, idMax);
+                    });
                     alert("Particle not found!\n" +
-                        "Hint: the first one is " + simulation.physics.particleList[0].id);
+                        "First: " + idMin + " Last: " + idMax);
                 }
                 return;
             }
@@ -100,12 +106,12 @@ export class GUIParticle {
         guiParticleVariables.add(options.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'fixed', val);
         });
-        //guiParticleVariables.open();
+        guiParticleVariables.open();
 
         //const guiParticleActions = gGuiParticle.addFolder("[+] Controls");
         controls.add(options.particle, 'follow').name('Follow/Unfollow');
         controls.add(options.particle, 'lookAt').name('Look At');
-        controls.add(options.particle, 'reset').name('Reset Attributes');
+        //controls.add(options.particle, 'reset').name('Reset Attributes');
         controls.add(options.particle, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);

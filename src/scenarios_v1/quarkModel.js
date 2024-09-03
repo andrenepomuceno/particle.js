@@ -288,7 +288,7 @@ function fullScaleModel(simulation) {
 
     physics.nuclearPotential = NuclearPotentialType.potential_powAXv3;
     physics.useBoxBoundary = true;
-    physics.enableColorCharge = true;
+    physics.enableColorCharge = false;
     //physics.useDistance1 = true;
     //simulation.mode2D = false;
 

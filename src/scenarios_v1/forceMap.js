@@ -7,6 +7,8 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
+    colorTest,
+    theEgg,
     //uncertainty,
     experiments4,
     gravity,
@@ -58,6 +60,252 @@ function createParticle(particleList, mass = 1, charge = 0, nuclearCharge = 0, p
     particleList.push(p);
 }
 
+function colorTest(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    simulation.mode2D = true;
+    /*physics.roundPosition = true;
+    physics.roundVelocity = true;*/
+
+    simulation.field.probeConfig(0, 0, 1e2, 1);
+    simulation.field.setup('2d', 100);
+
+    const M = (1/3) * 1e19;
+    const S = (5) * 1e26;
+    const KG = (1) * 1e29;
+    const C = (1 / 1.602176634) * 1e21;
+
+    const nuclearForce = 30e3 * KG * M * S ** -2;
+    physics.nuclearForceRange = 3.0e-15 * M;
+    physics.nuclearForceConstant = 0;//nuclearForce;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+
+    physics.enableColorCharge = true;
+    physics.colorChargeConstant = 100 * nuclearForce;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.1, 1.0];
+
+    physics.timeStep = 1;
+    physics.useDistance1 = false;
+    const lightSpeed = 10e6 * 299792458 * M / S;
+    physics.maxVel = lightSpeed;
+    physics.enableLorentzFactor = false;
+
+    physics.enableFineStructure = false;
+    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
+    physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
+
+    physics.minDistance2 = Math.pow(1e-3, 2);
+
+    physics.enableRandomNoise = false;
+    physics.randomNoiseConstant = 1.0;
+
+    physics.enableFriction = false;
+    physics.frictionConstant = 1e-9;
+
+    physics.useBoxBoundary = true;
+    physics.boundaryDistance = 1e6;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = physics.nuclearForceRange;
+    graphics.cameraSetup();
+
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
+
+    const nq = 10;
+    let typeList = [
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
+
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 3.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
+
+        //{ m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+    ]
+
+    let n = typeList.length; //Math.min(10e3, );
+    let options = {
+        randomSequence: false,
+        //randomM: true,
+        randomQ: false,
+        randomQSignal: false,
+        randomNQSignal: false,
+        radialVelocity: true,
+        randomVelocity: false,
+        v1: 0.0,
+        r0: 0.1 * physics.nuclearForceRange,
+    }
+    createParticles(simulation, typeList, n, options);
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+}
+
+function theEgg(simulation) {
+    let graphics = simulation.graphics;
+    let physics = simulation.physics;
+    defaultParameters(simulation);
+
+    simulation.mode2D = true;
+    /*physics.roundPosition = true;
+    physics.roundVelocity = true;*/
+
+    const M = (1/3) * 1e19;
+    const S = (5) * 1e26;
+    const KG = (1) * 1e29;
+    const C = (1 / 1.602176634) * 1e21;
+
+    const nuclearForce = 30e3 * KG * M * S ** -2;
+    physics.nuclearForceRange = 3.0e-15 * M;
+    physics.nuclearForceConstant = nuclearForce;
+    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
+
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.forceMap = [0.1, 1.0];
+
+    physics.timeStep = 1.0;
+    physics.useDistance1 = true;
+    const lightSpeed = 299792458 * M / S;
+    physics.maxVel = lightSpeed * 1e7;
+    physics.enableLorentzFactor = false;
+
+    physics.enableFineStructure = false;
+    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
+    physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
+
+    physics.enableColorCharge = true;
+    physics.colorChargeConstant = 100 * nuclearForce;
+
+    physics.minDistance2 = Math.pow(1e-3, 2);
+
+    physics.enableRandomNoise = true;
+    physics.randomNoiseConstant = 1.0;
+
+    physics.enableFriction = true;
+    physics.frictionConstant = 1e-9;
+
+    physics.useBoxBoundary = true;
+    physics.boundaryDistance = 1e18;
+    physics.boundaryDamping = 0.9;
+
+    graphics.cameraDistance = 2e6;
+    graphics.cameraSetup();
+
+    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
+
+    const nq = 10;
+    let typeList = [
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
+        
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 3.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
+
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/3, name: 'electron' },
+    ]
+
+    let n = graphics.maxParticles; //Math.min(10e3, );
+    let options = {
+        randomSequence: false,
+        //randomM: true,
+        randomQ: false,
+        randomQSignal: false,
+        randomNQSignal: false,
+        v1: 0,
+        r0: 20 * physics.nuclearForceRange
+    }
+    createParticles(simulation, typeList, n, options);
+
+    shuffleArray(physics.particleList);
+
+    graphics.showAxis(true, simulation.mode2D, 1e-15 * M, true, '1 fm');
+    
+    const cyclesPerMs = (53/1000)/physics.timeStep;
+    simulation.addActionArray([
+        {
+            cycle: 0.01 * 1e3 * cyclesPerMs,
+            callback: () => {
+                //graphics.drawCursor(false);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 2 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e41
+                );
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 5 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 6.0 * 1e3 * cyclesPerMs,
+            callback: () => {
+                //core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 7.0 * 1e3 * cyclesPerMs,
+            callback: () => {
+                //core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 8.0 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 120.0 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                //core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+        {
+            cycle: 122.0 * 1e3 * cyclesPerMs,
+            callback: () => {
+                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                //core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
+                        "\nFriction: " + physics.frictionConstant.toExponential(2));
+            }
+        },
+    ]);
+}
+
 function uncertainty(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
@@ -91,7 +339,7 @@ function uncertainty(simulation) {
     physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
 
     physics.enableColorCharge = true;
-    physics.colorChargeConstant = 1.0;
+    physics.colorChargeConstant = 100 * physics.nuclearForceConstant;
 
     physics.minDistance2 = Math.pow(1e-3, 2);
 
@@ -115,13 +363,13 @@ function uncertainty(simulation) {
     let typeList = [
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 2.0 },
-        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 3.0 },
-
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
-        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 3.0 },
+        
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 3.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
 
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/3, name: 'electron' },
     ]
 
     let n = graphics.maxParticles; //Math.min(10e3, );

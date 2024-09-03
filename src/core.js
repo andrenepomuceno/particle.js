@@ -126,7 +126,7 @@ class Core {
         let updateShader = false;
 
         // TODO update legacy code
-        const updateMap = {
+        const updateFunctionMap = {
             'enableColorCharge': (value) => {
                 physics.enableColorCharge = value;
                 fillPhysics = false;
@@ -155,6 +155,16 @@ class Core {
             },
             'randomNoiseConstant': (value) => {
                 physics.randomNoiseConstant = safeParseFloat(value, physics.randomNoiseConstant);
+            },
+            'enableLorentzFactor': (value) => {
+                physics.enableLorentzFactor = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
+            'enablePostGravity': (value) => {
+                physics.enablePostGravity = value;
+                fillPhysics = false;
+                updateShader = true;
             },
         };
 
@@ -259,10 +269,12 @@ class Core {
                 break;
 
             default:
-                if (Object.hasOwn(updateMap, key)) {
-                    updateMap[key](value);
+                if (key in updateFunctionMap) {
+                    updateFunctionMap[key](value);
                 } else {
                     fillPhysics = false;
+                    updateShader = false;
+                    log("Doing nothing...");
                 }
                 break;
         }

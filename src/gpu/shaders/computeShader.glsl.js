@@ -62,8 +62,8 @@ precision highp float;
 uniform float uTime;
 uniform float timeStep;
 uniform float minDistance2;
-/*uniform float massConstant;
-uniform float chargeConstant;*/
+uniform float massConstant;
+uniform float chargeConstant;
 uniform float nuclearForceConstant;
 uniform float nuclearForceRange;
 uniform float nuclearForceRange2;
@@ -73,12 +73,6 @@ uniform sampler2D textureProperties;
 uniform sampler2D textureProperties2;
 uniform float frictionConstant;
 uniform vec4 forceConstants;
-/*vec4 forceConstants = vec4(
-    massConstant, 
-    -chargeConstant,
-    nuclearForceConstant,
-    0
-);*/
 uniform float maxVel;
 uniform float maxVel2;
 uniform float fineStructureConstant;
@@ -106,6 +100,7 @@ float sdSphere(vec3 p, float s)
     return length(p) - s;
 }
 
+#if USE_RANDOM_NOISE
 uint hash(uint x) {
     x += (x << 10u);
     x ^= (x >> 6u);
@@ -141,8 +136,11 @@ float random(vec2 v) {
     randomSeed += 1.0;
     return floatConstruct(hash(floatBitsToUint(x)));
 }
+#endif
 
-vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distance2) {
+vec3 collision(const float m1, const float m2,
+                const vec3 vel1, const vec3 vel2,
+                const vec3 dPos, const float distance2) {
     vec3 rForce = vec3(0.0);
 
     float m = m1 + m2; // precision loss if m1 >> m2
@@ -163,10 +161,9 @@ vec3 collision(float m1, float m2, vec3 vel1, vec3 vel2, vec3 dPos, float distan
     return rForce;
 }
 
-float calcNuclearPotential(float distance1)
+float calcNuclearPotential(const float distance1, const float d)
 {
-    float x = 0.0;
-    x = distance1/nuclearForceRange;
+    float x = d;
 
     #if USE_HOOKS_LAW
         x = -(2.0 * x - 1.0);
@@ -198,11 +195,7 @@ float calcNuclearPotential(float distance1)
     #elif USE_FMAP2 // QCD test
         float lambda = forceMap[0];
         float sigma = forceMap[1];
-        float xMax = forceMap[2];
-        float d = x;
         x = exp(-d / lambda); // yukawa
-        x /= (d * d);
-        x = min(x, xMax);
         x -= sigma * d; // string tension
 
     #else // default
@@ -214,7 +207,7 @@ float calcNuclearPotential(float distance1)
 
 const vec3 color1Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-    
+
     vec3(1.0, 0.0, 0.0),
     vec3(0.0, 1.0, 0.0),
     vec3(0.0, 0.0, 1.0)
@@ -222,30 +215,11 @@ const vec3 color1Mat[4] = vec3[](
 
 const vec3 color2Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-#if 0
-    vec3(-1.0, 0.5, 0.5),
-    vec3(0.5, -1.0, 0.5),
-    vec3(0.5, 0.5, -1.0)
-#elif 1
-    vec3(-1.0, 1.0, 0.0),
-    vec3(0.0, -1.0, 1.0),
-    vec3(1.0, 0.0, -1.0)
-#elif 0
-    vec3(-0.5, 1.0, -0.5),
-    vec3(-0.5, -0.5, 1.0),
-    vec3(1.0, -0.5, -0.5)
-#endif
-);
 
-float calcColorPotential(float c1, float c2, float distance1)
-{
-    float d = distance1/nuclearForceRange;
-    float x = colorChargeConstant * d;
-    //return -x;
-    //if (c1 == 0.0 || c2 == 0.0) { return x; }
-    float c = dot(color1Mat[uint(c1)], color2Mat[uint(c2)]);
-    return x * c;
-}
+    vec3(-1.0, 1.0, 1.0),
+    vec3(1.0, -1.0, 1.0),
+    vec3(1.0, 1.0, -1.0)
+);
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -253,7 +227,9 @@ void main() {
     float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
 
-    srandom(uTime);
+    #if USE_RANDOM_NOISE
+        srandom(uTime);
+    #endif
     
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
@@ -338,7 +314,7 @@ void main() {
             {
                 float p = 0.0;
 
-                p += -forceConstants.x * (m1 + m2) * distance1inv;
+                p += -massConstant * (m1 + m2) * distance1inv;
                 p += (3.0 / 2.0) * vel1Abs;
                 p += (3.0 / 2.0) * dot(vel2, vel2);
                 p += -4.0 * dot(vel1, vel2);
@@ -357,21 +333,18 @@ void main() {
             float nPot = 0.0;
             float cPot = 0.0;
             
-            if (distance2 < nuclearForceRange2) {               
-                nPot = calcNuclearPotential(distance1);
+            if (distance2 < nuclearForceRange2) {
+                float d = distance1/nuclearForceRange;               
+                nPot += calcNuclearPotential(distance1, d);
 
                 #if ENABLE_COLOR_CHARGE
-                    //nPot *= calcColorPotential(props1.w, props2.w, distance1);
-                    //nPot *= (1.0 + calcColorPotential(props1.w, props2.w, distance1));
-                    nPot += calcColorPotential(props1.w, props2.w, distance1);
-
-                    /*props2.w = calcColorPotential(props1.w, props2.w, distance1);
-                    props1.w = 1.0;
-                    cPot += colorChargeConstant * (distance1/nuclearForceRange);*/
+                    float c = dot(color1Mat[uint(props1.w)], color2Mat[uint(props2.w)]);
+                    cPot += c;
+                    //cPot += c * d;
                 #endif
             }
 
-            vec4 props = props1 * props2;
+            vec4 props = vec4(props1.xyz, 1.0) * vec4(props2.xyz, 1.0);
             vec4 potential = vec4(gPot, ePot, nPot, cPot);
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);

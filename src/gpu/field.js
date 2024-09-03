@@ -21,7 +21,7 @@ export class FieldGPU {
         this.size = undefined;
         this.mode = '2d';
         this.populateMode = undefined;
-        this.probeParam = { m: 1, q: 1, nq: 1 };
+        this.probeParam = { m: 1, q: 1, nq: 1, color: 0.0 };
         this.firstProbeIdx = undefined;
         this.probeCount = 0;
 
@@ -72,12 +72,13 @@ export class FieldGPU {
         }
     }
 
-    probeConfig(m = 1, q = 1, nq = 1) {
+    probeConfig(m = 1, q = 1, nq = 1, color = 0) {
         log('probeConfig');
         this.probeParam = {
             m: m,
             q: q,
-            nq: nq
+            nq: nq,
+            color: color,
         }
     }
 
@@ -207,13 +208,13 @@ export class FieldGPU {
         particle.mass = this.probeParam.m;
         particle.charge = this.probeParam.q;
         particle.nuclearCharge = this.probeParam.nq;
+        particle.colorCharge = this.probeParam.color;
         particle.radius = this.elementSize();
 
         particle.position.set(x, y, z)
             .add(center)
             //.sub(new Vector3(0, 0, 2 * this.simulation.particleRadius))
-            .sub(new Vector3(0, 0, 10))
-            ;        
+            .sub(new Vector3(0, 0, 10));        
     }
 
     refreshMaxVelocity() {

@@ -30,7 +30,8 @@ import { ParticleType } from '../particle.js';
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    //console.log("Graphics (GPU): " + msg);
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | Graphics: " + msg);
 }
 
 export class GraphicsGPU {
@@ -98,6 +99,7 @@ export class GraphicsGPU {
         this.labelText = this.axisWidth.toFixed(1) + 'u';
 
         this.cursorMesh = undefined;
+        this.captionMesh = undefined;
     }
 
     raycast(core, pointer) {
@@ -279,7 +281,8 @@ export class GraphicsGPU {
 
     drawText(text, size, position, color) {
         const height = 1;
-        let mesh = new Mesh(
+
+        const textMesh = new Mesh(
             new TextGeometry(text, {
                 font: this.font,
                 size: size,
@@ -290,13 +293,21 @@ export class GraphicsGPU {
             })
         );
 
-        mesh.translateX(position.x);
-        mesh.translateY(position.y);
-        mesh.translateZ(position.z);
+        textMesh.translateX(position.x);
+        textMesh.translateY(position.y);
+        textMesh.translateZ(position.z);
 
-        this.scene.add(mesh);
+        this.scene.add(textMesh);
 
-        return mesh;
+        return textMesh;
+    }
+
+    drawCaption(text, size, position, color) {
+        if (this.captionMesh != undefined) {
+            this.scene.remove(this.captionMesh);
+        }
+
+        this.captionMesh = this.drawText(text, size, position, color);
     }
 
     drawCursor(show = true, radius = 100, thickness = 10) {
@@ -388,9 +399,9 @@ export class GraphicsGPU {
         velocityUniforms['uTime'] = { value: 0.0 };
         velocityUniforms['timeStep'] = { value: physics.timeStep };
         velocityUniforms['minDistance2'] = { value: physics.minDistance2 };
-        // velocityUniforms['massConstant'] = { value: physics.massConstant };
-        // velocityUniforms['chargeConstant'] = { value: physics.chargeConstant };
-        // velocityUniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
+        velocityUniforms['massConstant'] = { value: physics.massConstant };
+        velocityUniforms['chargeConstant'] = { value: physics.chargeConstant };
+        velocityUniforms['nuclearForceConstant'] = { value: physics.nuclearForceConstant };
         velocityUniforms['nuclearForceRange'] = { value: physics.nuclearForceRange };
         velocityUniforms['nuclearForceRange2'] = { value: Math.pow(physics.nuclearForceRange, 2) };
         velocityUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
@@ -400,7 +411,7 @@ export class GraphicsGPU {
             physics.massConstant,
             -physics.chargeConstant,
             physics.nuclearForceConstant,
-            1.0
+            physics.colorChargeConstant,
         ] };
         velocityUniforms['maxVel'] = { value: physics.maxVel };
         velocityUniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };

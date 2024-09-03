@@ -8,13 +8,15 @@ let options;
 let controls;
 let refreshCallbackList = []
 
-function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined) {
+function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined, variableList = undefined) {
     console.log('add control ' + variable);
     options.parameters[variable] = defaultValue;
-    folder.add(options.parameters, variable).name(title).listen().onFinishChange((val) => {
+    folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
     });
-    refreshCallbackList.push(refreshCallback);
+    if (refreshCallback != undefined) {
+        refreshCallbackList.push(refreshCallback);
+    }
 }
 
 export class GUIParameters {
@@ -75,7 +77,7 @@ export class GUIParameters {
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
             '[a,b,c,d,...,x] (param.)': NuclearPotentialType.potential_forceMap1,
-            'Min[Exp(-x/a)/x^2,c]-bx (param.)': NuclearPotentialType.potential_forceMap2,
+            'Exp(-x/a)-bx (param.)': NuclearPotentialType.potential_forceMap2,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }
@@ -106,21 +108,17 @@ export class GUIParameters {
             }
             core.updatePhysics('minDistance2', Math.pow(d, 2));
         });
-        guiParametersConsts.add(options.parameters, 'enableFriction').name('Enable Friction').listen().onFinishChange((val) => {
-            core.updatePhysics('enableFriction', val);
-        });
         
+        addPhysicsControl(guiParametersConsts, 'Enable Friction', 'enableFriction', false);
         addPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
         const frictionModel = {
-            '-cv (default)': FrictionModel.default,
+            '-cv': FrictionModel.default,
             '-cv^2': FrictionModel.square,
         }
-        guiParametersConsts.add(options.parameters, 'frictionModel', frictionModel).name('Friction Model').listen().onFinishChange((val) => {
-            core.updatePhysics('frictionModel', val);
-        });
+        addPhysicsControl(guiParametersConsts, 'Friction Model', 'frictionModel', '', undefined, frictionModel);
         addPhysicsControl(guiParametersConsts, 'Time Step', 'timeStep');
-        addPhysicsControl(guiParametersConsts, 'Max Velocity (c)', 'maxVel');
-        //guiParametersConsts.open();
+        addPhysicsControl(guiParametersConsts, 'Max Velocity (C)', 'maxVel');
+        guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
         guiParametersBoundary.add(options.parameters, 'boundaryDistance').name('Boundary Distance').listen().onFinishChange((val) => {

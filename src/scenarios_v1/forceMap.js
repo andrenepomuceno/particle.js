@@ -9,10 +9,9 @@ import { Particle, ParticleType } from '../particle';
 export const forceMap = [
     //colorTest,
     theEgg,
-    //uncertainty,
-    experiments4,
     gravity,
     welcome,
+    experiments4,
     uncertainty,
     //rngTest,
     //nuclearField,

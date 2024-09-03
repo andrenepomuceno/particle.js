@@ -308,6 +308,8 @@ export class GraphicsGPU {
         }
 
         this.captionMesh = this.drawText(text, size, position, color);
+
+        return this.captionMesh;
     }
 
     drawCursor(show = true, radius = 100, thickness = 10) {

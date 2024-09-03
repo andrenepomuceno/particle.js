@@ -77,7 +77,7 @@ export class GUIParameters {
             'Sin[a(1-b^x)] (v2)': NuclearPotentialType.potential_powAXv2,
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
             '[a,b,c,d,...,x] (param.)': NuclearPotentialType.potential_forceMap1,
-            'Exp(-x/a)-bx (param.)': NuclearPotentialType.potential_forceMap2,
+            'aExp(-x/b)-cx (param.)': NuclearPotentialType.potential_forceMap2,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         }

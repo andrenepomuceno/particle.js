@@ -193,9 +193,10 @@ float calcNuclearPotential(const float distance1, const float d)
         x = forceMap[idx];
 
     #elif USE_FMAP2 // QCD test
-        float lambda = forceMap[0];
-        float sigma = forceMap[1];
-        x = exp(-d / lambda); // yukawa
+        float gama = forceMap[0]; 
+        float lambda = forceMap[1];
+        float sigma = forceMap[2];
+        x = gama * exp(-d / lambda); // yukawa
         x -= sigma * d; // string tension
 
     #else // default
@@ -334,7 +335,8 @@ void main() {
             float cPot = 0.0;
             
             if (distance2 < nuclearForceRange2) {
-                float d = distance1/nuclearForceRange;               
+                float d = distance1/nuclearForceRange;
+
                 nPot += calcNuclearPotential(distance1, d);
 
                 #if ENABLE_COLOR_CHARGE
@@ -344,7 +346,8 @@ void main() {
                 #endif
             }
 
-            vec4 props = vec4(props1.xyz, 1.0) * vec4(props2.xyz, 1.0);
+            //vec4 props = vec4(props1.xyz, 1.0) * vec4(props2.xyz, 1.0);
+            vec4 props = props1.xyzz * props2.xyzz;
             vec4 potential = vec4(gPot, ePot, nPot, cPot);
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);

@@ -579,8 +579,8 @@ export function caption(graphics, text, timeout = 2000) {
     );
     const size = Math.abs(pos.y - height.y);
 
-    let captions = graphics.drawText(text, size, pos, color);
+    const captionObj = graphics.drawCaption(text, size, pos, color);
     delayedAction(timeout).then(() => {
-        graphics.scene.remove(captions);
+        graphics.scene.remove(captionObj);
     });
 }

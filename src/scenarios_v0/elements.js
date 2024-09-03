@@ -34,7 +34,7 @@ function defaultParameters(simulation, cameraDistance = 5000) {
     physics.enableFriction = false;
     physics.frictionConstant = 1e-5;
     physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [0.05, 1.0, 1.0];
+    physics.forceMap = [1.0, 0.2, 1.0];
 
     simulation.setParticleRadius(30, 10);
     simulation.physics.boundaryDistance = 1e5;

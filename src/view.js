@@ -31,12 +31,12 @@ const computePanel = statsPanel.addPanel(new Stats.Panel('GPU'));
 const gui = new dat.GUI();
 const guiInfo = gui.addFolder('INFORMATION');
 const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
-const guiParameters = gui.addFolder('PARAMETERS');
 const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder('SELECTION');
 const guiGenerator = gui.addFolder('GENERATOR');
 const guiField = gui.addFolder('FIELD');
 const guiAdvanced = gui.addFolder('ADVANCED');
+const guiParameters = gui.addFolder('PARAMETERS');
 
 const mouse = new Mouse();
 
@@ -188,7 +188,7 @@ function showCursor() {
 function onWindowResize() {
     log('window.onresize ' + window.innerWidth + 'x' + window.innerHeight);
     simulation.graphics.onWindowResize(window);
-    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
+    if (guiOptions.field.automaticRefresh == true) guiOptions.field.needResize = true;
 }
 
 function onPointerMove(event) {
@@ -231,7 +231,7 @@ function onPointerUp(event) {
 
 function onFinishMove(event) {
     log('onFinishMove');
-    if (guiOptions.field.automaticRefresh == true) guiOptions.field.fieldResize();
+    if (guiOptions.field.automaticRefresh == true) guiOptions.field.needResize = true;
 }
 
 function animate(time) {
@@ -248,7 +248,10 @@ function animate(time) {
     lastAnimateTime = time;
 
     if (!guiOptions.controls.pause || guiOptions.nextFrame) {
-        guiOptions.nextFrame = false;
+        if (guiOptions.field.needResize) {
+            guiOptions.field.needResize = false;
+            guiOptions.field.fieldResize();
+        }
 
         simulation.step(dt, time);
 
@@ -256,6 +259,8 @@ function animate(time) {
             let x = guiOptions.particle.obj.position;
             cameraTargetSet(x);
         }
+
+        guiOptions.nextFrame = false;
     }
 
     if (time - lastViewUpdate >= viewUpdateDelay) {
@@ -271,6 +276,7 @@ function animate(time) {
             guiOptions.selectionHelper.guiRefresh();
             guiOptions.guiParameters.refresh();
             guiOptions.guiControls.refresh();
+            guiOptions.guiField.refresh();
         });
     }
 

@@ -15,14 +15,21 @@ export class GUIField {
     setup() {
         function updateFieldParameter(param, val) {
             val = parseFloat(val);
-            options.field[param] = simulation.field.probeParam[param].toExponential(2);
+            //options.field[param] = simulation.field.probeParam[param].toExponential(2);
             if (isNaN(val)) {
                 alert('Invalid value.');
                 return;
             }
+            if (param == 'color') {
+                if (val < 0 || val > 3) {
+                    alert('Invalid value.');
+                    return;
+                }
+                val = parseInt(val);
+            }
             if (simulation.field.probeParam[param] == val) return;
             simulation.field.probeParam[param] = val;
-            options.field[param] = val.toExponential(2);
+            //options.field[param] = val.toExponential(2);
             options.field.fieldResize();
         }
 
@@ -31,6 +38,7 @@ export class GUIField {
             m: '1',
             q: '1',
             nq: '1',
+            color: '0',
             grid: '50',
             automaticRefresh: true,
             fieldResize: () => {
@@ -83,6 +91,9 @@ export class GUIField {
         controls.add(options.field, 'nq').name('Nuclear Charge ✏️').listen().onFinishChange(val => {
             updateFieldParameter('nq', val);
         });
+        controls.add(options.field, 'color').name('Color Charge ✏️').listen().onFinishChange(val => {
+            updateFieldParameter('color', val);
+        });
         controls.add(options.field, 'fieldResize').name("Refresh [F]");
         controls.add(options.field, 'close').name('Close 🔺');
 
@@ -97,6 +108,7 @@ export class GUIField {
         opt.m = field.probeParam.m.toExponential(2);
         opt.q = field.probeParam.q.toExponential(2);
         opt.nq = field.probeParam.nq.toExponential(2);
+        opt.color = field.probeParam.color.toFixed(0);
         opt.grid = field.grid[0];
     }
 

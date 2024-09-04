@@ -29,6 +29,7 @@ export class GUISelection {
             mass: '',
             charge: '',
             nuclearCharge: '',
+            colorCharge: '',
             velocity: '',
             velocityDir: '',
             center: '',
@@ -103,6 +104,9 @@ export class GUISelection {
         });
         guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
             selectionListUpdate('nuclearCharge', val);
+        });
+        guiSelectionProperties.add(options.selection, 'colorCharge').name("Color Charge (sum)").listen().onFinishChange((val) => {
+            //selectionListUpdate('colorCharge', val);
         });
     
         const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");

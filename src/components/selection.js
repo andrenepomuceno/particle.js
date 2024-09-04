@@ -254,6 +254,7 @@ export class Selection {
             view.mass = this.stats.totalMass.toExponential(2);
             view.charge = this.stats.totalCharge.toExponential(2);
             view.nuclearCharge = this.stats.totalNuclearCharge.toExponential(2);
+            view.colorCharge = this.stats.totalColorCharge.toArray();
             view.velocity = this.stats.avgVelocity.length().toExponential(2);
             view.velocityDir = arrayToString(this.stats.avgVelocity.clone().normalize().toArray(), 2);
             let center = this.stats.center.toArray();

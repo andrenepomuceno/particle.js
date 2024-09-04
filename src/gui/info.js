@@ -33,6 +33,7 @@ export class GUIInfo {
             mass: '',
             charge: '',
             nuclearCharge: '',
+            colorCharge: '',
             energy: '',
             velocity: '',
 
@@ -102,6 +103,9 @@ export class GUIInfo {
         guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('nuclearCharge', val);
         });
+        guiInfoMore.add(options.info, 'colorCharge').name('Color Charge (sum)').listen().onFinishChange((val) => {
+            //core.updateParticleList('colorCharge', val);
+        });
         guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
         guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
         guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
@@ -157,6 +161,7 @@ export class GUIInfo {
         options.info.mass = simulation.stats.totalMass.toExponential(2);
         options.info.charge = simulation.stats.totalCharge.toExponential(2);
         options.info.nuclearCharge = simulation.stats.totalNuclearCharge.toExponential(2);
+        options.info.colorCharge = simulation.stats.totalColorCharge.toArray();
         options.info.cameraPosition = floatArrayToString(simulation.graphics.camera.position.toArray(), 1);
         let tmp = simulation.graphics.controls.target.clone().sub(simulation.graphics.camera.position).normalize().toArray();
         options.info.cameraNormal = arrayToString(tmp, 1);

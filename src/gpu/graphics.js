@@ -30,8 +30,8 @@ import { ParticleType } from '../particle.js';
 const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
 
 function log(msg) {
-    let timestamp = new Date().toISOString();
-    console.log(timestamp + " | Graphics: " + msg);
+    /*let timestamp = new Date().toISOString();
+    console.log(timestamp + " | Graphics: " + msg);*/
 }
 
 export class GraphicsGPU {

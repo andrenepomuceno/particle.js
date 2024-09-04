@@ -50,27 +50,30 @@ Main considerations:
 - Particles have vectorial properties like position and velocity.
 - Particles have scalar properties like mass, charge and nuclear charge.
 - Every particle interact with each other, every simulation step.
-- Particles can collide. 
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
 - Uses an approximate nuclear force, trying to imitate the Strong Force.
+- Particles can collide if $d<=d_{min}$.
+- There is a maximum speed *c*.
 
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
-$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)]$$
+$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{d_{ij}}$$
 where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
-$$\vec{F_g}(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+$$\vec{F_g}(P_i,P_j)=G.\frac{m_i.m_j}{|\vec{d_{ij}}|^2}(1+H.O.)$$
 
-$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{|\vec{d_{ij}}|^2}(1+H.O.)$$
 
-$$\vec{F_n}(P_i,P_j)=k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
+$$\vec{F_n}(P_i,P_j)=n_i.n_j.V(|\vec{d_{ij}}|).\delta(d_{range}-d)$$
 
-where
+where $\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$,
 
-$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
+*H.O.* are high-order terms for higher order approximations or models,
+
+$\delta(d)$ is the Heaviside step function used to limit the nuclear potential range to $d<d_{range}$.
 
 and $V(d)$ represents the nuclear potential, that can be any nuclear potential function like Yukawa, Reci, Lennard-Jones and so on...
 
-Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
+For example, function $V(d)$ can be described as $V(d) = k_n.(2.(d/d_{range})-1)$, becoming similar to Hooke's Law.
 
 So, the velocity of the particle is described by
 
@@ -80,7 +83,11 @@ And the position
 
 $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
-This project uses a first-order symplectic integrator to solve this differential equations.
+This project uses a first-order symplectic integrator to solve this differential equations:
+
+$$v' = v + a.\Delta t$$
+
+$$x' = x + v'.\Delta t$$
 
 ### Collisions
 

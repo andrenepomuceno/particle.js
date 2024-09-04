@@ -47,27 +47,29 @@ Try to simulate 3 forces on point-like particles:
 ## Mathematical Model
 Main considerations:
 - Each particle is a point (no volume) in space.
-- Particles have vectorial properties like position and velocity.
-- Particles have scalar properties like mass, charge and nuclear charge.
+- Particles have vectorial properties like position $\vec{x_i}$ and velocity $\vec{v_i}$.
+- Particles have scalar properties like mass $m_i$, charge $q_i$ and nuclear charge $n_i$.
 - Every particle interact with each other, every simulation step.
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
 - Uses an approximate nuclear force, trying to imitate the Strong Force.
-- Particles can collide if $d<=d_{min}$.
+- Particles can collide if $d<d_{min}$.
 - There is a maximum speed *c*.
 
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
-$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{d_{ij}}$$
-where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
-$$\vec{F_g}(P_i,P_j)=G.\frac{m_i.m_j}{|\vec{d_{ij}}|^2}(1+H.O.)$$
+$$
+\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\frac{\vec{d_{ij}}}{|\vec{d_{ij}}|}
+\newline
+\vec{d_{ij}} = \vec{x_j} - \vec{x_i}
+$$
 
-$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{|\vec{d_{ij}}|^2}(1+H.O.)$$
+Where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
-$$\vec{F_n}(P_i,P_j)=n_i.n_j.V(|\vec{d_{ij}}|).\delta(d_{range}-d)$$
+$$\vec{F_g}(P_i,P_j)=G.\frac{m_i.m_j}{|\vec{d_{ij}}|^2}$$
 
-where $\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$,
+$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{|\vec{d_{ij}}|^2}$$
 
-*H.O.* are high-order terms for higher order approximations or models,
+$$\vec{F_n}(P_i,P_j)=n_i.n_j.V(|\vec{d_{ij}}|).\delta(d_{range}-|\vec{d_{ij}}|)$$
 
 $\delta(d)$ is the Heaviside step function used to limit the nuclear potential range to $d<d_{range}$.
 

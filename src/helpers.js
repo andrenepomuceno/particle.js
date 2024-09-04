@@ -292,7 +292,7 @@ export function generateParticleColor2(p, absCharge) {
     let r = 0, g = 0, b = 0;
 
     if (absCharge <= 0) absCharge = 1;
-    let c = (40);
+    let c = Math.floor(255/7);
 
     let charge = p.charge;
     if (charge > 0) {
@@ -314,20 +314,20 @@ export function generateParticleColor2(p, absCharge) {
     if (p.nuclearCharge > 0) {
         //h += 10;
     } else if (p.nuclearCharge < 0) {
-        g += c;
+        g += 2*c;
     }
 
     switch (p.colorCharge) {
         case 1:
-            r += c;
+            r += 2*c;
             break;
 
         case 2:
-            g += c;
+            g += 2*c;
             break;
 
         case 3:
-            b += c;
+            b += 2*c;
             break;
     }
 

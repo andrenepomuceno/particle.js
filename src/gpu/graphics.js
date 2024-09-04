@@ -27,7 +27,11 @@ import { particleVertexShader, generateParticleShader } from './shaders/particle
 import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
 import { ParticleType } from '../particle.js';
 
-const textureWidth0 = Math.round(Math.sqrt(ENV?.maxParticles) / 16) * 16;
+function calcTextWidth(n) {
+    return Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);
+}
+
+const textureWidth0 = calcTextWidth(ENV?.maxParticles);
 
 function log(msg) {
     /*let timestamp = new Date().toISOString();
@@ -251,7 +255,7 @@ export class GraphicsGPU {
         log('setMaxParticles');
         n = Math.max(n, 1e3);
         n = Math.min(n, 1e5);
-        this.textureWidth = Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);
+        this.textureWidth = calcTextWidth(n);
         this.maxParticles = this.textureWidth * this.textureWidth;
     }
 

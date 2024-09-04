@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "npm run test",
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=30e3 --env version='dev mode'",
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=33e3 --env version='dev mode'",
     "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env version='dev mode'",
     "record": "webpack serve --config webpack-dev.config.js --port 8081 --env maxParticles=50e3 --env version='record mode' --env record",
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env production",

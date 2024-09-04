@@ -208,18 +208,17 @@ float calcNuclearPotential(const float distance1, const float d)
 
 const vec3 color1Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-
     vec3(1.0, 0.0, 0.0),
     vec3(0.0, 1.0, 0.0),
     vec3(0.0, 0.0, 1.0)
 );
 
+const float kc0 = 1.0;
 const vec3 color2Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-
-    vec3(-1.0, 1.0, 1.0),
-    vec3(1.0, -1.0, 1.0),
-    vec3(1.0, 1.0, -1.0)
+    vec3(-1.0, kc0, kc0),
+    vec3(kc0, -1.0, kc0),
+    vec3(kc0, kc0, -1.0)
 );
 
 void main() {
@@ -341,8 +340,8 @@ void main() {
 
                 #if ENABLE_COLOR_CHARGE
                     float c = dot(color1Mat[uint(props1.w)], color2Mat[uint(props2.w)]);
+                    //c *= 2.0*d;
                     cPot += c;
-                    //cPot += c * d;
                 #endif
             }
 

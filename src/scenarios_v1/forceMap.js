@@ -126,6 +126,14 @@ function colorTest(simulation) {
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
 
+        /*{ m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark up', colorCharge: 1.0 },
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark up', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark down', colorCharge: 3.0 },
+
+        { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark up', colorCharge: 3.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark down', colorCharge: 2.0 },
+        { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: -nq, name: 'quark down', colorCharge: 1.0 },*/
+
         //{ m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
     ]
 
@@ -167,7 +175,7 @@ function theEgg(simulation) {
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
 
-    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;
+    physics.nuclearPotential = 1 * NuclearPotentialType.potential_forceMap2;
     physics.forceMap = [1.0, 0.1, 1.0];
 
     physics.timeStep = 1.0;

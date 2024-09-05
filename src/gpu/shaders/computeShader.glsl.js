@@ -212,7 +212,7 @@ const vec3 color1Mat[4] = vec3[](
 );
 
 const float kc0 = -1.0;
-const float kc1 = -kc0;
+const float kc1 = (-2.0/3.0) * kc0;
 const float kc2 = kc1;
 const vec3 color2Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),

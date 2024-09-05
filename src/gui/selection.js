@@ -108,6 +108,7 @@ export class GUISelection {
         guiSelectionProperties.add(options.selection, 'colorCharge').name("Color Charge (sum)").listen().onFinishChange((val) => {
             //selectionListUpdate('colorCharge', val);
         });
+        guiSelectionProperties.open();
     
         const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");
         guiSelectionVariables.add(options.selection, 'velocity').name('Velocity').listen().onFinishChange((val) => {

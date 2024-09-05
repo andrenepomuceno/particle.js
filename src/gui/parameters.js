@@ -80,10 +80,8 @@ export class GUIParameters {
             'aExp(-x/b)-cx (param.)': NuclearPotentialType.potential_forceMap2,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
-        }
-        guiParametersConsts.add(options.parameters, 'nuclearPotential', potentialType).name('Nuclear Potential').listen().onFinishChange((val) => {
-            core.updatePhysics('potential', val);
-        });
+        };
+        addPhysicsControl(guiParametersConsts, 'Nuclear Potential', 'nuclearPotential', '', undefined, potentialType);
 
         guiParametersConsts.add(options.parameters, 'forceMap').name('Nuclear Parameters').listen().onFinishChange((val) => {
             let forceMap = String(val).split(',').map((x) => {

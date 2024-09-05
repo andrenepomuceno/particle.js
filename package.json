@@ -1,10 +1,11 @@
 {
   "name": "particle.js",
-  "version": "0.106.1",
+  "version": "0.106.2",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
     "start": "npm run test",
+    "prod": "npm run build",
     "test": "webpack serve --config webpack-dev.config.js --env maxParticles=33e3 --env version='dev mode'",
     "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env version='dev mode'",
     "record": "webpack serve --config webpack-dev.config.js --port 8081 --env maxParticles=50e3 --env version='record mode' --env record",

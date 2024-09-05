@@ -165,37 +165,33 @@ function theEgg(simulation) {
     /*physics.roundPosition = true;
     physics.roundVelocity = true;*/
 
-    const M = (1/3) * 1e19;
+    const M = (10/3) * 1e18;
     const S = (5) * 1e26;
-    const KG = (1) * 1e29;
+    const KG = (10 / 9.1093837015) * 1e29;
     const C = (1 / 1.602176634) * 1e21;
+    const lightSpeed = 299792458 * M / S;
+    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
 
     physics.nuclearForceRange = 3.0e-15 * M;
-    physics.nuclearForceConstant = 30e3 * KG * M * S ** -2;
+    physics.nuclearForceConstant = 10e3 * KG * M * S ** -2;
     physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
-
-    physics.nuclearPotential = 1 * NuclearPotentialType.potential_forceMap2;
-    physics.forceMap = [1.0, 0.1, 1.0];
-
-    physics.timeStep = 1.0;
-    physics.useDistance1 = true;
-    const lightSpeed = 299792458 * M / S;
-    physics.maxVel = lightSpeed * 1e7;
-    physics.enableLorentzFactor = false;
-
-    physics.enableFineStructure = false;
-    const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
+    physics.colorChargeConstant = physics.nuclearForceConstant;
     physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
 
-    physics.enableColorCharge = true;
-    physics.colorChargeConstant = physics.nuclearForceConstant;
+    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;    
+    physics.forceMap = [1.0, 0.1, 1.0];
+    physics.useDistance1 = true;
+
+    physics.timeStep = 1.0;
+    physics.maxVel = lightSpeed * 1e9;
 
     physics.minDistance2 = Math.pow(1e-3, 2);
-
+    physics.enableColorCharge = true;
+    physics.enableLorentzFactor = false;
+    physics.enableFineStructure = false;
     physics.enableRandomNoise = true;
     physics.randomNoiseConstant = 1.0;
-
     physics.enableFriction = true;
     physics.frictionConstant = 1e-9;
 
@@ -203,11 +199,11 @@ function theEgg(simulation) {
     physics.boundaryDistance = 1e18;
     physics.boundaryDamping = 0.9;
 
-    graphics.cameraDistance = 2e6;
-    graphics.cameraSetup();
-
     simulation.particleRadius = 0.05 * physics.nuclearForceRange;
     simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
+
+    graphics.cameraDistance = 2e6;
+    graphics.cameraSetup();
 
     const nq = 10;
     let typeList = [
@@ -219,7 +215,7 @@ function theEgg(simulation) {
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 2.0 },
         { m: 1.069597617568e-29 * KG, q: -1 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark down', colorCharge: 1.0 },
 
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/3, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
     ]
 
     let n = graphics.maxParticles; //Math.min(10e3, );

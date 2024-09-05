@@ -39,7 +39,7 @@ export class GUIParameters {
             maxParticles: '',
             radius: '',
             radiusRange: '',
-            nuclearPotential: NuclearPotentialType.default,
+            nuclearPotential: '',
             forceMap: '[]',
             boxBoundary: false,
             distance1: false,

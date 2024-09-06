@@ -239,6 +239,8 @@ export function uploadFile(type, callback) {
 }
 
 export function generateParticleColor(p, absCharge) {
+    return generateParticleColor2(p, absCharge);
+
     let h = 0, s = 100, l = 50;
     let lmin = 30, lmax = 60;
 
@@ -266,10 +268,74 @@ export function generateParticleColor(p, absCharge) {
         h += 20;
     }
 
+    switch (p.colorCharge) {
+        case 1:
+            h = 0;
+            break;
+
+        case 2:
+            h += 15;
+            break;
+
+        case 3:
+            h -= 15;
+            break;
+    }
+
     while (h > 360) h -= 360;
     while (h < 0) h += 360;
 
     return "hsl(" + h + "," + s + "%," + l + "%)";
+}
+
+export function generateParticleColor2(p, absCharge) {
+    let r = 0, g = 0, b = 0;
+
+    if (absCharge <= 0) absCharge = 1;
+    let c = Math.floor(255/7);
+
+    let charge = p.charge;
+    if (charge > 0) {
+        b += 4*c;// * Math.abs(charge)/absCharge;
+    } else if (charge < 0) {
+        r += 4*c;// * Math.abs(charge)/absCharge;
+    } else {
+        r += c;
+        g += c;
+        b += c;
+    }
+
+    if (p.mass == 0) {
+        r += c;
+        g += c;
+        b += c;
+    }
+
+    if (p.nuclearCharge > 0) {
+        //h += 10;
+    } else if (p.nuclearCharge < 0) {
+        g += 2*c;
+    }
+
+    switch (p.colorCharge) {
+        case 1:
+            r += 2*c;
+            break;
+
+        case 2:
+            g += 2*c;
+            break;
+
+        case 3:
+            b += 2*c;
+            break;
+    }
+
+    r = Math.min(r, 255);
+    g = Math.min(g, 255);
+    b = Math.min(b, 255);
+
+    return "rgb(" + r + "," + g + "," + b + ")";
 }
 
 export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {

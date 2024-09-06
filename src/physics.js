@@ -141,6 +141,7 @@ export function calcListStatistics(list) {
     stats.totalMass = 0;
     stats.totalCharge = 0;
     stats.totalNuclearCharge = 0;
+    stats.totalColorCharge = new Vector3();
     stats.particles = list.length;
     stats.fixed = 0;
     stats.totalEnergy = 0.0;
@@ -151,6 +152,10 @@ export function calcListStatistics(list) {
     stats.mMax = -Infinity;
     stats.qMin = Infinity;
     stats.qMax = -Infinity;
+
+    const red = new Vector3(1,0,0);
+    const green = new Vector3(0,1,0);
+    const blue = new Vector3(0,0,1);
 
     list.forEach(p => {
         switch (p.type) {
@@ -167,6 +172,22 @@ export function calcListStatistics(list) {
                 stats.totalEnergy += p.energy();
                 stats.collisions += p.collisions;
                 stats.outOfBoundary += p.outOfBoundary;
+                switch (p.colorCharge) {
+                    case 1:
+                        stats.totalColorCharge.add(red);
+                        break;
+
+                    case 2:
+                        stats.totalColorCharge.add(green);
+                        break;
+
+                    case 3:
+                        stats.totalColorCharge.add(blue);
+                        break;
+
+                    default:
+                        break;
+                }
 
                 if (p.mass > stats.mMax) {
                     stats.mMax = p.mass;

@@ -24,6 +24,12 @@ export function generateComputeVelocity(physics) {
     config += define("FRICTION_DEFAULT", physics.frictionModel === FrictionModel.default);
     config += define("FRICTION_SQUARE", physics.frictionModel === FrictionModel.square);
 
+    config += define("USE_LORENTZ_FACTOR", physics.enableLorentzFactor);
+    config += define("USE_FINE_STRUCTURE", physics.enableFineStructure);
+    config += define("USE_RANDOM_NOISE", physics.enableRandomNoise);
+    config += define("USE_POST_GRAVITY", physics.enablePostGravity);
+
+    config += define("USE_POT_DEFAULT", physics.nuclearPotential === NuclearPotentialType.default);
     config += define("USE_HOOKS_LAW", physics.nuclearPotential === NuclearPotentialType.hooksLaw);
     config += define("USE_POTENTIAL0", physics.nuclearPotential === NuclearPotentialType.potential_powXR);
     config += define("USE_POTENTIAL1", physics.nuclearPotential === NuclearPotentialType.potential_exp);
@@ -33,10 +39,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
     config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
 
-    config += define("USE_LORENTZ_FACTOR", physics.enableLorentzFactor);
-    config += define("USE_FINE_STRUCTURE", physics.enableFineStructure);
-    config += define("USE_RANDOM_NOISE", physics.enableRandomNoise);
-    config += define("USE_POST_GRAVITY", physics.enablePostGravity);
+    //console.log(config)
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -89,14 +92,12 @@ uniform float forceMapLen;
 
 const vec4 ones = vec4(1.0);
 
-float sdBox(vec3 p, vec3 b)
-{
+float sdBox(vec3 p, vec3 b) {
     vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 
-float sdSphere(vec3 p, float s)
-{
+float sdSphere(vec3 p, float s) {
     return length(p) - s;
 }
 
@@ -143,7 +144,7 @@ vec3 collision(const float m1, const float m2,
                 const vec3 dPos, const float distance2) {
     vec3 rForce = vec3(0.0);
 
-    float m = m1 + m2; // precision loss if m1 >> m2
+    float m = m1 + m2;
     if (m == 0.0) {
         return rForce;
     }
@@ -161,8 +162,7 @@ vec3 collision(const float m1, const float m2,
     return rForce;
 }
 
-float calcNuclearPotential(const float distance1, const float d)
-{
+float calcNuclearPotential(const float distance1, const float d) {
     float x = d;
 
     #if USE_HOOKS_LAW
@@ -193,34 +193,39 @@ float calcNuclearPotential(const float distance1, const float d)
         x = forceMap[idx];
 
     #elif USE_FMAP2 // QCD test
-        float gama = forceMap[0]; 
-        float lambda = forceMap[1];
-        float sigma = forceMap[2];
-        x = gama * exp(-d / lambda); // yukawa
-        x -= sigma * d; // string tension
+        float a = forceMap[0]; 
+        float b = forceMap[1];
+        float c = forceMap[2];
+        x = a * exp(-d / b); // yukawa
+        x -= c * d; // string tension
 
-    #else // default
+    #elif USE_POT_DEFAULT
         x = sin(2.0 * PI * x);
+    #else
+        #error
     #endif
 
     return x;
 }
 
+#if ENABLE_COLOR_CHARGE
 const vec3 color1Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-
     vec3(1.0, 0.0, 0.0),
     vec3(0.0, 1.0, 0.0),
     vec3(0.0, 0.0, 1.0)
 );
 
+const float kc0 = -1.0;
+const float kc1 = (-4.0/6.0) * kc0;
+const float kc2 = kc1;
 const vec3 color2Mat[4] = vec3[](
     vec3(0.0, 0.0, 0.0),
-
-    vec3(-1.0, 1.0, 1.0),
-    vec3(1.0, -1.0, 1.0),
-    vec3(1.0, 1.0, -1.0)
+    vec3(kc0, kc1, kc2),
+    vec3(kc2, kc0, kc1),
+    vec3(kc1, kc2, kc0)
 );
+#endif
 
 void main() {
     vec2 uv1 = gl_FragCoord.xy / resolution.xy;
@@ -336,13 +341,16 @@ void main() {
             
             if (distance2 < nuclearForceRange2) {
                 float d = distance1/nuclearForceRange;
-
                 nPot += calcNuclearPotential(distance1, d);
 
                 #if ENABLE_COLOR_CHARGE
+                //if (distance2 < nuclearForceRange2/2.0)
+                {
                     float c = dot(color1Mat[uint(props1.w)], color2Mat[uint(props2.w)]);
                     cPot += c;
                     //cPot += c * d;
+                    //cPot += c * (1.0 + d);
+                }
                 #endif
             }
 

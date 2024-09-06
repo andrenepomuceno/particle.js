@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { calcListStatistics, Physics } from './physics.js';
+import { calcListStatistics, NuclearPotentialType, Physics } from './physics.js';
 import { decodeVector3, safeParseFloat } from './helpers.js';
 import { scenariosList } from './scenarios.js';
 import { Particle, ParticleType } from './particle.js';
@@ -166,6 +166,28 @@ class Core {
                 fillPhysics = false;
                 updateShader = true;
             },
+            'nuclearPotential': (value) => {
+                physics.nuclearPotential = value;
+                fillPhysics = false;
+                updateShader = true;
+
+                switch (value) {
+                    case NuclearPotentialType.potential_forceMap1:
+                        //physics.forceMap = [-1.0, 1.0];
+                        break;
+                    
+                    case NuclearPotentialType.potential_forceMap2:
+                        if (physics.forceMap.length != 3) {
+                            physics.forceMap = [1.0, 0.1, 1.0];
+                        }
+                        fillPhysics = true;
+                        break;
+
+                    default:
+                        //physics.forceMap = [0.0];
+                        break;
+                }
+            },
         };
 
 
@@ -212,12 +234,6 @@ class Core {
                 simulation.particleRadiusRange = safeParseFloat(value, simulation.particleRadiusRange);
                 simulation.setParticleRadius();
                 fillPhysics = false;
-                break;
-
-            case 'potential':
-                physics.nuclearPotential = value;
-                fillPhysics = false;
-                updateShader = true;
                 break;
 
             case 'boxBoundary':

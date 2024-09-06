@@ -106,7 +106,7 @@ export class GUIParticle {
         guiParticleVariables.add(options.particle, 'fixed').name('Fixed position?').listen().onFinishChange((val) => {
             core.updateParticle(options.particle.obj, 'fixed', val);
         });
-        guiParticleVariables.open();
+        //guiParticleVariables.open();
 
         //const guiParticleActions = gGuiParticle.addFolder("[+] Controls");
         controls.add(options.particle, 'follow').name('Follow/Unfollow');

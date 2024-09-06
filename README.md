@@ -47,30 +47,34 @@ Try to simulate 3 forces on point-like particles:
 ## Mathematical Model
 Main considerations:
 - Each particle is a point (no volume) in space.
-- Particles have vectorial properties like position and velocity.
-- Particles have scalar properties like mass, charge and nuclear charge.
-- Every particle interact with each other, every simulation step.
-- Particles can collide. 
+- Particles have vectorial properties like position $\vec{x_i}$ and velocity $\vec{v_i}$.
+- Particles have scalar properties like mass $m_i$, charge $q_i$ and nuclear charge $n_i$.
+- Particles interact in pairs each simulation step $\Delta t$.
+- Particles can collide if $d \le d_{min}$.
+- There is a maximum speed *c* so $|\vec{v_i}| \le c$.
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
-- Uses an approximate nuclear force, trying to imitate the Strong Force.
+- Uses a limited range potential for nuclear force, trying to model the Strong Force.
 
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
-$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)]$$
-where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
-$$\vec{F_g}(P_i,P_j)=k_g.\frac{m_i.m_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{n_{ij}}$$
+$$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$$
+$$d = |\vec{d_{ij}}|$$
+$$\bar{n_{ij}} = \frac{|\vec{d_{ij}}|}{d}$$
 
-$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{||\vec{d_{ij}}||^2}.\bar{d_{ij}}$$
+Where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
-$$\vec{F_n}(P_i,P_j)=k_n.n_i.n_j.V(||\vec{d_{ij}}||).\bar{d_{ij}}$$
+$$\vec{F_g}(P_i,P_j)=G.\frac{m_i.m_j}{d^2}$$
 
-where
+$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{d^2}$$
 
-$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$
+$$\vec{F_n}(P_i,P_j)=n_i.n_j.V(d).H(d_{range}-d)$$
+
+$H(d)$ is the Heaviside step function used to confine the nuclear potential range into $d<d_{range}$.
 
 and $V(d)$ represents the nuclear potential, that can be any nuclear potential function like Yukawa, Reci, Lennard-Jones and so on...
 
-Function $V(d)$ can be also be described as just $V(d) = \frac{2.d - d_{max}}{d_{max}}$, becoming similar to Hooke's Law.
+For example, function $V(d)$ can be described as $V(d) = k_n.(2.(d/d_{range})-1)$, becoming similar to Hooke's Law.
 
 So, the velocity of the particle is described by
 
@@ -80,7 +84,11 @@ And the position
 
 $$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
 
-This project uses a first-order symplectic integrator to solve this differential equations.
+This project uses a first-order symplectic integrator to solve this differential equations:
+
+$$v' = v + a.\Delta t$$
+
+$$x' = x + v'.\Delta t$$
 
 ### Collisions
 
@@ -88,15 +96,15 @@ A collision occurs when the distance between two particles is less than a minima
 
 In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
 
-$$m_1 \vec{v_1} + m_2 \vec{v_2} = m_1 \vec{u_1} + m_2 \vec{u_2}$$
+$$m_i \vec{v_i} + m_j \vec{v_j} = m_i \vec{u_i} + m_j \vec{u_j}$$
 
-$$m_1 \vec{v_1}^2 + m_2 \vec{v_2}^2 = m_1 \vec{u_1}^2 + m_2 \vec{u_2}^2$$
+$$m_i \vec{v_i}^2 + m_j \vec{v_j}^2 = m_i \vec{u_i}^2 + m_j \vec{u_j}^2$$
 
 Where $u_i$ is the final velocity of $P_i$.
 
 So, the force exerted by a collision is (a lot of omitted algebra here...)
 
-$$F(P_1) = \frac{2 m_1 m_2}{m_1 + m_2} \frac{\vec{v_{21}}.\vec{d_{21}}}{||\vec{d_{21}}||^2} \vec{d_{21}} $$
+$$F(P_i) = \frac{2 m_i m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
 
 ## Build
 
@@ -107,12 +115,12 @@ To run the test server on `localhost:8080`
 git clone https://github.com/andrenepomuceno/particle.js.git
 cd particle.js
 npm install
-npm run test
+npm start
 ````
 
 To build the production package:
 ```
-npm run build
+npm run prod
 ```
 
 ### Code Architecture

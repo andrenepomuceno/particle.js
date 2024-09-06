@@ -3,7 +3,7 @@ const webpack = require('webpack');
 
 module.exports = (env) => {
     return {
-        entry: './src/main.js',
+        entry: './src/index.js',
         mode: 'development',
         devtool: 'eval-source-map',
         output: {
@@ -24,5 +24,24 @@ module.exports = (env) => {
                 'ENV': JSON.stringify(env)
             }),
         ],
+
+
+        module: {
+            rules: [
+                {
+                    test: /\.jsx?$/, // Para arquivos JS e JSX
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env', '@babel/preset-react'] // Presets para ES6+ e React
+                        }
+                    }
+                }
+            ]
+        },
+        resolve: {
+            extensions: ['.js', '.jsx']
+        }
     }
 };

@@ -9,7 +9,6 @@ let controls;
 let refreshCallbackList = []
 
 function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined, variableList = undefined) {
-    console.log('add control ' + variable);
     options.parameters[variable] = defaultValue;
     folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange((val) => {
         core.updatePhysics(variable, val);
@@ -29,25 +28,9 @@ export class GUIParameters {
 
     setup() {
         options.parameters = {
-            massConstant: '',
-            chargeConstant: '',
-            nuclearForceConstant: '',
-            nuclearForceRange: '',
-            boundaryDamping: '',
-            boundaryDistance: '',
-            minDistance: '',
-            maxParticles: '',
-            radius: '',
-            radiusRange: '',
-            nuclearPotential: '',
             forceMap: '[]',
-            boxBoundary: false,
-            distance1: false,
-            enableBoundary: true,
-            enableFriction: false,
-            frictionConstant: '',
-            frictionModel: '',
-            maxVel: '',
+            minDistance: '',
+
             close: () => {
                 controls.close();
             }
@@ -60,9 +43,8 @@ export class GUIParameters {
         addPhysicsControl(guiParametersConsts, 'Electric Constant', 'chargeConstant', '', () => {
             options.parameters.chargeConstant= simulation.physics.chargeConstant.toExponential(4);
         });
-
-        guiParametersConsts.add(options.parameters, 'distance1').name('Use x^-1 potential (gravity & charge)').listen().onFinishChange((val) => {
-            core.updatePhysics('distance1', val);
+        addPhysicsControl(guiParametersConsts, 'Use x^-1 potential (gravity & charge)', 'distance1', false, () => {
+            options.parameters.distance1 = simulation.physics.useDistance1;
         });
         addPhysicsControl(guiParametersConsts, 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
             options.parameters.nuclearForceConstant= simulation.physics.nuclearForceConstant.toExponential(4);
@@ -81,7 +63,9 @@ export class GUIParameters {
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         };
-        addPhysicsControl(guiParametersConsts, 'Nuclear Potential', 'nuclearPotential', '', undefined, potentialType);
+        addPhysicsControl(guiParametersConsts, 'Nuclear Potential', 'nuclearPotential', '', () => {
+            options.parameters.nuclearPotential = simulation.physics.nuclearPotential;
+        }, potentialType);
 
         guiParametersConsts.add(options.parameters, 'forceMap').name('Nuclear Parameters').listen().onFinishChange((val) => {
             let forceMap = String(val).split(',').map((x) => {
@@ -107,15 +91,25 @@ export class GUIParameters {
             core.updatePhysics('minDistance2', Math.pow(d, 2));
         });
         
-        addPhysicsControl(guiParametersConsts, 'Enable Friction', 'enableFriction', false);
-        addPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant');
+        addPhysicsControl(guiParametersConsts, 'Enable Friction', 'enableFriction', false, () => {
+            options.parameters.enableFriction = simulation.physics.enableFriction;
+        });
+        addPhysicsControl(guiParametersConsts, 'Friction Constant', 'frictionConstant', '', () => {
+            options.parameters.frictionConstant = simulation.physics.frictionConstant.toExponential(4);
+        });
         const frictionModel = {
             '-cv': FrictionModel.default,
             '-cv^2': FrictionModel.square,
         }
-        addPhysicsControl(guiParametersConsts, 'Friction Model', 'frictionModel', '', undefined, frictionModel);
-        addPhysicsControl(guiParametersConsts, 'Time Step', 'timeStep');
-        addPhysicsControl(guiParametersConsts, 'Max Velocity (C)', 'maxVel');
+        addPhysicsControl(guiParametersConsts, 'Friction Model', 'frictionModel', '', () => {
+            options.parameters.frictionModel = simulation.physics.frictionModel;
+        }, frictionModel);
+        addPhysicsControl(guiParametersConsts, 'Time Step', 'timeStep', '', () => {
+            options.parameters.timeStep = simulation.physics.timeStep.toFixed(4);
+        });
+        addPhysicsControl(guiParametersConsts, 'Max Velocity (C)', 'maxVel', '', () => {
+            options.parameters.maxVel = simulation.physics.maxVel.toExponential(4);
+        });
         guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
@@ -170,24 +164,9 @@ export class GUIParameters {
 
     refresh() {
         let edit = options.parameters;
-        edit.massConstant = simulation.physics.massConstant.toExponential(2);
-        edit.chargeConstant = simulation.physics.chargeConstant.toExponential(2);
-        edit.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(2);
-        edit.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(2);
-        edit.boundaryDamping = simulation.physics.boundaryDamping;
-        edit.boundaryDistance = simulation.physics.boundaryDistance.toExponential(2);
+
         edit.minDistance = Math.sqrt(simulation.physics.minDistance2).toExponential(2);
-        edit.timeStep = simulation.physics.timeStep;
-        edit.maxParticles = simulation.graphics.maxParticles;
-        edit.boxBoundary = simulation.physics.useBoxBoundary;
-        edit.distance1 = simulation.physics.useDistance1;
-        edit.nuclearPotential = simulation.physics.nuclearPotential;
         edit.forceMap = simulation.physics.forceMap;
-        edit.enableBoundary = simulation.physics.enableBoundary;
-        edit.enableFriction = simulation.physics.enableFriction;
-        edit.frictionConstant = simulation.physics.frictionConstant.toExponential(2);
-        edit.frictionModel = simulation.physics.frictionModel;
-        edit.maxVel = simulation.physics.maxVel.toExponential(2);
 
         refreshCallbackList.forEach((callback) => {
             if (callback != undefined) {

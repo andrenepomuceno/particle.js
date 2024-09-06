@@ -78,7 +78,7 @@ function hexagonalCrystal2(simulation) {
 
     physics.nuclearForceRange = 3.0e-15 * M;
     physics.nuclearForceConstant = 10e3 * KG * M * S ** -2;
-    physics.massConstant = 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
+    physics.massConstant = 1e37 * 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.colorChargeConstant = physics.nuclearForceConstant;
     physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
@@ -111,7 +111,7 @@ function hexagonalCrystal2(simulation) {
 
     let r0 = 0.1 * physics.nuclearForceRange;
     let r1 = 1.0 * physics.nuclearForceRange;
-    let r2 = 1.01 * physics.nuclearForceRange;
+    let r2 = 1.00 * physics.nuclearForceRange;
     let nq = 10;
     let nucleusList = [
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },

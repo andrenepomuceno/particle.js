@@ -58,8 +58,11 @@ Main considerations:
 For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
 
 $$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{n_{ij}}$$
+
 $$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$$
+
 $$d = |\vec{d_{ij}}|$$
+
 $$\bar{n_{ij}} = \frac{|\vec{d_{ij}}|}{d}$$
 
 Where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:

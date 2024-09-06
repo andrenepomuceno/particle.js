@@ -1,6 +1,6 @@
 {
   "name": "particle.js",
-  "version": "0.106.2",
+  "version": "0.107.0",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {

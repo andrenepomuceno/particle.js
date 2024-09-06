@@ -54,21 +54,21 @@ export class GUIParameters {
         };
 
         const guiParametersConsts = controls.addFolder("[+] Constants ✏️");
-        guiParametersConsts.add(options.parameters, 'massConstant').name('Gravitational Constant').listen().onFinishChange((val) => {
-            core.updatePhysics('massConstant', val);
+        addPhysicsControl(guiParametersConsts, 'Gravitational Constant', 'massConstant', '', () => {
+            options.parameters.massConstant = simulation.physics.massConstant.toExponential(4);
         });
-        guiParametersConsts.add(options.parameters, 'chargeConstant').name('Electric Constant').listen().onFinishChange((val) => {
-            core.updatePhysics('chargeConstant', val);
+        addPhysicsControl(guiParametersConsts, 'Electric Constant', 'chargeConstant', '', () => {
+            options.parameters.chargeConstant= simulation.physics.chargeConstant.toExponential(4);
         });
 
-        guiParametersConsts.add(options.parameters, 'distance1').name("Use x^-1 potential (gravity & charge)").listen().onFinishChange((val) => {
+        guiParametersConsts.add(options.parameters, 'distance1').name('Use x^-1 potential (gravity & charge)').listen().onFinishChange((val) => {
             core.updatePhysics('distance1', val);
         });
-        guiParametersConsts.add(options.parameters, 'nuclearForceConstant').name('Nuclear Force Constant').listen().onFinishChange((val) => {
-            core.updatePhysics('nuclearForceConstant', val);
+        addPhysicsControl(guiParametersConsts, 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
+            options.parameters.nuclearForceConstant= simulation.physics.nuclearForceConstant.toExponential(4);
         });
-        guiParametersConsts.add(options.parameters, 'nuclearForceRange').name('Nuclear Force Range').listen().onFinishChange((val) => {
-            core.updatePhysics('nuclearForceRange', val);
+        addPhysicsControl(guiParametersConsts, 'Nuclear Force Range', 'nuclearForceRange', '', () => {
+            options.parameters.nuclearForceRange= simulation.physics.nuclearForceRange.toExponential(4);
         });
         const potentialType = {
             'Sin[ax]': NuclearPotentialType.default,
@@ -119,17 +119,17 @@ export class GUIParameters {
         guiParametersConsts.open();
 
         const guiParametersBoundary = controls.addFolder("[+] Boundary ✏️");
-        guiParametersBoundary.add(options.parameters, 'boundaryDistance').name('Boundary Distance').listen().onFinishChange((val) => {
-            core.updatePhysics('boundaryDistance', val);
+        addPhysicsControl(guiParametersBoundary, 'Boundary Distance', 'boundaryDistance', '', () => {
+            options.parameters.boundaryDistance = simulation.physics.boundaryDistance.toExponential(4);
         });
-        guiParametersBoundary.add(options.parameters, 'boundaryDamping').name('Boundary Damping Factor').listen().onFinishChange((val) => {
-            core.updatePhysics('boundaryDamping', val);
+        addPhysicsControl(guiParametersBoundary, 'Boundary Damping Factor', 'boundaryDamping', '', () => {
+            options.parameters.boundaryDamping = simulation.physics.boundaryDamping.toFixed(4);
         });
-        guiParametersBoundary.add(options.parameters, 'boxBoundary').name('Use box boundary').listen().onFinishChange((val) => {
-            core.updatePhysics('boxBoundary', val);
+        addPhysicsControl(guiParametersBoundary, 'Use box boundary', 'boxBoundary', false, () => {
+            options.parameters.boxBoundary = simulation.physics.useBoxBoundary;
         });
-        guiParametersBoundary.add(options.parameters, 'enableBoundary').name('Enable Boundary').listen().onFinishChange((val) => {
-            core.updatePhysics('enableBoundary', val);
+        addPhysicsControl(guiParametersBoundary, 'Enable Boundary', 'enableBoundary', false, () => {
+            options.parameters.enableBoundary = simulation.physics.enableBoundary;
         });
         //guiParametersBoundary.open();
 
@@ -138,13 +138,13 @@ export class GUIParameters {
             options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
         });
         addPhysicsControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
-            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(2); 
+            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(4); 
         });
         addPhysicsControl(guiParametersExp, 'Enable Color Charge', 'enableColorCharge', false, () => {
             options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
         });
         addPhysicsControl(guiParametersExp, 'Color Force Constant', 'colorChargeConstant', '', () => {
-            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(2);
+            options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(4);
         });
         addPhysicsControl(guiParametersExp, 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
             options.parameters.enableLorentzFactor = simulation.physics.enableLorentzFactor;
@@ -156,7 +156,7 @@ export class GUIParameters {
             options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
         });
         addPhysicsControl(guiParametersExp, 'Random Noise Constant', 'randomNoiseConstant', '', () => {
-            options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(2);
+            options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(4);
         });
         //guiParametersExp.open();
 

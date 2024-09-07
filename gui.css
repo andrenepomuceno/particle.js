@@ -1,3 +1,10 @@
+.dg {
+    color: #eee;
+    font: 12px 'Verdana', sans-serif;
+    text-shadow: 0 -1px 0 #111;
+    z-index: 1000
+}
+
 .dg ul {
     list-style: none;
     margin: 0;
@@ -240,13 +247,6 @@
 
 #dat-gui-save-locally {
     display: none
-}
-
-.dg {
-    color: #eee;
-    font: 11px 'Lucida Grande', sans-serif;
-    text-shadow: 0 -1px 0 #111;
-    z-index: 10000
 }
 
 .dg.main::-webkit-scrollbar {

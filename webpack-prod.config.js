@@ -1,15 +1,12 @@
 const path = require('path');
 const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require('webpack');
+const common = require('./webpack-common.config.js');
 
 module.exports = (env) => {
     return {
-        entry: './src/main.js',
+        ...common(env),
         mode: 'production',
-        output: {
-            filename: 'main.js',
-            path: path.resolve(__dirname, 'dist'),
-        },
         optimization: {
             minimizer: [
                 new TerserPlugin({
@@ -18,11 +15,6 @@ module.exports = (env) => {
                     },
                 }),
             ],
-        },
-        plugins: [
-            new webpack.DefinePlugin({
-                'ENV': JSON.stringify(env)
-            }),
-        ],
+        }
     }
 };

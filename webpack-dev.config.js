@@ -37,8 +37,12 @@ module.exports = (env) => {
                             presets: ['@babel/preset-env', '@babel/preset-react'] // Presets para ES6+ e React
                         }
                     }
-                }
-            ]
+                },
+                {
+                    test: /\.css$/, // suporte a arquivos CSS
+                    use: ['style-loader', 'css-loader'],
+                },
+            ],
         },
         resolve: {
             extensions: ['.js', '.jsx']

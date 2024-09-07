@@ -115,7 +115,7 @@ export class Ruler {
 
     refreshRulerControls() {
         this.ruler = this.p1.clone().sub(this.p0);
-        this.controls.rulerLen = this.ruler.length().toExponential(3);        
+        this.controls.rulerLen = this.ruler.length().toExponential(8);        
         this.controls.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
         this.controls.rulerStart = floatArrayToString(this.p0.toArray(), 3);
     }

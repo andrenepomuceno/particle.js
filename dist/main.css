@@ -34,8 +34,7 @@ button {
 	-ms-user-select: none;
 	user-select: none;
 	pointer-events: none;
-	z-index: 1;
-	/* TODO Solve this in HTML */
+	z-index: 100;
 }
 
 a, button, input, select {
@@ -45,7 +44,7 @@ a, button, input, select {
 #overlay {
 	position: absolute;
 	font-size: 14px;
-	z-index: 2;
+	z-index: 100;
 	top: 0;
 	left: 0;
 	width: 100%;

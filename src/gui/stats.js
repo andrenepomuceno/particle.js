@@ -8,7 +8,7 @@ var Stats = function () {
     left: 0;
     cursor: pointer;
     opacity: 0.9;
-    z-index: 10000
+    z-index: 100
     `;
 
     container.addEventListener('click', function (event) {

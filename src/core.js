@@ -10,8 +10,7 @@ import { FieldGPU } from './gpu/field';
 import { generateComputePosition, generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 
 const graphics = new GraphicsGPU();
-let physics = new Physics();
-export let simulation = new SimulationGPU(graphics, physics);
+export let simulation = new SimulationGPU(graphics, new Physics());
 
 function log(msg) {
     let timestamp = new Date().toISOString();
@@ -29,7 +28,7 @@ class Core {
     }
 
     internalSetup(newPhysics) {
-        physics = (newPhysics || new Physics());
+        const physics = (newPhysics || new Physics());
         simulation = new SimulationGPU(graphics, physics);
         simulation.field = new FieldGPU(simulation);
 
@@ -60,6 +59,7 @@ class Core {
 
     importParticleListJson(selection, filename, content) {
         log('Importing selection ' + filename);
+        const physics = simulation.physics;
         
         let imported = this.parseJson(content);
         if (imported == undefined) return;
@@ -122,6 +122,7 @@ class Core {
 
         if (value == undefined || value === '') return;
 
+        const physics = simulation.physics;
         let fillPhysics = true;
         let updateShader = false;
 
@@ -321,6 +322,7 @@ class Core {
     }
 
     updateParticle(particle, key, value) {
+        const physics = simulation.physics;
         log("updateParticle key = " + key + " val = " + value + " particle = " + particle);
 
         if (particle == undefined) return;
@@ -492,6 +494,7 @@ class Core {
         let totalMass = stats.totalMass;
         let totalCharge = stats.totalCharge;
         let totalNuclearCharge = stats.totalNuclearCharge;
+        const physics = simulation.physics;
 
         switch (parameter) {
             case 'mass':

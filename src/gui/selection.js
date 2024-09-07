@@ -125,19 +125,19 @@ export class GUISelection {
             options.selection.fixedPosition = val;
         });
     
-        const guiSelectionActions = controls.addFolder("[+] Controls");
-        guiSelectionActions.add(options.selection, 'lookAt').name('Look At');
-        guiSelectionActions.add(options.selection, 'export').name('Export');
-        guiSelectionActions.add(options.selection, 'import').name('Import');
+        const guiSelectionControls = controls.addFolder("[+] Controls");
+        guiSelectionControls.add(options.selection, 'clone').name("Clone [X]");
+        guiSelectionControls.add(options.selection, 'place').name("Place [Z]");
+        guiSelectionControls.add(options.selection, 'lookAt').name('Look At');
+        guiSelectionControls.add(options.selection, 'export').name('Export');
+        guiSelectionControls.add(options.selection, 'import').name('Import');
+        guiSelectionControls.add(options.selection, 'delete').name("Delete [D]");
         
-        controls.add(options.selection, 'delete').name("Delete [D]");
-        controls.add(options.selection, 'clone').name("Clone [X]");
-        controls.add(options.selection, 'place').name("Place [Z]");
         controls.add(options.selection, 'clear').name('Close 🔺');
     
         options.collapseList.push(controls);
-        options.collapseList.push(guiSelectionActions);
-        options.collapseList.push(guiSelectionProperties);
+        options.collapseList.push(guiSelectionControls);
+        //options.collapseList.push(guiSelectionProperties);
         options.collapseList.push(guiSelectionVariables);
     }
 }

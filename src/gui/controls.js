@@ -151,13 +151,17 @@ export class GUIControls {
         guiControlsSimulation.add(options.controls, 'next').name("Next simulation [PAGEDOWN]");
         guiControlsSimulation.add(options.controls, 'previous').name("Previous simulation [PAGEUP]");
         guiControlsSimulation.add(options.controls, 'home').name("First simulation [HOME]");
+        guiControlsSimulation.add(options.controls, 'snapshotJson').name("Export simulation [P]");
+        guiControlsSimulation.add(options.controls, 'importJson').name("Import simulation [I]");
+        guiControlsSimulation.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
         guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode ✏️').listen().onFinishChange((val) => {
             simulation.bidimensionalMode(val);
         });
+        guiControlsSimulation.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
-        guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Camera [C]");
-        guiControlsCamera.add(options.controls, 'xyCamera').name("Orthogonal Camera [V]");
+        guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Position [C]");
+        guiControlsCamera.add(options.controls, 'xyCamera').name("Orthogonal Position [V] (3D mode)");
         guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation ✏️').listen().onFinishChange(val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
@@ -182,11 +186,11 @@ export class GUIControls {
         });
 
         const guiControlsView = controls.addFolder("[+] View");
-        guiControlsView.add(options.controls, 'hideAxis').name("Hide/Show Axis [A]");
-        guiControlsView.add(options.controls, 'colorMode').name("Color Mode [Q]");
-        guiControlsView.add(options.controls, 'hideOverlay').name("Hide Overlay [H]");
-        guiControlsView.add(options.controls, 'collapseAll').name("Collapse all folders [M]");
-        guiControlsView.add(options.controls, 'showCursor').name('Show Cursor ✏️').listen().onFinishChange((val) => {
+        guiControlsView.add(options.controls, 'hideAxis').name("Hide/Show Origin Axis [A]");
+        guiControlsView.add(options.controls, 'colorMode').name("Toggle Color Mode [Q]");
+        guiControlsView.add(options.controls, 'hideOverlay').name("Hide Everything [H]");
+        guiControlsView.add(options.controls, 'collapseAll').name("Collapse All folders [M]");
+        guiControlsView.add(options.controls, 'showCursor').name('Show Mouse Cursor ✏️').listen().onFinishChange((val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -194,7 +198,13 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });
-        guiControlsView.add(options.controls, 'shader3d').name('3D Shader ✏️').listen().onFinishChange(val => {
+        guiControlsView.add(options.controls, 'radius').name('Particle Radius ✏️').listen().onFinishChange((val) => {
+            core.updatePhysics('radius', val);
+        });
+        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range ✏️').listen().onFinishChange((val) => {
+            core.updatePhysics('radiusRange', val);
+        });
+        guiControlsView.add(options.controls, 'shader3d').name('3D Particle Shader ✏️').listen().onFinishChange(val => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -205,19 +215,9 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        guiControlsView.add(options.controls, 'radius').name('Particle Radius ✏️').listen().onFinishChange((val) => {
-            core.updatePhysics('radius', val);
-        });
-        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range ✏️').listen().onFinishChange((val) => {
-            core.updatePhysics('radiusRange', val);
-        });
 
-        controls.add(options.controls, 'mouseHint').name("Mouse Controls [?] (click for more...)");
+        controls.add(options.controls, 'mouseHint').name("Mouse and General Controls [?] (click for more...)");
         controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
-        controls.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
-        controls.add(options.controls, 'snapshotJson').name("Export simulation [P]");
-        controls.add(options.controls, 'importJson').name("Import simulation [I]");
-        controls.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
         controls.add(options.controls, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);

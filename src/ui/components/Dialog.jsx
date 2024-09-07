@@ -5,7 +5,7 @@ import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import './Dialog.css';
 
-const Dialog = forwardRef(({ title, children }, ref) => {
+const Dialog = forwardRef(({ title, canClose = 'true', children }, ref) => {
     const [isOpen, setIsOpen] = useState(true);
     const [width, setWidth] = useState(300);
     const [height, setHeight] = useState(300);
@@ -23,13 +23,13 @@ const Dialog = forwardRef(({ title, children }, ref) => {
     return (
         <Draggable
             handle=".dialog-header"
-            defaultPosition={{ x: 20, y: 200 }}
+            defaultPosition={{ x: 20, y: 100 }}
             style={{ position: 'fixed' }}
         >
             <ResizableBox
                 width={width}
                 height={height}
-                minConstraints={[160, 120]}
+                minConstraints={[192, 144]}
                 maxConstraints={[800, 600]}
                 onResize={(event, { size }) => {
                     console.log(size);
@@ -40,9 +40,9 @@ const Dialog = forwardRef(({ title, children }, ref) => {
                 <div className="draggable-dialog" style={{ width, height }}>
                     <div className="dialog-header">
                         <span>{title}</span>
-                        <button onClick={handleCloseDialog} className="close-button">
+                        {((canClose == 'true') && <button onClick={handleCloseDialog} className="close-button">
                             &times;
-                        </button>
+                        </button>)}
                     </div>
                     <div className="dialog-content">{children}</div>
                 </div>

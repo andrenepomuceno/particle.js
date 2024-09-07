@@ -55,7 +55,6 @@ export class GraphicsGPU {
         this.renderer.powerPreference = 'high-performance';
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('container').appendChild(this.renderer.domElement);
         //this.renderer.logarithmicDepthBuffer = true;
 
         this.scene = new Scene();

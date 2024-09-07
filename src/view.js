@@ -126,6 +126,8 @@ function showFirstTimeInstructionsPopup() {
 }
 
 export function viewSetup() {
+    document.getElementById('renderer-container').appendChild(simulation.graphics.renderer.domElement);
+
     window.onresize = onWindowResize;
     document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
     document.addEventListener('keyup', e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
@@ -137,7 +139,7 @@ export function viewSetup() {
     guiOptions.selectionHelper.graphics = simulation.graphics;
 
     //stats overlay
-    document.getElementById('container').appendChild(statsPanel.domElement);
+    document.getElementById('renderer-container').appendChild(statsPanel.domElement);
     mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = 'visible';
 

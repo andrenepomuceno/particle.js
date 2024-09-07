@@ -1,13 +1,14 @@
 .draggable-dialog {
     position: absolute;
     width: 300px;
+    height: 300px;
     /* background-color: white; */
     border: 1px solid #ccc;
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba(187, 183, 183, 0.151);
     /* z-index: 1000; */
-    /* display: flex; */
-    /* flex-direction: column; */
+    display: flex;
+    flex-direction: column;
 }
 
 .dialog-header {

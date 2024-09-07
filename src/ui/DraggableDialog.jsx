@@ -7,8 +7,8 @@ import './DraggableDialog.css';
 
 const DraggableDialog = forwardRef(({ title, children }, ref) => {
     const [isOpen, setIsOpen] = useState(true);
-    const [width, setWidth] = useState(1);
-    const [height, setHeight] = useState(1);
+    const [width, setWidth] = useState(300);
+    const [height, setHeight] = useState(300);
 
     const handleCloseDialog = (e) => {
         setIsOpen(false);
@@ -23,19 +23,20 @@ const DraggableDialog = forwardRef(({ title, children }, ref) => {
     return (
         <Draggable
             handle=".dialog-header"
-            defaultPosition={{ x: 100, y: 100 }}
+            defaultPosition={{ x: 640, y: 480 }}
         >
             {/* <ResizableBox
                 width={width}
                 height={height}
                 minConstraints={[100, 100]}
-                maxConstraints={[500, 500]}
+                maxConstraints={[300, 300]}
                 onResize={(event, { size }) => {
+                    console.log(size);
                     setWidth(size.width);
                     setHeight(size.height);
                 }}
             > */}
-                <div className="draggable-dialog">
+                <div className="draggable-dialog" style={{ width, height }}>
                     <div className="dialog-header">
                         <span>{title}</span>
                         <button onClick={handleCloseDialog} className="close-button">

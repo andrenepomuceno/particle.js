@@ -23,19 +23,20 @@ const DraggableDialog = forwardRef(({ title, children }, ref) => {
     return (
         <Draggable
             handle=".dialog-header"
-            defaultPosition={{ x: 640, y: 480 }}
+            defaultPosition={{ x: 20, y: 200 }}
+            style={{ position: 'fixed' }}
         >
-            {/* <ResizableBox
+            <ResizableBox
                 width={width}
                 height={height}
-                minConstraints={[100, 100]}
-                maxConstraints={[300, 300]}
+                minConstraints={[160, 120]}
+                maxConstraints={[800, 600]}
                 onResize={(event, { size }) => {
                     console.log(size);
                     setWidth(size.width);
                     setHeight(size.height);
                 }}
-            > */}
+            >
                 <div className="draggable-dialog" style={{ width, height }}>
                     <div className="dialog-header">
                         <span>{title}</span>
@@ -45,7 +46,7 @@ const DraggableDialog = forwardRef(({ title, children }, ref) => {
                     </div>
                     <div className="dialog-content">{children}</div>
                 </div>
-            {/* </ResizableBox> */}
+            </ResizableBox>
         </Draggable>
     );
 });

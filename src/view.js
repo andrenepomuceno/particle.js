@@ -45,8 +45,8 @@ function log(msg) {
     console.log(timestamp + " | View: " + msg);
 }
 
-let collapseList = [];
-let guiOptions = {
+const collapseList = [];
+const guiOptions = {
     scenarioSetup,
     showCursor,
     cameraTargetSet,
@@ -81,7 +81,7 @@ let guiOptions = {
 }
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
-guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.controls);
+guiOptions.ruler = new Ruler(simulation.graphics, guiControls);
 const selection = new Selection(simulation.graphics, guiSelection, guiOptions);
 guiOptions.selectionHelper = selection;
 

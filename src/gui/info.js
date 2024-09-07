@@ -24,11 +24,11 @@ export class GUIInfo {
         options.info = {
             name: '',
             folderName: '',
-            particles: 0,
+            particles: '',
             maxParticles: '',
             time: '',
-            collisions: 0,
-            outOfBoundary: 0,
+            collisions: '',
+            outOfBoundary: '',
 
             mass: '',
             charge: '',
@@ -93,7 +93,7 @@ export class GUIInfo {
             simulation.graphics.controls.update();
         });
 
-        const guiInfoMore = controls.addFolder("[+] Statistics");
+        const guiInfoMore = controls.addFolder("[+] Simulation Statistics");
         guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️').listen().onFinishChange((val) => {
             core.updateParticleList('mass', val);
         });

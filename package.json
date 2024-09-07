@@ -32,6 +32,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
+    "react-resizable": "^3.0.5",
     "three": "^0.168.0"
   },
   "devDependencies": {

@@ -3,9 +3,9 @@ import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
 
 import 'react-resizable/css/styles.css';
-import './DraggableDialog.css';
+import './Dialog.css';
 
-const DraggableDialog = forwardRef(({ title, children }, ref) => {
+const Dialog = forwardRef(({ title, children }, ref) => {
     const [isOpen, setIsOpen] = useState(true);
     const [width, setWidth] = useState(300);
     const [height, setHeight] = useState(300);
@@ -51,4 +51,4 @@ const DraggableDialog = forwardRef(({ title, children }, ref) => {
     );
 });
 
-export default DraggableDialog;
+export default Dialog;

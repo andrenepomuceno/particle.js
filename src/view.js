@@ -139,7 +139,7 @@ export function viewSetup() {
     guiOptions.selectionHelper.graphics = simulation.graphics;
 
     //stats overlay
-    document.getElementById('renderer-container').appendChild(statsPanel.domElement);
+    document.getElementById('root').appendChild(statsPanel.domElement);
     mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = 'visible';
 

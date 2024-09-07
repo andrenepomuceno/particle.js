@@ -22,8 +22,8 @@ const simulationStart = () => {
     if (WebGL.isWebGL2Available()) {
         viewSetup();
     } else {
-        const warning = WebGL.getWebGLErrorMessage();
-        document.getElementById('renderer-container').appendChild(warning);
+        const warning = WebGL.getWebGL2ErrorMessage();
+        document.getElementById('root').appendChild(warning);
     }
 }
 

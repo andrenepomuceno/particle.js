@@ -10,11 +10,11 @@ import MenuView from './views/Menu';
 
 const App = () => {
     const [isInfoOpen, setInfoOpen] = useState(true);
-    const [info, setInfo] = useState();
-    const [onFinishInfo, setOnFinishInfo] = useState();
+    const [infoVariables, setInfoVariables] = useState();
+    const [infoOnFinish, setInfoOnFinish] = useState();
 
-    UI.setInfo = setInfo;
-    UI.setOnFinishInfo = setOnFinishInfo;
+    UI.info.refresh = setInfoVariables;
+    UI.info.onFinish = setInfoOnFinish;
 
     const onClickInfo = (e) => {
         setInfoOpen(!isInfoOpen);
@@ -30,8 +30,8 @@ const App = () => {
             <InformationView
                 open={isInfoOpen}
                 onClose={onCloseInfo} 
-                info={info}
-                onFinish={onFinishInfo}
+                info={infoVariables}
+                onFinish={infoOnFinish}
             />
         </div>
     );
@@ -42,7 +42,5 @@ export const UI = {
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     },
-
-    setInfo: null,
-    setOnFinishInfo: null,
+    info: {},
 };

@@ -7,7 +7,7 @@ const TextInput = ({
     name,
     value = '',
     onFinish,
-    readOnly = false,
+    disabled,
 }) => {
     const [value_, setValue] = useState(value);
 
@@ -41,7 +41,9 @@ const TextInput = ({
     }, [value]);
 
     return (
-        <TextField id="outlined-basic"
+        <TextField id="filled"
+            variant='filled'
+            disabled={disabled}
             type="text"
             label={name}
             value={value_}

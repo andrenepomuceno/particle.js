@@ -135,7 +135,7 @@ export class GUIInfo {
 
         controls.open();
         
-        UI.setOnFinishInfo({
+        UI.info.onFinish({
             name: (value) => { simulation.name = value; },
             maxParticles: onFinishMaxParticles,
             camera: onFinishCamera,
@@ -186,7 +186,7 @@ export class GUIInfo {
             avg: computeTime.avg,
         });
 
-        UI.setInfo({
+        UI.info.refresh({
             name: options.info.name,
             folder: options.info.folderName,
             particles: options.info.particles,

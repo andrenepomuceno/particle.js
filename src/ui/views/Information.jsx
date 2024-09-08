@@ -25,16 +25,16 @@ const InformationView = ({
                         <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Folder" value={info.folder}></TextInput>
+                        <TextInput name="Scenario Folder" value={info.folder} disabled></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Particles" value={info.particles}></TextInput>
+                        <TextInput name="Particles" value={info.particles} disabled></TextInput>
                     </Grid>
                     <Grid item>
                         <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Elapsed Time (steps)" value={info.time}></TextInput>
+                        <TextInput name="Elapsed Time (steps)" value={info.time} disabled></TextInput>
                     </Grid>
                     <Grid item>
                         <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>

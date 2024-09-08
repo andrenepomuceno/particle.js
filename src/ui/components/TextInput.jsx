@@ -1,14 +1,15 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
-
+import React from 'react';
+import TextField from '@mui/material/TextField'
 import './Input.css';
 
-const TextInput = forwardRef(({ name, value = "", children }, ref) => {
+const TextInput = ({ name, value = "", children }) => {
     return (
         <div className="text-input">
-            <p>{name}</p>
-            <input type="text" placeholder={value}/>
+            <TextField id="outlined-basic"
+                type="text" label={name} value={value}
+            />
         </div>
     );
-});
+};
 
 export default TextInput;

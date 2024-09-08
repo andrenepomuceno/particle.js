@@ -1,24 +1,34 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
+import { Box, Button } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './Dialog.css';
 
-const Dialog = forwardRef((
-    {
-        title, canClose = 'true',
+const Dialog = forwardRef(({
+        title = 'Dialog',
+        canClose = true,
         size = { width: 200, height: 200 },
         position = { x: 10, y: 10 },
-        children
+        open = true,
+        children,
     }, ref) => {
-    const [isOpen, setIsOpen] = useState(true);
-    const [width, setWidth] = useState(size.width);
-    const [height, setHeight] = useState(size.height);
+    const [isOpen, setIsOpen] = useState(open);
+    const [dialogSize, setSize] = useState(size);
+    const [dialogPos, setPosition] = useState(position);
 
-    const handleCloseDialog = (e) => {
+    const onClickClose = (e) => {
         setIsOpen(false);
     };
+
+    const onDragStop = (e, { x, y }) => {
+        setPosition({ x, y });
+    };
+
+    const onResize = (e, { size }) => {
+        setSize(size);
+    }
 
     useImperativeHandle(ref, () => ({
         open: () => setIsOpen(true),
@@ -29,29 +39,27 @@ const Dialog = forwardRef((
     return (
         <Draggable
             handle=".dialog-header"
-            defaultPosition={{ x: position.x, y: position.y }}
-            style={{ position: 'fixed' }}
+            position={dialogPos}
+            onStop={onDragStop}
         >
             <ResizableBox
-                width={width}
-                height={height}
-                minConstraints={[64, 64]}
-                maxConstraints={[800, 600]}
-                onResize={(event, { size }) => {
-                    console.log(size);
-                    setWidth(size.width);
-                    setHeight(size.height);
-                }}
+                width={dialogSize.width}
+                height={dialogSize.height}
+                minConstraints={[100, 100]}
+                // maxConstraints={[800, 800]}
+                onResize={onResize}
             >
-                <div className="draggable-dialog" style={{ width, height }}>
-                    <div className="dialog-header">
-                        <span>{title}</span>
-                        {((canClose == 'true') && <button onClick={handleCloseDialog} className="close-button">
-                            &times;
-                        </button>)}
+                <Box>
+                    <div className='dialog-body'>
+                        <div className="dialog-header">
+                            <span>{title}</span>
+                            {canClose && (<Button onClick={onClickClose}>Close</Button>)}
+                        </div>
+                        <div className='dialog-content'>
+                            {children}
+                        </div>
                     </div>
-                    <div className="dialog-content">{children}</div>
-                </div >
+                </Box>
             </ResizableBox>
         </Draggable >
     );

@@ -1,6 +1,6 @@
 {
   "name": "particle.js",
-  "version": "0.108.0",
+  "version": "1.0.0",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
@@ -26,6 +26,10 @@
   },
   "homepage": "https://github.com/andrenepomuceno/particle.js#readme",
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@fontsource/roboto": "^5.0.15",
+    "@mui/material": "^6.0.2",
     "image-js": "^0.35.6",
     "jszip": "^3.10.1",
     "npm": "^10.8.2",

@@ -3,35 +3,34 @@
     z-index: 1000;
 }
 
-.draggable-dialog {
-    /* width: 300px; */
-    /* height: 300px; */
-    /* background-color: white; */
+.dialog-body {
+    background-color: rgba(255, 255, 255, 0.8);
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* color: black; */
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(187, 183, 183, 0.151);
-    display: flex;
-    flex-direction: column;
+    /* box-shadow: 0 4px 8px rgba(187, 183, 183, 0.151); */
+    /* overflow: hidden; */
 }
 
 .dialog-header {
-    /* background-color: #000; */
     padding: 8px;
     cursor: move;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: #f5f5f5;
 }
 
 .dialog-content {
-    padding: 10px;
-    cursor: move;
+    padding: 8px;
     overflow: auto;
+    /* height: calc(100% - 50px); */
 }
 
-.close-button {
-    /* background: none; */
-    /* border: none; */
-    font-size: 18px;
+.dialog-body button {
     cursor: pointer;
+    float: right;
+    border: none;
 }

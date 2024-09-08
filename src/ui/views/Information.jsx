@@ -1,35 +1,40 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
-import ReactDOM from 'react-dom/client';
+import { Grid2 as Grid } from '@mui/material';
 
 import Dialog from '../components/Dialog';
-import NumberInput from '../components/NumberInput';
 import TextInput from '../components/TextInput';
 
-const InformationView = forwardRef(({ scenarioName = "scenario", children }, ref) => {
-    const dialogRef = useRef();
-
-    useImperativeHandle(ref, () => ({
-        open: () => dialogRef.current.open(),
-    }));
-
+const InformationView = forwardRef(({ children }, ref) => {
     return (
         <div>
             <Dialog
                 title='Information'
-                // canClose='false'
-                ref={dialogRef}
+                ref={ref}
                 size={{ width: 640, height: 480 }}
-                position={{ x: 10, y: 210 }}
+                position={{ x: 10, y: 220 }}
             >
-                <div className='info-grid'>
-                    <TextInput name="Scenario Name" value={scenarioName}></TextInput>
-                    <TextInput name="Scenario Folder"></TextInput>
-                    <NumberInput name="Particles"></NumberInput>
-                    <NumberInput name="Max Particles"></NumberInput>
-                    <NumberInput name="Elapsed Time (steps)"></NumberInput>
-                    <NumberInput name="Camera Coordinates"></NumberInput>
-                </div>
-                {children}
+                <Grid container spacing={1}>
+                    <Grid item>
+                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                    </Grid>
+                    <Grid item>
+                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                    </Grid>
+                    <Grid item>
+                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                    </Grid>
+                    <Grid item>
+                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                    </Grid>
+                    <Grid item>
+                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                    </Grid>
+                    <TextInput name="Scenario Folder" value={"folder"}></TextInput>
+                    <TextInput name="Particles" value={"123456"}></TextInput>
+                    <TextInput name="Max Particles" value={"123456"}></TextInput>
+                    <TextInput name="Elapsed Time (steps)" value={"123456"}></TextInput>
+                    <TextInput name="Camera Coordinates" value={"123456"}></TextInput>
+                </Grid>
             </Dialog>
         </div>
     );

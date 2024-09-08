@@ -1,10 +1,11 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import TextField from '@mui/material/TextField'
 
-const NumberInput = forwardRef(({ name, value = "0.0", children }, ref) => {
+const NumberInput = forwardRef(({ name, value = 10.0, children }, ref) => {
     return (
         <div className="number-input">
             <p>{name}</p>
-            <input type="text" placeholder={value}/>
+            <TextField type='number' value={value}/>
         </div>
     );
 });

@@ -1,28 +1,11 @@
 body {
 	margin: 0;
 	background-color: #000;
-	color: #fff;
-	font-family: Monospace;
-	font-size: 16px;
-	line-height: 24px;
 	overscroll-behavior: none;
 }
 
-a {
-	color: rgb(42, 91, 182);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-button {
-	cursor: pointer;
-	text-transform: uppercase;
-}
-
 #info {
+	color: #fff;
 	position: absolute;
 	top: 0px;
 	width: 100%;
@@ -35,43 +18,17 @@ button {
 	user-select: none;
 	pointer-events: none;
 	z-index: 100;
-}
-
-a, button, input, select {
+	font-family: Monospace;
+	font-size: 16px;
+	/* line-height: 24px; */
 	pointer-events: auto;
 }
 
-#overlay {
-	position: absolute;
-	font-size: 14px;
-	z-index: 100;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	background: rgba(0, 0, 0, 0.7);
+#info a {
+	color: rgb(18, 95, 238);
+	text-decoration: none;
 }
 
-#overlay button {
-	background: transparent;
-	border: 0;
-	border: 1px solid rgb(255, 255, 255);
-	border-radius: 4px;
-	color: #ffffff;
-	padding: 12px 18px;
-	text-transform: uppercase;
-	cursor: pointer;
+#info a:hover {
+	text-decoration: underline;
 }
-
-#notSupported {
-	width: 50%;
-	margin: auto;
-	background-color: #f00;
-	margin-top: 20px;
-	padding: 10px;
-}
-

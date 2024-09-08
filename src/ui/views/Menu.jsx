@@ -1,4 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { Grid2 as Grid, Button } from '@mui/material';
+
 import Dialog from '../components/Dialog';
 
 const MenuView = ({ informationRef, children }) => {
@@ -10,18 +12,20 @@ const MenuView = ({ informationRef, children }) => {
         <div>
             <Dialog
                 title='Main Menu'
-                canClose='false'
+                canClose={false}
                 size={{ width: 640, height: 120 }}
                 position={{ x: 10, y: 80 }}
             >
-                <button onClick={handleInformationClick}>Information</button>
-                <button>Controls</button>
-                <button>Particle</button>
-                <button>Selection</button>
-                <button>Generator</button>
-                <button>Field</button>
-                <button>Advanced</button>
-                <button>Parameters</button>
+                <Grid container spacing={1}>
+                    <Button onClick={handleInformationClick}>Information</Button>
+                    <Button>Controls</Button>
+                    <Button>Particle</Button>
+                    <Button>Selection</Button>
+                    <Button>Generator</Button>
+                    <Button>Field</Button>
+                    <Button>Advanced</Button>
+                    <Button>Parameters</Button>
+                </Grid>
             </Dialog>
         </div>
     );

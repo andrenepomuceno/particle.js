@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import InformationView from './views/Information';
+import MenuView from './views/Menu';
 
 const App = () => {
+    const informationRef = useRef();
+
     return (
-        <InformationView></InformationView>
+        <div>
+            <MenuView informationRef={informationRef}/>
+            <InformationView ref={informationRef}/>
+        </div>
     );
 };
 

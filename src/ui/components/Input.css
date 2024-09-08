@@ -1,0 +1,12 @@
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2px 2px;
+    align-items: center;
+    padding: 2px;
+}
+
+.text-input,
+.number-input {
+    display: contents;
+}

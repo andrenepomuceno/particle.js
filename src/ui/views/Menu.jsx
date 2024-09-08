@@ -1,19 +1,19 @@
 import React from 'react';
 import { Grid2 as Grid, Button } from '@mui/material';
 
-import Dialog from '../components/Dialog';
+import CustomDialog from '../components/CustomDialog';
 
-const MenuView = ({ onInfoOpen }) => {
+const MenuView = ({ onClickInfo }) => {
     return (
         <div>
-            <Dialog
-                title='Main Menu'
+            <CustomDialog
+                title='Control Panel'
                 canClose={false}
                 size={{ width: 250, height: 220 }}
                 position={{ x: 10, y: 80 }}
             >
                 <Grid container spacing={1}>
-                    <Button onClick={onInfoOpen}>Information</Button>
+                    <Button onClick={onClickInfo}>Information</Button>
                     <Button>Controls</Button>
                     <Button>Particle</Button>
                     <Button>Selection</Button>
@@ -22,7 +22,7 @@ const MenuView = ({ onInfoOpen }) => {
                     <Button>Advanced</Button>
                     <Button>Parameters</Button>
                 </Grid>
-            </Dialog>
+            </CustomDialog>
         </div>
     );
 };

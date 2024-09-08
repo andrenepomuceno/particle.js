@@ -11,18 +11,18 @@ import MenuView from './views/Menu';
 const App = () => {
     const [isInfoOpen, setInfoOpen] = useState(true);
 
-    function handleInformationClick() {
-        setInfoOpen(true);
+    function onClickInfo() {
+        setInfoOpen(!isInfoOpen);
     }
     
-    function handleInfoClose(e) {
+    function onCloseInfo(e) {
         setInfoOpen(false);
     }
 
     return (
         <div>
-            <MenuView onInfoOpen={handleInformationClick}></MenuView>
-            <InformationView open={isInfoOpen} onClose={handleInfoClose}/>
+            <MenuView onClickInfo={onClickInfo}></MenuView>
+            <InformationView open={isInfoOpen} onClose={onCloseInfo}/>
         </div>
     );
 };

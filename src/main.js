@@ -1,6 +1,6 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { viewSetup } from './view';
-import { uiStart } from './ui/App';
+import { UI } from './ui/App';
 
 const simulationStart = () => {
     if (ENV?.version != false) {
@@ -30,7 +30,7 @@ function analytics() {
 
 function main() {
     analytics();
-    uiStart();
+    UI.start();
     setTimeout(() => {
         requestAnimationFrame(simulationStart);
     });

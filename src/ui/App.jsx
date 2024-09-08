@@ -8,21 +8,24 @@ import '@fontsource/roboto/700.css';
 import InformationView from './views/Information';
 import MenuView from './views/Menu';
 
+let info, setInfo;
+
 const App = () => {
     const [isInfoOpen, setInfoOpen] = useState(true);
+    [info, setInfo] = useState({ name: 'myScenario', folder: 'myFolder' });
 
-    function onClickInfo() {
+    const onClickInfo = (e) => {
         setInfoOpen(!isInfoOpen);
-    }
+    };
     
-    function onCloseInfo(e) {
+    const onCloseInfo = (e) => {
         setInfoOpen(false);
-    }
+    };
 
     return (
         <div>
             <MenuView onClickInfo={onClickInfo}></MenuView>
-            <InformationView open={isInfoOpen} onClose={onCloseInfo}/>
+            <InformationView open={isInfoOpen} onClose={onCloseInfo} info={info}/>
         </div>
     );
 };
@@ -30,4 +33,8 @@ const App = () => {
 export const uiStart = () => {
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
+}
+
+export const uiSetInfo = (info) => {
+    setInfo(info);
 }

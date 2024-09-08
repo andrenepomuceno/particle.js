@@ -4,7 +4,14 @@ import { Grid2 as Grid, TextField } from '@mui/material';
 import CustomDialog from '../components/CustomDialog';
 import TextInput from '../components/TextInput';
 
-const InformationView = ({ open = true, onClose }, ref) => {
+const InformationView = ({
+    open = true,
+    onClose,
+    info = {
+        name: 'name',
+        folder: 'folder',
+    },
+}) => {
     // const onChangeName = (e) => {
     //     setName(e.target.value);
     // }
@@ -25,22 +32,22 @@ const InformationView = ({ open = true, onClose }, ref) => {
             >
                 <Grid container spacing={1}>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={'scenario'}></TextInput>
+                        <TextInput name="Scenario Name" value={info.name}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Folder" value={"folder"}></TextInput>
+                        <TextInput name="Scenario Folder" value={info.folder}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Particles" value={"123456"}></TextInput>
+                        <TextInput name="Particles" value={info.particles}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Max Particles" value={"123456"}></TextInput>
+                        <TextInput name="Max Particles" value={info.maxParticles}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Elapsed Time (steps)" value={"123456"}></TextInput>
+                        <TextInput name="Elapsed Time (steps)" value={info.time}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Camera Coordinates" value={"123456"}></TextInput>
+                        <TextInput name="Camera Coordinates" value={info.camera}></TextInput>
                     </Grid>
                 </Grid>
             </CustomDialog>

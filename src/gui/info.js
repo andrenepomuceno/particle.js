@@ -8,6 +8,7 @@ import {
     core,
 } from '../core.js';
 import { calcListStatistics } from '../physics.js';
+import { uiSetInfo } from '../ui/App.jsx';
 
 let options, controls;
 let maxAvgVelocity = 0;
@@ -176,6 +177,15 @@ export class GUIInfo {
         computeTimeHistory.push({
             time: realTime,
             avg: computeTime.avg,
+        });
+
+        uiSetInfo({
+            name: options.info.name,
+            folder: options.info.folderName,
+            particles: options.info.particles,
+            maxParticles: options.info.maxParticles,
+            time: options.info.time,
+            camera: options.info.cameraPosition,
         });
     }
 

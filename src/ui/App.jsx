@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -9,12 +9,20 @@ import InformationView from './views/Information';
 import MenuView from './views/Menu';
 
 const App = () => {
-    const informationRef = useRef();
+    const [isInfoOpen, setInfoOpen] = useState(true);
+
+    function handleInformationClick() {
+        setInfoOpen(true);
+    }
+    
+    function handleInfoClose(e) {
+        setInfoOpen(false);
+    }
 
     return (
         <div>
-            <MenuView informationRef={informationRef}/>
-            <InformationView ref={informationRef}/>
+            <MenuView onInfoOpen={handleInformationClick}></MenuView>
+            <InformationView open={isInfoOpen} onClose={handleInfoClose}/>
         </div>
     );
 };

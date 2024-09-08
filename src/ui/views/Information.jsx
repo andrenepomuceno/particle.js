@@ -4,40 +4,40 @@ import { Grid2 as Grid } from '@mui/material';
 import Dialog from '../components/Dialog';
 import TextInput from '../components/TextInput';
 
-const InformationView = forwardRef(({ children }, ref) => {
+const InformationView = ({open = true, onClose}, ref) => {
     return (
         <div>
             <Dialog
                 title='Information'
-                ref={ref}
-                size={{ width: 640, height: 480 }}
-                position={{ x: 10, y: 220 }}
+                size={{ width: 480, height: 260 }}
+                position={{ x: 10, y: 320 }}
+                canClose={true}
+                open={open}
+                onClose={onClose}
             >
                 <Grid container spacing={1}>
                     <Grid item>
                         <TextInput name="Scenario Name" value={"scenario"}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                        <TextInput name="Scenario Folder" value={"folder"}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                        <TextInput name="Particles" value={"123456"}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                        <TextInput name="Max Particles" value={"123456"}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={"scenario"}></TextInput>
+                        <TextInput name="Elapsed Time (steps)" value={"123456"}></TextInput>
                     </Grid>
-                    <TextInput name="Scenario Folder" value={"folder"}></TextInput>
-                    <TextInput name="Particles" value={"123456"}></TextInput>
-                    <TextInput name="Max Particles" value={"123456"}></TextInput>
-                    <TextInput name="Elapsed Time (steps)" value={"123456"}></TextInput>
-                    <TextInput name="Camera Coordinates" value={"123456"}></TextInput>
+                    <Grid item>
+                        <TextInput name="Camera Coordinates" value={"123456"}></TextInput>
+                    </Grid>
                 </Grid>
             </Dialog>
         </div>
     );
-});
+};
 
 export default InformationView;

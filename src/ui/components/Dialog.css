@@ -3,15 +3,20 @@
     z-index: 1000;
 }
 
-.dialog-body {
+.dialog-box {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
     background-color: rgba(255, 255, 255, 0.8);
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* color: black; */
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    
     /* box-shadow: 0 4px 8px rgba(187, 183, 183, 0.151); */
-    /* overflow: hidden; */
+    /* display: flex;
+    flex-direction: column; */
+    /* color: black; */
 }
 
 .dialog-header {
@@ -26,11 +31,13 @@
 .dialog-content {
     padding: 8px;
     overflow: auto;
-    /* height: calc(100% - 50px); */
+    height: calc(100% - 50px);
+    flex-grow: 1;
 }
 
 .dialog-body button {
     cursor: pointer;
     float: right;
     border: none;
+    background-color: transparent;
 }

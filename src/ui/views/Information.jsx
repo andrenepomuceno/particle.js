@@ -7,19 +7,9 @@ import TextInput from '../components/TextInput';
 const InformationView = ({
     open = true,
     onClose,
-    info = {
-        name: 'name',
-        folder: 'folder',
-    },
+    info = {},
+    onFinish = {},
 }) => {
-    // const onChangeName = (e) => {
-    //     setName(e.target.value);
-    // }
-
-    // useEffect(() => {
-    //     setTitle(props.title);
-    // }, [props.title]);
-
     return (
         <div>
             <CustomDialog
@@ -32,7 +22,7 @@ const InformationView = ({
             >
                 <Grid container spacing={1}>
                     <Grid item>
-                        <TextInput name="Scenario Name" value={info.name}></TextInput>
+                        <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
                     </Grid>
                     <Grid item>
                         <TextInput name="Scenario Folder" value={info.folder}></TextInput>
@@ -41,13 +31,13 @@ const InformationView = ({
                         <TextInput name="Particles" value={info.particles}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Max Particles" value={info.maxParticles}></TextInput>
+                        <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
                     </Grid>
                     <Grid item>
                         <TextInput name="Elapsed Time (steps)" value={info.time}></TextInput>
                     </Grid>
                     <Grid item>
-                        <TextInput name="Camera Coordinates" value={info.camera}></TextInput>
+                        <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
                     </Grid>
                 </Grid>
             </CustomDialog>

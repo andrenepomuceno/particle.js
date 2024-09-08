@@ -58,7 +58,7 @@ export class GUIInfo {
         });
         controls.add(options.info, 'folderName').name('Scenario Folder').listen();
         controls.add(options.info, 'particles').name('Particles').listen();
-        controls.add(options.info, 'maxParticles').name('Max Particles ✏️').listen().onFinishChange((val) => {
+        const onFinishMaxParticles = (val) => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert("Invalid value!");
@@ -78,12 +78,13 @@ export class GUIInfo {
             } else {
                 // equal
             }
-        });
+        }
+        controls.add(options.info, 'maxParticles').name('Max Particles ✏️').listen().onFinishChange(onFinishMaxParticles);
         controls.add(options.info, 'time').name('Elapsed Time (steps)').listen();
         /*controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
             options.info.autoRefresh = val;
         });*/
-        controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange((val) => {
+        const onFinishCamera = (val) => {
             let p = decodeVector3(val);
             if (p == undefined) {
                 alert("Invalid coordinates!");
@@ -92,7 +93,8 @@ export class GUIInfo {
             simulation.graphics.camera.position.set(p.x, p.y, p.z);
             simulation.graphics.controls.target.set(p.x, p.y, 0);
             simulation.graphics.controls.update();
-        });
+        }
+        controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange(onFinishCamera);
 
         const guiInfoMore = controls.addFolder("[+] Simulation Statistics");
         guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️').listen().onFinishChange((val) => {
@@ -132,7 +134,12 @@ export class GUIInfo {
         options.collapseList.push(guiInfoRuler);
 
         controls.open();
-
+        
+        UI.setOnFinishInfo({
+            name: (value) => { simulation.name = value; },
+            maxParticles: onFinishMaxParticles,
+            camera: onFinishCamera,
+        });
     }
 
     refresh() {

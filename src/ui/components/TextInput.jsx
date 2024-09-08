@@ -9,36 +9,42 @@ const TextInput = ({
     onFinish,
     readOnly = false,
 }) => {
-    // const [currentValue, setValue] = useState(value);
+    const [value_, setValue] = useState(value);
 
-    // TODO sanitize value
+    // TODO onStart
 
     const onChange = (e) => {
-        //setValue(e.target.value);
+        setValue(e.target.value);
+    }
+
+    const onFinish_ = (e) => {
+        const value = e.target.value;
+        // TODO sanitize value
+        if (onFinish) onFinish(value);
     }
 
     const onKeyDown = (e) => {
         switch (e.key) {
             case 'Enter':
                 // case 'Tab':
-                if (onFinish) onFinish(e);
+                onFinish_(e);
                 break;
         }
     }
 
     const onBlur = (e) => {
-        if (onFinish) onFinish(e);
+        onFinish_(e);
     }
 
-    // useEffect(() => {
-    //     setValue(value);
-    // }, [value]);
+    useEffect(() => {
+        setValue(value);
+    }, [value]);
 
     return (
         <TextField id="outlined-basic"
             type="text"
             label={name}
-            value={value}
+            value={value_}
             onChange={onChange}
             onKeyDown={onKeyDown}
             onBlur={onBlur}

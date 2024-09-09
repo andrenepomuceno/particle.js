@@ -136,9 +136,14 @@ export class GUIInfo {
         controls.open();
         
         UI.info.onFinish({
-            name: (value) => { simulation.name = value; },
+            name: (val) => { simulation.name = val; },
             maxParticles: onFinishMaxParticles,
             camera: onFinishCamera,
+
+            mass: (val) => { core.updateParticleList('mass', val); },
+            charge: (val) => { core.updateParticleList('charge', val); },
+            nuclearCharge: (val) => { core.updateParticleList('nuclearCharge', val); },
+
         });
     }
 
@@ -193,6 +198,15 @@ export class GUIInfo {
             maxParticles: options.info.maxParticles,
             time: options.info.time,
             camera: options.info.cameraPosition,
+
+            mass: options.info.mass,
+            charge: options.info.charge,
+            nuclearCharge: options.info.nuclearCharge,
+            colorCharge: options.info.colorCharge,
+            energy: options.info.energy,
+            velocity: options.info.velocity,
+            collisions: options.info.collisions,
+            outOfBoundary: options.info.outOfBoundary,
         });
     }
 

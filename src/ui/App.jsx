@@ -13,8 +13,15 @@ const App = () => {
     const [infoVariables, setInfoVariables] = useState();
     const [infoOnFinish, setInfoOnFinish] = useState();
 
-    UI.info.refresh = setInfoVariables;
-    UI.info.onFinish = setInfoOnFinish;
+    if (UI.info.refresh == undefined) {
+        UI.info.onFinish = setInfoOnFinish;
+        UI.info.refresh = (newVariables) => {
+            setInfoVariables({
+                ...infoVariables,
+                ...newVariables
+            });
+        };
+    }
 
     const onClickInfo = (e) => {
         setInfoOpen(!isInfoOpen);
@@ -26,13 +33,13 @@ const App = () => {
 
     return (
         <div>
-            <MenuView onClickInfo={onClickInfo}></MenuView>
             <InformationView
                 open={isInfoOpen}
                 onClose={onCloseInfo} 
                 info={infoVariables}
                 onFinish={infoOnFinish}
             />
+            <MenuView onClickInfo={onClickInfo}></MenuView>
         </div>
     );
 };

@@ -107,7 +107,7 @@ Where $u_i$ is the final velocity of $P_i$.
 
 So, the force exerted by a collision is (a lot of omitted algebra here...)
 
-$$F(P_i) = \frac{2 m_i m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
+$$F(P_i) = \frac{2 m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
 
 ## Build
 

@@ -445,6 +445,10 @@ void main() {
         vel1 = round(vel1);
     #endif
 
+    #if 0
+        vel1 = clamp(vel1, -1e31, 1e31);
+    #endif
+
     #if MODE_2D
         gl_FragColor = vec4(vel1.xy, outOfBoundaryCount, collisions);
     #else
@@ -505,7 +509,7 @@ void main() {
                 }
             #endif
         #else
-            pos = clamp(pos, -1e30, 1e30);
+            pos = clamp(pos, -1e31, 1e31);
         #endif
     }
 

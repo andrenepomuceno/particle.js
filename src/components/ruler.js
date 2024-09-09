@@ -1,6 +1,7 @@
 import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from 'three';
 import { simulation } from "../core.js";
 import { mouseToScreenCoord, mouseToWorldCoord, floatArrayToString } from '../helpers.js';
+import { UI } from '../ui/App.jsx';
 
 const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;
@@ -118,5 +119,11 @@ export class Ruler {
         this.controls.rulerLen = this.ruler.length().toExponential(8);        
         this.controls.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
         this.controls.rulerStart = floatArrayToString(this.p0.toArray(), 3);
+
+        UI.info.refresh({
+            length: this.controls.rulerLen,
+            delta: this.controls.rulerDelta,
+            start: this.controls.rulerStart,
+        });
     }
 }

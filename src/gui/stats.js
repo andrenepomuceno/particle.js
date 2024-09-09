@@ -66,7 +66,7 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
     var min = Infinity, max = 0, round = Math.round;
     var PR = round(window.devicePixelRatio || 1);
 
-    const W = 80, H = 60;
+    const W = 100, H = 60;
     const FONT_H = 10 * PR;
     const WIDTH = W * PR, HEIGHT = H * PR,
         TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
@@ -110,7 +110,18 @@ Stats.Panel = function (name, fg = '#0ff', bg = '#222') {
             context.globalAlpha = 1;
             context.fillRect(0, 0, WIDTH, GRAPH_Y);
             context.fillStyle = fg;
-            context.fillText(name + ' ' + value.toFixed(1) + ' ' + max.toFixed(1), TEXT_X, TEXT_Y);
+            let text = name + ' ';
+            if (Math.abs(value) > 1000) {
+                text += value.toExponential(1) + ', ';
+            } else {
+                text += value.toFixed(1) + ', ';
+            }
+            if (Math.abs(max) > 999) {
+                text += max.toExponential(0);
+            } else {
+                text += max.toFixed(1);
+            }
+            context.fillText(text, TEXT_X, TEXT_Y);
 
             context.drawImage(canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT);
 

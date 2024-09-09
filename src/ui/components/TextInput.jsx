@@ -7,9 +7,10 @@ const TextInput = ({
     name,
     value = '',
     onFinish,
-    disabled,
+    // readOnly = false,
 }) => {
     const [value_, setValue] = useState(value);
+    const readOnly = (onFinish == undefined) ? true : false;
 
     // TODO onStart
 
@@ -40,16 +41,23 @@ const TextInput = ({
         setValue(value);
     }, [value]);
 
+    const color = (readOnly ? 'secondary' : 'success');
     return (
         <TextField id="filled"
             variant='filled'
-            disabled={disabled}
             type="text"
             label={name}
             value={value_}
             onChange={onChange}
             onKeyDown={onKeyDown}
             onBlur={onBlur}
+            focused={!readOnly}
+            slotProps={{
+                input: {
+                    readOnly: readOnly,
+                },
+            }}
+            size='small'
         />
     );
 };

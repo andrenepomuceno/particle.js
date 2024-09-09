@@ -46,16 +46,16 @@ Try to simulate 3 forces on point-like particles:
 
 ## Mathematical Model
 Main considerations:
-- Each particle is a point (no volume) in space.
+- Each particle $P_i$ is a point (no volume) in space.
 - Particles have vectorial properties like position $\vec{x_i}$ and velocity $\vec{v_i}$.
 - Particles have scalar properties like mass $m_i$, charge $q_i$ and nuclear charge $n_i$.
 - Particles interact in pairs each simulation step $\Delta t$.
 - Particles can collide if $d \le d_{min}$.
-- There is a maximum speed *c* so $|\vec{v_i}| \le c$.
+- There is a maximum speed $c$ so $|\vec{v_i}| \le c$.
 - Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
 - Uses a limited range potential for nuclear force, trying to model the Strong Force.
 
-For each particle $P_i$, with mass $m_i$, charge $q_i$ and nuclear charge $n_i$, the resulting force acting on this particle is
+For each particle $P_i$ interacting with $P_j$, the resulting force acting on this particle is
 
 $$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{n_{ij}}$$
 
@@ -73,7 +73,7 @@ $$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{d^2}$$
 
 $$\vec{F_n}(P_i,P_j)=n_i.n_j.V(d).H(d_{range}-d)$$
 
-$H(d)$ is the Heaviside step function used to confine the nuclear potential range into $d<d_{range}$.
+Where $H(d)$ is the Heaviside step function used to confine the nuclear potential range into $d<d_{range}$.
 
 and $V(d)$ represents the nuclear potential, that can be any nuclear potential function like Yukawa, Reci, Lennard-Jones and so on...
 
@@ -97,7 +97,7 @@ $$x' = x + v'.\Delta t$$
 
 A collision occurs when the distance between two particles is less than a minimal allowed distance $d_{min}$.
 
-In the case of a collision between $P_1$ and $P_2$, the conservation of momentum and energy are applied:
+In the case of a collision between $P_i$ and $P_j$, the conservation of momentum and energy are applied:
 
 $$m_i \vec{v_i} + m_j \vec{v_j} = m_i \vec{u_i} + m_j \vec{u_j}$$
 

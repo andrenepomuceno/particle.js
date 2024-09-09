@@ -34,16 +34,87 @@ function a11yProps(index) {
     };
 }
 
+const Scenarios = ({ info, onFinish }) => {
+    return (
+        <Grid container spacing={1}>
+            <Grid item>
+                <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Scenario Folder" value={info.folder} readOnly={true}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Particles" value={info.particles} readOnly={true}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Elapsed Time (steps)" value={info.time} readOnly={true}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
+            </Grid>
+        </Grid>
+    );
+};
+
+const Statistics = ({ info, onFinish }) => {
+    return (
+        <Grid container spacing={1}>
+            <Grid item>
+                <TextInput name="Mass sum." value={info.mass} onFinish={onFinish.mass}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Charge sum." value={info.charge} onFinish={onFinish.charge}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Nuclear Charge sum." value={info.nuclearCharge} onFinish={onFinish.nuclearCharge}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Color Charge sum." value={info.colorCharge}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Energy avg." value={info.energy}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Velocity avg." value={info.velocity}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Collisions" value={info.collisions}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Out of Boundary" value={info.outOfBoundary}></TextInput>
+            </Grid>
+        </Grid>
+    );
+};
+
+const Ruler = ({ info }) => {
+    return (
+        <Grid container spacing={1}>
+            <Grid item>
+                <TextInput name="Length" value={info.length}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Delta" value={info.delta}></TextInput>
+            </Grid>
+            <Grid item>
+                <TextInput name="Start" value={info.start}></TextInput>
+            </Grid>
+        </Grid>
+    );
+};
+
 const InformationView = ({
     open = true,
     onClose,
     info = {},
     onFinish = {},
 }) => {
-    const [value, setValue] = useState(0);
-
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
+    const [tab, setTab] = useState(0);
+    const handleChange = (event, value) => {
+        setTab(value);
     };
 
     return (
@@ -57,75 +128,21 @@ const InformationView = ({
                 onClose={onClose}
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={value} onChange={handleChange} variant='scrollable'>
+                    <Tabs value={tab} onChange={handleChange} variant='scrollable'>
                         <Tab label="General" {...a11yProps(0)} />
                         <Tab label="Statistics" {...a11yProps(1)} />
                         <Tab label="Ruler" {...a11yProps(2)} />
                         <Tab label="Debug" {...a11yProps(3)} />
                     </Tabs>
                 </Box>
-                <CustomTabPanel value={value} index={0}>
-                    <Grid container spacing={1}>
-                        <Grid item>
-                            <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Scenario Folder" value={info.folder} readOnly={true}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Particles" value={info.particles} readOnly={true}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Elapsed Time (steps)" value={info.time} readOnly={true}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
-                        </Grid>
-                    </Grid>
+                <CustomTabPanel value={tab} index={0}>
+                    <Scenarios info={info} onFinish={onFinish}></Scenarios>
+                </CustomTabPanel>
+                <CustomTabPanel value={tab} index={1}>
+                    <Statistics info={info} onFinish={onFinish}></Statistics>
                 </CustomTabPanel >
-                <CustomTabPanel value={value} index={1}>
-                    <Grid container spacing={1}>
-                        <Grid item>
-                            <TextInput name="Mass sum." value={info.mass} onFinish={onFinish.mass}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Charge sum." value={info.charge} onFinish={onFinish.charge}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Nuclear Charge sum." value={info.nuclearCharge} onFinish={onFinish.nuclearCharge}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Color Charge sum." value={info.colorCharge}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Energy avg." value={info.energy}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Velocity avg." value={info.velocity}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Collisions" value={info.collisions}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Out of Boundary" value={info.outOfBoundary}></TextInput>
-                        </Grid>
-                    </Grid>
-                </CustomTabPanel >
-                <CustomTabPanel value={value} index={2}>
-                    <Grid container spacing={1}>
-                        <Grid item>
-                            <TextInput name="Length" value={info.length}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Delta" value={info.delta}></TextInput>
-                        </Grid>
-                        <Grid item>
-                            <TextInput name="Start" value={info.start}></TextInput>
-                        </Grid>
-                    </Grid>
+                <CustomTabPanel value={tab} index={2}>
+                    <Ruler info={info}></Ruler>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

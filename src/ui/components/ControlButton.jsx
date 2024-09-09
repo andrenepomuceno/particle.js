@@ -5,7 +5,7 @@ const ControlButton = ({ children, onClick }) => {
     return (
         <div>
             <Grid2 item>
-                <Button onClick={onClick}>{children}</Button>
+                <Button onClick={onClick} variant="outlined" size="small">{children}</Button>
             </Grid2>
         </div>
     );

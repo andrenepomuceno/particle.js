@@ -43,9 +43,10 @@ const TextInput = ({
 
     const color = (readOnly ? 'secondary' : 'success');
     return (
-        <TextField id="filled"
-            variant='filled'
+        <TextField
             type="text"
+            variant="filled"
+            size="small"
             label={name}
             value={value_}
             onChange={onChange}
@@ -57,7 +58,6 @@ const TextInput = ({
                     readOnly: readOnly,
                 },
             }}
-            size='small'
         />
     );
 };

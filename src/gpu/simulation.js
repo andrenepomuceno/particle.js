@@ -186,8 +186,5 @@ export class SimulationGPU {
         } else {
             this.graphics.controls.enableRotate = true;
         }
-
-        this.physics.mode2D = enable;
-        this.graphics.drawParticles(this.particleList, this.physics, true);
     }
 }

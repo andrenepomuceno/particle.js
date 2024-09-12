@@ -28,11 +28,13 @@ const CustomDialog = ({
         if (onClose) onClose(e);
     };
 
-    const onDragStop = (e, { x, y }) => {
-        setPosition({ x, y });
+    const onDragStop = (e, position) => {
+        console.log(position);
+        setPosition(position);
     };
 
     const onResize = (e, { size }) => {
+        console.log(size);
         setSize(size);
     }
 

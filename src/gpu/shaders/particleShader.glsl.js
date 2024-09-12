@@ -283,8 +283,8 @@ float particleSdf(vec3 position) {
 #define DIFFUSE_LIGHT (-3.0)
 #define AMBIENT_LIGHT (1.0/3.0)
 
-const vec3 diffuseLightPosition = normalize(vec3(1.0, 1.0, 1.0));
-const vec3 ambientLightColor = vec3(31, 41, 53)/255.0;
+const vec3 diffuseLightPosition = normalize(vec3(0.0, 0.0, 1.0));
+const vec3 ambientLightColor = vec3(0.25);
 
 void particle3d() {
     vec3 targetPosition = vec3(0.0);

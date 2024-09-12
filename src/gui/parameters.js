@@ -3,27 +3,45 @@ import {
     simulation,
     core,
 } from '../core';
+import { UI } from '../ui/App';
 
 let options;
 let controls;
 let refreshCallbackList = []
 
-function addPhysicsControl(folder, title, variable, defaultValue = '', refreshCallback = undefined, variableList = undefined) {
+function addPhysicsControl(
+    folder, title, variable, defaultValue = '',
+    refreshCallback = undefined,
+    variableList = undefined,
+    onFinishChange = undefined,
+) {
     options.parameters[variable] = defaultValue;
-    folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange((val) => {
+    const onFinish = (val) => {
         core.updatePhysics(variable, val);
-    });
+    };
+    onFinishChange = (onFinishChange || onFinish);
+    folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
     if (refreshCallback != undefined) {
         refreshCallbackList.push(refreshCallback);
     }
+
+    const item = {
+        title: title,
+        value: defaultValue,
+        onFinish: onFinish,
+    }
+    UI.parameters.parameters['general'].push(item);
+    refreshCallbackList.push((value) => {
+        item.value = options.parameters[variable];
+    });
 }
 
 export class GUIParameters {
-    constructor(guiOptions, guiParameters) { 
+    constructor(guiOptions, guiParameters) {
         options = guiOptions;
         controls = guiParameters;
         this.setup();
-     }
+    }
 
 
     setup() {
@@ -41,7 +59,7 @@ export class GUIParameters {
             options.parameters.massConstant = simulation.physics.massConstant.toExponential(4);
         });
         addPhysicsControl(guiParametersConsts, 'Electric Constant', 'chargeConstant', '', () => {
-            options.parameters.chargeConstant= simulation.physics.chargeConstant.toExponential(4);
+            options.parameters.chargeConstant = simulation.physics.chargeConstant.toExponential(4);
         });
         addPhysicsControl(guiParametersConsts, 'x^-1 potential', 'distance1', false, () => {
             options.parameters.distance1 = simulation.physics.useDistance1;
@@ -50,10 +68,10 @@ export class GUIParameters {
 
         const guiParametersNuclear = controls.addFolder("[+] Nuclear Force ✏️");
         addPhysicsControl(guiParametersNuclear, 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
-            options.parameters.nuclearForceConstant= simulation.physics.nuclearForceConstant.toExponential(4);
+            options.parameters.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(4);
         });
         addPhysicsControl(guiParametersNuclear, 'Nuclear Force Range', 'nuclearForceRange', '', () => {
-            options.parameters.nuclearForceRange= simulation.physics.nuclearForceRange.toExponential(4);
+            options.parameters.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(4);
         });
         const potentialType = {
             'Sin[ax]': NuclearPotentialType.default,
@@ -93,7 +111,7 @@ export class GUIParameters {
         guiParametersNuclear.open();
 
         const guiParametersModel = controls.addFolder("[+] Other ✏️");
-        
+
         addPhysicsControl(guiParametersModel, 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
         });
@@ -149,7 +167,7 @@ export class GUIParameters {
             options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
         });
         addPhysicsControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
-            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(4); 
+            options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(4);
         });
         addPhysicsControl(guiParametersExp, 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
             options.parameters.enableLorentzFactor = simulation.physics.enableLorentzFactor;
@@ -180,5 +198,7 @@ export class GUIParameters {
                 callback();
             }
         })
+
+        UI.parameters.refresh();
     }
 }

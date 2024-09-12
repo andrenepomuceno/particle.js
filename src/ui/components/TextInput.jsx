@@ -20,7 +20,6 @@ const TextInput = ({
 
     const onFinish_ = (e) => {
         const value = e.target.value;
-        // TODO sanitize value
         if (onFinish) onFinish(value);
     }
 

@@ -1,61 +1,35 @@
 import React, { useState } from 'react';
 import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
-import PropTypes from 'prop-types';
 
 import CustomDialog from '../components/CustomDialog';
 import TextInput from '../components/TextInput';
+import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
 
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-
+const General = ({ info, onFinish }) => {
     return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-        </div>
-    );
-}
-
-CustomTabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.number.isRequired,
-    value: PropTypes.number.isRequired,
-};
-
-function a11yProps(index) {
-    return {
-        id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
-    };
-}
-
-const Scenarios = ({ info, onFinish }) => {
-    return (
-        <Grid container spacing={1}>
-            <Grid item>
-                <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
+        <>
+            <Grid container spacing={1}>
+                <Grid item>
+                    <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
+                </Grid>
+                <Grid item>
+                    <TextInput name="Scenario Folder" value={info.folder} readOnly={true}></TextInput>
+                </Grid>
+                <Grid item>
+                    <TextInput name="Particle Count" value={info.particles} readOnly={true}></TextInput>
+                </Grid>
+                <Grid item>
+                    <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
+                </Grid>
+                <Grid item>
+                    <TextInput name="Elapsed Time (steps)" value={info.time} readOnly={true}></TextInput>
+                </Grid>
+                <Grid item>
+                    <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
+                </Grid>
             </Grid>
-            <Grid item>
-                <TextInput name="Scenario Folder" value={info.folder} readOnly={true}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Particles" value={info.particles} readOnly={true}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Elapsed Time (steps)" value={info.time} readOnly={true}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
-            </Grid>
-        </Grid>
+            <p>Blue inputs are editable.</p>
+        </>
     );
 };
 
@@ -75,7 +49,7 @@ const Statistics = ({ info, onFinish }) => {
                 <TextInput name="Color Charge sum." value={info.colorCharge}></TextInput>
             </Grid>
             <Grid item>
-                <TextInput name="Energy avg." value={info.energy}></TextInput>
+                <TextInput name="Kinetic Energy avg." value={info.energy}></TextInput>
             </Grid>
             <Grid item>
                 <TextInput name="Velocity avg." value={info.velocity}></TextInput>
@@ -121,7 +95,7 @@ const InformationView = ({
         <div>
             <CustomDialog
                 title='Information'
-                size={{ width: 280, height: 600 }}
+                size={{ width: 510, height: 390 }}
                 position={{ x: 10, y: 320 }}
                 canClose={true}
                 open={open}
@@ -136,7 +110,7 @@ const InformationView = ({
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <Scenarios info={info} onFinish={onFinish}></Scenarios>
+                    <General info={info} onFinish={onFinish}></General>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
                     <Statistics info={info} onFinish={onFinish}></Statistics>

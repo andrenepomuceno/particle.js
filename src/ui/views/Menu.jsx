@@ -4,7 +4,10 @@ import { Grid2 } from '@mui/material';
 import CustomDialog from '../components/CustomDialog';
 import ControlButton from '../components/ControlButton';
 
-const MenuView = ({ onClickInfo }) => {
+const MenuView = ({
+    onClickInfo,
+    onClickParameters,
+}) => {
     return (
         <div>
             <CustomDialog
@@ -15,13 +18,13 @@ const MenuView = ({ onClickInfo }) => {
             >
                 <Grid2 container spacing={1}>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
-                    <ControlButton>Controls</ControlButton>
-                    <ControlButton>Particle</ControlButton>
-                    <ControlButton>Selection</ControlButton>
-                    <ControlButton>Generator</ControlButton>
-                    <ControlButton>Field</ControlButton>
-                    <ControlButton>Advanced</ControlButton>
-                    <ControlButton>Parameters</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Controls</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Particle</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Selection</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Generator</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Field</ControlButton>
+                    <ControlButton onClick={onClickInfo}>Advanced</ControlButton>
+                    <ControlButton onClick={onClickParameters}>Parameters</ControlButton>
                 </Grid2>
             </CustomDialog>
         </div>

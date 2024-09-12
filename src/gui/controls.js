@@ -156,6 +156,7 @@ export class GUIControls {
         guiControlsSimulation.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
         guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode ✏️').listen().onFinishChange((val) => {
             simulation.bidimensionalMode(val);
+            core.updatePhysics('mode2D', val);
         });
         guiControlsSimulation.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
 

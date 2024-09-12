@@ -7,7 +7,6 @@ import { SimulationGPU } from './gpu/simulation';
 import { GraphicsGPU } from './gpu/graphics'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
 import { FieldGPU } from './gpu/field';
-import { generateComputePosition, generateComputeVelocity } from './gpu/shaders/computeShader.glsl.js';
 
 const graphics = new GraphicsGPU();
 export let simulation = new SimulationGPU(graphics, new Physics());
@@ -297,11 +296,7 @@ class Core {
         }
 
         if (updateShader) {
-            physics.velocityShader = generateComputeVelocity(physics);
-            physics.positionShader = generateComputePosition(physics);
-
-            graphics.readbackParticleData();
-            graphics.drawParticles();
+            graphics.drawParticles(simulation.particleList, simulation.physics, true);
         }
 
         if (fillPhysics) {

@@ -34,8 +34,8 @@ function calcTextWidth(n) {
 const textureWidth0 = calcTextWidth(ENV?.maxParticles);
 
 function log(msg) {
-    /*let timestamp = new Date().toISOString();
-    console.log(timestamp + " | Graphics: " + msg);*/
+    // let timestamp = new Date().toISOString();
+    // console.log(timestamp + " | Graphics: " + msg);
 }
 
 export class GraphicsGPU {
@@ -209,9 +209,15 @@ export class GraphicsGPU {
         }
     }
 
-    drawParticles(particleList, physics) {
+    drawParticles(particleList, physics, shaderUpdate = false) {
         log('drawParticles');
         log("textureWidth = " + this.textureWidth);
+
+        if (shaderUpdate) {
+            physics.velocityShader = generateComputeVelocity(physics);
+            physics.positionShader = generateComputePosition(physics);
+            this.readbackParticleData();
+        }
 
         this.particleList = (particleList || this.particleList);
         this.physics = (physics || this.physics);
@@ -322,9 +328,9 @@ export class GraphicsGPU {
             this.cursorMesh = undefined;
             return;
         }
-        
+
         this.cursorMesh = new Mesh(
-            new RingGeometry(radius - thickness/2, radius + thickness/2, 32),
+            new RingGeometry(radius - thickness / 2, radius + thickness / 2, 32),
             new MeshBasicMaterial({ color: 0xfffffff })
         );
         this.scene.add(this.cursorMesh);
@@ -413,12 +419,14 @@ export class GraphicsGPU {
         velocityUniforms['boundaryDistance'] = { value: physics.boundaryDistance };
         velocityUniforms['boundaryDamping'] = { value: physics.boundaryDamping };
         velocityUniforms['frictionConstant'] = { value: physics.frictionConstant };
-        velocityUniforms['forceConstants'] = { value: [
-            physics.massConstant,
-            -physics.chargeConstant,
-            physics.nuclearForceConstant,
-            physics.colorChargeConstant,
-        ] };
+        velocityUniforms['forceConstants'] = {
+            value: [
+                physics.massConstant,
+                -physics.chargeConstant,
+                physics.nuclearForceConstant,
+                physics.colorChargeConstant,
+            ]
+        };
         velocityUniforms['maxVel'] = { value: physics.maxVel };
         velocityUniforms['maxVel2'] = { value: Math.pow(physics.maxVel, 2) };
         velocityUniforms['fineStructureConstant'] = { value: physics.fineStructureConstant };

@@ -188,6 +188,11 @@ class Core {
                         break;
                 }
             },
+            'mode2D': () => {
+                physics.mode2D = value;
+                fillPhysics = false;
+                updateShader = true;
+            },
         };
 
 

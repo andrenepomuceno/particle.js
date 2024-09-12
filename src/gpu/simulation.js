@@ -174,17 +174,20 @@ export class SimulationGPU {
         fillParticleColor(this.particleList, this.stats.qMin, this.stats.qMax, this.enableChargeColor);
     }
 
-    bidimensionalMode(enable) {
+    bidimensionalMode(enable = true) {
         log('bidimensionalMode ' + enable);
 
-        // TODO update shader if running
+        if (enable == this.mode2D) return;
 
-        if (enable != undefined) this.mode2D = enable;
+        this.mode2D = enable;
 
         if (this.mode2D) {
             this.graphics.controls.enableRotate = false;
         } else {
             this.graphics.controls.enableRotate = true;
         }
+
+        this.physics.mode2D = enable;
+        this.graphics.drawParticles(this.particleList, this.physics, true);
     }
 }

@@ -24,8 +24,8 @@ if (ENV?.record === true) {
 
 import { generateComputePosition, generateComputeVelocity } from './shaders/computeShader.glsl.js';
 import { particleVertexShader, generateParticleShader } from './shaders/particleShader.glsl.js';
-import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from '../helpers';
-import { ParticleType } from '../particle.js';
+import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseToScreenCoord, mouseToWorldCoord } from './helpers.js';
+import { ParticleType } from './particle.js';
 
 function calcTextWidth(n) {
     return Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);

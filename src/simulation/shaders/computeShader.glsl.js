@@ -1,4 +1,4 @@
-import { FrictionModel, NuclearPotentialType } from "../../physics";
+import { FrictionModel, NuclearPotentialType } from "../physics";
 
 function define(define, value = false) {
     if (value) {

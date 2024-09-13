@@ -1,5 +1,5 @@
-import { fillParticleRadius, fillParticleColor } from '../helpers';
-import { calcListStatistics } from '../physics';
+import { fillParticleRadius, fillParticleColor } from './helpers';
+import { calcListStatistics } from './physics';
 
 function log(msg) {
     let timestamp = new Date().toISOString();

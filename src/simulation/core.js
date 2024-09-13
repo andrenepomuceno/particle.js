@@ -3,10 +3,10 @@ import { calcListStatistics, NuclearPotentialType, Physics } from './physics.js'
 import { decodeVector3, safeParseFloat } from './helpers.js';
 import { scenariosList } from './scenarios.js';
 import { Particle, ParticleType } from './particle.js';
-import { SimulationGPU } from './gpu/simulation';
-import { GraphicsGPU } from './gpu/graphics'
+import { SimulationGPU } from './simulation';
+import { GraphicsGPU } from './graphics.js'
 //import { GraphicsMock as GraphicsGPU } from './mock/graphics'
-import { FieldGPU } from './gpu/field';
+import { FieldGPU } from './field.js';
 
 const graphics = new GraphicsGPU();
 export let simulation = new SimulationGPU(graphics, new Physics());

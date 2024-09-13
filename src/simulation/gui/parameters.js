@@ -19,7 +19,9 @@ function addPhysicsControl(
     const onFinish = (val) => {
         core.updatePhysics(variable, val);
     };
-    onFinishChange = (onFinishChange || onFinish);
+    if (onFinishChange == undefined) {
+        onFinishChange = onFinish;
+    }
     folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
     if (refreshCallback != undefined) {
         refreshCallbackList.push(refreshCallback);

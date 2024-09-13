@@ -598,7 +598,7 @@ function GPU_point10(simulation) {
     let q = 1;
     let nq = 1;
     let r0 = 1;
-    let v = 0;
+    let v = 0.01;
     let n = graphics.maxParticles;
 
     createParticlesList(physics.particleList, n,
@@ -724,7 +724,7 @@ function GPU_point7(simulation) {
     let q = 1;
     let nq = 1;
     let r0 = 1;
-    let v = 0;
+    let v = 0.01;
     let n = graphics.maxParticles;
 
     createParticlesList(physics.particleList, n,

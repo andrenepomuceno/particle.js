@@ -27,8 +27,10 @@ class Core {
     }
 
     internalSetup(newPhysics) {
-        const physics = (newPhysics || new Physics());
-        simulation = new SimulationGPU(graphics, physics);
+        if (newPhysics == undefined) {
+            newPhysics = new Physics();
+        }
+        simulation = new SimulationGPU(graphics, newPhysics);
         simulation.field = new FieldGPU(simulation);
 
         this.simulation = simulation;
@@ -384,7 +386,10 @@ class Core {
                         let vec = new Vector3(dir.x, dir.y, dir.z);
                         vec.normalize();
 
-                        let abs = (particle.velocity.length() || 1.0);
+                        let abs = particle.velocity.length();
+                        if (abs == 0) {
+                            abs = 1;
+                        }
                         particle.velocity = vec;
                         particle.velocity.multiplyScalar(abs);
                     } else {

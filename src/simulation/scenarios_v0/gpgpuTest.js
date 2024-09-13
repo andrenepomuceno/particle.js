@@ -424,9 +424,9 @@ function GPU_shootedBarrier(simulation) {
     let graphics = simulation.graphics;
     let physics = simulation.physics;
     defaultParameters(simulation, 30e3);
-    ;
     simulation.setParticleRadius(50, 10);
     simulation.bidimensionalMode(false);
+    physics.mode2D = false;
 
     let m = 1 / 10;
     let q = 10;

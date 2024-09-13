@@ -64,7 +64,7 @@ const App = () => {
     };
 
     const informationView = new DialogView(true, UI.info); // TODO
-    const parametersView = new DialogView(true, UI.parameters);
+    const parametersView = new DialogView(false, UI.parameters);
 
     return (
         <div>

@@ -174,10 +174,14 @@ export class SimulationGPU {
         fillParticleColor(this.particleList, this.stats.qMin, this.stats.qMax, this.enableChargeColor);
     }
 
-    bidimensionalMode(enable = true) {
-        log('bidimensionalMode ' + enable);
+    bidimensionalMode(enable) {
+        log('bidimensionalMode enable: ' + enable);
 
-        if (enable == this.mode2D) return;
+        if (enable == undefined) {
+            enable = this.mode2D;
+        }
+
+        log('enable <= ' + enable);
 
         this.mode2D = enable;
 

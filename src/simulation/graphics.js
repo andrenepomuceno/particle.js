@@ -480,8 +480,8 @@ export class GraphicsGPU {
             propsArray[offset4 + 2] = p.nuclearCharge;
             propsArray[offset4 + 3] = p.colorCharge;
 
-            props2Array[offset4 + 0] = p.radius;
-            props2Array[offset4 + 1] = 0;
+            props2Array[offset4 + 0] = p.type;
+            props2Array[offset4 + 1] = p.radius;
             props2Array[offset4 + 2] = 0;
             props2Array[offset4 + 3] = 0;
         });
@@ -504,7 +504,7 @@ export class GraphicsGPU {
             propsArray[offset4 + 2] = 0;
             propsArray[offset4 + 3] = 0;
 
-            props2Array[offset4 + 0] = 0;
+            props2Array[offset4 + 0] = ParticleType.undefined;
             props2Array[offset4 + 1] = 0;
             props2Array[offset4 + 2] = 0;
             props2Array[offset4 + 3] = 0;

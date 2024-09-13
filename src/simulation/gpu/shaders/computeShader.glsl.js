@@ -281,6 +281,10 @@ void main() {
             vec3 dPos = pos2 - pos1;
             float distance2 = dot(dPos, dPos);
 
+            #if 0
+                distance2 = round(distance2 * 1e3) * 1e-3;
+            #endif
+
             // check collision
             if (distance2 <= minDistance2) {
                 if (type1 != PROBE) {
@@ -360,6 +364,13 @@ void main() {
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);
 
+            #if 1
+                const float forceScale = 1e3;
+                const float invForceScale = (1.0/forceScale);
+                force = round(force * forceScale) * invForceScale;
+                force = clamp(force, -forceScale, forceScale);
+            #endif
+
             rForce += force * normalize(dPos);
         }
     }
@@ -394,6 +405,8 @@ void main() {
         );
     }
     #endif
+
+    //rForce = round(rForce * 1e3) * 1e-3;
     
     // update velocity
     if (type1 == DEFAULT) {

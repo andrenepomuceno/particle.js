@@ -8,7 +8,7 @@ import {
     core,
 } from '../core.js';
 import { calcListStatistics } from '../physics.js';
-import { UI } from '../ui/App.jsx';
+import { UI } from '../../ui/App.jsx';
 
 let options, controls;
 let maxAvgVelocity = 0;

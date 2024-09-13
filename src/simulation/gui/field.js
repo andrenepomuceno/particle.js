@@ -71,8 +71,9 @@ export class GUIField {
             }
             if (val == simulation.field.grid[0]) return;
             if (simulation.field.enabled == false || simulation.field.arrowList.length == 0) return;
-            if (simulation.field.checkGridSize(val) == false) {
-                alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + simulation.field.probeCount);
+            let neededSize = simulation.field.checkGridSize(val);
+            if (neededSize > 0) {
+                alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + neededSize);
                 return;
             }
             core.deleteParticleList(simulation.field.arrowList);

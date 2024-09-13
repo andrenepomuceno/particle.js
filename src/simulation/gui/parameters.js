@@ -3,7 +3,7 @@ import {
     simulation,
     core,
 } from '../core';
-import { UI } from '../ui/App';
+import { UI } from '../../ui/App';
 
 let options;
 let controls;
@@ -88,7 +88,7 @@ export class GUIParameters {
             options.parameters.nuclearPotential = simulation.physics.nuclearPotential;
         }, potentialType);
 
-        guiParametersNuclear.add(options.parameters, 'forceMap').name('Nuclear Parameters').listen().onFinishChange((val) => {
+        const onFinishMap = (val) => {
             let forceMap = String(val).split(',').map((x) => {
                 let v = parseFloat(x);
                 if (isNaN(v)) {
@@ -101,7 +101,8 @@ export class GUIParameters {
                 return;
             }
             core.updatePhysics('forceMap', forceMap);
-        });
+        };
+        addPhysicsControl(guiParametersNuclear, 'Nuclear Parameters', 'forceMap', '', undefined, undefined, onFinishMap);
         addPhysicsControl(guiParametersNuclear, 'Enable Color Charge', 'enableColorCharge', false, () => {
             options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
         });
@@ -111,7 +112,6 @@ export class GUIParameters {
         guiParametersNuclear.open();
 
         const guiParametersModel = controls.addFolder("[+] Other ✏️");
-
         addPhysicsControl(guiParametersModel, 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
         });
@@ -131,14 +131,16 @@ export class GUIParameters {
         addPhysicsControl(guiParametersModel, 'Max Velocity (C)', 'maxVel', '', () => {
             options.parameters.maxVel = simulation.physics.maxVel.toExponential(4);
         });
-        guiParametersModel.add(options.parameters, 'minDistance').name('Collision Distance').listen().onFinishChange((val) => {
+        const onFinishMinDistance = (val) => {
             let d = parseFloat(val);
             if (isNaN(d)) {
                 alert('Invalid value.');
                 return;
             }
             core.updatePhysics('minDistance2', Math.pow(d, 2));
-        });
+        };
+        guiParametersModel.add(options.parameters, 'minDistance').name('').listen().onFinishChange(onFinishMinDistance);
+        addPhysicsControl(guiParametersModel, 'Collision Distance', 'minDistance', '', undefined, undefined, onFinishMap);
         addPhysicsControl(guiParametersModel, 'Enable Random Noise', 'enableRandomNoise', false, () => {
             options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
         });

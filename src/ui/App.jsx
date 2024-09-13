@@ -17,8 +17,34 @@ const darkTheme = createTheme({
     },
 });
 
+class DialogView {
+    constructor(open = true, initialState) {
+        [this.isOpen, this.setOpen] = useState(open);
+        [this.state, this.setState] = useState(initialState);
+
+        if (initialState.refresh == undefined) {
+            initialState.refresh = () => {
+                const newState = this.state;
+                newState.parameters = {
+                    ...newState.parameters,
+                    ...this.state.newParameters
+                }
+                //this.setState(newState);
+            };
+        }
+    };
+
+    onClickOpen(e) {
+        this.setOpen(!this.isOpen);
+    };
+
+    onClickClose(e) {
+        this.setOpen(false);
+    };
+}
+
 const App = () => {
-    const [isInfoOpen, setInfoOpen] = useState(true);
+    const [isInfoOpen, setInfoOpen] = useState(true);  // TODO use DialogView
     const [infoVariables, setInfoVariables] = useState();
     const [infoOnFinish, setInfoOnFinish] = useState();
     if (UI.info.refresh == undefined) {
@@ -37,25 +63,8 @@ const App = () => {
         setInfoOpen(false);
     };
 
-    const [isParametersOpen, setParametersOpen] = useState(true);
-    const [parametersState, setParametersState] = useState(UI.parameters);
-    if (UI.parameters.refresh == undefined) {
-        UI.parameters.refresh = () => {
-            const newState = parametersState;
-            console.log(UI.parameters.newParameters);
-            newState.parameters = {
-                ...newState.parameters,
-                ...UI.parameters.newParameters
-            }
-            setParametersState(newState);
-        };
-    }
-    const onClickParameters = (e) => {
-        setParametersOpen(!isParametersOpen);
-    };
-    const onCloseParameters = (e) => {
-        setParametersOpen(false);
-    };
+    const informationView = new DialogView(true, UI.info); // TODO
+    const parametersView = new DialogView(true, UI.parameters);
 
     return (
         <div>
@@ -65,16 +74,16 @@ const App = () => {
                 open={isInfoOpen}
                 onClose={onCloseInfo}
                 info={infoVariables}
-                onFinish={infoOnFinish}
+                onFinish={infoOnFinish} // TODO
             />
             <ParametersView
-                open={isParametersOpen}
-                onClose={onCloseParameters}
-                parameters={parametersState.parameters}
+                open={parametersView.isOpen}
+                onClose={(e) => { parametersView.onClickClose(e); }}
+                parameters={parametersView.state.parameters}
             />
             <MenuView
                 onClickInfo={onClickInfo}
-                onClickParameters={onClickParameters}
+                onClickParameters={(e) => { parametersView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>

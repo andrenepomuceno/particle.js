@@ -1,7 +1,7 @@
 import { Vector3, ArrowHelper, RingGeometry, BoxGeometry, WireframeGeometry, LineSegments } from 'three';
 import { simulation } from "../core.js";
 import { mouseToScreenCoord, mouseToWorldCoord, floatArrayToString } from '../helpers.js';
-import { UI } from '../ui/App.jsx';
+import { UI } from '../../ui/App.jsx';
 
 const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;

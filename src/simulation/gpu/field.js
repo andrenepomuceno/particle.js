@@ -148,17 +148,18 @@ export class FieldGPU {
         let total = this.particleList.length - this.arrowList.length + this.probeCount;
         log("total = " + total);
         if (total > this.graphics.maxParticles) {
-            return false;
+            return -this.arrowList.length + this.probeCount;
         }
-        return true;
+        return 0;
     }
 
     #populateField(center = new Vector3(), mode = 'cube') {
         log("#populateField");
-
-        if (!this.checkGridSize(this.grid[0])) {
+        
+        let neededSize = this.checkGridSize(this.grid[0]);
+        if (neededSize > 0) {
             log("error: field is to big " + this.probeCount);
-            alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + this.probeCount);
+            alert('Max particles exceeded!\nPlease adjust "Max Particles" parameters or delete existing ones.\nSpace needed: ' + neededSize);
             return false;
         }        
 

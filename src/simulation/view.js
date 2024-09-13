@@ -140,12 +140,15 @@ export function viewSetup() {
     guiOptions.selectionHelper.graphics = simulation.graphics;
 
     //stats overlay
-    document.getElementById('root').appendChild(statsPanel.domElement);
+    const rootDOM = document.getElementById('root');
+    rootDOM.appendChild(statsPanel.domElement);
+
     mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = 'visible';
 
     //gui menu overlay
     mouse.addOverListener(gui.domElement);
+    mouse.addOverListener(rootDOM);
     gui.width = Math.max(0.2 * window.innerWidth, 420);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);

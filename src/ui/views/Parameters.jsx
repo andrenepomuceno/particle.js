@@ -5,8 +5,8 @@ import CustomDialog from '../components/CustomDialog';
 import TextInput from '../components/TextInput';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
 
-const Constants = ({ constants = [] }) => {
-    const itemList = constants.map(item =>
+const GridList = ({ itemList = [] }) => {
+    const itemListMaped = itemList.map(item =>
         <Grid item>
             <TextInput
                 name={item.title}
@@ -18,7 +18,7 @@ const Constants = ({ constants = [] }) => {
     );
     return (
         <Grid container spacing={1}>
-            {itemList}
+            {itemListMaped}
         </Grid>
     );
 };
@@ -50,13 +50,13 @@ const ParametersView = ({
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
-                        <Tab label="General Forces" {...a11yProps(0)} />
-                        <Tab label="Statistics" {...a11yProps(1)} />
-                        <Tab label="Advanced" {...a11yProps(2)} />
+                        <Tab label="Forces" {...a11yProps(0)} />
+                        <Tab label="Other" {...a11yProps(1)} />
+                        <Tab label="Boundaries" {...a11yProps(2)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <Constants constants={parameters['general']}></Constants>
+                    <GridList itemList={parameters['general']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
                     {/* <Statistics info={info} onFinish={onFinish}></Statistics> */}

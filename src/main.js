@@ -1,5 +1,5 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { viewSetup } from './view';
+import { viewSetup } from './simulation/view';
 import { UI } from './ui/App';
 
 const simulationStart = () => {

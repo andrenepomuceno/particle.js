@@ -20,12 +20,12 @@ export function random(a, b, round = false) {
     return r;
 }
 
-export function randomColor(mode = 'hue') {
+export function randomColor(mode = 'rgb') {
     let color;
 
     switch (mode) {
         case 'rgb':
-            const min = 10;
+            const min = 0;
             const max = 255;
             let r = random(min, max, true);
             let g = random(min, max, true);
@@ -239,103 +239,49 @@ export function uploadFile(type, callback) {
 }
 
 export function generateParticleColor(p, absCharge) {
-    return generateParticleColor2(p, absCharge);
-
-    let h = 0, s = 100, l = 50;
-    let lmin = 30, lmax = 60;
-
-    if (absCharge <= 0) absCharge = 1;
-
-    let charge = p.charge;
-    if (charge > 0) {
-        h = 240;
-        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
-    } else if (charge < 0) {
-        h = 0;
-        l = Math.round(lmin + (lmax - lmin) * Math.abs(charge) / absCharge);
-    } else {
-        h = 120;
-        l = lmin;
-    }
-
-    if (p.mass == 0) {
-        l = 80;
-    }
-
-    if (p.nuclearCharge > 0) {
-        //h += 10;
-    } else if (p.nuclearCharge < 0) {
-        h += 20;
-    }
-
-    switch (p.colorCharge) {
-        case 1:
-            h = 0;
-            break;
-
-        case 2:
-            h += 15;
-            break;
-
-        case 3:
-            h -= 15;
-            break;
-    }
-
-    while (h > 360) h -= 360;
-    while (h < 0) h += 360;
-
-    return "hsl(" + h + "," + s + "%," + l + "%)";
-}
-
-export function generateParticleColor2(p, absCharge) {
     let r = 0, g = 0, b = 0;
 
     if (absCharge <= 0) absCharge = 1;
-    let c = Math.floor(255/7);
 
     let charge = p.charge;
     if (charge > 0) {
-        b += 4*c;// * Math.abs(charge)/absCharge;
+        b = 6;
     } else if (charge < 0) {
-        r += 4*c;// * Math.abs(charge)/absCharge;
+        r = 6;
     } else {
-        r += c;
-        g += c;
-        b += c;
+        r = g = b = 2;
     }
 
     if (p.mass == 0) {
-        r += c;
-        g += c;
-        b += c;
+        r += 2;
+        g += 2;
+        b += 2;
     }
 
     if (p.nuclearCharge > 0) {
         //h += 10;
     } else if (p.nuclearCharge < 0) {
-        g += 2*c;
+        g += 1;
     }
 
     switch (p.colorCharge) {
         case 1:
-            r += 2*c;
+            r += 2;
             break;
 
         case 2:
-            g += 2*c;
+            g += 2;
             break;
 
         case 3:
-            b += 2*c;
+            b += 2;
             break;
     }
 
-    r = Math.min(r, 255);
-    g = Math.min(g, 255);
-    b = Math.min(b, 255);
+    let rgb = new Vector3(r, g, b);
+    rgb.normalize().multiplyScalar(255).round();
 
-    return "rgb(" + r + "," + g + "," + b + ")";
+    return "rgb(" + rgb.x + "," + rgb.y + "," + rgb.z + ")";
 }
 
 export function fillParticleRadius(particleList, particleRadius, particleRadiusRange, mMin, mMax, enableMassRadius) {

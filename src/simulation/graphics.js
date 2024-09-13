@@ -34,8 +34,8 @@ function calcTextWidth(n) {
 const textureWidth0 = calcTextWidth(ENV?.maxParticles);
 
 function log(msg) {
-    // let timestamp = new Date().toISOString();
-    // console.log(timestamp + " | Graphics: " + msg);
+    let timestamp = new Date().toISOString();
+    console.log(timestamp + " | Graphics: " + msg);
 }
 
 export class GraphicsGPU {
@@ -211,6 +211,8 @@ export class GraphicsGPU {
     drawParticles(particleList, physics, shaderUpdate = false) {
         log('drawParticles');
         log("textureWidth = " + this.textureWidth);
+        log("physics = " + physics);
+        log("shaderUpdate = " + shaderUpdate);
 
         if (shaderUpdate) {
             physics.velocityShader = generateComputeVelocity(physics);

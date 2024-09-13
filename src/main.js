@@ -18,7 +18,7 @@ const simulationStart = () => {
 
 function analytics() {
     if (ENV?.production === true) {
-        function analytics() {
+        const analytics = () => {
             window.dataLayer = window.dataLayer || [];
             function gtag() { dataLayer.push(arguments); }
             gtag('js', new Date());

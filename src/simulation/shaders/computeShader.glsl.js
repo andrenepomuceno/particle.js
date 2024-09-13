@@ -39,7 +39,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
     config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
 
-    //console.log(config)
+    console.log(config)
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -101,7 +101,6 @@ float sdSphere(vec3 p, float s) {
     return length(p) - s;
 }
 
-#if USE_RANDOM_NOISE
 uint hash(uint x) {
     x += (x << 10u);
     x ^= (x >> 6u);
@@ -137,7 +136,6 @@ float random(vec2 v) {
     randomSeed += 1.0;
     return floatConstruct(hash(floatBitsToUint(x)));
 }
-#endif
 
 vec3 collision(const float m1, const float m2,
                 const vec3 vel1, const vec3 vel2,
@@ -233,9 +231,7 @@ void main() {
     float type1 = texPos1.w;
     if (type1 == UNDEFINED) return;
 
-    #if USE_RANDOM_NOISE
-        srandom(uTime);
-    #endif
+    srandom(uTime);
     
     vec4 props1 = texture2D(textureProperties, uv1);
     float m1 = props1.x;
@@ -279,11 +275,15 @@ void main() {
             #endif
 
             vec3 dPos = pos2 - pos1;
-            float distance2 = dot(dPos, dPos);
 
-            #if 0
-                distance2 = round(distance2 * 1e3) * 1e-3;
+            #define QUANTIZE_POSITION 1
+            #if QUANTIZE_POSITION
+                const float posScale = 1e3;
+                const float invPosScale = (1.0/posScale);
+                dPos = round(dPos * posScale) * invPosScale;
             #endif
+
+            float distance2 = dot(dPos, dPos);
 
             // check collision
             if (distance2 <= minDistance2) {
@@ -364,11 +364,23 @@ void main() {
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);
 
-            #if 1
+            #define QUANTIZE_FORCE 0
+            #if QUANTIZE_FORCE
                 const float forceScale = 1e3;
                 const float invForceScale = (1.0/forceScale);
-                force = round(force * forceScale) * invForceScale;
-                force = clamp(force, -forceScale, forceScale);
+
+                #define RANDOM_ROUND 0
+                #if RANDOM_ROUND
+                    if (random(uv1) > 0.5) {
+                        force = ceil(force * forceScale) * invForceScale;
+                    } else {
+                        force = floor(force * forceScale) * invForceScale;
+                    }
+                #else
+                    force = round(force * forceScale) * invForceScale;
+                #endif
+
+                //force = clamp(force, -forceScale, forceScale);
             #endif
 
             rForce += force * normalize(dPos);

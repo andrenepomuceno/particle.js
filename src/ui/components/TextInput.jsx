@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import TextField from '@mui/material/TextField'
-import './Input.css';
 
 const TextInput = ({
     name,

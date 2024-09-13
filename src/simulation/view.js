@@ -39,6 +39,9 @@ const guiField = gui.addFolder('FIELD');
 const guiAdvanced = gui.addFolder('ADVANCED');
 const guiParameters = gui.addFolder('PARAMETERS');
 
+// guiInfo.hide();
+// guiParameters.hide();
+
 const mouse = new Mouse();
 
 function log(msg) {

@@ -32,7 +32,7 @@ function addPhysicsControl(
         value: defaultValue,
         onFinish: onFinish,
     }
-    UI.parameters.parameters['general'].push(item);
+    UI.addItem(UI.parameters.parameters['general'], item);
     refreshCallbackList.push((value) => {
         item.value = options.parameters[variable];
     });

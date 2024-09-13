@@ -4,17 +4,17 @@ import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
 import CustomDialog from '../components/CustomDialog';
 import TextInput from '../components/TextInput';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
+import AutomaticInput from '../components/AutomaticInput';
 
 const GridList = ({ itemList = [] }) => {
     const itemListMaped = itemList.map(item =>
-        <Grid item>
-            <TextInput
+        (<Grid item key={item.id}>
+            <AutomaticInput
                 name={item.title}
                 value={item.value}
                 onFinish={item.onFinish}
-                readOnly={item.onFinish == undefined}
-            ></TextInput>
-        </Grid>
+            ></AutomaticInput>
+        </Grid>)
     );
     return (
         <Grid container spacing={1}>

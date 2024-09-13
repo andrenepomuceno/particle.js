@@ -96,6 +96,11 @@ export const UI = {
         root.render(<App />);
     },
 
+    addItem: (folder, item) => {
+        item.id = crypto.randomUUID();
+        folder.push(item);
+    },
+
     info: {
         refresh: undefined,
         onFinish: {},

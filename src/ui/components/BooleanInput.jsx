@@ -10,7 +10,7 @@ const BooleanInput = ({
 }) => {
     const [checked, setChecked] = useState(value);
 
-    const onChange = (e) => {
+    const onToggle = (e) => {
         const value = e.target.checked;
         setChecked(!checked);
         onFinish_(value);
@@ -33,7 +33,7 @@ const BooleanInput = ({
                 control={
                     <Switch
                         checked={checked}
-                        onChange={onChange}
+                        onChange={onToggle}
                         inputProps={{ 'aria-label': 'controlled' }}
                     />
                 }

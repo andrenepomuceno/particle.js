@@ -13,6 +13,7 @@ const GridList = ({ itemList = [] }) => {
                 name={item.title}
                 value={item.value}
                 onFinish={item.onFinish}
+                selectionList={item.selectionList}
             ></AutomaticInput>
         </Grid>)
     );
@@ -33,6 +34,8 @@ const ParametersView = ({
         }]
     }],
 }) => {
+    //console.log(parameters);
+
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
         setTab(value);

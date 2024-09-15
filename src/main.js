@@ -3,13 +3,13 @@ import { viewSetup } from './simulation/view';
 import { UI } from './ui/App';
 
 const simulationStart = () => {
-    if (ENV?.version != false) {
-        let dom = document.getElementById('info');
-        dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
-    }
-
     if (WebGL.isWebGL2Available()) {
         viewSetup();
+
+        if (ENV?.version != false) {
+            let dom = document.getElementById('info');
+            dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
+        }
     } else {
         const warning = WebGL.getWebGL2ErrorMessage();
         document.getElementById('root').appendChild(warning);

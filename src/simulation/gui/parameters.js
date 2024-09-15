@@ -31,6 +31,7 @@ function addPhysicsControl(
         title: title,
         value: defaultValue,
         onFinish: onFinish,
+        selectionList: variableList,
     }
     UI.addItem(UI.parameters.parameters['general'], item);
     refreshCallbackList.push((value) => {
@@ -44,7 +45,6 @@ export class GUIParameters {
         controls = guiParameters;
         this.setup();
     }
-
 
     setup() {
         options.parameters = {

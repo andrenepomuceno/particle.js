@@ -6,7 +6,7 @@ const simulationStart = () => {
     if (WebGL.isWebGL2Available()) {
         viewSetup();
 
-        if (ENV?.version != false) {
+        if (ENV?.version) {
             let dom = document.getElementById('info');
             dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
         }

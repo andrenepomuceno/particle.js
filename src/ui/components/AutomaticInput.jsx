@@ -1,8 +1,9 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import TextInput from './TextInput';
 import BooleanInput from './BooleanInput';
 import SelectionInput from './SelectionInput';
+import ButtonInput from './ButtonInput';
 
 const AutomaticInput = ({
     name = '',
@@ -22,6 +23,15 @@ const AutomaticInput = ({
                 name={name}
                 value={value}
                 onFinish={onFinish}
+            />
+        );
+    }
+
+    if (type == 'function') {
+        return (
+            <ButtonInput
+                name={name}
+                onClick={value}
             />
         );
     }

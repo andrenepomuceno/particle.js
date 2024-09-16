@@ -6,7 +6,6 @@ const BooleanInput = ({
     name,
     value = false,
     onFinish,
-    // readOnly = false,
 }) => {
     const [checked, setChecked] = useState(value);
 

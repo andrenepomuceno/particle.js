@@ -651,7 +651,7 @@ class Core {
         simulation.graphics.readbackParticleData();
 
         let snapshotObj = {
-            version: "0.1",
+            version: ENV?.version,
             name: simulation.name,
             folder: simulation.folderName,
             cycles: simulation.cycles,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
+import React from 'react';
+import { Box } from '@mui/material';
 import PropTypes from 'prop-types';
 
 function CustomTabPanel(props) {

@@ -29,7 +29,7 @@
     "image-js": "^0.35.6",
     "jszip": "^3.10.1",
     "npm": "^10.8.2",
-    "three": "^0.168.0"
+    "three": "^0.169.0"
   },
   "devDependencies": {
     "canvas-capture": "^2.0.5",

@@ -276,14 +276,16 @@ void main() {
 
             vec3 dPos = pos2 - pos1;
 
-            #define QUANTIZE_POSITION 1
+            float distance2 = dot(dPos, dPos);
+
+            #define QUANTIZE_POSITION 0
             #if QUANTIZE_POSITION
                 const float posScale = 1e3;
                 const float invPosScale = (1.0/posScale);
-                dPos = round(dPos * posScale) * invPosScale;
+                //dPos = round(dPos * posScale) * invPosScale;
+                //dPos = round(dPos);
+                distance2 = round(distance2 * posScale) * invPosScale;
             #endif
-
-            float distance2 = dot(dPos, dPos);
 
             // check collision
             if (distance2 <= minDistance2) {
@@ -364,7 +366,7 @@ void main() {
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);
 
-            #define QUANTIZE_FORCE 0
+            #define QUANTIZE_FORCE 1
             #if QUANTIZE_FORCE
                 const float forceScale = 1e3;
                 const float invForceScale = (1.0/forceScale);

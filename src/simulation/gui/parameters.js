@@ -9,6 +9,20 @@ let options;
 let controls;
 let refreshCallbackList = []
 
+function translateFolder(folder) {
+    const regex = /[a-z]+/i;
+    const result = regex.exec(folder.name)[0];
+    console.log(result);
+    const map = {
+        'Gravitational': 'forces',
+        'Nuclear': 'forces',
+        'Other': 'other',
+        'Simulation': 'boundaries',
+        'Experimental': 'other',
+    }
+    return map[result];
+}
+
 function addPhysicsControl(
     folder, title, variable, defaultValue = '',
     refreshCallback = undefined,
@@ -32,8 +46,9 @@ function addPhysicsControl(
         value: defaultValue,
         onFinish: onFinish,
         selectionList: variableList,
+        folder: translateFolder(folder)
     }
-    UI.addItem(UI.parameters.parameters['general'], item);
+    UI.addItem(UI.parameters, item);
     refreshCallbackList.push((value) => {
         item.value = options.parameters[variable];
     });

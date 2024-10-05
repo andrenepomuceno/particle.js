@@ -96,9 +96,12 @@ export const UI = {
         root.render(<App />);
     },
 
-    addItem: (folder, item) => {
+    addItem: (view, item) => {
         item.id = crypto.randomUUID();
-        folder.push(item);
+        if (!(item.folder in view.parameters)) {
+            view.parameters[item.folder] = [];
+        }
+        view.parameters[item.folder].push(item);
     },
 
     info: {

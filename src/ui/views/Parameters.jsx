@@ -59,13 +59,13 @@ const ParametersView = ({
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['general']}></GridList>
+                    <GridList itemList={parameters['forces']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    {/* <Statistics info={info} onFinish={onFinish}></Statistics> */}
+                    <GridList itemList={parameters['other']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    {/* <Ruler info={info}></Ruler> */}
+                    <GridList itemList={parameters['boundaries']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

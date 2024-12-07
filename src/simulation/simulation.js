@@ -175,13 +175,9 @@ export class SimulationGPU {
     }
 
     bidimensionalMode(enable) {
-        log('bidimensionalMode enable: ' + enable);
+        log('bidimensionalMode ' + enable);
 
-        if (enable == undefined) {
-            enable = this.mode2D;
-        }
-
-        log('enable <= ' + enable);
+        if (enable == undefined) enable = this.mode2D;
 
         this.mode2D = enable;
 

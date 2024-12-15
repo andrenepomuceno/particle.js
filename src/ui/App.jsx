@@ -11,6 +11,7 @@ import InformationView from './views/Information';
 import MenuView from './views/Menu';
 import ParametersView from './views/Parameters';
 import ControlsView from './views/Controls';
+import AdvancedView from './views/Advanced';
 
 const darkTheme = createTheme({
     palette: {
@@ -68,6 +69,7 @@ const App = () => {
 
     const parametersView = new DialogView(false, UI.parameters);
     const controlsView = new DialogView(false, UI.controls);
+    const advancedView = new DialogView(false, UI.advanced);
 
     return (
         <div>
@@ -89,10 +91,16 @@ const App = () => {
                 onClose={(e) => { controlsView.onClickClose(e); }}
                 parameters={controlsView.state.parameters}
             />
+            <AdvancedView
+                open={advancedView.isOpen}
+                onClose={(e) => { advancedView.onClickClose(e); }}
+                parameters={advancedView.state.parameters}
+            />
             <MenuView
                 onClickInfo={onClickInfo}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
                 onClickControls={(e) => { controlsView.onClickOpen(e); }}
+                onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>
@@ -133,6 +141,19 @@ export const UI = {
     },
 
     controls: {
+        refresh: undefined,
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+    },
+
+    advanced: {
         refresh: undefined,
         parameters: {
             "Folder": [{

@@ -8,6 +8,7 @@ const MenuView = ({
     onClickInfo,
     onClickParameters,
     onClickControls,
+    onClickAdvanced,
 }) => {
     return (
         <div>
@@ -24,7 +25,7 @@ const MenuView = ({
                     <ControlButton onClick={onClickInfo}>Selection</ControlButton>
                     <ControlButton onClick={onClickInfo}>Generator</ControlButton>
                     <ControlButton onClick={onClickInfo}>Field</ControlButton>
-                    <ControlButton onClick={onClickInfo}>Advanced</ControlButton>
+                    <ControlButton onClick={onClickAdvanced}>Advanced</ControlButton>
                     <ControlButton onClick={onClickParameters}>Parameters</ControlButton>
                 </Grid2>
             </CustomDialog>

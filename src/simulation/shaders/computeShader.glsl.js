@@ -301,8 +301,8 @@ void main() {
 
             float distance1 = sqrt(distance2);
 
-            float distance2inv = 1.0/distance2;
             float distance1inv = 1.0/distance1;
+            float distance2inv = distance1inv * distance1inv;
 
             float gPot = 0.0;
             float ePot = 0.0;
@@ -385,13 +385,13 @@ void main() {
                 //force = clamp(force, -forceScale, forceScale);
             #endif
 
-            rForce += force * normalize(dPos);
+            rForce += force * (dPos * distance1inv);
         }
     }
 
     #if ENABLE_FRICTION
     {
-        if (vel1Abs > 0.0) {
+        if (vel1Abs > 1.0e-6) {
             vec3 f = -frictionConstant * normalize(vel1);
             #if FRICTION_DEFAULT // -cv
                 f *= sqrt(vel1Abs);

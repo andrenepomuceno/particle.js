@@ -12,7 +12,6 @@ let refreshCallbackList = [];
 function translateFolder(folder) {
     const regex = /[a-z]+/i;
     const result = regex.exec(folder.name)[0];
-    console.log(result);
     const map = {
         'Gravitational': 'forces',
         'Nuclear': 'forces',

@@ -195,6 +195,11 @@ class Core {
                 fillPhysics = false;
                 updateShader = true;
             },
+            'minDistance': (value) => {
+                value = safeParseFloat(value, Math.sqrt(physics.minDistance2));
+                value = Math.pow(value, 2);
+                physics.minDistance2 = value;
+            },
         };
 
 

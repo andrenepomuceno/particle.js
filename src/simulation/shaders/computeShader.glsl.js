@@ -39,7 +39,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
     config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
 
-    console.log(config)
+    // console.log(config);
 
     let shader = config + computeVelocityV2;
     return shader;
@@ -368,7 +368,7 @@ void main() {
 
             #define QUANTIZE_FORCE 1
             #if QUANTIZE_FORCE
-                const float forceScale = 1e3;
+                const float forceScale = 1e4;
                 const float invForceScale = (1.0/forceScale);
 
                 #define RANDOM_ROUND 0
@@ -381,7 +381,6 @@ void main() {
                 #else
                     force = round(force * forceScale) * invForceScale;
                 #endif
-
                 //force = clamp(force, -forceScale, forceScale);
             #endif
 

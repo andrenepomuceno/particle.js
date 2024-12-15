@@ -42,8 +42,8 @@ const SelectionView = ({
         <div>
             <CustomDialog
                 title='Selection'
-                size={{ width: 510, height: 390 }}
-                position={{ x: 540, y: 320 }}
+                size={{ width: 280, height: 590 }}
+                position={{ x: 10, y: 460 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

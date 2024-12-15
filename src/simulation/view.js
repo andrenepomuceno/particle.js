@@ -40,13 +40,15 @@ const guiField = gui.addFolder('FIELD');
 const guiAdvanced = gui.addFolder('ADVANCED');
 const guiParameters = gui.addFolder('PARAMETERS');
 
-guiInfo.hide();
-guiParameters.hide();
-guiControls.hide();
-guiAdvanced.hide();
-guiField.hide();
-guiParticle.hide(); // TODO color selection
-guiSelection.hide();
+// guiInfo.hide();
+// guiParameters.hide();
+// guiControls.hide();
+// guiAdvanced.hide();
+// guiField.hide();
+// guiParticle.hide(); // TODO color selection
+// guiSelection.hide();
+// guiGenerator.hide();
+// gui.hide();
 
 const mouse = new Mouse();
 

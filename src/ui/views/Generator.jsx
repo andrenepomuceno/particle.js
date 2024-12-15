@@ -23,7 +23,7 @@ const GridList = ({ itemList = [] }) => {
     );
 };
 
-const ControlsView = ({
+const GeneratorView = ({
     open = true,
     onClose,
     parameters = [{
@@ -41,9 +41,9 @@ const ControlsView = ({
     return (
         <div>
             <CustomDialog
-                title='Controls'
-                size={{ width: 540, height: 350 }}
-                position={{ x: 700  , y: 70 }}
+                title='Generator'
+                size={{ width: 680, height: 290 }}
+                position={{ x: 310, y: 460 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}
@@ -51,26 +51,30 @@ const ControlsView = ({
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
                         <Tab label="Controls" {...a11yProps(0)} />
-                        <Tab label="Simulation" {...a11yProps(1)} />
-                        <Tab label="Camera" {...a11yProps(2)} />
-                        <Tab label="View" {...a11yProps(3)} />
+                        <Tab label="Mass" {...a11yProps(1)} />
+                        <Tab label="Charge" {...a11yProps(2)} />
+                        <Tab label="Nuclear Charge" {...a11yProps(3)} />
+                        <Tab label="Velocity" {...a11yProps(4)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
                     <GridList itemList={parameters['controls']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['simulation']}></GridList>
+                    <GridList itemList={parameters['mass']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={parameters['camera']}></GridList>
+                    <GridList itemList={parameters['charge']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={parameters['view']}></GridList>
+                    <GridList itemList={parameters['nuclearCharge']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={4}>
+                    <GridList itemList={parameters['velocity']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>
     );
 };
 
-export default ControlsView;
+export default GeneratorView;

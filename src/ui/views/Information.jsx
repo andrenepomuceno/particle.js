@@ -95,8 +95,8 @@ const InformationView = ({
         <div>
             <CustomDialog
                 title='Information'
-                size={{ width: 510, height: 390 }}
-                position={{ x: 10, y: 320 }}
+                size={{ width: 520, height: 370 }}
+                position={{ x: 160, y: 70 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

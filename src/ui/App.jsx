@@ -15,6 +15,7 @@ import AdvancedView from './views/Advanced';
 import FieldView from './views/Field';
 import ParticleView from './views/Particle';
 import SelectionView from './views/Selection';
+import GeneratorView from './views/Generator';
 
 const darkTheme = createTheme({
     palette: {
@@ -78,6 +79,7 @@ const App = () => {
     UI.particle.setOpen = particleView.setOpen;
     const selectionView = new DialogView(false, UI.selection);
     UI.selection.setOpen = selectionView.setOpen;
+    const generatorView = new DialogView(false, UI.generator);
 
     return (
         <div>
@@ -119,6 +121,11 @@ const App = () => {
                 onClose={(e) => { selectionView.onClickClose(e); }}
                 parameters={selectionView.state.parameters}
             />
+            <GeneratorView
+                open={generatorView.isOpen}
+                onClose={(e) => { generatorView.onClickClose(e); }}
+                parameters={generatorView.state.parameters}
+            />
             <MenuView
                 onClickInfo={onClickInfo}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
@@ -127,6 +134,7 @@ const App = () => {
                 onClickField={(e) => { fieldView.onClickOpen(e); }}
                 onClickParticle={(e) => { particleView.onClickOpen(e); }}
                 onClickSelection={(e) => { selectionView.onClickOpen(e); }}
+                onClickGenerator={(e) => { generatorView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>
@@ -220,6 +228,20 @@ export const UI = {
     },
 
     selection: {
+        refresh: undefined,
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+        setOpen: null,
+    },
+
+    generator: {
         refresh: undefined,
         parameters: {
             "Folder": [{

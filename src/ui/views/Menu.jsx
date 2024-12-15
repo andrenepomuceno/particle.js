@@ -19,8 +19,8 @@ const MenuView = ({
             <CustomDialog
                 title='Control Panel'
                 canClose={false}
-                size={{ width: 250, height: 220 }}
-                position={{ x: 10, y: 80 }}
+                size={{ width: 120, height: 370 }}
+                position={{ x: 10, y: 70 }}
             >
                 <Grid2 container spacing={1}>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>

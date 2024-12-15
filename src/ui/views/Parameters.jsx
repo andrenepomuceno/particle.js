@@ -44,8 +44,8 @@ const ParametersView = ({
         <div>
             <CustomDialog
                 title='Parameters'
-                size={{ width: 510, height: 390 }}
-                position={{ x: 10, y: 730 }}
+                size={{ width: 550, height: 390 }}
+                position={{ x: 840, y: 790 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

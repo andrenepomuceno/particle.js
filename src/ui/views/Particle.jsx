@@ -43,7 +43,7 @@ const ParticleView = ({
             <CustomDialog
                 title='Particle'
                 size={{ width: 510, height: 390 }}
-                position={{ x: 540, y: 320 }}
+                position={{ x: 1260, y: 70 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

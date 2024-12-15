@@ -9,6 +9,7 @@ const MenuView = ({
     onClickParameters,
     onClickControls,
     onClickAdvanced,
+    onClickField,
 }) => {
     return (
         <div>
@@ -24,7 +25,7 @@ const MenuView = ({
                     <ControlButton onClick={onClickInfo}>Particle</ControlButton>
                     <ControlButton onClick={onClickInfo}>Selection</ControlButton>
                     <ControlButton onClick={onClickInfo}>Generator</ControlButton>
-                    <ControlButton onClick={onClickInfo}>Field</ControlButton>
+                    <ControlButton onClick={onClickField}>Field</ControlButton>
                     <ControlButton onClick={onClickAdvanced}>Advanced</ControlButton>
                     <ControlButton onClick={onClickParameters}>Parameters</ControlButton>
                 </Grid2>

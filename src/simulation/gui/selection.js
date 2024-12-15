@@ -5,11 +5,56 @@ import {
 } from '../core.js';
 import { SourceType } from '../components/selection';
 import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
+import { UI } from '../../ui/App';
 
 let options = undefined;
 let controls = undefined;
 let selection = undefined;
 let mouse = undefined;
+
+let refreshCallbackList = [];
+
+function translateFolder(folder) {
+    const regex = /[a-z]+/i;
+    const result = regex.exec(folder.name)[0];
+    const map = {
+        'SELECTION': 'selection',
+        'Properties': 'properties',
+        'Variables': 'properties',
+        'Controls': 'selection',
+    }
+    return map[result];
+}
+
+function addMenuControl(
+    folder, title, variable,
+    onFinishChange = undefined,
+    variableList = undefined,
+) {
+    const defaultValue = options.selection[variable];
+
+    if (onFinishChange == undefined) {
+        folder.add(options.selection, variable, variableList).name(title);
+    }
+    else {
+        folder.add(options.selection, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
+    }
+
+    const item = {
+        title: title,
+        value: defaultValue,
+        onFinish: onFinishChange,
+        selectionList: variableList,
+        folder: translateFolder(folder)
+    }
+    UI.addItem(UI.selection, item);
+
+    if (typeof defaultValue != 'function') {
+        refreshCallbackList.push(() => {
+            item.value = options.selection[variable];
+        });
+    }
+}
 
 export class GUISelection {
     constructor(guiOptions, guiSelection) {
@@ -80,7 +125,7 @@ export class GUISelection {
             Box: 'box',
             Circle: 'circle',
         };
-        controls.add(options.selection, 'pattern', patternList).name('Pattern').listen().onFinishChange(val => {
+        addMenuControl(controls, 'Pattern', 'pattern', val => {
             switch (val) {
                 case 'box':
                 default:
@@ -91,47 +136,47 @@ export class GUISelection {
                     options.ruler.mode = 'circle';
                     break
             }
-        });
-        controls.add(options.selection, 'source').name('Source').listen();
-        controls.add(options.selection, 'particles').name('Particles').listen();
+        }, patternList);
+        addMenuControl(controls, 'Source', 'source')
+        addMenuControl(controls, 'Particles', 'particles')
     
         const guiSelectionProperties = controls.addFolder("[+] Properties ✏️");
-        guiSelectionProperties.add(options.selection, 'mass').name("Mass (sum)").listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionProperties, "Mass (sum)", 'mass', (val) => {
             selectionListUpdate('mass', val);
         });
-        guiSelectionProperties.add(options.selection, 'charge').name("Charge (sum)").listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionProperties, "Charge (sum)", 'charge', (val) => {
             selectionListUpdate('charge', val);
         });
-        guiSelectionProperties.add(options.selection, 'nuclearCharge').name("Nuclear Charge (sum)").listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionProperties, "Nuclear Charge (sum)", 'nuclearCharge', (val) => {
             selectionListUpdate('nuclearCharge', val);
         });
-        guiSelectionProperties.add(options.selection, 'colorCharge').name("Color Charge (sum)").listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionProperties, "Color Charge (sum)", 'colorCharge', (val) => {
             //selectionListUpdate('colorCharge', val);
         });
         guiSelectionProperties.open();
     
         const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");
-        guiSelectionVariables.add(options.selection, 'velocity').name('Velocity').listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionVariables, 'Velocity', 'velocity', (val) => {
             selectionListUpdate('velocityAbs', val);
         });
-        guiSelectionVariables.add(options.selection, 'velocityDir').name('Direction').listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionVariables, 'Direction', 'velocityDir', (val) => {
             selectionListUpdate('velocityDir', val);
         });
-        guiSelectionVariables.add(options.selection, 'center').name('Center').listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionVariables, 'Center', 'center', (val) => {
             selectionListUpdate('center', val);
         });
-        guiSelectionVariables.add(options.selection, 'fixedPosition').name('Fixed Position').listen().onFinishChange((val) => {
+        addMenuControl(guiSelectionVariables, 'Fixed Position', 'fixedPosition', (val) => {
             selectionListUpdate('fixed', val);
             options.selection.fixedPosition = val;
         });
     
         const guiSelectionControls = controls.addFolder("[+] Controls");
-        guiSelectionControls.add(options.selection, 'clone').name("Clone [X]");
-        guiSelectionControls.add(options.selection, 'place').name("Place [Z]");
-        guiSelectionControls.add(options.selection, 'lookAt').name('Look At');
-        guiSelectionControls.add(options.selection, 'export').name('Export');
-        guiSelectionControls.add(options.selection, 'import').name('Import');
-        guiSelectionControls.add(options.selection, 'delete').name("Delete [D]");
+        addMenuControl(guiSelectionControls, "Clone [X]", 'clone')
+        addMenuControl(guiSelectionControls, "Place [Z]", 'place')
+        addMenuControl(guiSelectionControls, 'Look At', 'lookAt')
+        addMenuControl(guiSelectionControls, 'Export', 'export')
+        addMenuControl(guiSelectionControls, 'Import', 'import')
+        addMenuControl(guiSelectionControls, "Delete [D]", 'delete')
         
         controls.add(options.selection, 'clear').name('Close 🔺');
     
@@ -140,11 +185,23 @@ export class GUISelection {
         //options.collapseList.push(guiSelectionProperties);
         options.collapseList.push(guiSelectionVariables);
     }
+
+    refresh() {
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        })
+
+        UI.selection.refresh();
+    }
 }
 
 function guiSelectionClose(clear = true) {
     if (clear) selection.clear();
     controls.close();
+
+    UI.selection.setOpen(false);
 }
 
 function selectionListUpdate(param, val) {

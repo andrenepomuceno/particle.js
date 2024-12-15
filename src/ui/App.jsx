@@ -14,6 +14,7 @@ import ControlsView from './views/Controls';
 import AdvancedView from './views/Advanced';
 import FieldView from './views/Field';
 import ParticleView from './views/Particle';
+import SelectionView from './views/Selection';
 
 const darkTheme = createTheme({
     palette: {
@@ -75,6 +76,8 @@ const App = () => {
     const fieldView = new DialogView(false, UI.field);
     const particleView = new DialogView(false, UI.particle);
     UI.particle.setOpen = particleView.setOpen;
+    const selectionView = new DialogView(false, UI.selection);
+    UI.selection.setOpen = selectionView.setOpen;
 
     return (
         <div>
@@ -111,6 +114,11 @@ const App = () => {
                 onClose={(e) => { particleView.onClickClose(e); }}
                 parameters={particleView.state.parameters}
             />
+            <SelectionView
+                open={selectionView.isOpen}
+                onClose={(e) => { selectionView.onClickClose(e); }}
+                parameters={selectionView.state.parameters}
+            />
             <MenuView
                 onClickInfo={onClickInfo}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
@@ -118,6 +126,7 @@ const App = () => {
                 onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
                 onClickField={(e) => { fieldView.onClickOpen(e); }}
                 onClickParticle={(e) => { particleView.onClickOpen(e); }}
+                onClickSelection={(e) => { selectionView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>
@@ -197,6 +206,20 @@ export const UI = {
     },
 
     particle: {
+        refresh: undefined,
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+        setOpen: null,
+    },
+
+    selection: {
         refresh: undefined,
         parameters: {
             "Folder": [{

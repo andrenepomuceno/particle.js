@@ -207,4 +207,6 @@ function guiParticleClose(clear = true) {
         particleView.fixed = false;
     }
     controls.close();
+
+    UI.particle.setOpen(false);
 }

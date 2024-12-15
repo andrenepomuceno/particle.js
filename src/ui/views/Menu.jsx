@@ -11,6 +11,8 @@ const MenuView = ({
     onClickAdvanced,
     onClickField,
     onClickParticle,
+    onClickSelection,
+    onClickGenerator,
 }) => {
     return (
         <div>
@@ -24,8 +26,8 @@ const MenuView = ({
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
                     <ControlButton onClick={onClickControls}>Controls</ControlButton>
                     <ControlButton onClick={onClickParticle}>Particle</ControlButton>
-                    <ControlButton onClick={onClickInfo}>Selection</ControlButton>
-                    <ControlButton onClick={onClickInfo}>Generator</ControlButton>
+                    <ControlButton onClick={onClickSelection}>Selection</ControlButton>
+                    <ControlButton onClick={onClickGenerator}>Generator</ControlButton>
                     <ControlButton onClick={onClickField}>Field</ControlButton>
                     <ControlButton onClick={onClickAdvanced}>Advanced</ControlButton>
                     <ControlButton onClick={onClickParameters}>Parameters</ControlButton>

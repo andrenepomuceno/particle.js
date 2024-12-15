@@ -4,6 +4,7 @@ import { ParticleType } from "../particle";
 const { Image } = require('image-js');
 import { Vector3 } from 'three';
 import { core } from "../core";
+import { UI } from "../../ui/App";
 
 function log(msg) {
     //console.log("Selection: " + msg);
@@ -83,9 +84,13 @@ export class Selection {
             this.source = SourceType.simulation;
             this.guiRefresh();
             this.guiSelection.open();
+
+            UI.selection.setOpen(true);
         } else {
             this.clear();
             this.guiSelection.close();
+
+            UI.selection.setOpen(false);
         }
 
         this.graphics.controls.enabled = true;
@@ -263,6 +268,8 @@ export class Selection {
             })
             view.center = center;
             view.fixedPosition = (this.stats.fixed > 0);
+
+            this.guiOptions.guiSelection.refresh();
         }
     }
 }

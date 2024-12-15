@@ -45,7 +45,8 @@ guiParameters.hide();
 guiControls.hide();
 guiAdvanced.hide();
 guiField.hide();
-//guiParticle.hide(); // TODO color selection
+guiParticle.hide(); // TODO color selection
+guiSelection.hide();
 
 const mouse = new Mouse();
 

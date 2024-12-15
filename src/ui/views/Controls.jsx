@@ -23,7 +23,7 @@ const GridList = ({ itemList = [] }) => {
     );
 };
 
-const ParametersView = ({
+const ControlsView = ({
     open = true,
     onClose,
     parameters = [{
@@ -33,8 +33,6 @@ const ParametersView = ({
         }]
     }],
 }) => {
-    //console.log(parameters);
-
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
         setTab(value);
@@ -43,7 +41,7 @@ const ParametersView = ({
     return (
         <div>
             <CustomDialog
-                title='Parameters'
+                title='Controls'
                 size={{ width: 510, height: 390 }}
                 position={{ x: 10, y: 730 }}
                 canClose={true}
@@ -52,23 +50,27 @@ const ParametersView = ({
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
-                        <Tab label="Forces" {...a11yProps(0)} />
-                        <Tab label="Other" {...a11yProps(1)} />
-                        <Tab label="Boundaries" {...a11yProps(2)} />
+                        <Tab label="Controls" {...a11yProps(0)} />
+                        <Tab label="Simulation" {...a11yProps(1)} />
+                        <Tab label="Camera" {...a11yProps(2)} />
+                        <Tab label="View" {...a11yProps(3)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['forces']}></GridList>
+                    <GridList itemList={parameters['controls']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['other']}></GridList>
+                    <GridList itemList={parameters['simulation']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={parameters['boundaries']}></GridList>
+                    <GridList itemList={parameters['camera']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={3}>
+                    <GridList itemList={parameters['view']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>
     );
 };
 
-export default ParametersView;
+export default ControlsView;

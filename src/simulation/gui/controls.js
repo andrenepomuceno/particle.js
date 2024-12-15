@@ -6,6 +6,7 @@ import {
     core,
 } from '../core.js';
 import { scenariosList } from '../scenarios.js';
+import { UI } from '../../ui/App';
 
 function log(msg) {
     console.log("menu/controls: " + msg);
@@ -15,6 +16,63 @@ let colorMode = 'charge';
 let hideOverlay = false;
 let options;
 let controls;
+let refreshCallbackList = [];
+
+function translateFolder(folder) {
+    const regex = /[a-z]+/i;
+    const result = regex.exec(folder.name)[0];
+    console.log(result);
+    const map = {
+        'CONTROLS': 'controls',
+        'Simulation': 'simulation',
+        'Camera': 'camera',
+        'View': 'view',
+    }
+    return map[result];
+}
+
+function addMenuControl(
+    folder, title, variable,
+    // defaultValue = '',
+    // refreshCallback = undefined,
+    // variableList = undefined,
+    onFinishChange = undefined,
+) {
+    //options.controls[variable] = defaultValue;
+    // const onFinish = (val) => {
+    //     core.updatePhysics(variable, val);
+    // };
+    
+    const defaultValue = options.controls[variable];
+    const refreshCallback = undefined;
+    const variableList = undefined;
+
+    if (onFinishChange == undefined) {
+        folder.add(options.controls, variable).name(title);
+    }
+    else {
+        folder.add(options.controls, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
+    }
+    
+    if (refreshCallback != undefined) {
+        refreshCallbackList.push(refreshCallback);
+    }
+
+    const item = {
+        title: title,
+        value: defaultValue,
+        onFinish: onFinishChange,
+        selectionList: variableList,
+        folder: translateFolder(folder)
+    }
+    UI.addItem(UI.controls, item);
+
+    if (typeof defaultValue != 'function') {
+        refreshCallbackList.push(() => {
+            item.value = options.controls[variable];
+        });
+    }
+}
 
 export class GUIControls {
     constructor(guiOptions, guiControls) {
@@ -145,25 +203,26 @@ export class GUIControls {
         };
 
         const guiControlsSimulation = controls.addFolder("[+] Simulation");
-        guiControlsSimulation.add(options.controls, 'pauseResume').name("Pause/Resume [SPACE]");
-        guiControlsSimulation.add(options.controls, 'step').name("Step [N] (if paused)");
-        guiControlsSimulation.add(options.controls, 'reset').name("Reset [R]");
-        guiControlsSimulation.add(options.controls, 'next').name("Next simulation [PAGEDOWN]");
-        guiControlsSimulation.add(options.controls, 'previous').name("Previous simulation [PAGEUP]");
-        guiControlsSimulation.add(options.controls, 'home').name("First simulation [HOME]");
-        guiControlsSimulation.add(options.controls, 'snapshotJson').name("Export simulation [P]");
-        guiControlsSimulation.add(options.controls, 'importJson').name("Import simulation [I]");
-        guiControlsSimulation.add(options.controls, 'sandbox').name("Sandbox Mode [S]");
-        guiControlsSimulation.add(options.controls, 'mode2D').name('2D Mode ✏️').listen().onFinishChange((val) => {
+        
+        addMenuControl(guiControlsSimulation, "Pause/Resume [SPACE]", 'pauseResume');
+        addMenuControl(guiControlsSimulation, "Step [N] (if paused)", 'step');
+        addMenuControl(guiControlsSimulation, "Reset [R]", 'reset');
+        addMenuControl(guiControlsSimulation, "Next simulation [PAGEDOWN]", 'next');
+        addMenuControl(guiControlsSimulation, "Previous simulation [PAGEUP]", 'previous');
+        addMenuControl(guiControlsSimulation, "First simulation [HOME]", 'home');
+        addMenuControl(guiControlsSimulation, "Export simulation [P]", 'snapshotJson');
+        addMenuControl(guiControlsSimulation, "Import simulation [I]", 'importJson');
+        addMenuControl(guiControlsSimulation, "Sandbox Mode [S]", 'sandbox');
+        addMenuControl(guiControlsSimulation, '2D Mode ✏️', 'mode2D', (val) => {
             simulation.bidimensionalMode(val);
             core.updatePhysics('mode2D', val);
         });
-        guiControlsSimulation.add(options.controls, 'deleteAll').name("Delete all particles [DEL]");
+        addMenuControl(guiControlsSimulation, "Delete all particles [DEL]", 'deleteAll');
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
-        guiControlsCamera.add(options.controls, 'resetCamera').name("Reset Position [C]");
-        guiControlsCamera.add(options.controls, 'xyCamera').name("Orthogonal Position [V] (3D mode)");
-        guiControlsCamera.add(options.controls, 'automaticRotation').name('Automatic Rotation ✏️').listen().onFinishChange(val => {
+        addMenuControl(guiControlsCamera, "Reset Position [C]", 'resetCamera');
+        addMenuControl(guiControlsCamera, "Orthogonal Position [V] (3D mode)", 'xyCamera');
+        addMenuControl(guiControlsCamera, 'Automatic Rotation ✏️', 'automaticRotation', val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
@@ -176,7 +235,7 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        guiControlsCamera.add(options.controls, 'rotationSpeed').name('Rotation Speed ✏️').listen().onFinishChange(val => {
+        addMenuControl(guiControlsCamera, 'Rotation Speed ✏️', 'rotationSpeed', val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
@@ -187,11 +246,11 @@ export class GUIControls {
         });
 
         const guiControlsView = controls.addFolder("[+] View");
-        guiControlsView.add(options.controls, 'hideAxis').name("Hide/Show Origin Axis [A]");
-        guiControlsView.add(options.controls, 'colorMode').name("Toggle Color Mode [Q]");
-        guiControlsView.add(options.controls, 'hideOverlay').name("Hide Everything [H]");
-        guiControlsView.add(options.controls, 'collapseAll').name("Collapse All folders [M]");
-        guiControlsView.add(options.controls, 'showCursor').name('Show Mouse Cursor ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiControlsView, "Hide/Show Origin Axis [A]", 'hideAxis');
+        addMenuControl(guiControlsView, "Toggle Color Mode [Q]", 'colorMode');
+        addMenuControl(guiControlsView, "Hide Everything [H]", 'hideOverlay');
+        addMenuControl(guiControlsView, "Collapse All folders [M]", 'collapseAll');
+        addMenuControl(guiControlsView, 'Show Mouse Cursor ✏️', 'showCursor', (val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -199,13 +258,13 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });
-        guiControlsView.add(options.controls, 'radius').name('Particle Radius ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiControlsView, 'Particle Radius ✏️', 'radius', (val) => {
             core.updatePhysics('radius', val);
         });
-        guiControlsView.add(options.controls, 'radiusRange').name('Particle Radius Range ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiControlsView, 'Particle Radius Range ✏️', 'radiusRange', (val) => {
             core.updatePhysics('radiusRange', val);
         });
-        guiControlsView.add(options.controls, 'shader3d').name('3D Particle Shader ✏️').listen().onFinishChange(val => {
+        addMenuControl(guiControlsView, '3D Particle Shader ✏️', 'shader3d', (val) => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -217,8 +276,9 @@ export class GUIControls {
             simulation.drawParticles();
         });
 
-        controls.add(options.controls, 'mouseHint').name("Mouse and General Controls [?] (click for more...)");
-        controls.add(options.controls, 'placeHint').name("Place particles [Z] (click for more...)");
+        addMenuControl(controls, "Mouse and General Controls [?] (click for more...)", 'mouseHint');
+        addMenuControl(controls, "Place particles [Z] (click for more...)", 'placeHint');
+
         controls.add(options.controls, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
@@ -231,6 +291,14 @@ export class GUIControls {
         options.controls.radius = simulation.particleRadius.toFixed(3);
         options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
         options.controls.mode2D = simulation.mode2D;
+
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        });
+
+        UI.controls.refresh();
     }
 }
 

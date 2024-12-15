@@ -10,6 +10,7 @@ import '@fontsource/roboto/700.css';
 import InformationView from './views/Information';
 import MenuView from './views/Menu';
 import ParametersView from './views/Parameters';
+import ControlsView from './views/Controls';
 
 const darkTheme = createTheme({
     palette: {
@@ -64,7 +65,9 @@ const App = () => {
     };
 
     const informationView = new DialogView(true, UI.info); // TODO
+
     const parametersView = new DialogView(false, UI.parameters);
+    const controlsView = new DialogView(false, UI.controls);
 
     return (
         <div>
@@ -81,9 +84,15 @@ const App = () => {
                 onClose={(e) => { parametersView.onClickClose(e); }}
                 parameters={parametersView.state.parameters}
             />
+            <ControlsView
+                open={controlsView.isOpen}
+                onClose={(e) => { controlsView.onClickClose(e); }}
+                parameters={controlsView.state.parameters}
+            />
             <MenuView
                 onClickInfo={onClickInfo}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
+                onClickControls={(e) => { controlsView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>
@@ -111,6 +120,19 @@ export const UI = {
     },
 
     parameters: {
+        refresh: undefined,
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+    },
+
+    controls: {
         refresh: undefined,
         parameters: {
             "Folder": [{

@@ -3,14 +3,8 @@ import { Button } from '@mui/material';
 
 const ButtonInput = ({
     name,
-    onFinish,
+    onClick,
 }) => {
-    const onClick = (e) => {
-        if (onFinish) {
-            onFinish(value);
-        }
-    }
-
     return (
         <Button
             size='small'

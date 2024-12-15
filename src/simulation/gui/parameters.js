@@ -7,7 +7,7 @@ import { UI } from '../../ui/App';
 
 let options;
 let controls;
-let refreshCallbackList = []
+let refreshCallbackList = [];
 
 function translateFolder(folder) {
     const regex = /[a-z]+/i;

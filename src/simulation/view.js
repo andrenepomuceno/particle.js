@@ -41,6 +41,7 @@ const guiParameters = gui.addFolder('PARAMETERS');
 
 guiInfo.hide();
 guiParameters.hide();
+guiControls.hide();
 
 const mouse = new Mouse();
 

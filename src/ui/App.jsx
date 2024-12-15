@@ -13,6 +13,7 @@ import ParametersView from './views/Parameters';
 import ControlsView from './views/Controls';
 import AdvancedView from './views/Advanced';
 import FieldView from './views/Field';
+import ParticleView from './views/Particle';
 
 const darkTheme = createTheme({
     palette: {
@@ -72,6 +73,8 @@ const App = () => {
     const controlsView = new DialogView(false, UI.controls);
     const advancedView = new DialogView(false, UI.advanced);
     const fieldView = new DialogView(false, UI.field);
+    const particleView = new DialogView(false, UI.particle);
+    UI.particle.setOpen = particleView.setOpen;
 
     return (
         <div>
@@ -103,12 +106,18 @@ const App = () => {
                 onClose={(e) => { fieldView.onClickClose(e); }}
                 parameters={fieldView.state.parameters}
             />
+            <ParticleView
+                open={particleView.isOpen}
+                onClose={(e) => { particleView.onClickClose(e); }}
+                parameters={particleView.state.parameters}
+            />
             <MenuView
                 onClickInfo={onClickInfo}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
                 onClickControls={(e) => { controlsView.onClickOpen(e); }}
                 onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
                 onClickField={(e) => { fieldView.onClickOpen(e); }}
+                onClickParticle={(e) => { particleView.onClickOpen(e); }}
             ></MenuView>
             {/* </ThemeProvider> */}
         </div>
@@ -127,7 +136,7 @@ export const UI = {
             view.parameters[item.folder] = [];
         }
         view.parameters[item.folder].push(item);
-    },
+    },    
 
     info: {
         refresh: undefined,
@@ -185,5 +194,19 @@ export const UI = {
             "general": [],
         },
         newParameters: {},
+    },
+
+    particle: {
+        refresh: undefined,
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+        setOpen: null,
     },
 };

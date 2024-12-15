@@ -17,6 +17,7 @@ import { GUIGenerator } from './gui/generator.js';
 import { GUISelection } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
 import { GUIAdvanced } from './gui/advanced.js';
+import { UI } from '../ui/App.jsx';
 
 const viewUpdateDelay = 1000;
 const simulationStepDelay = (1000.0/60.0);
@@ -43,6 +44,8 @@ guiInfo.hide();
 guiParameters.hide();
 guiControls.hide();
 guiAdvanced.hide();
+guiField.hide();
+//guiParticle.hide(); // TODO color selection
 
 const mouse = new Mouse();
 
@@ -232,6 +235,8 @@ function onPointerUp(event) {
                 guiOptions.particle.obj = particle;
                 guiOptions.guiParticle.refresh();
                 guiParticle.open();
+
+                UI.particle.setOpen(true);
             }
         });
     } else if (event.button == 1) {

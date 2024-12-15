@@ -10,6 +10,7 @@ const MenuView = ({
     onClickControls,
     onClickAdvanced,
     onClickField,
+    onClickParticle,
 }) => {
     return (
         <div>
@@ -22,7 +23,7 @@ const MenuView = ({
                 <Grid2 container spacing={1}>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
                     <ControlButton onClick={onClickControls}>Controls</ControlButton>
-                    <ControlButton onClick={onClickInfo}>Particle</ControlButton>
+                    <ControlButton onClick={onClickParticle}>Particle</ControlButton>
                     <ControlButton onClick={onClickInfo}>Selection</ControlButton>
                     <ControlButton onClick={onClickInfo}>Generator</ControlButton>
                     <ControlButton onClick={onClickField}>Field</ControlButton>

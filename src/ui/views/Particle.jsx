@@ -23,7 +23,7 @@ const GridList = ({ itemList = [] }) => {
     );
 };
 
-const FieldView = ({
+const ParticleView = ({
     open = true,
     onClose,
     parameters = [{
@@ -41,17 +41,36 @@ const FieldView = ({
     return (
         <div>
             <CustomDialog
-                title='Field'
+                title='Particle'
                 size={{ width: 510, height: 390 }}
-                position={{ x: 1060, y: 730 }}
+                position={{ x: 540, y: 320 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}
             >
-                <GridList itemList={parameters['field']}></GridList>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs value={tab} onChange={handleChange} variant='scrollable'>
+                        <Tab label="Particle" {...a11yProps(0)} />
+                        <Tab label="Simulation" {...a11yProps(1)} />
+                        <Tab label="Camera" {...a11yProps(2)} />
+                        <Tab label="View" {...a11yProps(3)} />
+                    </Tabs>
+                </Box>
+                <CustomTabPanel value={tab} index={0}>
+                    <GridList itemList={parameters['particle']}></GridList>
+                </CustomTabPanel>
+                <CustomTabPanel value={tab} index={1}>
+                    <GridList itemList={parameters['simulation']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={2}>
+                    <GridList itemList={parameters['camera']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={3}>
+                    <GridList itemList={parameters['view']}></GridList>
+                </CustomTabPanel >
             </CustomDialog>
         </div>
     );
 };
 
-export default FieldView;
+export default ParticleView;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -28,14 +28,19 @@ class DialogView {
         [this.isOpen, this.setOpen] = useState(open);
         [this.state, this.setState] = useState(initialState);
 
+        // useEffect(() => {
+        //     this.setState(initialState);
+        // }, [initialState]);
+
         if (initialState.refresh == undefined) {
-            initialState.refresh = () => {
-                const newState = this.state;
-                newState.parameters = {
-                    ...newState.parameters,
-                    ...this.state.newParameters
-                }
-                //this.setState(newState);
+            initialState.refresh = (newParameters) => {
+                // const newState = this.state;
+                // newState.parameters = {
+                //     ...newState.parameters,
+                //     ...newParameters
+                // }
+                // this.setState(initialState);
+                // console.log(initialState);
             };
         }
     };
@@ -50,7 +55,7 @@ class DialogView {
 }
 
 const App = () => {
-    const informationView = new DialogView(true, UI.info); // TODO
+    const informationView = new DialogView(true, UI.info);
     const parametersView = new DialogView(false, UI.parameters);
     const controlsView = new DialogView(false, UI.controls);
     const advancedView = new DialogView(false, UI.advanced);
@@ -123,9 +128,15 @@ const App = () => {
     );
 };
 
+let root;
+
 export const UI = {
     start: () => {
-        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    },
+
+    refresh: () => {
         root.render(<App />);
     },
 
@@ -135,7 +146,7 @@ export const UI = {
             view.parameters[item.folder] = [];
         }
         view.parameters[item.folder].push(item);
-    },    
+    },
 
     info: {
         refresh: undefined,

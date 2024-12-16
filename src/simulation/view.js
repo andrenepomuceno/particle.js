@@ -297,6 +297,8 @@ function animate(time) {
             guiOptions.guiParameters.refresh();
             guiOptions.guiControls.refresh();
             guiOptions.guiField.refresh();
+
+            UI.refresh();
         });
     }
 

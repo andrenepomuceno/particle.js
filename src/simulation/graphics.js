@@ -28,7 +28,7 @@ import { generateExportFilename, sphericalToCartesian, getCameraConstant, mouseT
 import { ParticleType } from './particle.js';
 
 function calcTextWidth(n) {
-    return Math.max(Math.round(Math.sqrt(n) / 2) * 2, 2);
+    return Math.max(Math.round(Math.ceil(Math.sqrt(n)) / 2) * 2, 2);
 }
 
 const textureWidth0 = calcTextWidth(ENV?.maxParticles);

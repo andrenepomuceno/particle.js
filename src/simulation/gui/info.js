@@ -14,7 +14,7 @@ let options, controls;
 let maxAvgVelocity = 0;
 let computeTimeHistory = [];
 
-let refreshCallbackList = [];
+const refreshCallbackList = [];
 
 function translateFolder(folder) {
     const regex = /[a-z]+/i;

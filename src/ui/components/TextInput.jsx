@@ -4,11 +4,12 @@ import TextField from '@mui/material/TextField'
 
 const TextInput = ({
     name,
-    value = '',
+    value: inputValue = '',
     onFinish,
     // readOnly = false,
 }) => {
-    const [value_, setValue] = useState(value);
+    const [value, setValue] = useState(inputValue);
+    const [isEditing, setEditing] = useState(false);
     const readOnly = (onFinish == undefined) ? true : false;
 
     // TODO onStart
@@ -18,11 +19,13 @@ const TextInput = ({
     }
 
     const onFinish_ = (e) => {
+        setEditing(false);
         const value = e.target.value;
         if (onFinish) onFinish(value);
     }
 
     const onKeyDown = (e) => {
+        setEditing(true);
         switch (e.key) {
             case 'Enter':
                 // case 'Tab':
@@ -35,9 +38,16 @@ const TextInput = ({
         onFinish_(e);
     }
 
+    const onFocus = (e) => {
+        // console.log('onFocus', e);
+        if (readOnly) return;
+        setEditing(true);
+    }
+
     useEffect(() => {
-        setValue(value);
-    }, [value]);
+        if (isEditing) return;
+        setValue(inputValue);
+    }, [inputValue]);
 
     const color = (readOnly ? 'secondary' : 'success');
     return (
@@ -46,10 +56,11 @@ const TextInput = ({
             variant="filled"
             size="small"
             label={name}
-            value={value_}
+            value={value}
             onChange={onChange}
             onKeyDown={onKeyDown}
             onBlur={onBlur}
+            onFocus={onFocus}
             focused={!readOnly}
             slotProps={{
                 input: {

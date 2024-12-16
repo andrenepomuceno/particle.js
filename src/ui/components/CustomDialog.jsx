@@ -1,7 +1,7 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Box, Button, Card, CardContent, Paper, Typography } from '@mui/material';
+import { Box, Button, Card, CardActions, CardContent, Paper, Typography } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
@@ -48,35 +48,31 @@ const CustomDialog = ({
         >
             <ResizableBox
                 width={dialogSize.width}
-                height={dialogSize.height}
-                minConstraints={[100, 100]}
-                // maxConstraints={[800, 800]}
+                // height={dialogSize.height}
+                minConstraints={[132, 100]}
+                maxConstraints={[1200, 1000]}
                 // onResize={onResize}
                 onResizeStop={onResize}
             >
-                {/* <Card>
-                    <CardContent> */}
-
-                    {/* <Paper> */}
-
-                    <Box className='dialog-box'
-                        sx={{ bgcolor: 'background.paper' }}
-                    >
-                        <div className="dialog-header">
-                            <Typography variant="subtitle1" gutterBottom>
-                                {title}
-                            </Typography>
-                            {canClose && (<Button onClick={onClickClose}>Close</Button>)}
-                        </div>
-                        <div className='dialog-content'>
-                            {children}
-                        </div>
-                    </Box>
-
-                    {/* </Paper> */}
-
-                    {/* </CardContent>
-                </Card> */}
+                <Card>
+                    <CardContent>
+                        <Box className='dialog-box'>
+                            <div className="dialog-header">
+                                <Typography variant="subtitle1" gutterBottom>
+                                    {title}
+                                </Typography>
+                            </div>
+                            <div className='dialog-content'>
+                                {children}
+                            </div>
+                        </Box>
+                    </CardContent>
+                        {canClose && (
+                            <CardActions>
+                                <Button onClick={onClickClose}>Close</Button>
+                            </CardActions>
+                        )}
+                </Card>
             </ResizableBox>
         </Draggable >
     );

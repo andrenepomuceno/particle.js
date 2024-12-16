@@ -4,27 +4,28 @@
 }
 
 .dialog-box {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 4px;
-    border-radius: 8px;
-    overflow: hidden;
+    /* position: relative; */
+    /* overflow: auto; */
+    /* width: 100%; */
+    /* height: 100%; */
+    /* padding: 4px; */
+    /* border-radius: 8px; */
 }
 
 .dialog-header {
-    padding: 8px;
+    /* padding: 6px; */
     cursor: move;
+
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
 }
 
 .dialog-content {
-    padding: 4px;
     overflow: auto;
     height: calc(100% - 50px);
-    flex-grow: 1;
+    /* padding: 4px; */
+    /*flex-grow: 1;
     align-items: center;
-    justify-content: center;
+    justify-content: center; */
 }

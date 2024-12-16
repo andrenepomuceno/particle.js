@@ -42,8 +42,8 @@ const AdvancedView = ({
         <div>
             <CustomDialog
                 title='Advanced'
-                size={{ width: 270, height: 280 }}
-                position={{ x: 1010, y: 480 }}
+                size={{ width: 300, height: 280 }}
+                position={{ x: 520, y: 840 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

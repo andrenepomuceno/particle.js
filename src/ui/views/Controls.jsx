@@ -42,8 +42,8 @@ const ControlsView = ({
         <div>
             <CustomDialog
                 title='Controls'
-                size={{ width: 540, height: 350 }}
-                position={{ x: 700  , y: 70 }}
+                size={{ width: 500, height: 350 }}
+                position={{ x: 670, y: 70 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

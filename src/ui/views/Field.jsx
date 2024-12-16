@@ -42,8 +42,8 @@ const FieldView = ({
         <div>
             <CustomDialog
                 title='Field'
-                size={{ width: 510, height: 280 }}
-                position={{ x: 310, y: 770 }}
+                size={{ width: 500, height: 280 }}
+                position={{ x: 10, y: 840 }}
                 canClose={true}
                 open={open}
                 onClose={onClose}

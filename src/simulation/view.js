@@ -48,7 +48,7 @@ const guiParameters = gui.addFolder('PARAMETERS');
 // guiParticle.hide(); // TODO color selection
 // guiSelection.hide();
 // guiGenerator.hide();
-// gui.hide();
+gui.hide();
 
 const mouse = new Mouse();
 

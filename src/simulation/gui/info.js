@@ -14,6 +14,50 @@ let options, controls;
 let maxAvgVelocity = 0;
 let computeTimeHistory = [];
 
+let refreshCallbackList = [];
+
+function translateFolder(folder) {
+    const regex = /[a-z]+/i;
+    const result = regex.exec(folder.name)[0];
+    const map = {
+        'INFORMATION': 'general',
+        'Simulation': 'statistics',
+        'Ruler': 'ruler',
+        'Debug': 'debug',
+    }
+    return map[result];
+}
+
+function addMenuControl(
+    folder, title, variable,
+    onFinishChange = undefined,
+    variableList = undefined,
+) {
+    const defaultValue = options.info[variable];
+
+    if (onFinishChange == undefined) {
+        folder.add(options.info, variable, variableList).name(title);
+    }
+    else {
+        folder.add(options.info, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
+    }
+
+    const item = {
+        title: title,
+        value: defaultValue,
+        onFinish: onFinishChange,
+        selectionList: variableList,
+        folder: translateFolder(folder)
+    }
+    UI.addItem(UI.info, item);
+
+    if (typeof defaultValue != 'function') {
+        refreshCallbackList.push(() => {
+            item.value = options.info[variable];
+        });
+    }
+}
+
 export class GUIInfo {
     constructor(guiOptions, guiInfo) {
         options = guiOptions;
@@ -53,11 +97,11 @@ export class GUIInfo {
             fieldAvgVel: '0',
         };
 
-        controls.add(options.info, 'name').name('Scenario Name ✏️').listen().onFinishChange((val) => {
+        addMenuControl(controls, 'Scenario Name ✏️', 'name', (val) => {
             simulation.name = val;
         });
-        controls.add(options.info, 'folderName').name('Scenario Folder').listen();
-        controls.add(options.info, 'particles').name('Particles').listen();
+        addMenuControl(controls, 'Scenario Folder', 'folderName');
+        addMenuControl(controls, 'Particles', 'particles');
         const onFinishMaxParticles = (val) => {
             val = parseFloat(val);
             if (isNaN(val)) {
@@ -79,9 +123,9 @@ export class GUIInfo {
                 // equal
             }
         }
-        controls.add(options.info, 'maxParticles').name('Max Particles ✏️').listen().onFinishChange(onFinishMaxParticles);
-        controls.add(options.info, 'time').name('Elapsed Time (steps)').listen();
-        /*controls.add(options.info, 'autoRefresh').name('Automatic Info. Refresh ✏️').listen().onFinishChange((val) => {
+        addMenuControl(controls, 'Max Particles ✏️', 'maxParticles', onFinishMaxParticles);
+        addMenuControl(controls, 'Elapsed Time (steps)', 'time');
+        /*addMenuControl(controls, 'Automatic Info. Refresh ✏️', 'autoRefresh', (val) => {
             options.info.autoRefresh = val;
         });*/
         const onFinishCamera = (val) => {
@@ -94,37 +138,37 @@ export class GUIInfo {
             simulation.graphics.controls.target.set(p.x, p.y, 0);
             simulation.graphics.controls.update();
         }
-        controls.add(options.info, 'cameraPosition').name('Camera Coordinates ✏️').listen().onFinishChange(onFinishCamera);
+        addMenuControl(controls, 'Camera Coordinates ✏️', 'cameraPosition', onFinishCamera);
 
         const guiInfoMore = controls.addFolder("[+] Simulation Statistics");
-        guiInfoMore.add(options.info, 'mass').name('Mass (sum) ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiInfoMore, 'Mass (sum) ✏️', 'mass', (val) => {
             core.updateParticleList('mass', val);
         });
-        guiInfoMore.add(options.info, 'charge').name('Charge (sum) ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiInfoMore, 'Charge (sum) ✏️', 'charge', (val) => {
             core.updateParticleList('charge', val);
         });
-        guiInfoMore.add(options.info, 'nuclearCharge').name('Nuclear Charge (sum) ✏️').listen().onFinishChange((val) => {
+        addMenuControl(guiInfoMore, 'Nuclear Charge (sum) ✏️', 'nuclearCharge', (val) => {
             core.updateParticleList('nuclearCharge', val);
         });
-        guiInfoMore.add(options.info, 'colorCharge').name('Color Charge (sum)').listen().onFinishChange((val) => {
+        addMenuControl(guiInfoMore, 'Color Charge (sum)', 'colorCharge', (val) => {
             //core.updateParticleList('colorCharge', val);
         });
-        guiInfoMore.add(options.info, 'energy').name('Energy (avg)').listen();
-        guiInfoMore.add(options.info, 'velocity').name('Velocity (avg)').listen();
-        guiInfoMore.add(options.info, 'collisions').name('Collisions').listen();
-        guiInfoMore.add(options.info, 'outOfBoundary').name('Out of Boundary').listen();
+        addMenuControl(guiInfoMore, 'Energy (avg)', 'energy');
+        addMenuControl(guiInfoMore, 'Velocity (avg)', 'velocity');
+        addMenuControl(guiInfoMore, 'Collisions', 'collisions');
+        addMenuControl(guiInfoMore, 'Out of Boundary', 'outOfBoundary');
 
         const guiInfoRuler = controls.addFolder("[+] Ruler");
-        guiInfoRuler.add(options.info, 'rulerLen').name('Length').listen();
-        guiInfoRuler.add(options.info, 'rulerDelta').name('Delta').listen();
-        guiInfoRuler.add(options.info, 'rulerStart').name('Start').listen();
+        addMenuControl(guiInfoRuler, 'Length', 'rulerLen');
+        addMenuControl(guiInfoRuler, 'Delta', 'rulerDelta');
+        addMenuControl(guiInfoRuler, 'Start', 'rulerStart');
         //guiInfoRuler.open();
 
         if (!ENV?.production) {
             const guiInfoDebug = controls.addFolder('[+] Debug');
-            guiInfoDebug.add(options.info, 'cameraNormal').name('cameraNormal').listen();
-            guiInfoDebug.add(options.info, 'fieldMaxVel').name('fieldMaxVel').listen();
-            guiInfoDebug.add(options.info, 'fieldAvgVel').name('fieldAvgVel').listen();
+            addMenuControl(guiInfoDebug, 'cameraNormal', 'cameraNormal');
+            addMenuControl(guiInfoDebug, 'fieldMaxVel', 'fieldMaxVel');
+            addMenuControl(guiInfoDebug, 'fieldAvgVel', 'fieldAvgVel');
             //guiInfoDebug.open();
             options.collapseList.push(guiInfoDebug);
         }
@@ -134,17 +178,6 @@ export class GUIInfo {
         options.collapseList.push(guiInfoRuler);
 
         controls.open();
-        
-        UI.info.onFinish({
-            name: (val) => { simulation.name = val; },
-            maxParticles: onFinishMaxParticles,
-            camera: onFinishCamera,
-
-            mass: (val) => { core.updateParticleList('mass', val); },
-            charge: (val) => { core.updateParticleList('charge', val); },
-            nuclearCharge: (val) => { core.updateParticleList('nuclearCharge', val); },
-
-        });
     }
 
     refresh() {
@@ -191,23 +224,13 @@ export class GUIInfo {
             avg: computeTime.avg,
         });
 
-        UI.info.refresh({
-            name: options.info.name,
-            folder: options.info.folderName,
-            particles: options.info.particles,
-            maxParticles: options.info.maxParticles,
-            time: options.info.time,
-            camera: options.info.cameraPosition,
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        })
 
-            mass: options.info.mass,
-            charge: options.info.charge,
-            nuclearCharge: options.info.nuclearCharge,
-            colorCharge: options.info.colorCharge,
-            energy: options.info.energy,
-            velocity: options.info.velocity,
-            collisions: options.info.collisions,
-            outOfBoundary: options.info.outOfBoundary,
-        });
+        UI.info.refresh();
     }
 
     reset() {

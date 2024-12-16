@@ -70,7 +70,6 @@ const App = () => {
     };
 
     const informationView = new DialogView(true, UI.info); // TODO
-
     const parametersView = new DialogView(false, UI.parameters);
     const controlsView = new DialogView(false, UI.controls);
     const advancedView = new DialogView(false, UI.advanced);
@@ -89,10 +88,9 @@ const App = () => {
             {/* <ThemeProvider> */}
             {/* <CssBaseline /> */}
             <InformationView
-                open={isInfoOpen}
-                onClose={onCloseInfo}
-                info={infoVariables}
-                onFinish={infoOnFinish} // TODO
+                open={informationView.isOpen}
+                onClose={(e) => { informationView.onClickClose(e); }}
+                parameters={informationView.state.parameters}
             />
             <ParametersView
                 open={parametersView.isOpen}
@@ -130,7 +128,7 @@ const App = () => {
                 parameters={generatorView.state.parameters}
             />
             <MenuView
-                onClickInfo={onClickInfo}
+                onClickInfo={(e) => { informationView.onClickOpen(e); }}
                 onClickParameters={(e) => { parametersView.onClickOpen(e); }}
                 onClickControls={(e) => { controlsView.onClickOpen(e); }}
                 onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
@@ -160,8 +158,16 @@ export const UI = {
 
     info: {
         refresh: undefined,
-        onFinish: {},
-        // key: value
+        parameters: {
+            "Folder": [{
+                title: "Title",
+                value: "Value",
+                onFinish: undefined // readOnly
+            }],
+            "general": [],
+        },
+        newParameters: {},
+        setOpen: null,
     },
 
     parameters: {

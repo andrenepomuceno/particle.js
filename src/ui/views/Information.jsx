@@ -2,80 +2,23 @@ import React, { useState } from 'react';
 import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
-import TextInput from '../components/TextInput';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
+import AutomaticInput from '../components/AutomaticInput';
 
-const General = ({ info, onFinish }) => {
-    return (
-        <>
-            <Grid container spacing={1}>
-                <Grid item>
-                    <TextInput name="Scenario Name" value={info.name} onFinish={onFinish.name}></TextInput>
-                </Grid>
-                <Grid item>
-                    <TextInput name="Scenario Folder" value={info.folder} readOnly={true}></TextInput>
-                </Grid>
-                <Grid item>
-                    <TextInput name="Particle Count" value={info.particles} readOnly={true}></TextInput>
-                </Grid>
-                <Grid item>
-                    <TextInput name="Max Particles" value={info.maxParticles} onFinish={onFinish.maxParticles}></TextInput>
-                </Grid>
-                <Grid item>
-                    <TextInput name="Elapsed Time (steps)" value={info.time} readOnly={true}></TextInput>
-                </Grid>
-                <Grid item>
-                    <TextInput name="Camera Coordinates" value={info.camera} onFinish={onFinish.camera}></TextInput>
-                </Grid>
-            </Grid>
-            <p>Blue inputs are editable.</p>
-        </>
+const GridList = ({ itemList = [] }) => {
+    const itemListMaped = itemList.map(item =>
+        (<Grid item key={item.id}>
+            <AutomaticInput
+                name={item.title}
+                value={item.value}
+                onFinish={item.onFinish}
+                selectionList={item.selectionList}
+            ></AutomaticInput>
+        </Grid>)
     );
-};
-
-const Statistics = ({ info, onFinish }) => {
     return (
         <Grid container spacing={1}>
-            <Grid item>
-                <TextInput name="Mass sum." value={info.mass} onFinish={onFinish.mass}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Charge sum." value={info.charge} onFinish={onFinish.charge}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Nuclear Charge sum." value={info.nuclearCharge} onFinish={onFinish.nuclearCharge}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Color Charge sum." value={info.colorCharge}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Kinetic Energy avg." value={info.energy}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Velocity avg." value={info.velocity}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Collisions" value={info.collisions}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Out of Boundary" value={info.outOfBoundary}></TextInput>
-            </Grid>
-        </Grid>
-    );
-};
-
-const Ruler = ({ info }) => {
-    return (
-        <Grid container spacing={1}>
-            <Grid item>
-                <TextInput name="Length" value={info.length}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Delta" value={info.delta}></TextInput>
-            </Grid>
-            <Grid item>
-                <TextInput name="Start" value={info.start}></TextInput>
-            </Grid>
+            {itemListMaped}
         </Grid>
     );
 };
@@ -83,8 +26,12 @@ const Ruler = ({ info }) => {
 const InformationView = ({
     open = true,
     onClose,
-    info = {},
-    onFinish = {},
+    parameters = [{
+        folder: "",
+        content: [{
+            title: "", value: "", onFinish: undefined
+        }]
+    }],
 }) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
@@ -110,13 +57,16 @@ const InformationView = ({
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <General info={info} onFinish={onFinish}></General>
+                    <GridList itemList={parameters['general']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <Statistics info={info} onFinish={onFinish}></Statistics>
+                    <GridList itemList={parameters['statistics']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <Ruler info={info}></Ruler>
+                    <GridList itemList={parameters['ruler']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={3}>
+                    <GridList itemList={parameters['debug']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

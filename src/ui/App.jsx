@@ -50,25 +50,6 @@ class DialogView {
 }
 
 const App = () => {
-    const [isInfoOpen, setInfoOpen] = useState(true);  // TODO use DialogView
-    const [infoVariables, setInfoVariables] = useState();
-    const [infoOnFinish, setInfoOnFinish] = useState();
-    if (UI.info.refresh == undefined) {
-        UI.info.onFinish = setInfoOnFinish;
-        UI.info.refresh = (newVariables) => {
-            setInfoVariables({
-                ...infoVariables,
-                ...newVariables
-            });
-        };
-    }
-    const onClickInfo = (e) => {
-        setInfoOpen(!isInfoOpen);
-    };
-    const onCloseInfo = (e) => {
-        setInfoOpen(false);
-    };
-
     const informationView = new DialogView(true, UI.info); // TODO
     const parametersView = new DialogView(false, UI.parameters);
     const controlsView = new DialogView(false, UI.controls);

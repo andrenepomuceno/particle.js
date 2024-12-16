@@ -34,7 +34,7 @@ function addMenuControl(
     const defaultValue = options.selection[variable];
 
     if (onFinishChange == undefined) {
-        folder.add(options.selection, variable, variableList).name(title);
+        folder.add(options.selection, variable, variableList).name(title).listen();
     }
     else {
         folder.add(options.selection, variable, variableList).name(title).listen().onFinishChange(onFinishChange);

@@ -41,7 +41,7 @@ function addMenuControl(
     const defaultValue = options.generator[variable];
 
     if (onFinishChange == undefined) {
-        folder.add(options.generator, variable, variableList).name(title);
+        folder.add(options.generator, variable, variableList).name(title).listen();
     }
     else {
         folder.add(options.generator, variable, variableList).name(title).listen().onFinishChange(onFinishChange);

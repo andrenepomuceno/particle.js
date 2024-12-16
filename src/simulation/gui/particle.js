@@ -20,7 +20,7 @@ function addMenuControl(
     const variableList = undefined;
 
     if (onFinishChange == undefined) {
-        folder.add(options.particle, variable).name(title);
+        folder.add(options.particle, variable).name(title).listen();
     }
     else {
         folder.add(options.particle, variable, variableList).name(title).listen().onFinishChange(onFinishChange);

@@ -161,6 +161,7 @@ export function viewSetup() {
     mouse.addOverListener(gui.domElement);
     mouse.addOverListener(rootDOM);
     gui.width = Math.max(0.2 * window.innerWidth, 420);
+    gui.close();
 
     guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
     guiOptions.guiControls = new GUIControls(guiOptions, guiControls);

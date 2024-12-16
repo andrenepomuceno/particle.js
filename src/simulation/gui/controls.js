@@ -47,7 +47,7 @@ function addMenuControl(
     const variableList = undefined;
 
     if (onFinishChange == undefined) {
-        folder.add(options.controls, variable).name(title);
+        folder.add(options.controls, variable).name(title).listen();
     }
     else {
         folder.add(options.controls, variable, variableList).name(title).listen().onFinishChange(onFinishChange);

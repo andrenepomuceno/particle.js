@@ -144,20 +144,20 @@ function axialHexToPixel(q, r, size) {
 
 export function generateHexagon(cx, cy, radius, map, addCenter = false) {
     for (let i = 0; i < 6; ++i) {
-        let theta = (30 + 60 * i) * Math.PI / 180;
-        let x = radius * Math.cos(theta) + cx;
-        let y = radius * Math.sin(theta) + cy;
+        const theta = (30 + 60 * i) * Math.PI / 180;
+        const x = radius * Math.cos(theta) + cx;
+        const y = radius * Math.sin(theta) + cy;
 
-        let vertex = { x, y, i };
-        let tag = x.toFixed(3) + ' ' + y.toFixed(3);
+        const vertex = { x, y, i };
+        const tag = `${vertex.x.toFixed(2)/2},${vertex.y.toFixed(2)/2}`;
         if (!map.has(tag)) {
             map.set(tag, vertex);
         }
     }
 
     if (addCenter == true) {
-        let vertex = { x: cx, y: cy, i: 6 };
-        let tag = cx.toFixed(3) + ' ' + cy.toFixed(3);
+        const vertex = { x: cx, y: cy, i: 6 };
+        const tag = `${vertex.x.toFixed(2)/2},${vertex.y.toFixed(2)/2}`;
         if (!map.has(tag)) {
             map.set(tag, vertex);
         }

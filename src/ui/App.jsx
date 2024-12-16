@@ -71,59 +71,59 @@ const App = () => {
 
     return (
         <div>
-            {/* <ThemeProvider> */}
-            {/* <CssBaseline /> */}
-            <InformationView
-                open={informationView.isOpen}
-                onClose={(e) => { informationView.onClickClose(e); }}
-                parameters={informationView.state.parameters}
-            />
-            <ParametersView
-                open={parametersView.isOpen}
-                onClose={(e) => { parametersView.onClickClose(e); }}
-                parameters={parametersView.state.parameters}
-            />
-            <ControlsView
-                open={controlsView.isOpen}
-                onClose={(e) => { controlsView.onClickClose(e); }}
-                parameters={controlsView.state.parameters}
-            />
-            <AdvancedView
-                open={advancedView.isOpen}
-                onClose={(e) => { advancedView.onClickClose(e); }}
-                parameters={advancedView.state.parameters}
-            />
-            <FieldView
-                open={fieldView.isOpen}
-                onClose={(e) => { fieldView.onClickClose(e); }}
-                parameters={fieldView.state.parameters}
-            />
-            <ParticleView
-                open={particleView.isOpen}
-                onClose={(e) => { particleView.onClickClose(e); }}
-                parameters={particleView.state.parameters}
-            />
-            <SelectionView
-                open={selectionView.isOpen}
-                onClose={(e) => { selectionView.onClickClose(e); }}
-                parameters={selectionView.state.parameters}
-            />
-            <GeneratorView
-                open={generatorView.isOpen}
-                onClose={(e) => { generatorView.onClickClose(e); }}
-                parameters={generatorView.state.parameters}
-            />
-            <MenuView
-                onClickInfo={(e) => { informationView.onClickOpen(e); }}
-                onClickParameters={(e) => { parametersView.onClickOpen(e); }}
-                onClickControls={(e) => { controlsView.onClickOpen(e); }}
-                onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
-                onClickField={(e) => { fieldView.onClickOpen(e); }}
-                onClickParticle={(e) => { particleView.onClickOpen(e); }}
-                onClickSelection={(e) => { selectionView.onClickOpen(e); }}
-                onClickGenerator={(e) => { generatorView.onClickOpen(e); }}
-            ></MenuView>
-            {/* </ThemeProvider> */}
+            <ThemeProvider theme={darkTheme}>
+            <CssBaseline />
+                <InformationView
+                    open={informationView.isOpen}
+                    onClose={(e) => { informationView.onClickClose(e); }}
+                    parameters={informationView.state.parameters}
+                />
+                <ParametersView
+                    open={parametersView.isOpen}
+                    onClose={(e) => { parametersView.onClickClose(e); }}
+                    parameters={parametersView.state.parameters}
+                />
+                <ControlsView
+                    open={controlsView.isOpen}
+                    onClose={(e) => { controlsView.onClickClose(e); }}
+                    parameters={controlsView.state.parameters}
+                />
+                <AdvancedView
+                    open={advancedView.isOpen}
+                    onClose={(e) => { advancedView.onClickClose(e); }}
+                    parameters={advancedView.state.parameters}
+                />
+                <FieldView
+                    open={fieldView.isOpen}
+                    onClose={(e) => { fieldView.onClickClose(e); }}
+                    parameters={fieldView.state.parameters}
+                />
+                <ParticleView
+                    open={particleView.isOpen}
+                    onClose={(e) => { particleView.onClickClose(e); }}
+                    parameters={particleView.state.parameters}
+                />
+                <SelectionView
+                    open={selectionView.isOpen}
+                    onClose={(e) => { selectionView.onClickClose(e); }}
+                    parameters={selectionView.state.parameters}
+                />
+                <GeneratorView
+                    open={generatorView.isOpen}
+                    onClose={(e) => { generatorView.onClickClose(e); }}
+                    parameters={generatorView.state.parameters}
+                />
+                <MenuView
+                    onClickInfo={(e) => { informationView.onClickOpen(e); }}
+                    onClickParameters={(e) => { parametersView.onClickOpen(e); }}
+                    onClickControls={(e) => { controlsView.onClickOpen(e); }}
+                    onClickAdvanced={(e) => { advancedView.onClickOpen(e); }}
+                    onClickField={(e) => { fieldView.onClickOpen(e); }}
+                    onClickParticle={(e) => { particleView.onClickOpen(e); }}
+                    onClickSelection={(e) => { selectionView.onClickOpen(e); }}
+                    onClickGenerator={(e) => { generatorView.onClickOpen(e); }}
+                ></MenuView>
+            </ThemeProvider>
         </div>
     );
 };
@@ -150,15 +150,7 @@ export const UI = {
 
     info: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 

@@ -90,7 +90,7 @@ function hexagonalCrystal2(simulation) {
     physics.timeStep = 1.0;
     physics.maxVel = lightSpeed * 1e2;
 
-    physics.minDistance2 = Math.pow(1e-3, 2);
+    physics.minDistance2 = Math.pow(1, 2);
     physics.enableColorCharge = true;
     physics.enableLorentzFactor = false;
     physics.enableFineStructure = false;

@@ -1,6 +1,6 @@
 function log(msg) {
     let timestamp = new Date().toISOString();
-    console.log(timestamp + " | Core: " + msg);
+    console.log(timestamp + " | Keyboard: " + msg);
 }
 
 export class Keyboard {
@@ -64,8 +64,6 @@ export class Keyboard {
         let key = event.key.toLowerCase();
         if (event.key == 'G') key = event.key;
         if (event.key == 'Z') key = event.key;
-        /*if (event.key == 'P') key = event.key;
-        if (event.key == 'I') key = event.key;*/
         if (keyboard.onKeyDownMap.has(key)) {
             let callback = keyboard.onKeyDownMap.get(key).callback;
             return callback();

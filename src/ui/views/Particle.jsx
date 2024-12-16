@@ -48,26 +48,7 @@ const ParticleView = ({
                 open={open}
                 onClose={onClose}
             >
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tab} onChange={handleChange} variant='scrollable'>
-                        <Tab label="Particle" {...a11yProps(0)} />
-                        <Tab label="Simulation" {...a11yProps(1)} />
-                        <Tab label="Camera" {...a11yProps(2)} />
-                        <Tab label="View" {...a11yProps(3)} />
-                    </Tabs>
-                </Box>
-                <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['particle']}></GridList>
-                </CustomTabPanel>
-                <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['simulation']}></GridList>
-                </CustomTabPanel >
-                <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={parameters['camera']}></GridList>
-                </CustomTabPanel >
-                <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={parameters['view']}></GridList>
-                </CustomTabPanel >
+                <GridList itemList={parameters['particle']}></GridList>
             </CustomDialog>
         </div>
     );

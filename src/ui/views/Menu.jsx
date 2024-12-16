@@ -19,7 +19,7 @@ const MenuView = ({
             <CustomDialog
                 title='Control Panel'
                 canClose={false}
-                size={{ width: 120, height: 370 }}
+                size={{ width: 140, height: 372 }}
                 position={{ x: 10, y: 70 }}
             >
                 <Grid2 container spacing={1}>

@@ -32,16 +32,25 @@ export class Mouse {
         this.position.set(pos.x, pos.y);
 
         this.updateCursor();
+
+        // check if mouse if over the menu
+        var rootDiv = document.getElementById('root');
+        if (rootDiv.matches(':hover')) {
+            //console.log('Mouse is over the element now.');
+            this.overGUI = true;
+        } else {
+            this.overGUI = false;
+        }
     }
 
-    addOverListener(domElement) {
-        domElement.addEventListener('mouseover', () => {
-            this.overGUI = true;
-        });
-        domElement.addEventListener('mouseleave', () => {
-            this.overGUI = false;
-        });
-    }
+    // addOverListener(domElement) {
+        // domElement.addEventListener('mouseover', () => {
+        //     this.overGUI = true;
+        // });
+        // domElement.addEventListener('mouseleave', () => {
+        //     this.overGUI = false;
+        // });
+    // }
 
     avgVelocity() {
         let sum = new Vector2();
@@ -53,7 +62,7 @@ export class Mouse {
     }
 
     showCursor(graphics, radius = 100, thickness = 10) {
-        log(['showCursor',radius,thickness].join(' '));
+        log(['showCursor', radius, thickness].join(' '));
 
         this.hideCursor();
         this.graphics = graphics;

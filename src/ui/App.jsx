@@ -76,10 +76,13 @@ const App = () => {
     const advancedView = new DialogView(false, UI.advanced);
     const fieldView = new DialogView(false, UI.field);
     const particleView = new DialogView(false, UI.particle);
-    UI.particle.setOpen = particleView.setOpen;
     const selectionView = new DialogView(false, UI.selection);
-    UI.selection.setOpen = selectionView.setOpen;
     const generatorView = new DialogView(false, UI.generator);
+
+    UI.field.setOpen = fieldView.setOpen;
+    UI.particle.setOpen = particleView.setOpen;
+    UI.selection.setOpen = selectionView.setOpen;
+    UI.generator.setOpen = generatorView.setOpen;
 
     return (
         <div>
@@ -172,6 +175,7 @@ export const UI = {
             "general": [],
         },
         newParameters: {},
+        setOpen: null,
     },
 
     controls: {
@@ -185,6 +189,7 @@ export const UI = {
             "general": [],
         },
         newParameters: {},
+        setOpen: null,
     },
 
     advanced: {
@@ -198,6 +203,7 @@ export const UI = {
             "general": [],
         },
         newParameters: {},
+        setOpen: null,
     },
 
     field: {
@@ -211,6 +217,7 @@ export const UI = {
             "general": [],
         },
         newParameters: {},
+        setOpen: null,
     },
 
     particle: {

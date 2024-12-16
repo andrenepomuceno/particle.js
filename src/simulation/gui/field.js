@@ -158,6 +158,8 @@ export class GUIField {
             core.deleteParticleList(simulation.field.arrowList);
             simulation.field.cleanup();
             controls.close();
+
+            UI.field.setOpen(false);
         } else {
             let grid = Math.round(parseFloat(options.field.grid));
             if (isNaN(grid)) {
@@ -170,6 +172,8 @@ export class GUIField {
             }
             options.field.enabled = true;
             controls.open();
+
+            UI.field.setOpen(true);
         }
     }
 }

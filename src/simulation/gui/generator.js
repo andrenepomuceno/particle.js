@@ -103,9 +103,11 @@ export class GUIGenerator {
             generate: () => {
                 particleGenerator(options.generator);
                 controls.open();
+                UI.generator.setOpen(true);
             },
             clear: () => {
                 controls.close();
+                UI.generator.setOpen(false);
             },
             default: () => {
                 let clean = {

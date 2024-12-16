@@ -9,7 +9,9 @@ const ControlButton = ({ children, onClick }) => {
                     onClick={onClick}
                     variant="outlined"
                     size="small"
-                    sx={{ width: "100px" }}>{children}
+                    sx={{ width: "100px" }}
+                >
+                    {children}
                 </Button>
             </Grid2>
         </div>

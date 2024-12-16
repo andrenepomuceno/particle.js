@@ -8,6 +8,7 @@ const ButtonInput = ({
     return (
         <Button
             size='small'
+            variant="outlined"
             onClick={onClick}
         >
             {name}

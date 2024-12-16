@@ -19,9 +19,13 @@ const TextInput = ({
     }
 
     const onFinish_ = (e) => {
+        if (!isEditing) return;
         setEditing(false);
-        const value = e.target.value;
-        if (onFinish) onFinish(value);
+
+        if (onFinish) {
+            const value = e.target.value;
+            onFinish(value);
+        }
     }
 
     const onKeyDown = (e) => {

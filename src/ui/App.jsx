@@ -156,99 +156,43 @@ export const UI = {
 
     parameters: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     controls: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     advanced: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     field: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     particle: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     selection: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 
     generator: {
         refresh: undefined,
-        parameters: {
-            "Folder": [{
-                title: "Title",
-                value: "Value",
-                onFinish: undefined // readOnly
-            }],
-            "general": [],
-        },
-        newParameters: {},
+        parameters: {},
         setOpen: null,
     },
 };

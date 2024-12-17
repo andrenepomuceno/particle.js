@@ -366,9 +366,9 @@ void main() {
             vec4 result = forceConstants * props * potential;
             float force = dot(result, ones);
 
-            #define QUANTIZE_FORCE 1
+            #define QUANTIZE_FORCE 0
             #if QUANTIZE_FORCE
-                const float forceScale = 1e4;
+                const float forceScale = 1e3;
                 const float invForceScale = (1.0/forceScale);
 
                 #define RANDOM_ROUND 0
@@ -502,7 +502,7 @@ float sdBox( vec3 p, vec3 b )
 
 float sdSphere( vec3 p, float s )
 {
-    return length(p)-s;
+    return length(p) - s;
 }
 
 void main() {

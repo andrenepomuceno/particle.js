@@ -26,7 +26,7 @@ const BooleanInput = ({
     }, [checked]);
 
     return (
-        <FormGroup>
+        <FormGroup sx={{ padding: '2px' }}>
             <FormControlLabel
                 label={name}
                 control={

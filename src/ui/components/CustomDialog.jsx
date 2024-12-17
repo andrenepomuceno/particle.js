@@ -1,10 +1,12 @@
-import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Box, Button, Card, CardActions, CardContent, Paper, Typography } from '@mui/material';
+import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
+
+const LOCAL_STORAGE_PREFIX = 'customDialogState';
 
 const CustomDialog = ({
     title = 'Dialog',
@@ -15,13 +17,31 @@ const CustomDialog = ({
     onClose,
     children,
 }) => {
+    // Load initial state from localStorage or fallback to default props
+    const localStorageKey = LOCAL_STORAGE_PREFIX + ":" + title;
+    const getInitialState = () => {
+        const savedState = localStorage.getItem(localStorageKey);
+        if (savedState) {
+            return JSON.parse(savedState);
+        }
+        return { size, position };
+    };
+
     const [isOpen, setIsOpen] = useState(open);
-    const [dialogSize, setSize] = useState(size);
-    const [dialogPos, setPosition] = useState(position);
+    const [dialogSize, setSize] = useState(getInitialState().size);
+    const [dialogPos, setPosition] = useState(getInitialState().position);
 
     useEffect(() => {
         setIsOpen(open);
     }, [open]);
+
+    // Save state to localStorage whenever size or position changes
+    useEffect(() => {
+        localStorage.setItem(
+            localStorageKey,
+            JSON.stringify({ size: dialogSize, position: dialogPos })
+        );
+    }, [dialogSize, dialogPos]);
 
     const onClickClose = (e) => {
         setIsOpen(false);
@@ -29,14 +49,12 @@ const CustomDialog = ({
     };
 
     const onDragStop = (e, position) => {
-        console.log(position);
-        setPosition(position);
+        setPosition({ x: position.x, y: position.y });
     };
 
     const onResize = (e, { size }) => {
-        console.log(size);
         setSize(size);
-    }
+    };
 
     if (!isOpen) return null;
 
@@ -51,30 +69,27 @@ const CustomDialog = ({
                 // height={dialogSize.height}
                 minConstraints={[132, 100]}
                 maxConstraints={[1200, 1000]}
-                // onResize={onResize}
                 onResizeStop={onResize}
             >
-                <Card>
+                <Card variant='outlined'>
                     <CardContent>
-                        <Box className='dialog-box'>
-                            <div className="dialog-header">
-                                <Typography variant="subtitle1" gutterBottom>
-                                    {title}
-                                </Typography>
-                            </div>
-                            <div className='dialog-content'>
-                                {children}
-                            </div>
-                        </Box>
+                        <div className="dialog-header">
+                            <Typography variant="subtitle1">
+                                {title}
+                            </Typography>
+                        </div>
+                        <div className="dialog-content">
+                            {children}
+                        </div>
                     </CardContent>
-                        {canClose && (
-                            <CardActions>
-                                <Button onClick={onClickClose}>Close</Button>
-                            </CardActions>
-                        )}
+                    {canClose && (
+                        <CardActions>
+                            <Button onClick={onClickClose}>Close</Button>
+                        </CardActions>
+                    )}
                 </Card>
             </ResizableBox>
-        </Draggable >
+        </Draggable>
     );
 };
 

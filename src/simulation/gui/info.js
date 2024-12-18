@@ -150,9 +150,9 @@ export class GUIInfo {
         addMenuControl(guiInfoMore, 'Nuclear Charge (sum) ✏️', 'nuclearCharge', (val) => {
             core.updateParticleList('nuclearCharge', val);
         });
-        addMenuControl(guiInfoMore, 'Color Charge (sum)', 'colorCharge', (val) => {
-            //core.updateParticleList('colorCharge', val);
-        });
+        addMenuControl(guiInfoMore, 'Color Charge (sum)', 'colorCharge'/*, (val) => {
+            core.updateParticleList('colorCharge', val);
+        }*/);
         addMenuControl(guiInfoMore, 'Energy (avg)', 'energy');
         addMenuControl(guiInfoMore, 'Velocity (avg)', 'velocity');
         addMenuControl(guiInfoMore, 'Collisions', 'collisions');
@@ -230,7 +230,7 @@ export class GUIInfo {
             }
         })
 
-        UI.info.refresh();
+        UI.info.refresh(UI.info);
     }
 
     reset() {

@@ -1,19 +1,19 @@
 import React from 'react';
-import { Button, Grid2 } from '@mui/material';
+import { Button, Grid2 as Grid } from '@mui/material';
 
 const ControlButton = ({ children, onClick }) => {
     return (
         <div>
-            <Grid2 item>
+            {/* <Grid item> */}
                 <Button
                     onClick={onClick}
                     variant="outlined"
                     size="small"
-                    sx={{ width: "100px" }}
+                    fullWidth
                 >
                     {children}
                 </Button>
-            </Grid2>
+            {/* </Grid> */}
         </div>
     );
 };

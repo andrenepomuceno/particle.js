@@ -26,22 +26,15 @@ const darkTheme = createTheme({
 class DialogView {
     constructor(open = true, initialState) {
         [this.isOpen, this.setOpen] = useState(open);
-        [this.state, this.setState] = useState(initialState);
+        
+        this.state = initialState;
 
-        // useEffect(() => {
-        //     this.setState(initialState);
-        // }, [initialState]);
+        if (!initialState.refresh) {
+            initialState.refresh = () => {};
+        }
 
-        if (initialState.refresh == undefined) {
-            initialState.refresh = (newParameters) => {
-                // const newState = this.state;
-                // newState.parameters = {
-                //     ...newState.parameters,
-                //     ...newParameters
-                // }
-                // this.setState(initialState);
-                // console.log(initialState);
-            };
+        if (!initialState.setOpen) {
+            initialState.setOpen = this.setOpen;
         }
     };
 
@@ -63,11 +56,6 @@ const App = () => {
     const particleView = new DialogView(false, UI.particle);
     const selectionView = new DialogView(false, UI.selection);
     const generatorView = new DialogView(false, UI.generator);
-
-    UI.field.setOpen = fieldView.setOpen;
-    UI.particle.setOpen = particleView.setOpen;
-    UI.selection.setOpen = selectionView.setOpen;
-    UI.generator.setOpen = generatorView.setOpen;
 
     return (
         <div>
@@ -149,49 +137,49 @@ export const UI = {
     },
 
     info: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     parameters: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     controls: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     advanced: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     field: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     particle: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     selection: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     generator: {
-        refresh: undefined,
+        refresh: null,
         parameters: {},
         setOpen: null,
     },

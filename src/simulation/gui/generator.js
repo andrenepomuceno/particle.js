@@ -20,6 +20,8 @@ function log(msg) {
 
 let options, controls, selection, mouse, hexagonMap;
 
+const refreshCallbackList = [];
+
 function translateFolder(folder) {
     const regex = /[a-z]+/i;
     const result = regex.exec(folder.name)[0];
@@ -41,11 +43,12 @@ function addMenuControl(
     const defaultValue = options.generator[variable];
 
     if (onFinishChange == undefined) {
-        folder.add(options.generator, variable, variableList).name(title).listen();
+        onFinishChange = (val) => {
+            options.generator[variable] = val;
+        }
     }
-    else {
-        folder.add(options.generator, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
+
+    folder.add(options.generator, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
 
     const item = {
         title: title,
@@ -56,11 +59,11 @@ function addMenuControl(
     }
     UI.addItem(UI.generator, item);
 
-    // if (typeof defaultValue != 'function') {
-    //     refreshCallbackList.push(() => {
-    //         item.value = options.generator[variable];
-    //     });
-    // }
+    if (typeof defaultValue != 'function') {
+        refreshCallbackList.push(() => {
+            item.value = options.generator[variable];
+        });
+    }
 }
 
 export class GUIGenerator {
@@ -190,6 +193,7 @@ export class GUIGenerator {
                 default:
                     break;
             }
+            options.generator.pattern = val;
         }, patternList);
 
         const presetList = {
@@ -231,6 +235,7 @@ export class GUIGenerator {
                     options.generator.default();
                     break;
             }
+            options.generator.preset = val;
         }, presetList);
 
         const guiGenerateMass = controls.addFolder("[+] Mass ✏️");
@@ -291,7 +296,13 @@ export class GUIGenerator {
     }
 
     refresh() {
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        })
 
+        UI.generator.refresh();
     }
 
     cleanup() {
@@ -301,6 +312,8 @@ export class GUIGenerator {
 
 function particleGenerator(input) {
     log('generateParticles');
+    //console.log(input);
+    // TODO improve this code
 
     function generatePosition() {
         switch (input.pattern) {
@@ -452,19 +465,22 @@ function particleGenerator(input) {
         const opt = {
             randomSequence: true,
 
-            randomM: options.generator.randomMass,
-            roundM: options.generator.roundMass,
-            allowZeroM: options.generator.enableZeroMass,
+            m: input.mass,
+            randomM: input.randomMass,
+            roundM: input.roundMass,
+            allowZeroM: input.enableZeroMass,
 
-            randomQSignal: options.generator.chargeRandomSignal,
-            randomQ: options.generator.randomCharge,
-            roundQ: options.generator.roundCharge,
-            allowZeroQ: options.generator.enableZeroCharge,
-
-            randomNQSignal: options.generator.nuclearChargeRandomSignal,
-            randomNQ: options.generator.randomNuclearCharge,
-            roundNQ: options.generator.roundNuclearCharge,
-            allowZeroNQ: options.generator.enableZeroNuclearCharge,
+            q: input.charge,
+            randomQSignal: input.chargeRandomSignal,
+            randomQ: input.randomCharge,
+            roundQ: input.roundCharge,
+            allowZeroQ: input.enableZeroCharge,
+            
+            nq: input.nuclearCharge,
+            randomNQSignal: input.nuclearChargeRandomSignal,
+            randomNQ: input.randomNuclearCharge,
+            roundNQ: input.roundNuclearCharge,
+            allowZeroNQ: input.enableZeroNuclearCharge,
 
             center: generatePosition(),
 
@@ -477,5 +493,6 @@ function particleGenerator(input) {
     selection.clear();
     selection.source = SourceType.generated;
     selection.list = dummySimulation.physics.particleList;
+    console.log(selection.list);
     selection.guiRefresh();
 }

@@ -89,6 +89,7 @@ export class GUIField {
             this.fieldEnable(val);
         });
         addMenuControl(controls, 'Automatic Refresh ✏️', 'automaticRefresh', val => {
+            options.field.automaticRefresh = val;
             if (val == true) {
                 options.field.fieldResize();
             }
@@ -142,6 +143,7 @@ export class GUIField {
         opt.nq = field.probeParam.nq.toExponential(2);
         opt.color = field.probeParam.color.toFixed(0);
         opt.grid = field.grid[0];
+        // opt.automaticRefresh = field.automaticRefresh;
 
         refreshCallbackList.forEach((callback) => {
             if (callback != undefined) {
@@ -159,7 +161,7 @@ export class GUIField {
             simulation.field.cleanup();
             controls.close();
 
-            UI.field.setOpen(false);
+            // UI.field.setOpen(false);
         } else {
             let grid = Math.round(parseFloat(options.field.grid));
             if (isNaN(grid)) {
@@ -173,6 +175,7 @@ export class GUIField {
             options.field.enabled = true;
             controls.open();
 
+            // this.refresh();
             UI.field.setOpen(true);
         }
     }

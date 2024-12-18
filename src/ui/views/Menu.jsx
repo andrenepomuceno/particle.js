@@ -1,8 +1,9 @@
 import React from 'react';
-import { Grid2 } from '@mui/material';
+import { Grid2 as Grid, Stack } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import ControlButton from '../components/ControlButton';
+import { CustomTabPanel } from '../components/CustomTabPanel';
 
 const MenuView = ({
     onClickInfo,
@@ -21,8 +22,9 @@ const MenuView = ({
                 canClose={false}
                 size={{ width: 134, height: 372 }}
                 position={{ x: 10, y: 70 }}
-            >
-                <Grid2 container spacing={1}>
+            >   
+                {/* <Grid container spacing={1}> */}
+                <Stack container spacing={1}>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
                     <ControlButton onClick={onClickControls}>Controls</ControlButton>
                     <ControlButton onClick={onClickParticle}>Particle</ControlButton>
@@ -31,7 +33,8 @@ const MenuView = ({
                     <ControlButton onClick={onClickField}>Field</ControlButton>
                     <ControlButton onClick={onClickAdvanced}>Advanced</ControlButton>
                     <ControlButton onClick={onClickParameters}>Parameters</ControlButton>
-                </Grid2>
+                </Stack>
+                {/* </Grid> */}
             </CustomDialog>
         </div>
     );

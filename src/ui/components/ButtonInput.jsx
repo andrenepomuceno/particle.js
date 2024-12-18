@@ -10,6 +10,7 @@ const ButtonInput = ({
             size='small'
             variant="outlined"
             onClick={onClick}
+            fullWidth
         >
             {name}
         </Button>

@@ -2,30 +2,3 @@
     position: absolute;
     z-index: 1000;
 }
-
-.dialog-box {
-    /* position: relative; */
-    /* overflow: auto; */
-    /* width: 100%; */
-    /* height: 100%; */
-    /* padding: 4px; */
-    /* border-radius: 8px; */
-}
-
-.dialog-header {
-    /* padding: 6px; */
-    cursor: move;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.dialog-content {
-    overflow: auto;
-    height: calc(100% - 50px);
-    /* padding: 4px; */
-    /*flex-grow: 1;
-    align-items: center;
-    justify-content: center; */
-}

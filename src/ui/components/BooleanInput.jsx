@@ -22,11 +22,11 @@ const BooleanInput = ({
     }
 
     useEffect(() => {
-        setChecked(checked);
-    }, [checked]);
+        setChecked(value);
+    }, [value]);
 
     return (
-        <FormGroup sx={{ padding: '2px' }}>
+        <FormGroup>
             <FormControlLabel
                 label={name}
                 control={

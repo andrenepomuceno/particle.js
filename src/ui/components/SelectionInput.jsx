@@ -39,7 +39,7 @@ const SelectionInput = ({
     }
 
     return (
-        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+        <FormControl fullWidth size="small">
             <InputLabel id='selection-label'>{name}</InputLabel>
             <Select
                 labelId='selection-label'

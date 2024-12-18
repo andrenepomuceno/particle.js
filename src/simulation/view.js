@@ -239,7 +239,7 @@ function onPointerUp(event) {
                 guiOptions.particle.obj = particle;
                 guiOptions.guiParticle.refresh();
                 guiParticle.open();
-
+                
                 UI.particle.setOpen(true);
             }
         });
@@ -297,6 +297,7 @@ function animate(time) {
             guiOptions.guiParameters.refresh();
             guiOptions.guiControls.refresh();
             guiOptions.guiField.refresh();
+            guiOptions.guiGenerator.refresh();
 
             UI.refresh();
         });

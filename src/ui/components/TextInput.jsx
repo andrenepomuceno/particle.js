@@ -9,6 +9,7 @@ const TextInput = ({
     // readOnly = false,
 }) => {
     const [value, setValue] = useState(inputValue);
+    const [lastValue, setLastValue] = useState();
     const [isEditing, setEditing] = useState(false);
     const readOnly = (onFinish == undefined) ? true : false;
 
@@ -24,15 +25,24 @@ const TextInput = ({
 
         if (onFinish) {
             const value = e.target.value;
+            if (value == lastValue) return;
+            
             onFinish(value);
         }
     }
 
+    const startEditing = () => {
+        if (readOnly) return;
+        if (!isEditing) {
+            setEditing(true);
+            setLastValue(value);
+        }
+    }
+
     const onKeyDown = (e) => {
-        setEditing(true);
+        startEditing();
         switch (e.key) {
             case 'Enter':
-                // case 'Tab':
                 onFinish_(e);
                 break;
         }
@@ -43,9 +53,7 @@ const TextInput = ({
     }
 
     const onFocus = (e) => {
-        // console.log('onFocus', e);
-        if (readOnly) return;
-        setEditing(true);
+        startEditing();
     }
 
     useEffect(() => {
@@ -53,9 +61,9 @@ const TextInput = ({
         setValue(inputValue);
     }, [inputValue]);
 
-    const color = (readOnly ? 'secondary' : 'success');
     return (
         <TextField
+            fullWidth
             type="text"
             variant="filled"
             size="small"

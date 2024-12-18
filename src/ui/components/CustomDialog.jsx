@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Box, Button, Card, CardActions, CardContent, Typography } from '@mui/material';
+import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
@@ -52,7 +52,7 @@ const CustomDialog = ({
         setPosition({ x: position.x, y: position.y });
     };
 
-    const onResize = (e, { size }) => {
+    const onResizeStop = (e, { size }) => {
         setSize(size);
     };
 
@@ -69,19 +69,22 @@ const CustomDialog = ({
                 // height={dialogSize.height}
                 minConstraints={[132, 100]}
                 maxConstraints={[1200, 1000]}
-                onResizeStop={onResize}
+                onResizeStop={onResizeStop}
             >
-                <Card variant='outlined'>
+                <Card
+                    variant='outlined'
+                    // sx={{ width: '100%', height: '100%' }}
+                >
+                    <CardHeader
+                        className="dialog-header"
+                        subheader={title}
+                        sx={{ cursor: 'move' }}
+                    />
+
                     <CardContent>
-                        <div className="dialog-header">
-                            <Typography variant="subtitle1">
-                                {title}
-                            </Typography>
-                        </div>
-                        <div className="dialog-content">
-                            {children}
-                        </div>
+                        {children}
                     </CardContent>
+
                     {canClose && (
                         <CardActions>
                             <Button onClick={onClickClose}>Close</Button>

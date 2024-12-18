@@ -125,7 +125,7 @@ export class GUISelection {
             Box: 'box',
             Circle: 'circle',
         };
-        addMenuControl(controls, 'Pattern', 'pattern', val => {
+        addMenuControl(controls, 'Pattern', 'pattern', (val) => {
             switch (val) {
                 case 'box':
                 default:
@@ -136,6 +136,7 @@ export class GUISelection {
                     options.ruler.mode = 'circle';
                     break
             }
+            options.selection.pattern = val;
         }, patternList);
         addMenuControl(controls, 'Source', 'source')
         addMenuControl(controls, 'Particles', 'particles')
@@ -150,9 +151,9 @@ export class GUISelection {
         addMenuControl(guiSelectionProperties, "Nuclear Charge (sum)", 'nuclearCharge', (val) => {
             selectionListUpdate('nuclearCharge', val);
         });
-        addMenuControl(guiSelectionProperties, "Color Charge (sum)", 'colorCharge', (val) => {
+        addMenuControl(guiSelectionProperties, "Color Charge (sum)", 'colorCharge'/*, (val) => {
             //selectionListUpdate('colorCharge', val);
-        });
+        }*/);
         guiSelectionProperties.open();
     
         const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");

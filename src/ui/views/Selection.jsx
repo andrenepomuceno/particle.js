@@ -7,7 +7,7 @@ import AutomaticInput from '../components/AutomaticInput';
 
 const GridList = ({ itemList = [] }) => {
     const itemListMaped = itemList.map(item =>
-        (<Grid item key={item.id}>
+        (<Grid item key={item.id} size={6}>
             <AutomaticInput
                 name={item.title}
                 value={item.value}
@@ -16,8 +16,9 @@ const GridList = ({ itemList = [] }) => {
             ></AutomaticInput>
         </Grid>)
     );
+    
     return (
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
             {itemListMaped}
         </Grid>
     );

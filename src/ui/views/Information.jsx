@@ -7,7 +7,7 @@ import AutomaticInput from '../components/AutomaticInput';
 
 const GridList = ({ itemList = [] }) => {
     const itemListMaped = itemList.map(item =>
-        (<Grid item key={item.id}>
+        (<Grid item key={item.id} size={6}>
             <AutomaticInput
                 name={item.title}
                 value={item.value}
@@ -17,7 +17,7 @@ const GridList = ({ itemList = [] }) => {
         </Grid>)
     );
     return (
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
             {itemListMaped}
         </Grid>
     );
@@ -26,12 +26,7 @@ const GridList = ({ itemList = [] }) => {
 const InformationView = ({
     open = true,
     onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
+    parameters = {},
 }) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {

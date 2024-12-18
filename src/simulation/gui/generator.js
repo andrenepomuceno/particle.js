@@ -395,18 +395,18 @@ function particleGenerator(input) {
     switch (preset) {
         case 'stdModel0':
             presetList = [
-                { m: 0.01, q: 0, nq: 1 },
-                { m: 0.511, q: -1, nq: 1 },
-                { m: 3, q: 1 / 3, nq: 1 },
-                { m: 6, q: -2 / 3, nq: 1 },
+                { m: 0.01, q: 0, nq: 1, name: 'neutrino'  },
+                { m: 0.511, q: -1, nq: 1, name: 'electron'  },
+                { m: 3, q: 1 / 3, nq: 1, name: 'quark up'  },
+                { m: 6, q: -2 / 3, nq: 1, name: 'quark down'  },
             ];
             break;
 
         case 'epnModel':
             presetList = [
-                { m: 5.48579909065e-4, q: -1, nq: -1 / 137 },
-                { m: 1.007276466583, q: 1, nq: 1 },
-                { m: 1.00866491588, q: 0, nq: 1 },
+                { m: 5.48579909065e-4, q: -1, nq: -1 / 137, name: 'electron'  },
+                { m: 1.007276466583, q: 1, nq: 1, name: 'proton'  },
+                { m: 1.00866491588, q: 0, nq: 1, name: 'neutron'  },
             ];
             break;
 
@@ -433,7 +433,7 @@ function particleGenerator(input) {
                     let idx = random(0, simulation.particleList.length - 1, true);
                     let p = simulation.particleList[idx];
                     presetList.push(
-                        { m: p.mass, q: p.charge, nq: p.nuclearCharge }
+                        { name: p.name, m: p.mass, q: p.charge, nq: p.nuclearCharge, colorCharge: p.colorCharge }
                     );
                 }
             }

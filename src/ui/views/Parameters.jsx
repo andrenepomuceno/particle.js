@@ -1,27 +1,9 @@
 import React, { useState } from 'react';
-import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
-import AutomaticInput from '../components/AutomaticInput';
-
-const GridList = ({ itemList = [] }) => {
-    const itemListMaped = itemList.map(item =>
-        (<Grid item key={item.id} size={6}>
-            <AutomaticInput
-                name={item.title}
-                value={item.value}
-                onFinish={item.onFinish}
-                selectionList={item.selectionList}
-            ></AutomaticInput>
-        </Grid>)
-    );
-    return (
-        <Grid container spacing={2}>
-            {itemListMaped}
-        </Grid>
-    );
-};
+import GridList from '../components/GridList';
 
 const ParametersView = ({
     open = true,
@@ -55,6 +37,7 @@ const ParametersView = ({
                         <Tab label="Forces" {...a11yProps(0)} />
                         <Tab label="Other" {...a11yProps(1)} />
                         <Tab label="Boundaries" {...a11yProps(2)} />
+                        <Tab label="Experimental" {...a11yProps(3)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
@@ -65,6 +48,9 @@ const ParametersView = ({
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
                     <GridList itemList={parameters['boundaries']}></GridList>
+                </CustomTabPanel >
+                <CustomTabPanel value={tab} index={3}>
+                    <GridList itemList={parameters['experimental']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

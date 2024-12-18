@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Box, Button, Card, CardActions, CardContent, CardHeader, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
@@ -30,6 +30,7 @@ const CustomDialog = ({
     const [isOpen, setIsOpen] = useState(open);
     const [dialogSize, setSize] = useState(getInitialState().size);
     const [dialogPos, setPosition] = useState(getInitialState().position);
+    const [zIndex, setZIndex] = useState(1000);
 
     useEffect(() => {
         setIsOpen(open);
@@ -56,9 +57,17 @@ const CustomDialog = ({
         setSize(size);
     };
 
+    const handleMouseEnter = () => setZIndex(1100);
+    const handleMouseLeave = () => setZIndex(1000);
+
     if (!isOpen) return null;
 
     return (
+        <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{ position: 'absolute', zIndex }}
+        >
         <Draggable
             handle=".dialog-header"
             position={dialogPos}
@@ -93,6 +102,7 @@ const CustomDialog = ({
                 </Card>
             </ResizableBox>
         </Draggable>
+        </div>
     );
 };
 

@@ -1,27 +1,6 @@
 import React, { useState } from 'react';
-import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
-
 import CustomDialog from '../components/CustomDialog';
-import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
-import AutomaticInput from '../components/AutomaticInput';
-
-const GridList = ({ itemList = [] }) => {
-    const itemListMaped = itemList.map(item =>
-        (<Grid item key={item.id}>
-            <AutomaticInput
-                name={item.title}
-                value={item.value}
-                onFinish={item.onFinish}
-                selectionList={item.selectionList}
-            ></AutomaticInput>
-        </Grid>)
-    );
-    return (
-        <Grid container spacing={2}>
-            {itemListMaped}
-        </Grid>
-    );
-};
+import GridList from '../components/GridList';
 
 const AdvancedView = ({
     open = true,
@@ -48,7 +27,7 @@ const AdvancedView = ({
                 open={open}
                 onClose={onClose}
             >
-                <GridList itemList={parameters['advanced']}></GridList>
+                <GridList itemList={parameters['advanced']} cols={1}></GridList>
             </CustomDialog>
         </div>
     );

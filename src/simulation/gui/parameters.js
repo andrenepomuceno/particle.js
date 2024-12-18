@@ -17,7 +17,7 @@ function translateFolder(folder) {
         'Nuclear': 'forces',
         'Other': 'other',
         'Simulation': 'boundaries',
-        'Experimental': 'other',
+        'Experimental': 'experimental',
     }
     return map[result];
 }

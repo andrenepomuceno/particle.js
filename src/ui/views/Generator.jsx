@@ -1,27 +1,9 @@
 import React, { useState } from 'react';
-import { Grid2 as Grid, Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
-import AutomaticInput from '../components/AutomaticInput';
-
-const GridList = ({ itemList = [] }) => {
-    const itemListMaped = itemList.map(item =>
-        (<Grid item key={item.id} size={6}>
-            <AutomaticInput
-                name={item.title}
-                value={item.value}
-                onFinish={item.onFinish}
-                selectionList={item.selectionList}
-            ></AutomaticInput>
-        </Grid>)
-    );
-    return (
-        <Grid container spacing={2}>
-            {itemListMaped}
-        </Grid>
-    );
-};
+import GridList from '../components/GridList';
 
 const GeneratorView = ({
     open = true,

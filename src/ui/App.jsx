@@ -140,25 +140,25 @@ const App = () => {
     );
 };
 
-let root;
-
-function refresh() {
-    root.render(<App />);
-    setTimeout(refresh, 500);
-}
-
 export const UI = {
+    root: null,
+
     start: () => {
-        root = ReactDOM.createRoot(document.getElementById('root'));
+        UI.root = ReactDOM.createRoot(document.getElementById('root'));
+
+        function refresh() {
+            UI.root.render(<App />);
+            setTimeout(refresh, 500);
+        }
         refresh();
     },
 
     addItem: (view, item) => {
         item.id = crypto.randomUUID();
-        if (!(item.folder in view.parameters)) {
-            view.parameters[item.folder] = [];
-        }
-        view.parameters[item.folder].push(item);
+        const parameters = view.parameters;
+        if (!parameters[item.folder]) parameters[item.folder] = [];
+        
+        parameters[item.folder].push(item);
     },
 
     info: {

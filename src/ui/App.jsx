@@ -155,6 +155,8 @@ export const UI = {
 
     addItem: (view, item) => {
         item.id = crypto.randomUUID();
+        item.type = item.type || typeof item.value;
+
         const parameters = view.parameters;
         if (!parameters[item.folder]) parameters[item.folder] = [];
         

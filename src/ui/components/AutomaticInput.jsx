@@ -7,15 +7,13 @@ import ButtonInput from './ButtonInput';
 
 const AutomaticInput = ({
     name = '',
+    itemType = '',
     value = false,
     onFinish = undefined,
     selectionList = undefined,
 }) => {
-    const [type, setType] = useState();
-
-    if (type == undefined) {
-        setType(typeof value);
-    }
+    //const [type, setType] = useState(itemType);
+    const type = itemType;
 
     if (type == 'boolean') {
         return (

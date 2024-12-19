@@ -24,7 +24,6 @@ const MenuView = ({
                 size={{ width: 134, height: 372 }}
                 position={{ x: 10, y: 70 }}
             >   
-                {/* <Grid container spacing={1}> */}
                 <Stack container spacing={1}>
                     <ControlButton onClick={onClickAbout}>About/Help</ControlButton>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
@@ -36,7 +35,6 @@ const MenuView = ({
                     <ControlButton onClick={onClickAdvanced}>Advanced</ControlButton>
                     <ControlButton onClick={onClickParameters}>Parameters</ControlButton>
                 </Stack>
-                {/* </Grid> */}
             </CustomDialog>
         </div>
     );

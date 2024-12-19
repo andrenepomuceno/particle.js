@@ -7,6 +7,7 @@ const GridList = ({ itemList = [], cols = 2 }) => {
         (<Grid item key={item.id} size={12/cols}>
             <AutomaticInput
                 name={item.title}
+                itemType={item.type}
                 value={item.value}
                 onFinish={item.onFinish}
                 selectionList={item.selectionList}

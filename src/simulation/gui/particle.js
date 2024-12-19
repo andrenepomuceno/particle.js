@@ -134,14 +134,13 @@ export class GUIParticle {
         addMenuControl(guiParticleVariables, 'Direction', 'velocityDir', (val) => {
             core.updateParticle(options.particle.obj, 'velocityDir', val);
         });
+
+        addMenuControl(controls, 'Follow/Unfollow', 'follow');
+        addMenuControl(controls, 'Look At', 'lookAt');
+
         addMenuControl(guiParticleVariables, 'Fixed position?', 'fixed', (val) => {
             core.updateParticle(options.particle.obj, 'fixed', val);
         });
-        //guiParticleVariables.open();
-
-        //const guiParticleActions = gGuiParticle.addFolder("[+] Controls");
-        addMenuControl(controls, 'Follow/Unfollow', 'follow');
-        addMenuControl(controls, 'Look At', 'lookAt');
         //addMenuControl(controls, 'Reset Attributes', 'reset');
         controls.add(options.particle, 'close').name('Close 🔺');
 

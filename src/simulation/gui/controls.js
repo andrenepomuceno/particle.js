@@ -229,13 +229,7 @@ export class GUIControls {
                 options.mouseHelper.hideCursor();
                 options.controls.showCursor = false;
             }
-        });
-        addMenuControl(guiControlsView, 'Particle Radius ✏️', 'radius', (val) => {
-            core.updatePhysics('radius', val);
-        });
-        addMenuControl(guiControlsView, 'Particle Radius Range ✏️', 'radiusRange', (val) => {
-            core.updatePhysics('radiusRange', val);
-        });
+        });        
         addMenuControl(guiControlsView, '3D Particle Shader ✏️', 'shader3d', (val) => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
@@ -246,6 +240,12 @@ export class GUIControls {
             }
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
+        });
+        addMenuControl(guiControlsView, 'Particle Radius ✏️', 'radius', (val) => {
+            core.updatePhysics('radius', val);
+        });
+        addMenuControl(guiControlsView, 'Particle Radius Range ✏️', 'radiusRange', (val) => {
+            core.updatePhysics('radiusRange', val);
         });
 
         controls.add(options.controls, 'close').name('Close 🔺');

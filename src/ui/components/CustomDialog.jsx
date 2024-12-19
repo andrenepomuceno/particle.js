@@ -30,6 +30,20 @@ const CustomDialog = ({
     const [dialogPos, setPosition] = useState(getInitialState().position);
     const [zIndex, setZIndex] = useState(1000);
 
+    if (dialogPos.x + dialogSize.width > window.innerWidth) {
+        setPosition({
+            x: window.innerWidth - dialogSize.width,
+            y: dialogPos.y
+        });
+    }
+
+    if (dialogPos.y + dialogSize.height > window.innerHeight) {
+        setPosition({
+            x: dialogPos.x,
+            y: window.innerHeight - dialogSize.height
+        });
+    }
+
     useEffect(() => {
         setIsOpen(open);
     }, [open]);
@@ -79,6 +93,7 @@ const CustomDialog = ({
                     // height={dialogSize.height}
                     minConstraints={[132, 100]}
                     maxConstraints={[1200, 1000]}
+                    // onResize={onResizeStop}
                     onResizeStop={onResizeStop}
                 >
                     <Card

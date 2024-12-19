@@ -168,6 +168,8 @@ export function viewSetup() {
     guiOptions.keyboard = new Keyboard(mouse, guiOptions, simulation);
     guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
 
+    // console.log(UI);
+
     log('Animating...');
     requestAnimationFrame(animate);
 }
@@ -285,8 +287,6 @@ function animate(time) {
             guiOptions.guiControls.refresh();
             guiOptions.guiField.refresh();
             guiOptions.guiGenerator.refresh();
-
-            // UI.refresh();
         });
     }
 

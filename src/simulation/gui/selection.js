@@ -137,6 +137,7 @@ export class GUISelection {
                     break
             }
             options.selection.pattern = val;
+            // console.log(val);
         }, patternList);
         addMenuControl(controls, 'Source', 'source')
         addMenuControl(controls, 'Particles', 'particles')
@@ -193,8 +194,6 @@ export class GUISelection {
                 callback();
             }
         })
-
-        UI.selection.refresh();
     }
 }
 

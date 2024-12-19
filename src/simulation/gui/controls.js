@@ -22,7 +22,7 @@ function translateFolder(folder) {
     const regex = /[a-z]+/i;
     const result = regex.exec(folder.name)[0];
     const map = {
-        'CONTROLS': 'controls',
+        'CONTROLS': 'simulation',
         'Simulation': 'simulation',
         'Camera': 'camera',
         'View': 'view',
@@ -90,7 +90,6 @@ export class GUIControls {
             showCursor: true,
             radius: '10',
             radiusRange: '0',
-            mode2D: true,
             pauseResume: function () {
                 options.controls.pause = !options.controls.pause;
             },
@@ -136,31 +135,9 @@ export class GUIControls {
                 (colorMode == 'charge') ? (colorMode = 'random') : (colorMode = 'charge');
                 simulation.setColorMode(colorMode);
             },
-            placeHint: function () {
-                alert([
-                    'Press Z to place a particle selection on the mouse/pointer position.',
-                    'You get particle selections from various sources:',
-                    '- Select particles with SHIFT + CLICK + DRAG',
-                    '- Press Z to move the selected particles to the mouse pointer position.',
-                    '- Press X to generate clones of the selection, then Z to place.',
-                    '- If you want to generate any kind of particles, use the "GENERATOR" menu (try G then Z to place a random particle).',
-                ].join('\n'));
-            },
             home: function () {
                 core.simulationIdx = 0;
                 options.scenarioSetup(core.simulationIdx);
-            },
-            mouseHint: () => {
-                instructionsPopup();
-                return;
-
-                alert([
-                    "LEFT BUTTON: select particle/camera rotation (when 3D mode is enabled)",
-                    "MIDDLE BUTTON/SCROLL: zoom in/out.",
-                    "RIGHT BUTTON: move camera position (pan).",
-                    "SHIFT+LEFT CLICK/DRAG: select a group of particles. Also act as a ruler (see INFORMATION/Ruler).",
-                    "Hint: Keyboard commands do not work when mouse pointer is over the menus!",
-                ].join('\n'));
             },
             deleteAll: () => {
                 if (confirm("This will delete all particles.\nAre you sure?")) {
@@ -195,11 +172,11 @@ export class GUIControls {
                 simulation.graphics.capture(simulation.name);
             },
             debug: () => {
-            },
-            showHelp: () => {
-                instructionsPopup();
-            },
+            }
         };
+
+        // addMenuControl(controls, "General Instructions [?]", 'mouseHint');
+        // addMenuControl(controls, "Place particles [Z] (click for more...)", 'placeHint');
 
         const guiControlsSimulation = controls.addFolder("[+] Simulation");
         
@@ -212,10 +189,6 @@ export class GUIControls {
         addMenuControl(guiControlsSimulation, "Export simulation [P]", 'snapshotJson');
         addMenuControl(guiControlsSimulation, "Import simulation [I]", 'importJson');
         addMenuControl(guiControlsSimulation, "Sandbox Mode [S]", 'sandbox');
-        addMenuControl(guiControlsSimulation, '2D Mode ✏️', 'mode2D', (val) => {
-            simulation.bidimensionalMode(val);
-            core.updatePhysics('mode2D', val);
-        });
         addMenuControl(guiControlsSimulation, "Delete all particles [DEL]", 'deleteAll');
 
         const guiControlsCamera = controls.addFolder("[+] Camera");
@@ -275,9 +248,6 @@ export class GUIControls {
             simulation.drawParticles();
         });
 
-        addMenuControl(controls, "Mouse and General Controls [?] (click for more...)", 'mouseHint');
-        addMenuControl(controls, "Place particles [Z] (click for more...)", 'placeHint');
-
         controls.add(options.controls, 'close').name('Close 🔺');
 
         options.collapseList.push(controls);
@@ -289,15 +259,12 @@ export class GUIControls {
     refresh() {
         options.controls.radius = simulation.particleRadius.toFixed(3);
         options.controls.radiusRange = simulation.particleRadiusRange.toFixed(3);
-        options.controls.mode2D = simulation.mode2D;
 
         refreshCallbackList.forEach((callback) => {
             if (callback != undefined) {
                 callback();
             }
         });
-
-        UI.controls.refresh();
     }
 }
 
@@ -315,92 +282,5 @@ function snapshotJson() {
     
     downloadRenderPng(finalName);
     downloadStringToZip(content, finalName + ".json");
-}
-
-let helpPopupElement = undefined;
-let wasPausedBefonePopup = false;
-
-function closePopup() {
-    document.body.removeChild(helpPopupElement);
-    helpPopupElement = undefined;
-    if (!wasPausedBefonePopup) {
-        options.controls.pause = false;
-    }
-}
-
-function instructionsPopup() {
-    if (helpPopupElement != undefined) {
-        closePopup();
-        return;
-    }
-
-    wasPausedBefonePopup = options.controls.pause;
-    options.controls.pause = true;
-
-    // Create the popup container
-    helpPopupElement = document.createElement('div');
-
-    helpPopupElement.style.position = 'fixed';
-    helpPopupElement.style.top = '0';
-    helpPopupElement.style.left = '0';
-    helpPopupElement.style.width = '100%';
-    helpPopupElement.style.height = '100%';
-    helpPopupElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    helpPopupElement.style.display = 'flex';
-    helpPopupElement.style.alignItems = 'center';
-    helpPopupElement.style.justifyContent = 'center';
-    helpPopupElement.style.zIndex = '1000';
-
-    // Create the popup content
-    const content = document.createElement('div');
-    content.style.backgroundColor = 'rgba(10, 10, 10, 0.7)';
-    content.style.padding = '20px';
-    content.style.borderRadius = '10px';
-    content.style.maxWidth = '600px';
-    content.style.width = '90%';
-    content.style.maxHeight = '100%';
-    content.style.textAlign = 'left';
-    content.style.overflowY = 'auto';
-
-    // Add the instructions HTML
-    content.innerHTML = `
-        <h2>Welcome to particle.js!</h2>
-        <p>particle.js is a simplified n-body Particle Physics simulator and sandbox.</p>
-        <p>Here are the basic controls to get you started:</p>
-        <h3>Mouse Controls:</h3>
-        <ul>
-            <li><b>LEFT BUTTON:</b> Select particle/camera rotation (when 3D mode is enabled)</li>
-            <li><b>MIDDLE BUTTON/SCROLL:</b> Zoom in/out</li>
-            <li><b>RIGHT BUTTON:</b> Move camera position (pan)</li>
-            <li><b>SHIFT + LEFT CLICK:</b> Select a group of particles. Also acts as a ruler (see INFORMATION/Ruler)</li>
-        </ul>
-        <h3>Useful Keyboard Controls:</h3>
-        <p>Important: Keyboard shortcuts do not work when the mouse pointer is over the menus. So, move your mouse outside before pressing a command key.</p>
-        <ul>
-            <li><b>SPACE:</b> Pause/Resume simulation</li>
-            <li><b>R:</b> Reset simulation</li>
-            <li><b>PAGEDOWN:</b> Next simulation</li>
-            <li><b>PAGEUP:</b> Previous simulation</li>
-            <li><b>HOME:</b> First simulation</li>
-            <li><b>Z:</b> Move the selection to the mouse/pointer position. Also place clones and generated particles</li>
-            <li><b>X:</b> Generate clones of the selection</li>
-            <li><b>G:</b> Generate new particles</li>
-            <li>See the menus for more...</li>
-        </ul>
-        <p>Press <b>?</b> any time to show this popup again.<p>
-        <p>Check out the project on <a href="https://github.com/andrenepomuceno/particle.js" target="_blank" style="color: #4CAF50">GitHub</a> for more details.</p>
-        <button id="closePopupBtn" style="margin-top: 20px;">Got it!</button>
-    `;
-
-    // Append the content to the popup
-    helpPopupElement.appendChild(content);
-
-    // Append the popup to the body
-    document.body.appendChild(helpPopupElement);
-
-    // Close button functionality
-    document.getElementById('closePopupBtn').onclick = () => {
-        closePopup();
-    };
 }
 

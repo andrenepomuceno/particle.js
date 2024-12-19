@@ -43,7 +43,7 @@ function addPhysicsControl(
     const item = {
         title: title,
         value: defaultValue,
-        onFinish: onFinish,
+        onFinish: onFinishChange,
         selectionList: variableList,
         folder: translateFolder(folder)
     }
@@ -128,6 +128,16 @@ export class GUIParameters {
         guiParametersNuclear.open();
 
         const guiParametersModel = controls.addFolder("[+] Other ✏️");
+        addPhysicsControl(guiParametersModel, '2D Mode', 'mode2D', true, () => {
+            options.parameters.mode2D = simulation.mode2D;
+        },
+        undefined,
+        (val) => {
+            console.log(simulation);
+            simulation.bidimensionalMode(val);
+            core.updatePhysics('mode2D', val);
+        });
+
         addPhysicsControl(guiParametersModel, 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
         });
@@ -216,7 +226,5 @@ export class GUIParameters {
                 callback();
             }
         })
-
-        UI.parameters.refresh();
     }
 }

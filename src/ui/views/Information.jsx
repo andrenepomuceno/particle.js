@@ -30,7 +30,9 @@ const InformationView = ({
                         <Tab label="General" {...a11yProps(0)} />
                         <Tab label="Statistics" {...a11yProps(1)} />
                         <Tab label="Ruler" {...a11yProps(2)} />
-                        <Tab label="Debug" {...a11yProps(3)} />
+                        {ENV?.production!==true && (
+                            <Tab label="Debug" {...a11yProps(3)} />
+                        )}
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>

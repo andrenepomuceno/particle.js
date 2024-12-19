@@ -66,42 +66,46 @@ const CustomDialog = ({
         <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            style={{ position: 'absolute', zIndex }}
+            style={{
+                position: 'absolute',
+                zIndex
+            }}
         >
-        <Draggable
-            handle=".dialog-header"
-            position={dialogPos}
-            onStop={onDragStop}
-        >
-            <ResizableBox
-                width={dialogSize.width}
-                // height={dialogSize.height}
-                minConstraints={[132, 100]}
-                maxConstraints={[1200, 1000]}
-                onResizeStop={onResizeStop}
+            <Draggable
+                handle=".dialog-header"
+                position={dialogPos}
+                onStop={onDragStop}
             >
-                <Card
-                    variant='outlined'
-                    // sx={{ width: '100%', height: '100%' }}
+                <ResizableBox
+                    width={dialogSize.width}
+                    // height={dialogSize.height}
+                    minConstraints={[132, 100]}
+                    maxConstraints={[1200, 1000]}
+                    onResizeStop={onResizeStop}
                 >
-                    <CardHeader
-                        className="dialog-header"
-                        subheader={title}
-                        sx={{ cursor: 'move' }}
-                    />
+                    <Card
+                        variant='outlined'
+                        // sx={{ width: '100%', height: '100%' }}
+                        sx={{ bgcolor: 'rgba(20, 20, 20, 0.95)' }}
+                    >
+                        <CardHeader
+                            className="dialog-header"
+                            subheader={title}
+                            sx={{ cursor: 'move' }}
+                        />
 
-                    <CardContent>
-                        {children}
-                    </CardContent>
+                        <CardContent>
+                            {children}
+                        </CardContent>
 
-                    {canClose && (
-                        <CardActions>
-                            <Button onClick={onClickClose}>Close</Button>
-                        </CardActions>
-                    )}
-                </Card>
-            </ResizableBox>
-        </Draggable>
+                        {canClose && (
+                            <CardActions>
+                                <Button onClick={onClickClose}>Close</Button>
+                            </CardActions>
+                        )}
+                    </Card>
+                </ResizableBox>
+            </Draggable>
         </div>
     );
 };

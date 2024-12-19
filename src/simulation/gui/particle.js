@@ -184,8 +184,6 @@ export class GUIParticle {
                     callback();
                 }
             });
-    
-            UI.particle.refresh();
         }
     }
 }

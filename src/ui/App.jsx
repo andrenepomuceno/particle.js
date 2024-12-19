@@ -16,6 +16,7 @@ import FieldView from './views/Field';
 import ParticleView from './views/Particle';
 import SelectionView from './views/Selection';
 import GeneratorView from './views/Generator';
+import AboutView from './views/About';
 
 const darkTheme = createTheme({
     palette: {
@@ -24,7 +25,7 @@ const darkTheme = createTheme({
 });
 
 class DialogView {
-    constructor(open = true, initialState) {
+    constructor(open = true, initialState = {}) {
         [this.isOpen, this.setOpen] = useState(open);
         
         this.state = initialState;
@@ -48,6 +49,7 @@ class DialogView {
 }
 
 const App = () => {
+    const aboutView = new DialogView(true);
     const informationView = new DialogView(true, UI.info);
     const parametersView = new DialogView(false, UI.parameters);
     const controlsView = new DialogView(false, UI.controls);
@@ -61,6 +63,10 @@ const App = () => {
         <div>
             <ThemeProvider theme={darkTheme}>
             <CssBaseline />
+                <AboutView
+                    open={aboutView.isOpen}
+                    onClose={(e) => { aboutView.onClickClose(e); }}
+                />
                 <InformationView
                     open={informationView.isOpen}
                     onClose={(e) => { informationView.onClickClose(e); }}
@@ -102,6 +108,7 @@ const App = () => {
                     parameters={generatorView.state.parameters}
                 />
                 <MenuView
+                    onClickAbout={(e) => { aboutView.onClickOpen(e); }}
                     onClickInfo={(e) => { informationView.onClickOpen(e); }}
                     onClickParameters={(e) => { parametersView.onClickOpen(e); }}
                     onClickControls={(e) => { controlsView.onClickOpen(e); }}
@@ -118,14 +125,15 @@ const App = () => {
 
 let root;
 
+function refresh() {
+    root.render(<App />);
+    setTimeout(refresh, 500);
+}
+
 export const UI = {
     start: () => {
         root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    },
-
-    refresh: () => {
-        root.render(<App />);
+        refresh();
     },
 
     addItem: (view, item) => {
@@ -137,49 +145,41 @@ export const UI = {
     },
 
     info: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     parameters: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     controls: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     advanced: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     field: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     particle: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     selection: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },
 
     generator: {
-        refresh: null,
         parameters: {},
         setOpen: null,
     },

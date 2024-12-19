@@ -150,8 +150,6 @@ export class GUIField {
                 callback();
             }
         });
-
-        UI.field.refresh();
     }
 
     fieldEnable(val) {

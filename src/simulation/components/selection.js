@@ -90,7 +90,7 @@ export class Selection {
             this.clear();
             this.guiSelection.close();
 
-            UI.selection.setOpen(false);
+            // UI.selection.setOpen(false);
         }
 
         this.graphics.controls.enabled = true;

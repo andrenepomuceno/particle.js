@@ -14,6 +14,7 @@ const MenuView = ({
     onClickParticle,
     onClickSelection,
     onClickGenerator,
+    onClickAbout,
 }) => {
     return (
         <div>
@@ -25,6 +26,7 @@ const MenuView = ({
             >   
                 {/* <Grid container spacing={1}> */}
                 <Stack container spacing={1}>
+                    <ControlButton onClick={onClickAbout}>About/Help</ControlButton>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
                     <ControlButton onClick={onClickControls}>Controls</ControlButton>
                     <ControlButton onClick={onClickParticle}>Particle</ControlButton>

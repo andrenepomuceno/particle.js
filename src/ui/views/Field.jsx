@@ -12,11 +12,6 @@ const FieldView = ({
         }]
     }],
 }) => {
-    const [tab, setTab] = useState(0);
-    const handleChange = (event, value) => {
-        setTab(value);
-    };
-
     return (
         <div>
             <CustomDialog

@@ -1,5 +1,7 @@
 .vscode
 node_modules
 dist/main.js
+dist/*.bundle.js
+dist/*.LICENSE.txt
 *.woff
 *.woff2

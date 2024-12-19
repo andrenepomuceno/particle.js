@@ -299,7 +299,7 @@ function animate(time) {
             guiOptions.guiField.refresh();
             guiOptions.guiGenerator.refresh();
 
-            UI.refresh();
+            // UI.refresh();
         });
     }
 

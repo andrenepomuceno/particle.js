@@ -301,8 +301,6 @@ export class GUIGenerator {
                 callback();
             }
         })
-
-        UI.generator.refresh();
     }
 
     cleanup() {

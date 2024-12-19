@@ -268,8 +268,6 @@ export class Selection {
             })
             view.center = center;
             view.fixedPosition = (this.stats.fixed > 0);
-
-            this.guiOptions.guiSelection.refresh();
         }
     }
 }

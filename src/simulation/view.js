@@ -126,17 +126,6 @@ function scenarioSetup(idx) {
     log('setup done');
 }
 
-function showFirstTimeInstructionsPopup() {
-    // Check if the user has already seen the popup
-    if (localStorage.getItem('hasSeenInstructionsPopup')) {
-        return;
-    }
-
-    localStorage.setItem('hasSeenInstructionsPopup', 'true');
-
-    guiOptions.controls.showHelp();
-}
-
 export function viewSetup() {
     document.getElementById('renderer-container').appendChild(simulation.graphics.renderer.domElement);
 
@@ -181,8 +170,6 @@ export function viewSetup() {
 
     log('Animating...');
     requestAnimationFrame(animate);
-
-    showFirstTimeInstructionsPopup();
 }
 
 /* HELPERS */
@@ -293,7 +280,7 @@ function animate(time) {
 
             guiOptions.guiInfo.refresh();
             guiOptions.guiParticle.refresh();
-            guiOptions.selectionHelper.guiRefresh();
+            guiOptions.guiSelection.refresh();
             guiOptions.guiParameters.refresh();
             guiOptions.guiControls.refresh();
             guiOptions.guiField.refresh();

@@ -25,18 +25,35 @@ const darkTheme = createTheme({
 });
 
 class DialogView {
-    constructor(open = true, initialState = {}) {
-        [this.isOpen, this.setOpen] = useState(open);
-        
-        this.state = initialState;
+    constructor(viewName, open = true) {
+        const localStorageKey = "DialogView:" + viewName;
 
-        if (!initialState.refresh) {
-            initialState.refresh = () => {};
-        }
+        function getInitialState() {
+            const savedState = localStorage.getItem(localStorageKey);
+            if (savedState) {
+                return JSON.parse(savedState);
+            }
+
+            return { open };
+        };
+
+        [this.isOpen, this.setOpen] = useState( getInitialState().open );
+
+        this.name = viewName;
+        
+        const initialState = UI[viewName] || {};
+        this.state = initialState;
 
         if (!initialState.setOpen) {
             initialState.setOpen = this.setOpen;
         }
+
+        useEffect(() => {
+            localStorage.setItem(
+                localStorageKey,
+                JSON.stringify({ open: this.isOpen })
+            );
+        }, [this.isOpen]);
     };
 
     onClickOpen(e) {
@@ -49,15 +66,15 @@ class DialogView {
 }
 
 const App = () => {
-    const aboutView = new DialogView(true);
-    const informationView = new DialogView(true, UI.info);
-    const parametersView = new DialogView(false, UI.parameters);
-    const controlsView = new DialogView(false, UI.controls);
-    const advancedView = new DialogView(false, UI.advanced);
-    const fieldView = new DialogView(false, UI.field);
-    const particleView = new DialogView(false, UI.particle);
-    const selectionView = new DialogView(false, UI.selection);
-    const generatorView = new DialogView(false, UI.generator);
+    const aboutView = new DialogView('about');
+    const informationView = new DialogView('info');
+    const parametersView = new DialogView('parameters', false)
+    const controlsView = new DialogView('controls', false)
+    const advancedView = new DialogView('advanced', false)
+    const fieldView = new DialogView('field', false)
+    const particleView = new DialogView('particle', false)
+    const selectionView = new DialogView('selection', false)
+    const generatorView = new DialogView('generator', false)
 
     return (
         <div>

@@ -6,8 +6,6 @@ import { Button, Card, CardActions, CardContent, CardHeader } from '@mui/materia
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
 
-const LOCAL_STORAGE_PREFIX = 'customDialogState';
-
 const CustomDialog = ({
     title = 'Dialog',
     canClose = true,
@@ -18,7 +16,7 @@ const CustomDialog = ({
     children,
 }) => {
     // Load initial state from localStorage or fallback to default props
-    const localStorageKey = LOCAL_STORAGE_PREFIX + ":" + title;
+    const localStorageKey = "CustomDialog:" + title;
     const getInitialState = () => {
         const savedState = localStorage.getItem(localStorageKey);
         if (savedState) {

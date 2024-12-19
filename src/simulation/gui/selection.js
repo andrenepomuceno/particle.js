@@ -90,7 +90,7 @@ export class GUISelection {
             },
             clone: () => {
                 selection.clone();
-                selection.guiRefresh();
+                this.refresh();
             },
             clear: () => {
                 guiSelectionClose();
@@ -189,6 +189,8 @@ export class GUISelection {
     }
 
     refresh() {
+        selection.guiRefresh();
+
         refreshCallbackList.forEach((callback) => {
             if (callback != undefined) {
                 callback();
@@ -206,7 +208,7 @@ function guiSelectionClose(clear = true) {
 
 function selectionListUpdate(param, val) {
     core.updateParticleList(param, val, selection.list);
-    selection.guiRefresh();
+    this.refresh();
 }
 
 function selectionPlace() {

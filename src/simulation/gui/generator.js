@@ -491,6 +491,4 @@ function particleGenerator(input) {
     selection.clear();
     selection.source = SourceType.generated;
     selection.list = dummySimulation.physics.particleList;
-    console.log(selection.list);
-    selection.guiRefresh();
 }

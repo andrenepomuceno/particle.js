@@ -229,8 +229,6 @@ export class GUIInfo {
                 callback();
             }
         })
-
-        UI.info.refresh(UI.info);
     }
 
     reset() {

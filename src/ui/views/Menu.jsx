@@ -32,7 +32,7 @@ const MenuView = ({
                             src="img/transparent-icon.png"
                         />
                         <Typography sx={{ margin: 1 }}>
-                            particle.js
+                            <b>particle.js</b>
                         </Typography>
                     </Box>
                     <ControlButton onClick={onClickAbout}>About/Help</ControlButton>

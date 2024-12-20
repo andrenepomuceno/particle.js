@@ -18,6 +18,7 @@ import { GUISelection } from './gui/selection.js';
 import { GUIControls } from './gui/controls.js';
 import { GUIAdvanced } from './gui/advanced.js';
 import { UI } from '../ui/App.jsx';
+import { ParticleType } from './particle.js';
 
 const viewUpdateDelay = 1000;
 const simulationStepDelay = (1000.0/60.0);
@@ -214,6 +215,7 @@ function onPointerUp(event) {
         new Promise(() => {
             let particle = simulation.graphics.raycast(core, mouse.position);
             if (particle) {
+                if (particle.type != ParticleType.default && particle.type != ParticleType.fixed) return;
                 guiOptions.particle.obj = particle;
                 guiOptions.guiParticle.refresh();
                 guiParticle.open();

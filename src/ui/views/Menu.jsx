@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid2 as Grid, Stack } from '@mui/material';
+import { Box, Grid2 as Grid, Stack, Typography } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import ControlButton from '../components/ControlButton';
@@ -22,18 +22,19 @@ const MenuView = ({
                 canClose={false}
                 size={{ width: 134, height: 372 }}
                 position={{ x: 10, y: 70 }}
+                header={false}
             >   
-                {/* <Box
-                    component="img"
-                    sx={{
-                        height: 32,
-                        width: 32,
-                        // maxHeight: { xs: 233, md: 167 },
-                        // maxWidth: { xs: 350, md: 250 },
-                    }}
-                    src="img/transparent-icon.png"
-                /> */}
                 <Stack container spacing={1}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Box
+                            component="img"
+                            sx={{ height: 28, width: 28 }}
+                            src="img/transparent-icon.png"
+                        />
+                        <Typography sx={{ margin: 1 }}>
+                            particle.js
+                        </Typography>
+                    </Box>
                     <ControlButton onClick={onClickAbout}>About/Help</ControlButton>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>
                     <ControlButton onClick={onClickControls}>Controls</ControlButton>

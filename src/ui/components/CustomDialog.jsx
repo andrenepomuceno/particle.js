@@ -14,6 +14,7 @@ const CustomDialog = ({
     open = true,
     onClose,
     children,
+    header = true,
 }) => {
     // Load initial state from localStorage or fallback to default props
     const localStorageKey = "CustomDialog:" + title;
@@ -93,24 +94,19 @@ const CustomDialog = ({
                     // height={dialogSize.height}
                     minConstraints={[132, 100]}
                     maxConstraints={[1200, 1000]}
-                    // onResize={onResizeStop}
                     onResizeStop={onResizeStop}
                 >
                     <Card
-                        // variant='outlined'
-                        // sx={{ width: '100%', height: '100%' }}
+                        variant='outlined'
                         sx={{ bgcolor: 'rgba(20, 20, 20, 0.95)' }}
                     >
-                        <CardHeader
-                            className="dialog-header"
-                            subheader={title}
-                            sx={{ cursor: 'move' }}
-                        />
-
-                        {/* <CardMedia
-                            sx={{ height: 32 }}
-                            image="img/transparent-icon.png"
-                        /> */}
+                        {header && (
+                            <CardHeader
+                                className="dialog-header"
+                                subheader={title}
+                                sx={{ cursor: 'move' }}
+                            />
+                        )}
 
                         <CardContent>
                             {children}

@@ -88,13 +88,13 @@ export class GUIField {
         addMenuControl(controls, "Enable [J]", 'enabled', val => {
             this.fieldEnable(val);
         });
-        addMenuControl(controls, 'Automatic Refresh ✏️', 'automaticRefresh', val => {
+        addMenuControl(controls, 'Automatic Refresh', 'automaticRefresh', val => {
             options.field.automaticRefresh = val;
             if (val == true) {
                 options.field.fieldResize();
             }
         });
-        addMenuControl(controls, 'Grid ✏️', 'grid', val => {
+        addMenuControl(controls, 'Grid', 'grid', val => {
             options.field.grid = simulation.field.grid[0];
             const grid = Math.round(parseFloat(val));
             if (isNaN(grid)) {
@@ -115,16 +115,16 @@ export class GUIField {
             }
             options.field.grid = grid;
         });
-        addMenuControl(controls, 'Mass ✏️', 'm', val => {
+        addMenuControl(controls, 'Mass', 'm', val => {
             updateFieldParameter('m', val);
         });
-        addMenuControl(controls, 'Charge ✏️', 'q', val => {
+        addMenuControl(controls, 'Charge', 'q', val => {
             updateFieldParameter('q', val);
         });
-        addMenuControl(controls, 'Nuclear Charge ✏️', 'nq', val => {
+        addMenuControl(controls, 'Nuclear Charge', 'nq', val => {
             updateFieldParameter('nq', val);
         });
-        addMenuControl(controls, 'Color Charge ✏️', 'color', val => {
+        addMenuControl(controls, 'Color Charge', 'color', val => {
             updateFieldParameter('color', val);
         });
         addMenuControl(controls, "Refresh [F]", 'fieldResize');

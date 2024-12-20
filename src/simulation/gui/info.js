@@ -97,7 +97,7 @@ export class GUIInfo {
             fieldAvgVel: '0',
         };
 
-        addMenuControl(controls, 'Scenario Name ✏️', 'name', (val) => {
+        addMenuControl(controls, 'Scenario Name', 'name', (val) => {
             simulation.name = val;
         });
         addMenuControl(controls, 'Scenario Folder', 'folderName');
@@ -123,9 +123,9 @@ export class GUIInfo {
                 // equal
             }
         }
-        addMenuControl(controls, 'Max Particles ✏️', 'maxParticles', onFinishMaxParticles);
+        addMenuControl(controls, 'Max Particles', 'maxParticles', onFinishMaxParticles);
         addMenuControl(controls, 'Elapsed Time (steps)', 'time');
-        /*addMenuControl(controls, 'Automatic Info. Refresh ✏️', 'autoRefresh', (val) => {
+        /*addMenuControl(controls, 'Automatic Info. Refresh', 'autoRefresh', (val) => {
             options.info.autoRefresh = val;
         });*/
         const onFinishCamera = (val) => {
@@ -138,16 +138,16 @@ export class GUIInfo {
             simulation.graphics.controls.target.set(p.x, p.y, 0);
             simulation.graphics.controls.update();
         }
-        addMenuControl(controls, 'Camera Coordinates ✏️', 'cameraPosition', onFinishCamera);
+        addMenuControl(controls, 'Camera Coordinates', 'cameraPosition', onFinishCamera);
 
         const guiInfoMore = controls.addFolder("[+] Simulation Statistics");
-        addMenuControl(guiInfoMore, 'Mass (sum) ✏️', 'mass', (val) => {
+        addMenuControl(guiInfoMore, 'Mass (sum)', 'mass', (val) => {
             core.updateParticleList('mass', val);
         });
-        addMenuControl(guiInfoMore, 'Charge (sum) ✏️', 'charge', (val) => {
+        addMenuControl(guiInfoMore, 'Charge (sum)', 'charge', (val) => {
             core.updateParticleList('charge', val);
         });
-        addMenuControl(guiInfoMore, 'Nuclear Charge (sum) ✏️', 'nuclearCharge', (val) => {
+        addMenuControl(guiInfoMore, 'Nuclear Charge (sum)', 'nuclearCharge', (val) => {
             core.updateParticleList('nuclearCharge', val);
         });
         addMenuControl(guiInfoMore, 'Color Charge (sum)', 'colorCharge'/*, (val) => {

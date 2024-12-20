@@ -144,10 +144,10 @@ export class GUIGenerator {
             },
         };
 
-        addMenuControl(controls, 'Particles ✏️', 'quantity', (val) => {
+        addMenuControl(controls, 'Particles', 'quantity', (val) => {
             options.generator.quantity = Math.round(parseFloat(val));
         });
-        addMenuControl(controls, 'Brush radius ✏️', 'radius', (val) => {
+        addMenuControl(controls, 'Brush radius', 'radius', (val) => {
             options.generator.radius = parseFloat(val);
         });
 
@@ -238,7 +238,7 @@ export class GUIGenerator {
             options.generator.preset = val;
         }, presetList);
 
-        const guiGenerateMass = controls.addFolder("[+] Mass ✏️");
+        const guiGenerateMass = controls.addFolder("[+] Mass");
         addMenuControl(guiGenerateMass, 'Mass', 'mass', (val) => {
             options.generator.mass = parseFloat(val);
         });
@@ -247,7 +247,7 @@ export class GUIGenerator {
         addMenuControl(guiGenerateMass, "Round?", 'roundMass');
         //guiGenerateMass.open();
 
-        const guiGenerateCharge = controls.addFolder("[+] Charge ✏️");
+        const guiGenerateCharge = controls.addFolder("[+] Charge");
         addMenuControl(guiGenerateCharge, 'Charge', 'charge', (val) => {
             options.generator.charge = parseFloat(val);
         });
@@ -257,7 +257,7 @@ export class GUIGenerator {
         addMenuControl(guiGenerateCharge, "Round?", 'roundCharge');
         //guiGenerateCharge.open();
 
-        const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge ✏️");
+        const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge");
         addMenuControl(guiGenerateNuclearCharge, 'Nuclear Charge', 'nuclearCharge', (val) => {
             options.generator.nuclearCharge = parseFloat(val);
         });
@@ -266,7 +266,7 @@ export class GUIGenerator {
         addMenuControl(guiGenerateNuclearCharge, "Allow zero?", 'enableZeroNuclearCharge');
         addMenuControl(guiGenerateNuclearCharge, "Round?", 'roundNuclearCharge');
 
-        const guiGenerateVelocity = controls.addFolder("[+] Velocity ✏️");
+        const guiGenerateVelocity = controls.addFolder("[+] Velocity");
         addMenuControl(guiGenerateVelocity, 'Velocity', 'velocity', (val) => {
             const precision = 2;
             let velocity = decodeVector3(val);

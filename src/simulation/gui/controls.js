@@ -194,7 +194,7 @@ export class GUIControls {
         const guiControlsCamera = controls.addFolder("[+] Camera");
         addMenuControl(guiControlsCamera, "Reset Position [C]", 'resetCamera');
         addMenuControl(guiControlsCamera, "Orthogonal Position [V] (3D mode)", 'xyCamera');
-        addMenuControl(guiControlsCamera, 'Automatic Rotation ✏️', 'automaticRotation', val => {
+        addMenuControl(guiControlsCamera, 'Automatic Rotation', 'automaticRotation', val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
@@ -207,7 +207,7 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        addMenuControl(guiControlsCamera, 'Rotation Speed ✏️', 'rotationSpeed', val => {
+        addMenuControl(guiControlsCamera, 'Rotation Speed', 'rotationSpeed', val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
@@ -222,7 +222,7 @@ export class GUIControls {
         addMenuControl(guiControlsView, "Toggle Color Mode [Q]", 'colorMode');
         addMenuControl(guiControlsView, "Hide Everything [H]", 'hideOverlay');
         addMenuControl(guiControlsView, "Collapse All folders [M]", 'collapseAll');
-        addMenuControl(guiControlsView, 'Show Mouse Cursor ✏️', 'showCursor', (val) => {
+        addMenuControl(guiControlsView, 'Show Mouse Cursor', 'showCursor', (val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -230,7 +230,7 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });        
-        addMenuControl(guiControlsView, '3D Particle Shader ✏️', 'shader3d', (val) => {
+        addMenuControl(guiControlsView, '3D Particle Shader', 'shader3d', (val) => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -241,10 +241,10 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        addMenuControl(guiControlsView, 'Particle Radius ✏️', 'radius', (val) => {
+        addMenuControl(guiControlsView, 'Particle Radius', 'radius', (val) => {
             core.updatePhysics('radius', val);
         });
-        addMenuControl(guiControlsView, 'Particle Radius Range ✏️', 'radiusRange', (val) => {
+        addMenuControl(guiControlsView, 'Particle Radius Range', 'radiusRange', (val) => {
             core.updatePhysics('radiusRange', val);
         });
 

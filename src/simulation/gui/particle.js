@@ -101,30 +101,30 @@ export class GUIParticle {
             }
             options.particle.obj = obj;
         });
-        addMenuControl(controls, 'Name ✏️', 'name', (val) => {
+        addMenuControl(controls, 'Name', 'name', (val) => {
             if (options.particle.obj != undefined) {
                 options.particle.obj.name = val;
             }
         });
-        controls.addColor(options.particle, 'color').name('Color ✏️').listen().onFinishChange(val => {
+        controls.addColor(options.particle, 'color').name('Color').listen().onFinishChange(val => {
             core.updateParticle(options.particle.obj, 'color', val);
         });
         addMenuControl(controls, 'Energy', 'energy');
 
         const guiParticleProperties = controls.addFolder("[+] Properties");
-        addMenuControl(guiParticleProperties, 'Mass ✏️', 'mass', (val) => {
+        addMenuControl(guiParticleProperties, 'Mass', 'mass', (val) => {
             core.updateParticle(options.particle.obj, 'mass', val);
         });
-        addMenuControl(guiParticleProperties, 'Charge ✏️', 'charge', (val) => {
+        addMenuControl(guiParticleProperties, 'Charge', 'charge', (val) => {
             core.updateParticle(options.particle.obj, 'charge', val);
         });
-        addMenuControl(guiParticleProperties, 'Nuclear Charge ✏️', 'nuclearCharge', (val) => {
+        addMenuControl(guiParticleProperties, 'Nuclear Charge', 'nuclearCharge', (val) => {
             core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
         addMenuControl(guiParticleProperties, 'Color Charge', 'colorCharge');
         guiParticleProperties.open();
 
-        const guiParticleVariables = controls.addFolder("[+] Variables ✏️");
+        const guiParticleVariables = controls.addFolder("[+] Variables");
         addMenuControl(guiParticleVariables, 'Position', 'position', (val) => {
             core.updateParticle(options.particle.obj, 'position', val);
         });

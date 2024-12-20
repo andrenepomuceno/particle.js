@@ -70,7 +70,7 @@ export class GUIParameters {
             }
         };
 
-        const guiParametersConsts = controls.addFolder("[+] Gravitational & Electric ✏️");
+        const guiParametersConsts = controls.addFolder("[+] Gravitational & Electric");
         addPhysicsControl(guiParametersConsts, 'Gravitational Constant', 'massConstant', '', () => {
             options.parameters.massConstant = simulation.physics.massConstant.toExponential(4);
         });
@@ -82,7 +82,7 @@ export class GUIParameters {
         });
         guiParametersConsts.open();
 
-        const guiParametersNuclear = controls.addFolder("[+] Nuclear Force ✏️");
+        const guiParametersNuclear = controls.addFolder("[+] Nuclear Force");
         addPhysicsControl(guiParametersNuclear, 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
             options.parameters.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(4);
         });
@@ -127,16 +127,7 @@ export class GUIParameters {
         });
         guiParametersNuclear.open();
 
-        const guiParametersModel = controls.addFolder("[+] Other ✏️");
-        addPhysicsControl(guiParametersModel, '2D Mode', 'mode2D', true, () => {
-            options.parameters.mode2D = simulation.mode2D;
-        },
-        undefined,
-        (val) => {
-            console.log(simulation);
-            simulation.bidimensionalMode(val);
-            core.updatePhysics('mode2D', val);
-        });
+        const guiParametersModel = controls.addFolder("[+] Other");
 
         addPhysicsControl(guiParametersModel, 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
@@ -165,17 +156,25 @@ export class GUIParameters {
             }
             core.updatePhysics('minDistance2', Math.pow(d, 2));
         };
-        guiParametersModel.add(options.parameters, 'minDistance').name('').listen().onFinishChange(onFinishMinDistance);
-        addPhysicsControl(guiParametersModel, 'Collision Distance', 'minDistance', '', undefined, undefined, onFinishMap);
+
+        addPhysicsControl(guiParametersModel, 'Collision Distance', 'minDistance', '', undefined, undefined, onFinishMinDistance);
         addPhysicsControl(guiParametersModel, 'Enable Random Noise', 'enableRandomNoise', false, () => {
             options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
         });
         addPhysicsControl(guiParametersModel, 'Random Noise Constant', 'randomNoiseConstant', '', () => {
             options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(4);
         });
-        guiParametersModel.open();
+        addPhysicsControl(guiParametersModel, '2D Mode', 'mode2D', true, () => {
+            options.parameters.mode2D = simulation.mode2D;
+        },
+        undefined,
+        (val) => {
+            console.log(simulation);
+            simulation.bidimensionalMode(val);
+            core.updatePhysics('mode2D', val);
+        });
 
-        const guiParametersBoundary = controls.addFolder("[+] Simulation Boundaries ✏️");
+        const guiParametersBoundary = controls.addFolder("[+] Simulation Boundaries");
         addPhysicsControl(guiParametersBoundary, 'Boundary Distance', 'boundaryDistance', '', () => {
             options.parameters.boundaryDistance = simulation.physics.boundaryDistance.toExponential(4);
         });
@@ -188,9 +187,8 @@ export class GUIParameters {
         addPhysicsControl(guiParametersBoundary, 'Enable Boundary', 'enableBoundary', false, () => {
             options.parameters.enableBoundary = simulation.physics.enableBoundary;
         });
-        //guiParametersBoundary.open();
 
-        const guiParametersExp = controls.addFolder("[+] Experimental ✏️");
+        const guiParametersExp = controls.addFolder("[+] Experimental");
         addPhysicsControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
             options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
         });
@@ -203,7 +201,6 @@ export class GUIParameters {
         addPhysicsControl(guiParametersExp, 'Post-Newtonian Gravity', 'enablePostGravity', false, () => {
             options.parameters.enablePostGravity = simulation.physics.enablePostGravity;
         });
-        //guiParametersExp.open();
 
         controls.add(options.parameters, 'close').name('Close 🔺');
 

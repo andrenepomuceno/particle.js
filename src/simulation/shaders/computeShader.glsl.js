@@ -142,6 +142,7 @@ vec3 collision(const float m1, const float m2,
                 const vec3 dPos, const float distance2) {
     vec3 rForce = vec3(0.0);
 
+    #if 0
     float m = m1 + m2;
     if (m == 0.0) {
         return rForce;
@@ -156,6 +157,19 @@ vec3 collision(const float m1, const float m2,
     } else {
         rForce += s * dVel;
     }
+    #endif
+
+    #if 1
+    if (distance2 > 1e-6) {
+        float d = 2.0 * distance2/minDistance2;
+        float f = 1.0 / d;
+        f = min(f, 1e3);
+
+        f = pow(f, 6.0) - pow(f, 3.0);
+        // f *= 0.5;
+        rForce = -f * normalize(dPos);
+    }
+    #endif
         
     return rForce;
 }
@@ -196,6 +210,11 @@ float calcNuclearPotential(const float distance1, const float d) {
         float c = forceMap[2];
         x = a * exp(-d / b); // yukawa
         x -= c * d; // string tension
+
+    #elif LENNARD_JONES
+        d = forceMap[0] * d;
+        float f = 1.0 / d;
+        f = pow(f, forceMap[1]) - pow(f, forceMap[2]);
 
     #elif USE_POT_DEFAULT
         x = sin(2.0 * PI * x);

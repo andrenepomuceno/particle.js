@@ -142,7 +142,7 @@ export class GUISelection {
         addMenuControl(controls, 'Source', 'source')
         addMenuControl(controls, 'Particles', 'particles')
     
-        const guiSelectionProperties = controls.addFolder("[+] Properties ✏️");
+        const guiSelectionProperties = controls.addFolder("[+] Properties");
         addMenuControl(guiSelectionProperties, "Mass (sum)", 'mass', (val) => {
             selectionListUpdate('mass', val);
         });
@@ -157,7 +157,7 @@ export class GUISelection {
         }*/);
         guiSelectionProperties.open();
     
-        const guiSelectionVariables = controls.addFolder("[+] Variables ✏️");
+        const guiSelectionVariables = controls.addFolder("[+] Variables");
         addMenuControl(guiSelectionVariables, 'Velocity', 'velocity', (val) => {
             selectionListUpdate('velocityAbs', val);
         });

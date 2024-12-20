@@ -87,26 +87,28 @@ function hexagonalCrystal2(simulation) {
     physics.forceMap = [1.0, 0.1, 1.0];
     physics.useDistance1 = true;
 
-    physics.timeStep = 1.0;
+    physics.timeStep = 0.2;
     physics.maxVel = lightSpeed * 1e2;
 
-    physics.minDistance2 = Math.pow(1, 2);
+    physics.minDistance2 = Math.pow(500, 2);
     physics.enableColorCharge = true;
     physics.enableLorentzFactor = false;
     physics.enableFineStructure = false;
     physics.enableRandomNoise = true;
     physics.randomNoiseConstant = 0.1;
     physics.enableFriction = true;
-    physics.frictionConstant = 1e-5;
+    physics.frictionConstant = 1e-6;
 
     physics.useBoxBoundary = true;
     physics.boundaryDistance = 1e18;
     physics.boundaryDamping = 0.9;
 
-    simulation.particleRadius = 0.05 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0.4 * simulation.particleRadius;
+    simulation.particleRadius = 125; //0.05 * physics.nuclearForceRange;
+    simulation.particleRadiusRange = 0; //0.4 * simulation.particleRadius;
+    simulation.graphics.arrow3d = false;
+    simulation.graphics.particle3d = false;
 
-    graphics.cameraDistance = 2e5;
+    graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
     let r0 = 0.1 * physics.nuclearForceRange;

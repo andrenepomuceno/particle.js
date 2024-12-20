@@ -23,9 +23,9 @@ const MenuView = ({
                 size={{ width: 134, height: 372 }}
                 position={{ x: 10, y: 70 }}
                 header={false}
-            >   
+            >
                 <Stack container spacing={1}>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box className='dialog-header' sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'move' }}>
                         <Box
                             component="img"
                             sx={{ height: 28, width: 28 }}

@@ -5,30 +5,15 @@ import {
 import { randomSphericVector } from '../helpers.js';
 import { UI } from '../../ui/App';
 
-let options, controls;
+let options;
 
 function addMenuControl(
     folder, title, variable,
-    // defaultValue = '',
-    // refreshCallback = undefined,
-    // variableList = undefined,
     onFinishChange = undefined,
 ) {
-    //options.controls[variable] = defaultValue;
-    // const onFinish = (val) => {
-    //     core.updatePhysics(variable, val);
-    // };
-    
     const defaultValue = options.advanced[variable];
     const refreshCallback = undefined;
     const variableList = undefined;
-
-    if (onFinishChange == undefined) {
-        folder.add(options.advanced, variable).name(title).listen();
-    }
-    else {
-        folder.add(options.advanced, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
     
     if (refreshCallback != undefined) {
         refreshCallbackList.push(refreshCallback);
@@ -39,21 +24,14 @@ function addMenuControl(
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: 'advanced'
+        folder: folder
     }
     UI.addItem(UI.advanced, item);
-
-    // if (typeof defaultValue != 'function') {
-    //     refreshCallbackList.push(() => {
-    //         item.value = options.controls[variable];
-    //     });
-    // }
 }
 
 export class GUIAdvanced {
-    constructor(guiOptions, guiAdvanced) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiAdvanced;
         this.setup();
     }
 
@@ -104,7 +82,7 @@ export class GUIAdvanced {
                 }
                 simulation.graphics.readbackParticleData();
                 simulation.graphics.particleList.forEach((p) => {
-                    p.velocity.multiplyScalar(1.0 + factor);
+                    p.velocity.multiplyScalar(1.0 + factor);''
                 });
                 simulation.drawParticles();
             },
@@ -123,36 +101,13 @@ export class GUIAdvanced {
                     p.position = randomSphericVector(0, 1, simulation.mode2D);
                 });
                 simulation.drawParticles();
-            },
-            close: () => {
-                controls.close();
-            },
+            }
         };
     
-        addMenuControl(controls, 'Reverse Particles Velocity', 'reverseVelocity');
-        addMenuControl(controls, "Zero Particles Velocity [B]", 'zeroVelocity'); // [Numpad 0]
-        addMenuControl(controls, 'Zero Particles Position', 'zeroPosition');
-    
-        /*addMenuControl(controls, "Damp Velocity [T]", 'dampVelocity'); // [Numpad -]
-        addMenuControl(controls, "Kick Velocity [Y]", 'kickVelocity'); // [Numpad +]
-        controls.add(options.advanced, 'dampKickFactor').name("Damp/Kick Factor ✏️").listen().onFinishChange((val) => {
-            let factor = parseFloat(val);
-            if (isNaN(factor) || factor > 1.0 || factor < 0.0) {
-                alert('Factor must be between 0.0 and 1.0.');
-                options.advanced.dampKickFactor = '0.1';
-                return;
-            }
-            options.advanced.dampKickFactor = factor.toString();
-        });
-    
-        addMenuControl(controls, 'Add Random Velocity', 'addRandomVelocity');
-        addMenuControl(controls, 'Random Velocity ✏️').listen(, 'randomVelocity');*/
-    
-        addMenuControl(controls, "Automatic Particles Cleanup [U]", 'particleCleanup'); // [Numpad .]
-        addMenuControl(controls, 'Cleanup Threshold ✏️', 'cleanupThreshold');
-        
-        controls.add(options.advanced, 'close').name('Close 🔺');
-    
-        options.collapseList.push(controls);
+        addMenuControl('advanced', 'Reverse Particles Velocity', 'reverseVelocity');
+        addMenuControl('advanced', "Zero Particles Velocity [B]", 'zeroVelocity');
+        addMenuControl('advanced', 'Zero Particles Position', 'zeroPosition');
+        addMenuControl('advanced', "Automatic Particles Cleanup [U]", 'particleCleanup');
+        addMenuControl('advanced', 'Cleanup Threshold ✏️', 'cleanupThreshold');
     }
 }

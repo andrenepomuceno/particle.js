@@ -15,54 +15,21 @@ function log(msg) {
 let colorMode = 'charge';
 let hideOverlay = false;
 let options;
-let controls;
 let refreshCallbackList = [];
-
-function translateFolder(folder) {
-    const regex = /[a-z]+/i;
-    const result = regex.exec(folder.name)[0];
-    const map = {
-        'CONTROLS': 'simulation',
-        'Simulation': 'simulation',
-        'Camera': 'camera',
-        'View': 'view',
-    }
-    return map[result];
-}
 
 function addMenuControl(
     folder, title, variable,
-    // defaultValue = '',
-    // refreshCallback = undefined,
-    // variableList = undefined,
     onFinishChange = undefined,
 ) {
-    //options.controls[variable] = defaultValue;
-    // const onFinish = (val) => {
-    //     core.updatePhysics(variable, val);
-    // };
-    
     const defaultValue = options.controls[variable];
-    const refreshCallback = undefined;
     const variableList = undefined;
-
-    if (onFinishChange == undefined) {
-        folder.add(options.controls, variable).name(title).listen();
-    }
-    else {
-        folder.add(options.controls, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
-    
-    if (refreshCallback != undefined) {
-        refreshCallbackList.push(refreshCallback);
-    }
 
     const item = {
         title: title,
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: translateFolder(folder)
+        folder: folder
     }
     UI.addItem(UI.controls, item);
 
@@ -74,9 +41,8 @@ function addMenuControl(
 }
 
 export class GUIControls {
-    constructor(guiOptions, guiControls) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiControls;
         this.setup();
     }
 
@@ -160,9 +126,6 @@ export class GUIControls {
                     hideOverlay = false;
                 }
             },
-            close: () => {
-                controls.close();
-            },
             collapseAll: () => {
                 options.collapseList.forEach((obj) => {
                     obj.close();
@@ -171,30 +134,22 @@ export class GUIControls {
             record: () => {
                 simulation.graphics.capture(simulation.name);
             },
-            debug: () => {
-            }
         };
-
-        // addMenuControl(controls, "General Instructions [?]", 'mouseHint');
-        // addMenuControl(controls, "Place particles [Z] (click for more...)", 'placeHint');
-
-        const guiControlsSimulation = controls.addFolder("[+] Simulation");
         
-        addMenuControl(guiControlsSimulation, "Pause/Resume [SPACE]", 'pauseResume');
-        addMenuControl(guiControlsSimulation, "Step [N] (if paused)", 'step');
-        addMenuControl(guiControlsSimulation, "Reset [R]", 'reset');
-        addMenuControl(guiControlsSimulation, "Next simulation [PAGEDOWN]", 'next');
-        addMenuControl(guiControlsSimulation, "Previous simulation [PAGEUP]", 'previous');
-        addMenuControl(guiControlsSimulation, "First simulation [HOME]", 'home');
-        addMenuControl(guiControlsSimulation, "Export simulation [P]", 'snapshotJson');
-        addMenuControl(guiControlsSimulation, "Import simulation [I]", 'importJson');
-        addMenuControl(guiControlsSimulation, "Sandbox Mode [S]", 'sandbox');
-        addMenuControl(guiControlsSimulation, "Delete all particles [DEL]", 'deleteAll');
+        addMenuControl('simulation', "Pause/Resume [SPACE]", 'pauseResume');
+        addMenuControl('simulation', "Step [N] (if paused)", 'step');
+        addMenuControl('simulation', "Reset [R]", 'reset');
+        addMenuControl('simulation', "Next simulation [PAGEDOWN]", 'next');
+        addMenuControl('simulation', "Previous simulation [PAGEUP]", 'previous');
+        addMenuControl('simulation', "First simulation [HOME]", 'home');
+        addMenuControl('simulation', "Export simulation [P]", 'snapshotJson');
+        addMenuControl('simulation', "Import simulation [I]", 'importJson');
+        addMenuControl('simulation', "Sandbox Mode [S]", 'sandbox');
+        addMenuControl('simulation', "Delete all particles [DEL]", 'deleteAll');
 
-        const guiControlsCamera = controls.addFolder("[+] Camera");
-        addMenuControl(guiControlsCamera, "Reset Position [C]", 'resetCamera');
-        addMenuControl(guiControlsCamera, "Orthogonal Position [V] (3D mode)", 'xyCamera');
-        addMenuControl(guiControlsCamera, 'Automatic Rotation', 'automaticRotation', val => {
+        addMenuControl('camera', "Reset Position [C]", 'resetCamera');
+        addMenuControl('camera', "Orthogonal Position [V] (3D mode)", 'xyCamera');
+        addMenuControl('camera', 'Automatic Rotation', 'automaticRotation', val => {
             if (val == true) {
                 if (simulation.mode2D == true) {
                     alert('Cannot do this in 2D mode.');
@@ -207,7 +162,7 @@ export class GUIControls {
                 simulation.graphics.controls.autoRotate = false;
             }
         });
-        addMenuControl(guiControlsCamera, 'Rotation Speed', 'rotationSpeed', val => {
+        addMenuControl('camera', 'Rotation Speed', 'rotationSpeed', val => {
             val = parseFloat(val);
             if (isNaN(val)) {
                 alert('Invalid value.');
@@ -217,12 +172,11 @@ export class GUIControls {
             simulation.graphics.controls.autoRotateSpeed = val;
         });
 
-        const guiControlsView = controls.addFolder("[+] View");
-        addMenuControl(guiControlsView, "Hide/Show Origin Axis [A]", 'hideAxis');
-        addMenuControl(guiControlsView, "Toggle Color Mode [Q]", 'colorMode');
-        addMenuControl(guiControlsView, "Hide Everything [H]", 'hideOverlay');
-        addMenuControl(guiControlsView, "Collapse All folders [M]", 'collapseAll');
-        addMenuControl(guiControlsView, 'Show Mouse Cursor', 'showCursor', (val) => {
+        addMenuControl('view', "Hide/Show Origin Axis [A]", 'hideAxis');
+        addMenuControl('view', "Toggle Color Mode [Q]", 'colorMode');
+        addMenuControl('view', "Hide Everything [H]", 'hideOverlay');
+        addMenuControl('view', "Collapse All folders [M]", 'collapseAll');
+        addMenuControl('view', 'Show Mouse Cursor', 'showCursor', (val) => {
             if (val == true) {
                 options.showCursor();
             } else {
@@ -230,7 +184,7 @@ export class GUIControls {
                 options.controls.showCursor = false;
             }
         });        
-        addMenuControl(guiControlsView, '3D Particle Shader', 'shader3d', (val) => {
+        addMenuControl('view', '3D Particle Shader', 'shader3d', (val) => {
             if (val == true) {
                 simulation.graphics.arrow3d = true;
                 simulation.graphics.particle3d = true;
@@ -241,19 +195,12 @@ export class GUIControls {
             simulation.graphics.readbackParticleData();
             simulation.drawParticles();
         });
-        addMenuControl(guiControlsView, 'Particle Radius', 'radius', (val) => {
+        addMenuControl('view', 'Particle Radius', 'radius', (val) => {
             core.updatePhysics('radius', val);
         });
-        addMenuControl(guiControlsView, 'Particle Radius Range', 'radiusRange', (val) => {
+        addMenuControl('view', 'Particle Radius Range', 'radiusRange', (val) => {
             core.updatePhysics('radiusRange', val);
         });
-
-        controls.add(options.controls, 'close').name('Close 🔺');
-
-        options.collapseList.push(controls);
-        options.collapseList.push(guiControlsCamera);
-        options.collapseList.push(guiControlsSimulation);
-        options.collapseList.push(guiControlsView);
     }
 
     refresh() {

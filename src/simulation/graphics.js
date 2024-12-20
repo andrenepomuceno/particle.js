@@ -58,13 +58,13 @@ export class GraphicsGPU {
         //this.renderer.logarithmicDepthBuffer = true;
 
         this.scene = new Scene();
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1e9);
+        this.camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1e9);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.zoomSpeed = 1.0;
         this.controls.zoomToCursor = false;
         this.controls.update();
 
-        this.raycaster = new Raycaster();
+        // this.raycaster = new Raycaster();
 
         this.fontLoader = new FontLoader();
 
@@ -648,7 +648,7 @@ export class GraphicsGPU {
     }
 
     readbackParticleData() {
-        log('readbackParticleData');
+        // log('readbackParticleData');
 
         if (!this.initialized) {
             log('not initialized');

@@ -31,23 +31,12 @@ statsPanel.addPanel(computePanel);
 //statsPanel.showPanel(0);
 
 const gui = new dat.GUI();
-const guiInfo = gui.addFolder('INFORMATION');
-const guiControls = gui.addFolder("CONTROLS (keyboard and mouse shortcuts)");
 const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
 const guiSelection = gui.addFolder('SELECTION');
 const guiGenerator = gui.addFolder('GENERATOR');
 const guiField = gui.addFolder('FIELD');
-const guiAdvanced = gui.addFolder('ADVANCED');
 const guiParameters = gui.addFolder('PARAMETERS');
 
-// guiInfo.hide();
-// guiParameters.hide();
-// guiControls.hide();
-// guiAdvanced.hide();
-// guiField.hide();
-// guiParticle.hide(); // TODO color selection
-// guiSelection.hide();
-// guiGenerator.hide();
 gui.hide();
 
 const mouse = new Mouse();
@@ -93,7 +82,7 @@ const guiOptions = {
 }
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
-guiOptions.ruler = new Ruler(simulation.graphics, guiControls);
+guiOptions.ruler = new Ruler(simulation.graphics);
 const selection = new Selection(simulation.graphics, guiSelection, guiOptions);
 guiOptions.selectionHelper = selection;
 
@@ -146,19 +135,19 @@ export function viewSetup() {
     // mouse.addOverListener(statsPanel.domElement);
     statsPanel.domElement.style.visibility = 'visible';
 
-    //gui menu overlay
+    //gui menu overlays
     // mouse.addOverListener(gui.domElement);
     // mouse.addOverListener(rootDOM);
     gui.width = Math.max(0.2 * window.innerWidth, 420);
     gui.close();
 
-    guiOptions.guiInfo = new GUIInfo(guiOptions, guiInfo);
-    guiOptions.guiControls = new GUIControls(guiOptions, guiControls);
+    guiOptions.guiInfo = new GUIInfo(guiOptions);
+    guiOptions.guiControls = new GUIControls(guiOptions);
     guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
     guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
     guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
     guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator);
-    guiOptions.guiAdvanced = new GUIAdvanced(guiOptions, guiAdvanced);
+    guiOptions.guiAdvanced = new GUIAdvanced(guiOptions);
     guiOptions.guiField = new GUIField(guiOptions, guiField);
 
     scenarioSetup();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
+import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@mui/material';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
@@ -97,7 +97,7 @@ const CustomDialog = ({
                     onResizeStop={onResizeStop}
                 >
                     <Card
-                        variant='outlined'
+                        // variant='outlined'
                         // sx={{ width: '100%', height: '100%' }}
                         sx={{ bgcolor: 'rgba(20, 20, 20, 0.95)' }}
                     >
@@ -106,6 +106,11 @@ const CustomDialog = ({
                             subheader={title}
                             sx={{ cursor: 'move' }}
                         />
+
+                        {/* <CardMedia
+                            sx={{ height: 32 }}
+                            image="img/transparent-icon.png"
+                        /> */}
 
                         <CardContent>
                             {children}

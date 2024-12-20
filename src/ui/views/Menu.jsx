@@ -1,9 +1,8 @@
 import React from 'react';
-import { Grid2 as Grid, Stack } from '@mui/material';
+import { Box, Grid2 as Grid, Stack } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import ControlButton from '../components/ControlButton';
-import { CustomTabPanel } from '../components/CustomTabPanel';
 
 const MenuView = ({
     onClickInfo,
@@ -24,6 +23,16 @@ const MenuView = ({
                 size={{ width: 134, height: 372 }}
                 position={{ x: 10, y: 70 }}
             >   
+                {/* <Box
+                    component="img"
+                    sx={{
+                        height: 32,
+                        width: 32,
+                        // maxHeight: { xs: 233, md: 167 },
+                        // maxWidth: { xs: 350, md: 250 },
+                    }}
+                    src="img/transparent-icon.png"
+                /> */}
                 <Stack container spacing={1}>
                     <ControlButton onClick={onClickAbout}>About/Help</ControlButton>
                     <ControlButton onClick={onClickInfo}>Information</ControlButton>

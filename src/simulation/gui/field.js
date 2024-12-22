@@ -4,7 +4,7 @@ import {
 } from '../core.js';
 import { UI } from '../../ui/App';
 
-let options, controls;
+let options;
 const refreshCallbackList = [];
 
 function addMenuControl(
@@ -14,21 +14,16 @@ function addMenuControl(
     const defaultValue = options.field[variable];
     const variableList = undefined;
 
-    if (onFinishChange == undefined) {
-        folder.add(options.field, variable).name(title).listen();
-    }
-    else {
-        folder.add(options.field, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
-
     const item = {
         title: title,
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: 'field'
+        folder
     }
+
     UI.addItem(UI.field, item);
+    
     if (typeof defaultValue != 'function') {
         refreshCallbackList.push(() => {
             item.value = options.field[variable];
@@ -37,9 +32,8 @@ function addMenuControl(
 }
 
 export class GUIField {
-    constructor(guiOptions, guiField) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiField;
         this.setup();
     }
 
@@ -77,24 +71,21 @@ export class GUIField {
                 let center = simulation.graphics.controls.target.clone();
                 simulation.field.resize(center);
             },
-            close: () => {
-                controls.close();
-            },
             enable: () => {
                 this.fieldEnable(options.field.enabled);
             },
         };
 
-        addMenuControl(controls, "Enable [J]", 'enabled', val => {
+        addMenuControl('field', "Enable [J]", 'enabled', val => {
             this.fieldEnable(val);
         });
-        addMenuControl(controls, 'Automatic Refresh', 'automaticRefresh', val => {
+        addMenuControl('field', 'Automatic Refresh', 'automaticRefresh', val => {
             options.field.automaticRefresh = val;
             if (val == true) {
                 options.field.fieldResize();
             }
         });
-        addMenuControl(controls, 'Grid', 'grid', val => {
+        addMenuControl('field', 'Grid', 'grid', val => {
             options.field.grid = simulation.field.grid[0];
             const grid = Math.round(parseFloat(val));
             if (isNaN(grid)) {
@@ -115,23 +106,19 @@ export class GUIField {
             }
             options.field.grid = grid;
         });
-        addMenuControl(controls, 'Mass', 'm', val => {
+        addMenuControl('field', 'Mass', 'm', val => {
             updateFieldParameter('m', val);
         });
-        addMenuControl(controls, 'Charge', 'q', val => {
+        addMenuControl('field', 'Charge', 'q', val => {
             updateFieldParameter('q', val);
         });
-        addMenuControl(controls, 'Nuclear Charge', 'nq', val => {
+        addMenuControl('field', 'Nuclear Charge', 'nq', val => {
             updateFieldParameter('nq', val);
         });
-        addMenuControl(controls, 'Color Charge', 'color', val => {
+        addMenuControl('field', 'Color Charge', 'color', val => {
             updateFieldParameter('color', val);
         });
-        addMenuControl(controls, "Refresh [F]", 'fieldResize');
-        controls.add(options.field, 'close').name('Close 🔺');
-
-        options.collapseList.push(controls);
-
+        addMenuControl('field', "Refresh [F]", 'fieldResize');
     }
 
     refresh() {

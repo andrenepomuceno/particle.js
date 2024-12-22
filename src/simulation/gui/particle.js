@@ -9,7 +9,6 @@ import {
 import { UI } from '../../ui/App';
 
 let options = undefined;
-let controls = undefined;
 const refreshCallbackList = [];
 
 function addMenuControl(
@@ -19,19 +18,12 @@ function addMenuControl(
     const defaultValue = options.particle[variable];
     const variableList = undefined;
 
-    if (onFinishChange == undefined) {
-        folder.add(options.particle, variable).name(title).listen();
-    }
-    else {
-        folder.add(options.particle, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
-
     const item = {
         title: title,
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: 'particle'
+        folder
     }
     UI.addItem(UI.particle, item);
     if (typeof defaultValue != 'function') {
@@ -42,9 +34,8 @@ function addMenuControl(
 }
 
 export class GUIParticle {
-    constructor(guiOptions, guiParticle) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiParticle;
         this.setup();
     }
 
@@ -81,7 +72,7 @@ export class GUIParticle {
             },
         };
 
-        addMenuControl(controls, 'ID 🔍', 'id', (val) => {
+        addMenuControl('particle', 'ID 🔍', 'id', (val) => {
             if (val == "") return;
             let obj = core.findParticle(parseInt(val));
             if (obj == undefined) {
@@ -101,53 +92,44 @@ export class GUIParticle {
             }
             options.particle.obj = obj;
         });
-        addMenuControl(controls, 'Name', 'name', (val) => {
+        addMenuControl('particle', 'Name', 'name', (val) => {
             if (options.particle.obj != undefined) {
                 options.particle.obj.name = val;
             }
         });
-        controls.addColor(options.particle, 'color').name('Color').listen().onFinishChange(val => {
-            core.updateParticle(options.particle.obj, 'color', val);
-        });
-        addMenuControl(controls, 'Energy', 'energy');
+        // 'particle'.addColor(options.particle, 'color').name('Color').listen().onFinishChange(val => {
+        //     core.updateParticle(options.particle.obj, 'color', val);
+        // });
+        addMenuControl('particle', 'Energy', 'energy');
 
-        const guiParticleProperties = controls.addFolder("[+] Properties");
-        addMenuControl(guiParticleProperties, 'Mass', 'mass', (val) => {
+        addMenuControl('particle', 'Mass', 'mass', (val) => {
             core.updateParticle(options.particle.obj, 'mass', val);
         });
-        addMenuControl(guiParticleProperties, 'Charge', 'charge', (val) => {
+        addMenuControl('particle', 'Charge', 'charge', (val) => {
             core.updateParticle(options.particle.obj, 'charge', val);
         });
-        addMenuControl(guiParticleProperties, 'Nuclear Charge', 'nuclearCharge', (val) => {
+        addMenuControl('particle', 'Nuclear Charge', 'nuclearCharge', (val) => {
             core.updateParticle(options.particle.obj, 'nuclearCharge', val);
         });
-        addMenuControl(guiParticleProperties, 'Color Charge', 'colorCharge');
-        guiParticleProperties.open();
+        addMenuControl('particle', 'Color Charge', 'colorCharge');
 
-        const guiParticleVariables = controls.addFolder("[+] Variables");
-        addMenuControl(guiParticleVariables, 'Position', 'position', (val) => {
+        addMenuControl('particle', 'Position', 'position', (val) => {
             core.updateParticle(options.particle.obj, 'position', val);
         });
-        addMenuControl(guiParticleVariables, 'Velocity', 'velocityAbs', (val) => {
+        addMenuControl('particle', 'Velocity', 'velocityAbs', (val) => {
             core.updateParticle(options.particle.obj, 'velocityAbs', val);
         });
-        addMenuControl(guiParticleVariables, 'Direction', 'velocityDir', (val) => {
+        addMenuControl('particle', 'Direction', 'velocityDir', (val) => {
             core.updateParticle(options.particle.obj, 'velocityDir', val);
         });
 
-        addMenuControl(controls, 'Follow/Unfollow', 'follow');
-        addMenuControl(controls, 'Look At', 'lookAt');
+        addMenuControl('particle', 'Follow/Unfollow', 'follow');
+        addMenuControl('particle', 'Look At', 'lookAt');
 
-        addMenuControl(guiParticleVariables, 'Fixed position?', 'fixed', (val) => {
+        addMenuControl('particle', 'Fixed position?', 'fixed', (val) => {
             core.updateParticle(options.particle.obj, 'fixed', val);
         });
         //addMenuControl(controls, 'Reset Attributes', 'reset');
-        controls.add(options.particle, 'close').name('Close 🔺');
-
-        options.collapseList.push(controls);
-        //gGuiOptions.collapseList.push(guiParticleActions);
-        options.collapseList.push(guiParticleVariables);
-        options.collapseList.push(guiParticleProperties);
     }
 
     refresh() {
@@ -203,7 +185,6 @@ function guiParticleClose(clear = true) {
         particleView.energy = '';
         particleView.fixed = false;
     }
-    controls.close();
 
     UI.particle.setOpen(false);
 }

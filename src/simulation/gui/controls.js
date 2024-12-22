@@ -117,12 +117,10 @@ export class GUIControls {
             hideOverlay: () => {
                 if (hideOverlay == false) {
                     options.statsPanel.domElement.style.visibility = 'hidden';
-                    options.gui.hide();
                     options.mouseHelper.overGUI = false;
                     hideOverlay = true;
                 } else {
                     options.statsPanel.domElement.style.visibility = 'visible';
-                    options.gui.show();
                     hideOverlay = false;
                 }
             },

@@ -20,10 +20,9 @@ export const SourceType = {
 }
 
 export class Selection {
-    constructor(graphics, guiSelection, guiOptions) {
+    constructor(graphics, guiOptions) {
         log('constructor');
         this.graphics = graphics;
-        this.guiSelection = guiSelection;
         this.guiOptions = guiOptions;
         this.started = false;
         this.p0 = undefined;
@@ -83,13 +82,10 @@ export class Selection {
             this.#snapshot(mode);
             this.source = SourceType.simulation;
             this.guiRefresh();
-            this.guiSelection.open();
 
             UI.selection.setOpen(true);
         } else {
             this.clear();
-            this.guiSelection.close();
-
             // UI.selection.setOpen(false);
         }
 

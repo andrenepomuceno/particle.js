@@ -8,23 +8,10 @@ import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
 import { UI } from '../../ui/App';
 
 let options = undefined;
-let controls = undefined;
 let selection = undefined;
 let mouse = undefined;
 
 let refreshCallbackList = [];
-
-function translateFolder(folder) {
-    const regex = /[a-z]+/i;
-    const result = regex.exec(folder.name)[0];
-    const map = {
-        'SELECTION': 'selection',
-        'Properties': 'properties',
-        'Variables': 'properties',
-        'Controls': 'selection',
-    }
-    return map[result];
-}
 
 function addMenuControl(
     folder, title, variable,
@@ -33,19 +20,12 @@ function addMenuControl(
 ) {
     const defaultValue = options.selection[variable];
 
-    if (onFinishChange == undefined) {
-        folder.add(options.selection, variable, variableList).name(title).listen();
-    }
-    else {
-        folder.add(options.selection, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-    }
-
     const item = {
         title: title,
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: translateFolder(folder)
+        folder
     }
     UI.addItem(UI.selection, item);
 
@@ -57,9 +37,8 @@ function addMenuControl(
 }
 
 export class GUISelection {
-    constructor(guiOptions, guiSelection) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiSelection;
         selection = options.selectionHelper;
         mouse = options.mouseHelper;
 
@@ -125,7 +104,7 @@ export class GUISelection {
             Box: 'box',
             Circle: 'circle',
         };
-        addMenuControl(controls, 'Pattern', 'pattern', (val) => {
+        addMenuControl('selection', 'Pattern', 'pattern', (val) => {
             switch (val) {
                 case 'box':
                 default:
@@ -139,53 +118,40 @@ export class GUISelection {
             options.selection.pattern = val;
             // console.log(val);
         }, patternList);
-        addMenuControl(controls, 'Source', 'source')
-        addMenuControl(controls, 'Particles', 'particles')
+        addMenuControl('selection', 'Source', 'source')
+        addMenuControl('selection', 'Particles', 'particles')
     
-        const guiSelectionProperties = controls.addFolder("[+] Properties");
-        addMenuControl(guiSelectionProperties, "Mass (sum)", 'mass', (val) => {
+        addMenuControl('properties', "Mass (sum)", 'mass', (val) => {
             selectionListUpdate('mass', val);
         });
-        addMenuControl(guiSelectionProperties, "Charge (sum)", 'charge', (val) => {
+        addMenuControl('properties', "Charge (sum)", 'charge', (val) => {
             selectionListUpdate('charge', val);
         });
-        addMenuControl(guiSelectionProperties, "Nuclear Charge (sum)", 'nuclearCharge', (val) => {
+        addMenuControl('properties', "Nuclear Charge (sum)", 'nuclearCharge', (val) => {
             selectionListUpdate('nuclearCharge', val);
         });
-        addMenuControl(guiSelectionProperties, "Color Charge (sum)", 'colorCharge'/*, (val) => {
-            //selectionListUpdate('colorCharge', val);
-        }*/);
-        guiSelectionProperties.open();
-    
-        const guiSelectionVariables = controls.addFolder("[+] Variables");
-        addMenuControl(guiSelectionVariables, 'Velocity', 'velocity', (val) => {
+        addMenuControl('properties', "Color Charge (sum)", 'colorCharge');
+
+        addMenuControl('properties', 'Velocity', 'velocity', (val) => {
             selectionListUpdate('velocityAbs', val);
         });
-        addMenuControl(guiSelectionVariables, 'Direction', 'velocityDir', (val) => {
+        addMenuControl('properties', 'Direction', 'velocityDir', (val) => {
             selectionListUpdate('velocityDir', val);
         });
-        addMenuControl(guiSelectionVariables, 'Center', 'center', (val) => {
+        addMenuControl('properties', 'Center', 'center', (val) => {
             selectionListUpdate('center', val);
         });
-        addMenuControl(guiSelectionVariables, 'Fixed Position', 'fixedPosition', (val) => {
+        addMenuControl('properties', 'Fixed Position', 'fixedPosition', (val) => {
             selectionListUpdate('fixed', val);
             options.selection.fixedPosition = val;
         });
     
-        const guiSelectionControls = controls.addFolder("[+] Controls");
-        addMenuControl(guiSelectionControls, "Clone [X]", 'clone')
-        addMenuControl(guiSelectionControls, "Place [Z]", 'place')
-        addMenuControl(guiSelectionControls, 'Look At', 'lookAt')
-        addMenuControl(guiSelectionControls, 'Export', 'export')
-        addMenuControl(guiSelectionControls, 'Import', 'import')
-        addMenuControl(guiSelectionControls, "Delete [D]", 'delete')
-        
-        controls.add(options.selection, 'clear').name('Close 🔺');
-    
-        options.collapseList.push(controls);
-        options.collapseList.push(guiSelectionControls);
-        //options.collapseList.push(guiSelectionProperties);
-        options.collapseList.push(guiSelectionVariables);
+        addMenuControl('selection', "Clone [X]", 'clone')
+        addMenuControl('selection', "Place [Z]", 'place')
+        addMenuControl('selection', 'Look At', 'lookAt')
+        addMenuControl('selection', 'Export', 'export')
+        addMenuControl('selection', 'Import', 'import')
+        addMenuControl('selection', "Delete [D]", 'delete')
     }
 
     refresh() {
@@ -201,8 +167,6 @@ export class GUISelection {
 
 function guiSelectionClose(clear = true) {
     if (clear) selection.clear();
-    controls.close();
-
     UI.selection.setOpen(false);
 }
 

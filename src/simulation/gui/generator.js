@@ -18,7 +18,7 @@ function log(msg) {
     console.log("menu/generator: " + msg);
 }
 
-let options, controls, selection, mouse, hexagonMap;
+let options, selection, mouse, hexagonMap;
 
 const refreshCallbackList = [];
 
@@ -48,14 +48,12 @@ function addMenuControl(
         }
     }
 
-    folder.add(options.generator, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
-
     const item = {
         title: title,
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: translateFolder(folder)
+        folder
     }
     UI.addItem(UI.generator, item);
 
@@ -69,7 +67,6 @@ function addMenuControl(
 export class GUIGenerator {
     constructor(guiOptions, guiGenerator) {
         options = guiOptions;
-        controls = guiGenerator;
         mouse = options.mouseHelper;
         selection = options.selectionHelper;
         hexagonMap = new Map();
@@ -105,11 +102,9 @@ export class GUIGenerator {
             fixed: false,
             generate: () => {
                 particleGenerator(options.generator);
-                controls.open();
                 UI.generator.setOpen(true);
             },
             clear: () => {
-                controls.close();
                 UI.generator.setOpen(false);
             },
             default: () => {
@@ -144,10 +139,10 @@ export class GUIGenerator {
             },
         };
 
-        addMenuControl(controls, 'Particles', 'quantity', (val) => {
+        addMenuControl('controls', 'Particles', 'quantity', (val) => {
             options.generator.quantity = Math.round(parseFloat(val));
         });
-        addMenuControl(controls, 'Brush radius', 'radius', (val) => {
+        addMenuControl('controls', 'Brush radius', 'radius', (val) => {
             options.generator.radius = parseFloat(val);
         });
 
@@ -181,7 +176,7 @@ export class GUIGenerator {
             Hexagon: 'hexagon',
             Beam: 'beam',
         };
-        addMenuControl(controls, 'Brush pattern', 'pattern', (val) => {
+        addMenuControl('controls', 'Brush pattern', 'pattern', (val) => {
             switch (val) {
                 case 'beam':
                     let v = 10 * parseFloat(options.info.velocity);
@@ -206,7 +201,7 @@ export class GUIGenerator {
             'EPN Model (Scale)': 'epnModelScaled',
             'Quark Model (Scale)': 'stdModel0Scaled',
         };
-        addMenuControl(controls, 'Particle preset', 'preset', (val) => {
+        addMenuControl('controls', 'Particle preset', 'preset', (val) => {
             let v = 10 * parseFloat(options.info.velocity);
             if (isNaN(v) || v < 1e2) v = 1e2;
             switch (val) {
@@ -238,36 +233,32 @@ export class GUIGenerator {
             options.generator.preset = val;
         }, presetList);
 
-        const guiGenerateMass = controls.addFolder("[+] Mass");
-        addMenuControl(guiGenerateMass, 'Mass', 'mass', (val) => {
+        addMenuControl('mass', 'Mass', 'mass', (val) => {
             options.generator.mass = parseFloat(val);
         });
-        addMenuControl(guiGenerateMass, "Randomize value?", 'randomMass');
-        addMenuControl(guiGenerateMass, "Allow zero?", 'enableZeroMass');
-        addMenuControl(guiGenerateMass, "Round?", 'roundMass');
+        addMenuControl('mass', "Randomize value?", 'randomMass');
+        addMenuControl('mass', "Allow zero?", 'enableZeroMass');
+        addMenuControl('mass', "Round?", 'roundMass');
         //guiGenerateMass.open();
 
-        const guiGenerateCharge = controls.addFolder("[+] Charge");
-        addMenuControl(guiGenerateCharge, 'Charge', 'charge', (val) => {
+        addMenuControl('charge', 'Charge', 'charge', (val) => {
             options.generator.charge = parseFloat(val);
         });
-        addMenuControl(guiGenerateCharge, "Randomize value?", 'randomCharge');
-        addMenuControl(guiGenerateCharge, "Randomize signal?", 'chargeRandomSignal');
-        addMenuControl(guiGenerateCharge, "Allow zero?", 'enableZeroCharge');
-        addMenuControl(guiGenerateCharge, "Round?", 'roundCharge');
+        addMenuControl('charge', "Randomize value?", 'randomCharge');
+        addMenuControl('charge', "Randomize signal?", 'chargeRandomSignal');
+        addMenuControl('charge', "Allow zero?", 'enableZeroCharge');
+        addMenuControl('charge', "Round?", 'roundCharge');
         //guiGenerateCharge.open();
 
-        const guiGenerateNuclearCharge = controls.addFolder("[+] Nuclear Charge");
-        addMenuControl(guiGenerateNuclearCharge, 'Nuclear Charge', 'nuclearCharge', (val) => {
+        addMenuControl('nuclearCharge', 'Nuclear Charge', 'nuclearCharge', (val) => {
             options.generator.nuclearCharge = parseFloat(val);
         });
-        addMenuControl(guiGenerateNuclearCharge, "Randomize value?", 'randomNuclearCharge');
-        addMenuControl(guiGenerateNuclearCharge, "Randomize signal?", 'nuclearChargeRandomSignal');
-        addMenuControl(guiGenerateNuclearCharge, "Allow zero?", 'enableZeroNuclearCharge');
-        addMenuControl(guiGenerateNuclearCharge, "Round?", 'roundNuclearCharge');
+        addMenuControl('nuclearCharge', "Randomize value?", 'randomNuclearCharge');
+        addMenuControl('nuclearCharge', "Randomize signal?", 'nuclearChargeRandomSignal');
+        addMenuControl('nuclearCharge', "Allow zero?", 'enableZeroNuclearCharge');
+        addMenuControl('nuclearCharge', "Round?", 'roundNuclearCharge');
 
-        const guiGenerateVelocity = controls.addFolder("[+] Velocity");
-        addMenuControl(guiGenerateVelocity, 'Velocity', 'velocity', (val) => {
+        addMenuControl('velocity', 'Velocity', 'velocity', (val) => {
             const precision = 2;
             let velocity = decodeVector3(val);
             if (velocity != undefined) {
@@ -282,17 +273,11 @@ export class GUIGenerator {
             }
             options.generator.velocity = floatArrayToString([velocity, 0, 0], precision);
         });
-        addMenuControl(guiGenerateVelocity, "Randomize?", 'randomVelocity');
+        addMenuControl('velocity', "Randomize?", 'randomVelocity');
 
-        addMenuControl(controls, "Fixed position?", 'fixed');
-        addMenuControl(controls, "Generate [G]", 'generate');
-        addMenuControl(controls, 'Default Values', 'default');
-        controls.add(options.generator, 'clear').name('Close 🔺');
-
-        options.collapseList.push(controls);
-        options.collapseList.push(guiGenerateCharge);
-        options.collapseList.push(guiGenerateMass);
-        options.collapseList.push(guiGenerateVelocity);
+        addMenuControl('controls', "Fixed position?", 'fixed');
+        addMenuControl('controls', "Generate [G]", 'generate');
+        addMenuControl('controls', 'Default Values', 'default');
     }
 
     refresh() {
@@ -393,18 +378,18 @@ function particleGenerator(input) {
     switch (preset) {
         case 'stdModel0':
             presetList = [
-                { m: 0.01, q: 0, nq: 1, name: 'neutrino'  },
-                { m: 0.511, q: -1, nq: 1, name: 'electron'  },
-                { m: 3, q: 1 / 3, nq: 1, name: 'quark up'  },
-                { m: 6, q: -2 / 3, nq: 1, name: 'quark down'  },
+                { m: 0.01, q: 0, nq: 1, name: 'neutrino' },
+                { m: 0.511, q: -1, nq: 1, name: 'electron' },
+                { m: 3, q: 1 / 3, nq: 1, name: 'quark up' },
+                { m: 6, q: -2 / 3, nq: 1, name: 'quark down' },
             ];
             break;
 
         case 'epnModel':
             presetList = [
-                { m: 5.48579909065e-4, q: -1, nq: -1 / 137, name: 'electron'  },
-                { m: 1.007276466583, q: 1, nq: 1, name: 'proton'  },
-                { m: 1.00866491588, q: 0, nq: 1, name: 'neutron'  },
+                { m: 5.48579909065e-4, q: -1, nq: -1 / 137, name: 'electron' },
+                { m: 1.007276466583, q: 1, nq: 1, name: 'proton' },
+                { m: 1.00866491588, q: 0, nq: 1, name: 'neutron' },
             ];
             break;
 
@@ -473,7 +458,7 @@ function particleGenerator(input) {
             randomQ: input.randomCharge,
             roundQ: input.roundCharge,
             allowZeroQ: input.enableZeroCharge,
-            
+
             nq: input.nuclearCharge,
             randomNQSignal: input.nuclearChargeRandomSignal,
             randomNQ: input.randomNuclearCharge,

@@ -6,21 +6,7 @@ import {
 import { UI } from '../../ui/App';
 
 let options;
-let controls;
 let refreshCallbackList = [];
-
-function translateFolder(folder) {
-    const regex = /[a-z]+/i;
-    const result = regex.exec(folder.name)[0];
-    const map = {
-        'Gravitational': 'forces',
-        'Nuclear': 'forces',
-        'Other': 'other',
-        'Simulation': 'boundaries',
-        'Experimental': 'experimental',
-    }
-    return map[result];
-}
 
 function addPhysicsControl(
     folder, title, variable, defaultValue = '',
@@ -35,7 +21,7 @@ function addPhysicsControl(
     if (onFinishChange == undefined) {
         onFinishChange = onFinish;
     }
-    folder.add(options.parameters, variable, variableList).name(title).listen().onFinishChange(onFinishChange);
+
     if (refreshCallback != undefined) {
         refreshCallbackList.push(refreshCallback);
     }
@@ -45,7 +31,7 @@ function addPhysicsControl(
         value: defaultValue,
         onFinish: onFinishChange,
         selectionList: variableList,
-        folder: translateFolder(folder)
+        folder
     }
     UI.addItem(UI.parameters, item);
     refreshCallbackList.push((value) => {
@@ -54,9 +40,8 @@ function addPhysicsControl(
 }
 
 export class GUIParameters {
-    constructor(guiOptions, guiParameters) {
+    constructor(guiOptions) {
         options = guiOptions;
-        controls = guiParameters;
         this.setup();
     }
 
@@ -64,29 +49,22 @@ export class GUIParameters {
         options.parameters = {
             forceMap: '[]',
             minDistance: '',
-
-            close: () => {
-                controls.close();
-            }
         };
 
-        const guiParametersConsts = controls.addFolder("[+] Gravitational & Electric");
-        addPhysicsControl(guiParametersConsts, 'Gravitational Constant', 'massConstant', '', () => {
+        addPhysicsControl('forces', 'Gravitational Constant', 'massConstant', '', () => {
             options.parameters.massConstant = simulation.physics.massConstant.toExponential(4);
         });
-        addPhysicsControl(guiParametersConsts, 'Electric Constant', 'chargeConstant', '', () => {
+        addPhysicsControl('forces', 'Electric Constant', 'chargeConstant', '', () => {
             options.parameters.chargeConstant = simulation.physics.chargeConstant.toExponential(4);
         });
-        addPhysicsControl(guiParametersConsts, 'x^-1 potential', 'distance1', false, () => {
+        addPhysicsControl('forces', 'x^-1 potential', 'distance1', false, () => {
             options.parameters.distance1 = simulation.physics.useDistance1;
         });
-        guiParametersConsts.open();
 
-        const guiParametersNuclear = controls.addFolder("[+] Nuclear Force");
-        addPhysicsControl(guiParametersNuclear, 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
+        addPhysicsControl('forces', 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
             options.parameters.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(4);
         });
-        addPhysicsControl(guiParametersNuclear, 'Nuclear Force Range', 'nuclearForceRange', '', () => {
+        addPhysicsControl('forces', 'Nuclear Force Range', 'nuclearForceRange', '', () => {
             options.parameters.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(4);
         });
         const potentialType = {
@@ -97,10 +75,11 @@ export class GUIParameters {
             'Sin[a(1-b^x)]Exp[-cx]c': NuclearPotentialType.potential_powAXv3,
             '[a,b,c,d,...,x] (param.)': NuclearPotentialType.potential_forceMap1,
             'aExp(-x/b)-cx (param.)': NuclearPotentialType.potential_forceMap2,
+            'Lennard-Jones (param.)': NuclearPotentialType.lennardJones,
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         };
-        addPhysicsControl(guiParametersNuclear, 'Nuclear Potential', 'nuclearPotential', '', () => {
+        addPhysicsControl('forces', 'Nuclear Potential', 'nuclearPotential', '', () => {
             options.parameters.nuclearPotential = simulation.physics.nuclearPotential;
         }, potentialType);
 
@@ -118,34 +97,31 @@ export class GUIParameters {
             }
             core.updatePhysics('forceMap', forceMap);
         };
-        addPhysicsControl(guiParametersNuclear, 'Nuclear Parameters', 'forceMap', '', undefined, undefined, onFinishMap);
-        addPhysicsControl(guiParametersNuclear, 'Enable Color Charge', 'enableColorCharge', false, () => {
+        addPhysicsControl('forces', 'Nuclear Parameters', 'forceMap', '', undefined, undefined, onFinishMap);
+        addPhysicsControl('forces', 'Enable Color Charge', 'enableColorCharge', false, () => {
             options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
         });
-        addPhysicsControl(guiParametersNuclear, 'Color Force Constant', 'colorChargeConstant', '', () => {
+        addPhysicsControl('forces', 'Color Force Constant', 'colorChargeConstant', '', () => {
             options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(4);
         });
-        guiParametersNuclear.open();
 
-        const guiParametersModel = controls.addFolder("[+] Other");
-
-        addPhysicsControl(guiParametersModel, 'Enable Friction', 'enableFriction', false, () => {
+        addPhysicsControl('other', 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
         });
-        addPhysicsControl(guiParametersModel, 'Friction Constant', 'frictionConstant', '', () => {
+        addPhysicsControl('other', 'Friction Constant', 'frictionConstant', '', () => {
             options.parameters.frictionConstant = simulation.physics.frictionConstant.toExponential(4);
         });
         const frictionModel = {
             '-cv': FrictionModel.default,
             '-cv^2': FrictionModel.square,
         }
-        addPhysicsControl(guiParametersModel, 'Friction Model', 'frictionModel', '', () => {
+        addPhysicsControl('other', 'Friction Model', 'frictionModel', '', () => {
             options.parameters.frictionModel = simulation.physics.frictionModel;
         }, frictionModel);
-        addPhysicsControl(guiParametersModel, 'Time Step', 'timeStep', '', () => {
+        addPhysicsControl('other', 'Time Step', 'timeStep', '', () => {
             options.parameters.timeStep = simulation.physics.timeStep.toFixed(4);
         });
-        addPhysicsControl(guiParametersModel, 'Max Velocity (C)', 'maxVel', '', () => {
+        addPhysicsControl('other', 'Max Velocity (C)', 'maxVel', '', () => {
             options.parameters.maxVel = simulation.physics.maxVel.toExponential(4);
         });
         const onFinishMinDistance = (val) => {
@@ -157,14 +133,14 @@ export class GUIParameters {
             core.updatePhysics('minDistance2', Math.pow(d, 2));
         };
 
-        addPhysicsControl(guiParametersModel, 'Collision Distance', 'minDistance', '', undefined, undefined, onFinishMinDistance);
-        addPhysicsControl(guiParametersModel, 'Enable Random Noise', 'enableRandomNoise', false, () => {
+        addPhysicsControl('other', 'Collision Distance', 'minDistance', '', undefined, undefined, onFinishMinDistance);
+        addPhysicsControl('other', 'Enable Random Noise', 'enableRandomNoise', false, () => {
             options.parameters.enableRandomNoise = simulation.physics.enableRandomNoise;
         });
-        addPhysicsControl(guiParametersModel, 'Random Noise Constant', 'randomNoiseConstant', '', () => {
+        addPhysicsControl('other', 'Random Noise Constant', 'randomNoiseConstant', '', () => {
             options.parameters.randomNoiseConstant = simulation.physics.randomNoiseConstant.toExponential(4);
         });
-        addPhysicsControl(guiParametersModel, '2D Mode', 'mode2D', true, () => {
+        addPhysicsControl('other', '2D Mode', 'mode2D', true, () => {
             options.parameters.mode2D = simulation.mode2D;
         },
         undefined,
@@ -174,42 +150,31 @@ export class GUIParameters {
             core.updatePhysics('mode2D', val);
         });
 
-        const guiParametersBoundary = controls.addFolder("[+] Simulation Boundaries");
-        addPhysicsControl(guiParametersBoundary, 'Boundary Distance', 'boundaryDistance', '', () => {
+        addPhysicsControl('boundaries', 'Boundary Distance', 'boundaryDistance', '', () => {
             options.parameters.boundaryDistance = simulation.physics.boundaryDistance.toExponential(4);
         });
-        addPhysicsControl(guiParametersBoundary, 'Boundary Damping Factor', 'boundaryDamping', '', () => {
+        addPhysicsControl('boundaries', 'Boundary Damping Factor', 'boundaryDamping', '', () => {
             options.parameters.boundaryDamping = simulation.physics.boundaryDamping.toFixed(4);
         });
-        addPhysicsControl(guiParametersBoundary, 'Use box boundary', 'boxBoundary', false, () => {
+        addPhysicsControl('boundaries', 'Use box boundary', 'boxBoundary', false, () => {
             options.parameters.boxBoundary = simulation.physics.useBoxBoundary;
         });
-        addPhysicsControl(guiParametersBoundary, 'Enable Boundary', 'enableBoundary', false, () => {
+        addPhysicsControl('boundaries', 'Enable Boundary', 'enableBoundary', false, () => {
             options.parameters.enableBoundary = simulation.physics.enableBoundary;
         });
 
-        const guiParametersExp = controls.addFolder("[+] Experimental");
-        addPhysicsControl(guiParametersExp, 'Enable Fine Structure', 'enableFineStructure', false, () => {
+        addPhysicsControl('experimental', 'Enable Fine Structure', 'enableFineStructure', false, () => {
             options.parameters.enableFineStructure = simulation.physics.enableFineStructure;
         });
-        addPhysicsControl(guiParametersExp, 'Fine Structure Constant', 'fineStructureConstant', '', () => {
+        addPhysicsControl('experimental', 'Fine Structure Constant', 'fineStructureConstant', '', () => {
             options.parameters.fineStructureConstant = Number(simulation.physics.fineStructureConstant).toExponential(4);
         });
-        addPhysicsControl(guiParametersExp, 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
+        addPhysicsControl('experimental', 'Enable Lorentz Factor', 'enableLorentzFactor', false, () => {
             options.parameters.enableLorentzFactor = simulation.physics.enableLorentzFactor;
         });
-        addPhysicsControl(guiParametersExp, 'Post-Newtonian Gravity', 'enablePostGravity', false, () => {
+        addPhysicsControl('experimental', 'Post-Newtonian Gravity', 'enablePostGravity', false, () => {
             options.parameters.enablePostGravity = simulation.physics.enablePostGravity;
         });
-
-        controls.add(options.parameters, 'close').name('Close 🔺');
-
-        options.collapseList.push(controls);
-        options.collapseList.push(guiParametersBoundary);
-        options.collapseList.push(guiParametersConsts);
-        options.collapseList.push(guiParametersExp);
-        options.collapseList.push(guiParametersModel);
-        options.collapseList.push(guiParametersNuclear);
     }
 
     refresh() {

@@ -8,7 +8,6 @@ import { Selection } from './components/selection';
 import { Ruler } from './components/ruler';
 
 import Stats from './gui/stats';
-import * as dat from './gui/dat.gui';
 import { GUIInfo } from './gui/info.js';
 import { GUIParticle } from './gui/particle.js';
 import { GUIParameters } from './gui/parameters.js';
@@ -30,15 +29,6 @@ const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL'));
 const computePanel = new Stats.Panel('GPU');
 statsPanel.addPanel(computePanel);
 //statsPanel.showPanel(0);
-
-const gui = new dat.GUI();
-const guiParticle = gui.addFolder("PARTICLE (click on particle or enter ID)");
-const guiSelection = gui.addFolder('SELECTION');
-const guiGenerator = gui.addFolder('GENERATOR');
-const guiField = gui.addFolder('FIELD');
-const guiParameters = gui.addFolder('PARAMETERS');
-
-gui.hide();
 
 const mouse = new Mouse();
 
@@ -63,7 +53,6 @@ const guiOptions = {
     keyboard: undefined,
     collapseList,
 
-    gui,
     guiInfo: undefined,
     guiControls: undefined,
     guiSelection: undefined,
@@ -84,7 +73,7 @@ const guiOptions = {
 
 guiOptions.keyboard = new Keyboard(mouse, guiOptions);
 guiOptions.ruler = new Ruler(simulation.graphics);
-const selection = new Selection(simulation.graphics, guiSelection, guiOptions);
+const selection = new Selection(simulation.graphics, guiOptions);
 guiOptions.selectionHelper = selection;
 
 function scenarioSetup(idx) {
@@ -137,19 +126,16 @@ export function viewSetup() {
     statsPanel.domElement.style.visibility = 'visible';
 
     //gui menu overlays
-    // mouse.addOverListener(gui.domElement);
     // mouse.addOverListener(rootDOM);
-    gui.width = Math.max(0.2 * window.innerWidth, 420);
-    gui.close();
 
     guiOptions.guiInfo = new GUIInfo(guiOptions);
     guiOptions.guiControls = new GUIControls(guiOptions);
-    guiOptions.guiParticle = new GUIParticle(guiOptions, guiParticle);
-    guiOptions.guiParameters = new GUIParameters(guiOptions, guiParameters);
-    guiOptions.guiSelection = new GUISelection(guiOptions, guiSelection);
-    guiOptions.guiGenerator = new GUIGenerator(guiOptions, guiGenerator);
+    guiOptions.guiParticle = new GUIParticle(guiOptions);
+    guiOptions.guiParameters = new GUIParameters(guiOptions);
+    guiOptions.guiSelection = new GUISelection(guiOptions);
+    guiOptions.guiGenerator = new GUIGenerator(guiOptions);
     guiOptions.guiAdvanced = new GUIAdvanced(guiOptions);
-    guiOptions.guiField = new GUIField(guiOptions, guiField);
+    guiOptions.guiField = new GUIField(guiOptions);
 
     scenarioSetup();
 

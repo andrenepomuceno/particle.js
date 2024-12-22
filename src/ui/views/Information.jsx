@@ -8,7 +8,7 @@ import GridList from '../components/GridList';
 const InformationView = ({
     open = true,
     onClose,
-    parameters = {},
+    parameters = [],
 }) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {

@@ -8,12 +8,7 @@ import GridList from '../components/GridList';
 const ParametersView = ({
     open = true,
     onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
+    parameters = [],
 }) => {
     //console.log(parameters);
 

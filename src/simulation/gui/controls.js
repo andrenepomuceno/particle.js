@@ -78,7 +78,6 @@ export class GUIControls {
             },
             importJson: function () {
                 uploadJsonZip((name, content) => {
-                    options.particle.close();
                     core.importJson(name, content);
                     options.guiInfo.refresh();
                     options.guiParameters.refresh();

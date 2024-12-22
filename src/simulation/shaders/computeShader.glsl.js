@@ -38,6 +38,7 @@ export function generateComputeVelocity(physics) {
     config += define("USE_POTENTIAL4", physics.nuclearPotential === NuclearPotentialType.potential_powAXv3);
     config += define("USE_FMAP1", physics.nuclearPotential === NuclearPotentialType.potential_forceMap1);
     config += define("USE_FMAP2", physics.nuclearPotential === NuclearPotentialType.potential_forceMap2);
+    config += define("USE_LENNARD_JONES", physics.nuclearPotential === NuclearPotentialType.lennardJones);
 
     // console.log(config);
 
@@ -211,10 +212,12 @@ float calcNuclearPotential(const float distance1, const float d) {
         x = a * exp(-d / b); // yukawa
         x -= c * d; // string tension
 
-    #elif LENNARD_JONES
+    #elif USE_LENNARD_JONES
         d = forceMap[0] * d;
         float f = 1.0 / d;
-        f = pow(f, forceMap[1]) - pow(f, forceMap[2]);
+        f = max(f, forceMap[1]);
+        f = pow(f, 12) - pow(f, 6);
+        f *= forceMap[2];
 
     #elif USE_POT_DEFAULT
         x = sin(2.0 * PI * x);

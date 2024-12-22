@@ -86,7 +86,6 @@ function scenarioSetup(idx) {
 
     guiOptions.guiInfo.reset();
     guiOptions.selectionHelper.clear();
-    guiOptions.particle.close();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
 
@@ -204,7 +203,6 @@ function onPointerUp(event) {
                 if (particle.type != ParticleType.default && particle.type != ParticleType.fixed) return;
                 guiOptions.particle.obj = particle;
                 guiOptions.guiParticle.refresh();
-                guiParticle.open();
                 
                 UI.particle.setOpen(true);
             }

@@ -144,7 +144,6 @@ export class GUIField {
         if (val == false) {
             core.deleteParticleList(simulation.field.arrowList);
             simulation.field.cleanup();
-            controls.close();
 
             // UI.field.setOpen(false);
         } else {
@@ -158,7 +157,6 @@ export class GUIField {
                 return;
             }
             options.field.enabled = true;
-            controls.open();
 
             // this.refresh();
             UI.field.setOpen(true);

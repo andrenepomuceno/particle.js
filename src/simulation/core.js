@@ -185,6 +185,14 @@ class Core {
                         fillPhysics = true;
                         break;
 
+                    case NuclearPotentialType.lennardJones:
+                        // if (physics.forceMap.length != 3)
+                        {
+                            physics.forceMap = [2.0, 1e3, 1.0];
+                        }
+                        fillPhysics = true;
+                        break;
+
                     default:
                         //physics.forceMap = [0.0];
                         break;

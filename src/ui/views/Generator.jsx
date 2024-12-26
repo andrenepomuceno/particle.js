@@ -5,16 +5,7 @@ import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
 import GridList from '../components/GridList';
 
-const GeneratorView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const GeneratorView = ({view}) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
         setTab(value);
@@ -24,11 +15,11 @@ const GeneratorView = ({
         <div>
             <CustomDialog
                 title='Generator'
-                size={{ width: 580, height: 290 }}
-                position={{ x: 520, y: 460 }}
+                size={{ width: 400, height: 290 }}
+                position={{ x: 720, y: 450 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
@@ -40,19 +31,19 @@ const GeneratorView = ({
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['controls']}></GridList>
+                    <GridList itemList={view.state.parameters['controls']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['mass']}></GridList>
+                    <GridList itemList={view.state.parameters['mass']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={parameters['charge']}></GridList>
+                    <GridList itemList={view.state.parameters['charge']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={parameters['nuclearCharge']}></GridList>
+                    <GridList itemList={view.state.parameters['nuclearCharge']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={4}>
-                    <GridList itemList={parameters['velocity']}></GridList>
+                    <GridList itemList={view.state.parameters['velocity']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

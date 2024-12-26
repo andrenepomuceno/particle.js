@@ -2,27 +2,18 @@ import React, { useState } from 'react';
 import CustomDialog from '../components/CustomDialog';
 import GridList from '../components/GridList';
 
-const ParticleView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const ParticleView = ({view}) => {
     return (
         <div>
             <CustomDialog
                 title='Particle'
-                size={{ width: 500, height: 390 }}
-                position={{ x: 1180, y: 70 }}
+                size={{ width: 360, height: 390 }}
+                position={{ x: 1490, y: 16 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
-                <GridList itemList={parameters['particle']}></GridList>
+                <GridList itemList={view.state.parameters['particle']}></GridList>
             </CustomDialog>
         </div>
     );

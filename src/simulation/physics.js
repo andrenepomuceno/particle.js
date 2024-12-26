@@ -115,21 +115,6 @@ export class Physics {
 
         this.forceMap = input.forceMap;
     }
-
-    header() {
-        return "enableColision,minDistance2,massConstant,chargeConstant,nuclearForceConstant,nuclearForceRange,boundaryDistance,boundaryDamping";
-    }
-
-    csv() {
-        return this.enableColision + ","
-            + this.minDistance2 + ","
-            + this.massConstant + ","
-            + this.chargeConstant + ","
-            + this.nuclearForceConstant + ","
-            + this.nuclearForceRange + ","
-            + this.boundaryDistance + ","
-            + this.boundaryDamping;
-    }
 }
 
 export function calcListStatistics(list) {

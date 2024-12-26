@@ -30,6 +30,7 @@ const CustomDialog = ({
     const [dialogSize, setSize] = useState(getInitialState().size);
     const [dialogPos, setPosition] = useState(getInitialState().position);
     const [zIndex, setZIndex] = useState(1000);
+    const [isDragging, setIsDragging] = useState(false);
 
     if (dialogPos.x + dialogSize.width > window.innerWidth) {
         setPosition({
@@ -62,7 +63,13 @@ const CustomDialog = ({
         if (onClose) onClose(e);
     };
 
+    function onDrag(e, position) {
+        setIsDragging(true);
+        setZIndex(1200);
+    }
+
     const onDragStop = (e, position) => {
+        setIsDragging(false);
         setPosition({ x: position.x, y: position.y });
     };
 
@@ -71,7 +78,10 @@ const CustomDialog = ({
     };
 
     const handleMouseEnter = () => setZIndex(1100);
-    const handleMouseLeave = () => setZIndex(1000);
+    const handleMouseLeave = () => {
+        if (isDragging) return;
+        setZIndex(1000);
+    }
 
     if (!isOpen) return null;
 
@@ -87,6 +97,7 @@ const CustomDialog = ({
             <Draggable
                 handle=".dialog-header"
                 position={dialogPos}
+                onDrag={onDrag}
                 onStop={onDragStop}
             >
                 <ResizableBox

@@ -2,27 +2,18 @@ import React, { useState } from 'react';
 import CustomDialog from '../components/CustomDialog';
 import GridList from '../components/GridList';
 
-const AdvancedView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const AdvancedView = ({view}) => {
     return (
         <div>
             <CustomDialog
                 title='Advanced'
                 size={{ width: 300, height: 280 }}
-                position={{ x: 520, y: 840 }}
+                position={{ x: 1130, y: 530 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
-                <GridList itemList={parameters['advanced']} cols={1}></GridList>
+                <GridList itemList={view.state.parameters['advanced']} cols={1}></GridList>
             </CustomDialog>
         </div>
     );

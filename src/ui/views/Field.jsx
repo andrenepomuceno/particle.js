@@ -2,27 +2,18 @@ import React, { useState } from 'react';
 import CustomDialog from '../components/CustomDialog';
 import GridList from '../components/GridList';
 
-const FieldView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const FieldView = ({view}) => {
     return (
         <div>
             <CustomDialog
                 title='Field'
-                size={{ width: 500, height: 280 }}
-                position={{ x: 10, y: 840 }}
+                size={{ width: 340, height: 280 }}
+                position={{ x: 10, y: 510 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
-                <GridList itemList={parameters['field']}></GridList>
+                <GridList itemList={view.state.parameters['field']}></GridList>
             </CustomDialog>
         </div>
     );

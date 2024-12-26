@@ -80,50 +80,15 @@ const App = () => {
         <div>
             <ThemeProvider theme={darkTheme}>
             <CssBaseline />
-                <AboutView
-                    open={aboutView.isOpen}
-                    onClose={(e) => { aboutView.onClickClose(e); }}
-                />
-                <InformationView
-                    open={informationView.isOpen}
-                    onClose={(e) => { informationView.onClickClose(e); }}
-                    parameters={informationView.state.parameters}
-                />
-                <ParametersView
-                    open={parametersView.isOpen}
-                    onClose={(e) => { parametersView.onClickClose(e); }}
-                    parameters={parametersView.state.parameters}
-                />
-                <ControlsView
-                    open={controlsView.isOpen}
-                    onClose={(e) => { controlsView.onClickClose(e); }}
-                    parameters={controlsView.state.parameters}
-                />
-                <AdvancedView
-                    open={advancedView.isOpen}
-                    onClose={(e) => { advancedView.onClickClose(e); }}
-                    parameters={advancedView.state.parameters}
-                />
-                <FieldView
-                    open={fieldView.isOpen}
-                    onClose={(e) => { fieldView.onClickClose(e); }}
-                    parameters={fieldView.state.parameters}
-                />
-                <ParticleView
-                    open={particleView.isOpen}
-                    onClose={(e) => { particleView.onClickClose(e); }}
-                    parameters={particleView.state.parameters}
-                />
-                <SelectionView
-                    open={selectionView.isOpen}
-                    onClose={(e) => { selectionView.onClickClose(e); }}
-                    parameters={selectionView.state.parameters}
-                />
-                <GeneratorView
-                    open={generatorView.isOpen}
-                    onClose={(e) => { generatorView.onClickClose(e); }}
-                    parameters={generatorView.state.parameters}
-                />
+                <AboutView view={aboutView} />
+                <InformationView view={informationView} />
+                <ParametersView view={parametersView} />
+                <ControlsView view={controlsView} />
+                <AdvancedView view={advancedView} />
+                <FieldView view={fieldView} />
+                <ParticleView view={particleView} />
+                <SelectionView view={selectionView} />
+                <GeneratorView view={generatorView} />
                 <MenuView
                     onClickAbout={(e) => { aboutView.onClickOpen(e); }}
                     onClickInfo={(e) => { informationView.onClickOpen(e); }}

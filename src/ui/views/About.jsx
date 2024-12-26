@@ -50,19 +50,27 @@ const About = () => {
     );
 }
 
-const AboutView = ({
-    open = true,
-    onClose
-}) => {
+const AboutView = ({view}) => {
+    const size = {
+        width: 800,
+        height: 860,
+    }
+    const position = {
+        x: (window.innerWidth - size.width)/2,
+        y: (window.innerHeight - size.height)/2
+    }
+
+    // console.log(position);
+
     return (
         <div>
             <CustomDialog
                 title='About'
-                size={{ width: 800, height: 800 }}
-                position={{ x: 520, y: 20 }}
+                size={size}
+                position={position}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={(e) => view.onClickClose(e)}
             >
                 <About />
             </CustomDialog>

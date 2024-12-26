@@ -5,16 +5,7 @@ import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
 import GridList from '../components/GridList';
 
-const ControlsView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const ControlsView = ({view}) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
         setTab(value);
@@ -24,11 +15,11 @@ const ControlsView = ({
         <div>
             <CustomDialog
                 title='Controls'
-                size={{ width: 500, height: 350 }}
-                position={{ x: 670, y: 70 }}
+                size={{ width: 360, height: 350 }}
+                position={{ x: 1130, y: 16 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
@@ -39,16 +30,16 @@ const ControlsView = ({
                     </Tabs>
                 </Box>
                 {/* <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['controls']}></GridList>
+                    <GridList itemList={view.state.parameters['controls']}></GridList>
                 </CustomTabPanel> */}
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['simulation']}></GridList>
+                    <GridList itemList={view.state.parameters['simulation']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['camera']}></GridList>
+                    <GridList itemList={view.state.parameters['camera']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={parameters['view']}></GridList>
+                    <GridList itemList={view.state.parameters['view']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

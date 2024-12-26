@@ -5,16 +5,7 @@ import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
 import GridList from '../components/GridList';
 
-const SelectionView = ({
-    open = true,
-    onClose,
-    parameters = [{
-        folder: "",
-        content: [{
-            title: "", value: "", onFinish: undefined
-        }]
-    }],
-}) => {
+const SelectionView = ({view}) => {
     const [tab, setTab] = useState(0);
     const handleChange = (event, value) => {
         setTab(value);
@@ -24,11 +15,11 @@ const SelectionView = ({
         <div>
             <CustomDialog
                 title='Selection'
-                size={{ width: 500, height: 590 }}
-                position={{ x: 10, y: 460 }}
+                size={{ width: 300, height: 590 }}
+                position={{ x: 720, y: 16 }}
                 canClose={true}
-                open={open}
-                onClose={onClose}
+                open={view.isOpen}
+                onClose={view.onClose}
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>
@@ -37,10 +28,10 @@ const SelectionView = ({
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={parameters['selection']}></GridList>
+                    <GridList itemList={view.state.parameters['selection']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={parameters['properties']}></GridList>
+                    <GridList itemList={view.state.parameters['properties']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

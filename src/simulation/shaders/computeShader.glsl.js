@@ -213,11 +213,12 @@ float calcNuclearPotential(const float distance1, const float d) {
         x -= c * d; // string tension
 
     #elif USE_LENNARD_JONES
-        d = forceMap[0] * d;
-        float f = 1.0 / d;
-        f = max(f, forceMap[1]);
-        f = pow(f, 12) - pow(f, 6);
+        x *= forceMap[0];
+        float f = 1.0 / x;
+        f = min(f, forceMap[1]);
+        f = pow(f, 12.0) - pow(f, 6.0);
         f *= forceMap[2];
+        return f;
 
     #elif USE_POT_DEFAULT
         x = sin(2.0 * PI * x);

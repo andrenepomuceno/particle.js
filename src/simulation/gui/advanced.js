@@ -12,12 +12,7 @@ function addMenuControl(
     onFinishChange = undefined,
 ) {
     const defaultValue = options.advanced[variable];
-    const refreshCallback = undefined;
     const variableList = undefined;
-    
-    if (refreshCallback != undefined) {
-        refreshCallbackList.push(refreshCallback);
-    }
 
     const item = {
         title: title,

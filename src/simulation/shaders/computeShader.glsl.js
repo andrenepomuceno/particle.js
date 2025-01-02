@@ -143,7 +143,7 @@ vec3 collision(const float m1, const float m2,
                 const vec3 dPos, const float distance2) {
     vec3 rForce = vec3(0.0);
 
-    #if 0
+    #if 1
     float m = m1 + m2;
     if (m == 0.0) {
         return rForce;
@@ -160,7 +160,7 @@ vec3 collision(const float m1, const float m2,
     }
     #endif
 
-    #if 1
+    #if 0
     if (distance2 > 1e-6) {
         float d = 2.0 * distance2/minDistance2;
         float f = 1.0 / d;

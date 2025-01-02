@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - react
 
 permissions: write-all
 
@@ -19,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
@@ -34,7 +35,7 @@ jobs:
     - name: Build
       run: |
         npm install
-        npm run build --env 'version= ${{ env.BUILD_VERSION }}'
+        npm run prod --env 'version= ${{ env.BUILD_VERSION }}'
 
     - name: Pack
       run: |

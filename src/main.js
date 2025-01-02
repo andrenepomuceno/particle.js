@@ -1,24 +1,39 @@
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-import { viewSetup } from './view';
+import { viewSetup } from './simulation/view';
+import { UI } from './ui/App';
 
-if (ENV?.production === true) {
-    function analytics() {
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-STP92EN2LF');
+const simulationStart = () => {
+    if (WebGL.isWebGL2Available()) {
+        viewSetup();
+
+        if (ENV?.version) {
+            let dom = document.getElementById('info');
+            dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
+        }
+    } else {
+        const warning = WebGL.getWebGL2ErrorMessage();
+        document.getElementById('root').appendChild(warning);
     }
-    new Promise(analytics);
 }
 
-if (ENV?.version != false) {
-    let dom = document.getElementById('info');
-    dom.innerHTML = dom.innerHTML.replace('loading...', ENV?.version);
+function analytics() {
+    if (ENV?.production === true) {
+        const analytics = () => {
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-STP92EN2LF');
+        }
+        new Promise(analytics);
+    }
 }
 
-if (WebGL.isWebGLAvailable()) {
-    viewSetup();
-} else {
-    const warning = WebGL.getWebGLErrorMessage();
-    document.getElementById('container').appendChild(warning);
+function main() {
+    analytics();
+    UI.start();
+    setTimeout(() => {
+        requestAnimationFrame(simulationStart);
+    });
 }
+
+main();

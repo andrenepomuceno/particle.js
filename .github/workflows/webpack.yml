@@ -35,7 +35,9 @@ jobs:
     - name: Build
       run: |
         npm install
-        npm run prod --env version=${{ env.BUILD_VERSION }} --env gtag_config=${{ vars.GTAG_CONFIG }}
+        npm run prod --env version=${{ env.BUILD_VERSION }} --env gtag_config=$GTAG_CONFIG
+      env:
+        GTAG_CONFIG: ${{ vars.GTAG_CONFIG }}
 
     - name: Pack
       run: |

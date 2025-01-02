@@ -1,12 +1,12 @@
 {
   "name": "particle.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
     "start": "npm run test",
     "prod": "npm run build",
-    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=20e3 --env version='test'",
+    "test": "webpack serve --config webpack-dev.config.js --env maxParticles=20e3 --env version='test' --env gtag_config='gtag_config'",
     "low": "webpack serve --config webpack-dev.config.js --env maxParticles=10e3 --env version='test low'",
     "record": "webpack serve --config webpack-dev.config.js --port 8081 --env maxParticles=50e3 --env version='record' --env record",
     "build": "webpack -c webpack-prod.config.js --env maxParticles=10e3 --env production",

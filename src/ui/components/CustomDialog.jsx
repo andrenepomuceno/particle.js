@@ -32,6 +32,20 @@ const CustomDialog = ({
     const [zIndex, setZIndex] = useState(1000);
     const [isDragging, setIsDragging] = useState(false);
 
+    if (dialogPos.x < 0) {
+        setPosition({
+            x: 0,
+            y: dialogPos.y
+        });
+    }
+
+    if (dialogPos.y < 0) {
+        setPosition({
+            x: dialogPos.x,
+            y: 0
+        });
+    }
+
     if (dialogPos.x + dialogSize.width > window.innerWidth) {
         setPosition({
             x: window.innerWidth - dialogSize.width,

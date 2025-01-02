@@ -9,7 +9,11 @@ module.exports = (env) => {
         mode: 'production',
         optimization: {
             minimizer: [
-                new TerserPlugin(),
+                new TerserPlugin({
+                    terserOptions: {
+                        keep_fnames: true,
+                    },
+                }),
             ],
         }
     }

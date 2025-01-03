@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CustomDialog from '../components/CustomDialog';
 import GridList from '../components/GridList';
 
-const AdvancedView = ({view}) => {
+const AdvancedView = ({ view }) => {
     return (
         <div>
             <CustomDialog
@@ -11,7 +11,7 @@ const AdvancedView = ({view}) => {
                 position={{ x: 1130, y: 530 }}
                 canClose={true}
                 open={view.isOpen}
-                onClose={view.onClose}
+                onClose={(e) => view.onClickClose(e)}
             >
                 <GridList itemList={view.state.parameters['advanced']} cols={1}></GridList>
             </CustomDialog>

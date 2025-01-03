@@ -11,7 +11,7 @@ const ParticleView = ({view}) => {
                 position={{ x: 1490, y: 16 }}
                 canClose={true}
                 open={view.isOpen}
-                onClose={view.onClose}
+                onClose={(e) => view.onClickClose(e)}
             >
                 <GridList itemList={view.state.parameters['particle']}></GridList>
             </CustomDialog>

@@ -58,6 +58,7 @@ export class GUISelection {
             velocityDir: '',
             center: '',
             fixedPosition: false,
+
             export: () => {
                 selection.exportJson();
             },
@@ -98,6 +99,9 @@ export class GUISelection {
                 //options.controls.placeHint();
                 selectionPlace();
             },
+            placeStart: () => {
+                
+            }
         };
     
         const patternList = {
@@ -172,7 +176,6 @@ function guiSelectionClose(clear = true) {
 
 function selectionListUpdate(param, val) {
     core.updateParticleList(param, val, selection.list);
-    this.refresh();
 }
 
 function selectionPlace() {

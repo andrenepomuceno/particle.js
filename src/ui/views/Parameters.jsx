@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box, Grid2 as Grid } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';
@@ -32,10 +32,20 @@ const ParametersView = ({view}) => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['forces']}></GridList>
+                    <Box sx={{ paddingBottom: 2 }}>
+                        <GridList itemList={view.state.parameters['forces']}></GridList>
+                    </Box>
+                    <Box sx={{ paddingBottom: 2 }}>
+                        <GridList itemList={view.state.parameters['nuclear']}></GridList>
+                    </Box>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={view.state.parameters['other']}></GridList>
+                    <Box sx={{ paddingBottom: 2 }}>
+                        <GridList itemList={view.state.parameters['friction']}></GridList>
+                    </Box>
+                    <Box sx={{ paddingBottom: 2 }}>
+                        <GridList itemList={view.state.parameters['other']}></GridList>
+                    </Box>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
                     <GridList itemList={view.state.parameters['boundaries']}></GridList>

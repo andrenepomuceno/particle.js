@@ -61,10 +61,10 @@ export class GUIParameters {
             options.parameters.distance1 = simulation.physics.useDistance1;
         });
 
-        addPhysicsControl('forces', 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
+        addPhysicsControl('nuclear', 'Nuclear Force Constant', 'nuclearForceConstant', '', () => {
             options.parameters.nuclearForceConstant = simulation.physics.nuclearForceConstant.toExponential(4);
         });
-        addPhysicsControl('forces', 'Nuclear Force Range', 'nuclearForceRange', '', () => {
+        addPhysicsControl('nuclear', 'Nuclear Force Range', 'nuclearForceRange', '', () => {
             options.parameters.nuclearForceRange = simulation.physics.nuclearForceRange.toExponential(4);
         });
         const potentialType = {
@@ -79,7 +79,7 @@ export class GUIParameters {
             /*'Sin[-Exp[-ax]]': NuclearPotentialType.potential_exp,
             'Sin[ax^b]': NuclearPotentialType.potential_powXR,*/
         };
-        addPhysicsControl('forces', 'Nuclear Potential', 'nuclearPotential', '', () => {
+        addPhysicsControl('nuclear', 'Nuclear Potential', 'nuclearPotential', '', () => {
             options.parameters.nuclearPotential = simulation.physics.nuclearPotential;
         }, potentialType);
 
@@ -97,25 +97,25 @@ export class GUIParameters {
             }
             core.updatePhysics('forceMap', forceMap);
         };
-        addPhysicsControl('forces', 'Nuclear Parameters', 'forceMap', '', undefined, undefined, onFinishMap);
-        addPhysicsControl('forces', 'Enable Color Charge', 'enableColorCharge', false, () => {
+        addPhysicsControl('nuclear', 'Nuclear Parameters', 'forceMap', '', undefined, undefined, onFinishMap);
+        addPhysicsControl('nuclear', 'Enable Color Charge', 'enableColorCharge', false, () => {
             options.parameters.enableColorCharge = simulation.physics.enableColorCharge;
         });
-        addPhysicsControl('forces', 'Color Force Constant', 'colorChargeConstant', '', () => {
+        addPhysicsControl('nuclear', 'Color Force Constant', 'colorChargeConstant', '', () => {
             options.parameters.colorChargeConstant = simulation.physics.colorChargeConstant.toExponential(4);
         });
 
-        addPhysicsControl('other', 'Enable Friction', 'enableFriction', false, () => {
+        addPhysicsControl('friction', 'Enable Friction', 'enableFriction', false, () => {
             options.parameters.enableFriction = simulation.physics.enableFriction;
         });
-        addPhysicsControl('other', 'Friction Constant', 'frictionConstant', '', () => {
+        addPhysicsControl('friction', 'Friction Constant', 'frictionConstant', '', () => {
             options.parameters.frictionConstant = simulation.physics.frictionConstant.toExponential(4);
         });
         const frictionModel = {
             '-cv': FrictionModel.default,
             '-cv^2': FrictionModel.square,
         }
-        addPhysicsControl('other', 'Friction Model', 'frictionModel', '', () => {
+        addPhysicsControl('friction', 'Friction Model', 'frictionModel', '', () => {
             options.parameters.frictionModel = simulation.physics.frictionModel;
         }, frictionModel);
         addPhysicsControl('other', 'Time Step', 'timeStep', '', () => {

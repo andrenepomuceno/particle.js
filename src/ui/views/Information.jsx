@@ -19,7 +19,7 @@ const InformationView = ({view}) => {
                 position={{ x: 160, y: 70 }}
                 canClose={true}
                 open={view.isOpen}
-                onClose={view.onClose}
+                onClose={(e) => view.onClickClose(e)}
             >
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tab} onChange={handleChange} variant='scrollable'>

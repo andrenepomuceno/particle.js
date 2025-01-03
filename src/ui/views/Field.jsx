@@ -11,7 +11,7 @@ const FieldView = ({view}) => {
                 position={{ x: 10, y: 510 }}
                 canClose={true}
                 open={view.isOpen}
-                onClose={view.onClose}
+                onClose={(e) => view.onClickClose(e)}
             >
                 <GridList itemList={view.state.parameters['field']}></GridList>
             </CustomDialog>

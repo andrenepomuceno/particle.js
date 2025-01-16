@@ -7,7 +7,7 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
-    //hexagonalCrystal2,
+    hexagonalCrystal2,
     //colorTest,
     theEgg,
     gravity,
@@ -77,43 +77,46 @@ function hexagonalCrystal2(simulation) {
     const planckConstant =  (1/2 * Math.PI) * 6.62607015e-34 * M ** 2 * KG / S
 
     physics.nuclearForceRange = 3.0e-15 * M;
+    let r0 = 0.1 * physics.nuclearForceRange;
+    let r1 = 1.0 * physics.nuclearForceRange;
+    let r2 = 0.30 * physics.nuclearForceRange;
+
     physics.nuclearForceConstant = 10e3 * KG * M * S ** -2;
     physics.massConstant = 1e37 * 6.6743e-11 * KG ** -1 * M ** 3 * S ** -2;
     physics.chargeConstant = 8.988e9 * KG * M ** 3 * S ** -2 * C ** -2;
     physics.colorChargeConstant = physics.nuclearForceConstant;
     physics.fineStructureConstant = (1/137) * planckConstant * lightSpeed;
 
-    physics.nuclearPotential = NuclearPotentialType.potential_forceMap2;    
-    physics.forceMap = [1.0, 0.1, 1.0];
+    physics.nuclearPotential = NuclearPotentialType.lennardJones;    
+    physics.forceMap = [32.0, 1e3, -1.0];
     physics.useDistance1 = true;
 
     physics.timeStep = 0.2;
     physics.maxVel = lightSpeed * 1e2;
-
-    physics.minDistance2 = Math.pow(500, 2);
-    physics.enableColorCharge = true;
+    
+    physics.enableColision = false;
+    physics.minDistance2 = Math.pow(1, 2);
+    physics.enableColorCharge = false;
     physics.enableLorentzFactor = false;
     physics.enableFineStructure = false;
-    physics.enableRandomNoise = true;
+    physics.enableRandomNoise = false;
     physics.randomNoiseConstant = 0.1;
     physics.enableFriction = true;
-    physics.frictionConstant = 1e-6;
+    physics.frictionConstant = 1e-4;
 
     physics.useBoxBoundary = true;
-    physics.boundaryDistance = 1e18;
+    physics.boundaryDistance = 1e9;
     physics.boundaryDamping = 0.9;
 
     simulation.particleRadius = 125; //0.05 * physics.nuclearForceRange;
-    simulation.particleRadiusRange = 0; //0.4 * simulation.particleRadius;
-    simulation.graphics.arrow3d = false;
-    simulation.graphics.particle3d = false;
+    simulation.particleRadiusRange = 10; //0.4 * simulation.particleRadius;
+    // simulation.graphics.arrow3d = false;
+    // simulation.graphics.particle3d = false;
 
     graphics.cameraDistance = 1e4;
     graphics.cameraSetup();
 
-    let r0 = 0.1 * physics.nuclearForceRange;
-    let r1 = 1.0 * physics.nuclearForceRange;
-    let r2 = 1.00 * physics.nuclearForceRange;
+    
     let nq = 10;
     let nucleusList = [
         { m: 5.347988087839e-30 * KG, q: 2 / 3 * 1.602176634e-19 * C, nq: nq, name: 'quark up', colorCharge: 1.0 },
@@ -126,7 +129,7 @@ function hexagonalCrystal2(simulation) {
     ]
 
     let cloudList = [
-        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: -nq/6, name: 'electron' },
+        { m: 9.1093837015e-31 * KG, q: -1 * 1.602176634e-19 * C, nq: nq/6, name: 'electron' },
     ]
 
     let zNumber = 1;

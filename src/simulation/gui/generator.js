@@ -350,6 +350,11 @@ function particleGenerator(input) {
         //     v.add(mouseVelocity);
         // }
 
+        if (options.keyboard.zPressed) {
+            // console.log(options.ruler.ruler);
+            return options.ruler.ruler;
+        }
+
         return v;
     }
 

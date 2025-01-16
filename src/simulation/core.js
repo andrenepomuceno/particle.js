@@ -94,7 +94,7 @@ class Core {
         return normalizedList;
     }
 
-    createParticleList(particleList, center = new Vector3()) {
+    createParticleList(particleList, center = new Vector3(), velocity = new Vector3()) {
         log('createParticleList ' + particleList.length + ' ' + center.toArray());
 
         if (particleList == undefined || particleList.length == 0) return;
@@ -112,6 +112,7 @@ class Core {
         let normalizedList = this.normalizePosition(particleList);
         normalizedList.forEach((p, index) => {
             p.position.add(center);
+            p.velocity.add(velocity);
             graphics.particleList.push(p);
         });
 
@@ -578,6 +579,22 @@ class Core {
                     list.forEach((particle, index) => {
                         tmpList[index].position.add(centerVector);
                         particle.position.set(tmpList[index].position.x, tmpList[index].position.y, tmpList[index].position.z);
+                    });
+                }
+                break;
+
+            case 'velocity':
+                {
+                    const newVel = decodeVector3(value);
+                    if (newVel == undefined) {
+                        alert('Invalid value.');
+                        return;
+                    }
+                    let velVec = new Vector3(newVel.x, newVel.y, newVel.z);
+
+                    // graphics.readbackParticleData();
+                    list.forEach((particle, index) => {
+                        particle.velocity.add(velVec);
                     });
                 }
                 break;

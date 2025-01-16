@@ -99,9 +99,6 @@ export class GUISelection {
                 //options.controls.placeHint();
                 selectionPlace();
             },
-            placeStart: () => {
-                
-            }
         };
     
         const patternList = {
@@ -193,7 +190,8 @@ function selectionPlace() {
 
     if (selection.source == SourceType.simulation) {
         core.updateParticleList('center', [center.x, center.y, center.z].toString(), selection.list);
+        core.updateParticleList('velocity', options.info.rulerDelta, selection.list);
     } else {
-        core.createParticleList(selection.list, center);
+        core.createParticleList(selection.list, center, options.ruler.ruler);
     }
 }

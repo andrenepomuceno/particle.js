@@ -4,10 +4,11 @@ function log(msg) {
 }
 
 export class Keyboard {
-    constructor(mouseHelper, guiOptions) {
-        this.mouseHelper = mouseHelper;
+    constructor(guiOptions) {
+        this.mouseHelper = guiOptions.mouseHelper;
         this.guiOptions = guiOptions;
 
+        this.zPressed = false;
         this.onKeyDownMap = new Map();
         this.onKeyUpMap = new Map();
         this.keyMapSetup();
@@ -34,11 +35,19 @@ export class Keyboard {
         this.onKeyDownMap.set('*', { callback: this.guiOptions.controls.record });
         this.onKeyDownMap.set('?', { callback: this.guiOptions.controls.showHelp });
 
-        this.onKeyDownMap.set('z', { callback: this.guiOptions.selection.place });
-        this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });
+        this.onKeyDownMap.set('z', { callback: () => {
+            if (this.zPressed) return;
+            this.zPressed = true;
+        }});
+        this.onKeyUpMap.set('z', { callback: () => {
+            if (!this.zPressed) return;
+            this.zPressed = false;
+            // this.guiOptions.selection.place();
+        }});
+        // this.onKeyDownMap.set('Z', { callback: this.guiOptions.selection.clear });
 
         this.onKeyDownMap.set('g', { callback: this.guiOptions.generator.generate });
-        this.onKeyDownMap.set('G', { callback: this.guiOptions.generator.clear });
+        // this.onKeyDownMap.set('G', { callback: this.guiOptions.generator.clear });
 
         this.onKeyDownMap.set('x', { callback: this.guiOptions.selection.clone });
         this.onKeyDownMap.set('d', { callback: this.guiOptions.selection.delete });
@@ -60,10 +69,10 @@ export class Keyboard {
     onKeyDown(keyboard, event) {
         if (keyboard.mouseHelper.overGUI || keyboard.onKeyDownMap == undefined) return;
 
-        log("key = " + event.key);
+        // log("key = " + event.key);
         let key = event.key.toLowerCase();
-        if (event.key == 'G') key = event.key;
-        if (event.key == 'Z') key = event.key;
+        // if (event.key == 'G') key = event.key;
+        // if (event.key == 'Z') key = event.key;
         if (keyboard.onKeyDownMap.has(key)) {
             let callback = keyboard.onKeyDownMap.get(key).callback;
             return callback();
@@ -71,7 +80,9 @@ export class Keyboard {
     }
 
     onKeyUp(keyboard, event) {
-        if (keyboard.mouseHelper.overGUI || keyboard.onKeyUpMap == undefined) return;
+        if (keyboard.mouseHelper.overGUI) return;
+        if (keyboard.onKeyUpMap == undefined) return;
+        
         let key = event.key.toLowerCase();
         if (keyboard.onKeyUpMap.has(key)) {
             let callback = keyboard.onKeyUpMap.get(key).callback;

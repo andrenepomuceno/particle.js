@@ -38,11 +38,11 @@ const ParametersView = ({view}) => {
                     <Box sx={{ paddingBottom: 2 }}>
                         <GridList itemList={view.state.parameters['nuclear']}></GridList>
                     </Box>
-                </CustomTabPanel>
-                <CustomTabPanel value={tab} index={1}>
                     <Box sx={{ paddingBottom: 2 }}>
                         <GridList itemList={view.state.parameters['friction']}></GridList>
                     </Box>
+                </CustomTabPanel>
+                <CustomTabPanel value={tab} index={1}>
                     <Box sx={{ paddingBottom: 2 }}>
                         <GridList itemList={view.state.parameters['other']}></GridList>
                     </Box>

@@ -262,6 +262,8 @@ function animate(time) {
         guiOptions.guiControls.refresh();
         guiOptions.guiField.refresh();
         guiOptions.guiGenerator.refresh();
+
+        UI.refresh();
     }
 
     simulation.graphics.render();

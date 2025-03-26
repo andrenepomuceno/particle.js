@@ -31,9 +31,7 @@ function analytics() {
 function main() {
     analytics();
     UI.start();
-    setTimeout(() => {
-        requestAnimationFrame(simulationStart);
-    });
+    simulationStart();
 }
 
 main();

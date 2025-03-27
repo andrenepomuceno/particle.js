@@ -6,9 +6,9 @@ const arrowWidth = 1e3;
 const arrowHeadLen = 0.05;
 
 export class Ruler {
-    constructor(graphics, controls) {
+    constructor(graphics, guiOptions) {
         this.graphics = graphics;
-        this.controls = controls;
+        this.guiOptions = guiOptions;
         this.arrow = undefined;
         this.started = false;
         this.p0 = undefined;
@@ -53,9 +53,13 @@ export class Ruler {
                     ),
                 );
                 break;
+
+            case 'arrow':
+                this.selection = undefined;
+                break;
         }
 
-        this.graphics.scene.add(this.selection);
+        if (this.selection) this.graphics.scene.add(this.selection);
 
         this.started = true;
 
@@ -76,7 +80,10 @@ export class Ruler {
         this.arrow.setLength(len);
 
         let center = diff.clone().multiplyScalar(0.5).add(this.p0);
-        this.selection.position.set(center.x, center.y, center.z);
+
+        if (this.selection) {
+            this.selection.position.set(center.x, center.y, center.z);
+        }
 
         switch (this.mode) {
             case 'box':
@@ -91,6 +98,9 @@ export class Ruler {
                     this.selection.scale.x = max / arrowWidth;
                     this.selection.scale.y = max / arrowWidth;
                 }
+                break;
+            
+            case 'arrow':
                 break;
         }
     }
@@ -107,16 +117,18 @@ export class Ruler {
         this.arrow.dispose();
         this.arrow = undefined;
 
-        this.graphics.scene.remove(this.selection);
-        this.selection = undefined;
+        if (this.selection) {
+            this.graphics.scene.remove(this.selection);
+            this.selection = undefined;
+        }
 
         this.started = false;
     }
 
     refreshRulerControls() {
         this.ruler = this.p1.clone().sub(this.p0);
-        this.controls.rulerLen = this.ruler.length().toExponential(8);        
-        this.controls.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
-        this.controls.rulerStart = floatArrayToString(this.p0.toArray(), 3);
+        this.guiOptions.info.rulerLen = this.ruler.length().toExponential(8);        
+        this.guiOptions.info.rulerDelta = floatArrayToString(this.ruler.toArray(), 3);
+        this.guiOptions.info.rulerStart = floatArrayToString(this.p0.toArray(), 3);
     }
 }

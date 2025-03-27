@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import CustomDialog from '../components/CustomDialog';
-import GridList from '../components/GridList';
 import { Box, Typography } from '@mui/material';
 
 const About = () => {
@@ -15,7 +14,7 @@ const About = () => {
                 Here are the basic controls to get you started:
             </Typography>
             <Typography variant="h5" gutterBottom>
-                Mouse Controls
+                Basic Controls
             </Typography>
             <Typography variant="body1" gutterBottom>
                 
@@ -23,8 +22,9 @@ const About = () => {
                     <li>Hold <b>RIGHT BUTTON</b> or <b>CTRL + LEFT BUTTON</b> to move the camera position (pan).</li>
                     <li>Click <b>LEFT BUTTON</b> to select a individual particle or hold to rotate the camera when 3D mode is enabled.</li>
                     <li>Hold <b>SHIFT + LEFT BUTTON</b> to select a group of particles. Also acts as a ruler (see INFORMATION/Ruler).</li>
-                    <li>After selecting a group of particles, press <b>Z</b> to move them to the pointer position.</li>
-                    <li>Press <b>X</b> to make a clone of the selection and them press <b>Z</b> to place.</li>
+                    <li>After selecting a group of particles, hold <b>Z</b> and click <b>LEFT BUTTON</b> to move them to the cursor position.</li>
+                    <li>When holding <b>Z + LEFT BUTTON</b>, the new particles velocity and direction can be set by dragging the cursor.</li>
+                    <li>Press <b>X</b> to make a clone of the selection and them hold <b>Z</b> and click to place.</li>
                 
             </Typography>
             <Typography variant="h5" gutterBottom>

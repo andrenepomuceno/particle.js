@@ -4,7 +4,7 @@ import {
 } from './core.js';
 import { Mouse } from './components/mouse';
 import { Keyboard } from './components/keyboard';
-import { Selection } from './components/selection';
+import { Selection, SourceType } from './components/selection';
 import { Ruler } from './components/ruler';
 
 import Stats from './gui/stats';
@@ -28,9 +28,7 @@ const statsPanel = new Stats();
 const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL'));
 const computePanel = new Stats.Panel('GPU');
 statsPanel.addPanel(computePanel);
-//statsPanel.showPanel(0);
-
-const mouse = new Mouse();
+// statsPanel.showPanel(0);
 
 function log(msg) {
     let timestamp = new Date().toISOString();
@@ -39,15 +37,11 @@ function log(msg) {
 
 const collapseList = [];
 const guiOptions = {
-    scenarioSetup,
-    showCursor,
-    cameraTargetSet,
-
     nextFrame: false,
     statsPanel,
     velocityPanel,
     computePanel,
-    mouseHelper: mouse,
+    mouseHelper: undefined,
     selectionHelper: undefined,
     ruler: undefined,
     keyboard: undefined,
@@ -69,12 +63,11 @@ const guiOptions = {
     parameters: {},
     advanced: {},
     field: {},
-}
 
-guiOptions.keyboard = new Keyboard(mouse, guiOptions);
-guiOptions.ruler = new Ruler(simulation.graphics);
-const selection = new Selection(simulation.graphics, guiOptions);
-guiOptions.selectionHelper = selection;
+    scenarioSetup,
+    showCursor,
+    cameraTargetSet,
+};
 
 function scenarioSetup(idx) {
     log('setup ' + idx);
@@ -105,27 +98,11 @@ function scenarioSetup(idx) {
 }
 
 export function viewSetup() {
-    document.getElementById('renderer-container').appendChild(simulation.graphics.renderer.domElement);
+    UI.start();
 
-    window.onresize = onWindowResize;
-    document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
-    document.addEventListener('keyup', e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
-
-    window.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('pointerup', onPointerUp);
-
-    guiOptions.selectionHelper.graphics = simulation.graphics;
-
-    //stats overlay
-    const rootDOM = document.getElementById('root');
-    rootDOM.appendChild(statsPanel.domElement);
-
-    // mouse.addOverListener(statsPanel.domElement);
-    statsPanel.domElement.style.visibility = 'visible';
-
-    //gui menu overlays
-    // mouse.addOverListener(rootDOM);
+    guiOptions.mouseHelper = new Mouse();
+    guiOptions.selectionHelper = new Selection(simulation.graphics, guiOptions);
+    guiOptions.ruler = new Ruler(simulation.graphics, guiOptions);
 
     guiOptions.guiInfo = new GUIInfo(guiOptions);
     guiOptions.guiControls = new GUIControls(guiOptions);
@@ -136,14 +113,27 @@ export function viewSetup() {
     guiOptions.guiAdvanced = new GUIAdvanced(guiOptions);
     guiOptions.guiField = new GUIField(guiOptions);
 
+    guiOptions.keyboard = new Keyboard(guiOptions);
+
+    document.getElementById('renderer-container').appendChild(simulation.graphics.renderer.domElement);
+
+    window.onresize = onWindowResize;
+    document.addEventListener('keydown', e => guiOptions.keyboard.onKeyDown(guiOptions.keyboard, e));
+    document.addEventListener('keyup', e => guiOptions.keyboard.onKeyUp(guiOptions.keyboard, e));
+
+    window.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointerup', onPointerUp);
+
+    //stats overlay
+    const rootDOM = document.getElementById('statsPanel');
+    rootDOM.appendChild(statsPanel.domElement);
+    statsPanel.domElement.style.visibility = 'visible';
+
     scenarioSetup();
+    guiOptions.selectionHelper.graphics = simulation.graphics;
 
     simulation.graphics.controls.addEventListener('end', onFinishMove);
-
-    guiOptions.keyboard = new Keyboard(mouse, guiOptions, simulation);
-    guiOptions.ruler = new Ruler(simulation.graphics, guiOptions.info);
-
-    // console.log(UI);
 
     log('Animating...');
     requestAnimationFrame(animate);
@@ -162,7 +152,7 @@ function showCursor() {
     guiOptions.controls.showCursor = true;
     let radius = Math.max(2 * simulation.particleRadius, 1e-3);
     let thick = Math.max(0.1 * radius, 1e-4);
-    mouse.showCursor(simulation.graphics, radius, thick);
+    guiOptions.mouseHelper.showCursor(simulation.graphics, radius, thick);
 }
 
 /* CALLBACKS */
@@ -174,19 +164,27 @@ function onWindowResize() {
 }
 
 function onPointerMove(event) {
-    mouse.move(event);
+    guiOptions.mouseHelper.move(event);
     if (guiOptions.selectionHelper.started) {
         guiOptions.selectionHelper.update(event);
+        guiOptions.ruler.update(event);
+    }
+    else if (guiOptions.keyboard.zPressed) {
         guiOptions.ruler.update(event);
     }
 }
 
 function onPointerDown(event) {
-    if (event.button == 0 && event.shiftKey) {
-        selection.clear();
-        selection.start(event);
+    if (event.button == 0 && event.shiftKey) { 
+        guiOptions.selectionHelper.clear();
+        guiOptions.selectionHelper.start(event);
         guiOptions.ruler.start(simulation.graphics, event);
-    } else if (event.button == 1) {
+    }
+    else if (event.button == 0 && guiOptions.keyboard.zPressed) {
+        if (guiOptions.selectionHelper.source == SourceType.none) return; // nothing to place
+        guiOptions.ruler.start(simulation.graphics, event);
+    }
+    else if (event.button == 1) {
         //middle 
         simulation.graphics.controls.zoomSpeed = 16.0;
     }
@@ -196,9 +194,15 @@ function onPointerUp(event) {
     if (event.button == 0 && guiOptions.selectionHelper.started) {
         guiOptions.selectionHelper.end(event, guiOptions.ruler.mode);
         guiOptions.ruler.finish(event);
-    } else if (event.button == 0 && !mouse.overGUI) {
+    }
+    else if (event.button == 0 && guiOptions.keyboard.zPressed) {
+        guiOptions.ruler.finish(event);
+        guiOptions.selection.place();
+        // guiOptions.keyboard.zPressed = false;
+    }
+    else if (event.button == 0 && !guiOptions.mouseHelper.overGUI) {
         new Promise(() => {
-            let particle = simulation.graphics.raycast(core, mouse.position);
+            let particle = simulation.graphics.raycast(core, guiOptions.mouseHelper.position);
             if (particle) {
                 if (particle.type != ParticleType.default && particle.type != ParticleType.fixed) return;
                 guiOptions.particle.obj = particle;
@@ -248,21 +252,21 @@ function animate(time) {
     }
 
     if (time - lastViewUpdate >= viewUpdateDelay) {
-        new Promise(() => {
-            lastViewUpdate = time;
+        lastViewUpdate = time;
 
-            if (guiOptions.info.autoRefresh == true) {
-                simulation.graphics.readbackParticleData();
-            }
+        if (guiOptions.info.autoRefresh == true) {
+            simulation.graphics.readbackParticleData();
+        }
 
-            guiOptions.guiInfo.refresh();
-            guiOptions.guiParticle.refresh();
-            guiOptions.guiSelection.refresh();
-            guiOptions.guiParameters.refresh();
-            guiOptions.guiControls.refresh();
-            guiOptions.guiField.refresh();
-            guiOptions.guiGenerator.refresh();
-        });
+        guiOptions.guiInfo.refresh();
+        guiOptions.guiParticle.refresh();
+        guiOptions.guiSelection.refresh();
+        guiOptions.guiParameters.refresh();
+        guiOptions.guiControls.refresh();
+        guiOptions.guiField.refresh();
+        guiOptions.guiGenerator.refresh();
+
+        UI.refresh();
     }
 
     simulation.graphics.render();

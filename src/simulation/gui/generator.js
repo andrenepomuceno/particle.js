@@ -342,12 +342,17 @@ function particleGenerator(input) {
                 break;
         }
 
-        if (Date.now() - mouse.lastMove < 1000) {
-            let mv = mouse.avgVelocity();
-            let mouseVelocity = new Vector3(mv.x, mv.y, 0);
-            mouseVelocity.multiplyScalar(0.005 * simulation.graphics.controls.getDistance());
-            //console.log(mouseVelocity);
-            v.add(mouseVelocity);
+        // if (Date.now() - mouse.lastMove < 1000) {
+        //     let mv = mouse.avgVelocity();
+        //     let mouseVelocity = new Vector3(mv.x, mv.y, 0);
+        //     mouseVelocity.multiplyScalar(0.005 * simulation.graphics.controls.getDistance());
+        //     //console.log(mouseVelocity);
+        //     v.add(mouseVelocity);
+        // }
+
+        if (options.keyboard.zPressed) {
+            // console.log(options.ruler.ruler);
+            return options.ruler.ruler;
         }
 
         return v;

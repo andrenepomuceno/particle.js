@@ -58,6 +58,7 @@ export class GUISelection {
             velocityDir: '',
             center: '',
             fixedPosition: false,
+
             export: () => {
                 selection.exportJson();
             },
@@ -147,7 +148,7 @@ export class GUISelection {
         });
     
         addMenuControl('selection', "Clone [X]", 'clone')
-        addMenuControl('selection', "Place [Z]", 'place')
+        addMenuControl('selection', "Place [Hold Z + Click]", 'place')
         addMenuControl('selection', 'Look At', 'lookAt')
         addMenuControl('selection', 'Export', 'export')
         addMenuControl('selection', 'Import', 'import')
@@ -172,11 +173,11 @@ function guiSelectionClose(clear = true) {
 
 function selectionListUpdate(param, val) {
     core.updateParticleList(param, val, selection.list);
-    this.refresh();
 }
 
 function selectionPlace() {
-    if (mouse.overGUI) return;
+    // if (mouse.overGUI) return;
+    if (selection.source == SourceType.none) return;
     if (selection.list == undefined || selection.list.length == 0) return;
 
     let center = mouseToWorldCoord(mouse.position, simulation.graphics.camera, 0);
@@ -190,7 +191,8 @@ function selectionPlace() {
 
     if (selection.source == SourceType.simulation) {
         core.updateParticleList('center', [center.x, center.y, center.z].toString(), selection.list);
+        core.updateParticleList('velocity', options.info.rulerDelta, selection.list);
     } else {
-        core.createParticleList(selection.list, center);
+        core.createParticleList(selection.list, center, options.ruler.ruler);
     }
 }

@@ -110,12 +110,11 @@ export const UI = {
 
     start: () => {
         UI.root = ReactDOM.createRoot(document.getElementById('root'));
+        UI.refresh();
+    },
 
-        function refresh() {
-            UI.root.render(<App />);
-            setTimeout(refresh, 500);
-        }
-        refresh();
+    refresh: () => {
+        UI.root.render(<App />);
     },
 
     addItem: (view, item) => {

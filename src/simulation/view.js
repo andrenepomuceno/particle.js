@@ -198,7 +198,7 @@ function onPointerUp(event) {
     else if (event.button == 0 && guiOptions.keyboard.zPressed) {
         guiOptions.ruler.finish(event);
         guiOptions.selection.place();
-        // guiOptions.keyboard.zPressed = false;
+        guiOptions.keyboard.zPressed = false;
     }
     else if (event.button == 0 && !guiOptions.mouseHelper.overGUI) {
         new Promise(() => {

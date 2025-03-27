@@ -7,7 +7,7 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
-    hexagonalCrystal2,
+    // hexagonalCrystal2,
     //colorTest,
     theEgg,
     gravity,

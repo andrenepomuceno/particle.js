@@ -148,7 +148,7 @@ export class GUISelection {
         });
     
         addMenuControl('selection', "Clone [X]", 'clone')
-        addMenuControl('selection', "Place [Z]", 'place')
+        addMenuControl('selection', "Place [Hold Z + Click]", 'place')
         addMenuControl('selection', 'Look At', 'lookAt')
         addMenuControl('selection', 'Export', 'export')
         addMenuControl('selection', 'Import', 'import')
@@ -176,7 +176,8 @@ function selectionListUpdate(param, val) {
 }
 
 function selectionPlace() {
-    if (mouse.overGUI) return;
+    // if (mouse.overGUI) return;
+    if (selection.source == SourceType.none) return;
     if (selection.list == undefined || selection.list.length == 0) return;
 
     let center = mouseToWorldCoord(mouse.position, simulation.graphics.camera, 0);

@@ -168,6 +168,7 @@ export class Selection {
         this.importedData = {};
         this.blob = undefined;
         this.stats = {};
+        this.source = SourceType.none;
         let view = this.guiOptions.selection;
         if (view != undefined) {
             view.particles = 0;

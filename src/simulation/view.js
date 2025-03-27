@@ -4,7 +4,7 @@ import {
 } from './core.js';
 import { Mouse } from './components/mouse';
 import { Keyboard } from './components/keyboard';
-import { Selection } from './components/selection';
+import { Selection, SourceType } from './components/selection';
 import { Ruler } from './components/ruler';
 
 import Stats from './gui/stats';
@@ -28,7 +28,7 @@ const statsPanel = new Stats();
 const velocityPanel = statsPanel.addPanel(new Stats.Panel('VEL'));
 const computePanel = new Stats.Panel('GPU');
 statsPanel.addPanel(computePanel);
-//statsPanel.showPanel(0);
+// statsPanel.showPanel(0);
 
 function log(msg) {
     let timestamp = new Date().toISOString();
@@ -98,6 +98,8 @@ function scenarioSetup(idx) {
 }
 
 export function viewSetup() {
+    UI.start();
+
     guiOptions.mouseHelper = new Mouse();
     guiOptions.selectionHelper = new Selection(simulation.graphics, guiOptions);
     guiOptions.ruler = new Ruler(simulation.graphics, guiOptions);
@@ -124,7 +126,7 @@ export function viewSetup() {
     document.addEventListener('pointerup', onPointerUp);
 
     //stats overlay
-    const rootDOM = document.getElementById('root');
+    const rootDOM = document.getElementById('statsPanel');
     rootDOM.appendChild(statsPanel.domElement);
     statsPanel.domElement.style.visibility = 'visible';
 
@@ -179,6 +181,7 @@ function onPointerDown(event) {
         guiOptions.ruler.start(simulation.graphics, event);
     }
     else if (event.button == 0 && guiOptions.keyboard.zPressed) {
+        if (guiOptions.selectionHelper.source == SourceType.none) return; // nothing to place
         guiOptions.ruler.start(simulation.graphics, event);
     }
     else if (event.button == 1) {

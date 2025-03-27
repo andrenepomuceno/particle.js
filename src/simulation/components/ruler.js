@@ -53,9 +53,13 @@ export class Ruler {
                     ),
                 );
                 break;
+
+            case 'arrow':
+                this.selection = undefined;
+                break;
         }
 
-        this.graphics.scene.add(this.selection);
+        if (this.selection) this.graphics.scene.add(this.selection);
 
         this.started = true;
 
@@ -76,7 +80,10 @@ export class Ruler {
         this.arrow.setLength(len);
 
         let center = diff.clone().multiplyScalar(0.5).add(this.p0);
-        this.selection.position.set(center.x, center.y, center.z);
+
+        if (this.selection) {
+            this.selection.position.set(center.x, center.y, center.z);
+        }
 
         switch (this.mode) {
             case 'box':
@@ -91,6 +98,9 @@ export class Ruler {
                     this.selection.scale.x = max / arrowWidth;
                     this.selection.scale.y = max / arrowWidth;
                 }
+                break;
+            
+            case 'arrow':
                 break;
         }
     }
@@ -107,8 +117,10 @@ export class Ruler {
         this.arrow.dispose();
         this.arrow = undefined;
 
-        this.graphics.scene.remove(this.selection);
-        this.selection = undefined;
+        if (this.selection) {
+            this.graphics.scene.remove(this.selection);
+            this.selection = undefined;
+        }
 
         this.started = false;
     }

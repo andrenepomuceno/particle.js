@@ -61,7 +61,7 @@ jobs:
         BUILD_VERSION=$(jq -r .version package.json)
         echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: build
 

@@ -1,9 +1,7 @@
-import { FrictionModel, NuclearPotentialType } from '../physics';
-import {
-    simulation,
-    core,
-} from '../core';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
+import { simulation, core } from '../core.js';
+import { NuclearPotentialType, FrictionModel } from '../physics.js';
 
 let options;
 let refreshCallbackList = [];
@@ -26,16 +24,15 @@ function addPhysicsControl(
         refreshCallbackList.push(refreshCallback);
     }
 
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-    UI.addItem(UI.parameters, item);
-    refreshCallbackList.push((value) => {
-        item.value = options.parameters[variable];
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.parameters,
+        component: UI.parameters,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: variableList
     });
 }
 

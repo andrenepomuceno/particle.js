@@ -1,3 +1,4 @@
+import { addUIOption } from './uiHelper.js';
 import {
     arrayToString,
     decodeVector3,
@@ -21,22 +22,16 @@ function addMenuControl(
     onFinishChange = undefined,
     variableList = undefined,
 ) {
-    const defaultValue = options.info[variable];
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder: folder
-    }
-    UI.addItem(UI.info, item);
-
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.info[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.info,
+        component: UI.info,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: variableList
+    });
 }
 
 export class GUIInfo {

@@ -1,12 +1,8 @@
 import { ParticleType } from '../particle.js';
-import {
-    arrayToString
-} from '../helpers.js';
-import {
-    simulation,
-    core,
-} from '../core.js';
+import { arrayToString } from '../helpers.js';
+import { simulation, core } from '../core.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 let options = undefined;
 const refreshCallbackList = [];
@@ -15,22 +11,16 @@ function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,
 ) {
-    const defaultValue = options.particle[variable];
-    const variableList = undefined;
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-    UI.addItem(UI.particle, item);
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.particle[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.particle,
+        component: UI.particle,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: undefined
+    });
 }
 
 export class GUIParticle {

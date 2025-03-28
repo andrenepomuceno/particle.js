@@ -7,6 +7,7 @@ import {
 } from '../core.js';
 import { scenariosList } from '../scenarios.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 function log(msg) {
     console.log("menu/controls: " + msg);
@@ -21,23 +22,16 @@ function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,
 ) {
-    const defaultValue = options.controls[variable];
-    const variableList = undefined;
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder: folder
-    }
-    UI.addItem(UI.controls, item);
-
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.controls[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.controls,
+        component: UI.controls,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: undefined
+    });
 }
 
 export class GUIControls {

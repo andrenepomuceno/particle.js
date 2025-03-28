@@ -13,6 +13,7 @@ import { Selection, SourceType } from '../components/selection';
 import { createParticle, randomVector } from '../scenariosHelpers.js';
 import { scaleEPN } from '../physics.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 function log(msg) {
     console.log("menu/generator: " + msg);
@@ -40,28 +41,16 @@ function addMenuControl(
     onFinishChange = undefined,
     variableList = undefined,
 ) {
-    const defaultValue = options.generator[variable];
-
-    if (onFinishChange == undefined) {
-        onFinishChange = (val) => {
-            options.generator[variable] = val;
-        }
-    }
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-    UI.addItem(UI.generator, item);
-
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.generator[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.generator,
+        component: UI.generator,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: variableList
+    });
 }
 
 export class GUIGenerator {

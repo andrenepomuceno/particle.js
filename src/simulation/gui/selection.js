@@ -6,6 +6,7 @@ import {
 import { SourceType } from '../components/selection';
 import { mouseToWorldCoord, uploadJsonZip } from '../helpers.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 let options = undefined;
 let selection = undefined;
@@ -18,22 +19,16 @@ function addMenuControl(
     onFinishChange = undefined,
     variableList = undefined,
 ) {
-    const defaultValue = options.selection[variable];
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-    UI.addItem(UI.selection, item);
-
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.selection[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.selection,
+        component: UI.selection,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: variableList
+    });
 }
 
 export class GUISelection {

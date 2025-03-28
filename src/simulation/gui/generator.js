@@ -28,6 +28,12 @@ function addMenuControl(
     onFinishChange = undefined,
     variableList = undefined,
 ) {
+    if (onFinishChange == undefined) {
+        onFinishChange = (val) => {
+            options.generator[variable] = val;
+        }
+    }
+
     addUIOption({
         folder,
         title,
@@ -78,7 +84,11 @@ export class GUIGenerator {
             fixed: false,
             generate: () => {
                 particleGenerator(options.generator);
-                UI.generator.setOpen(true);
+
+                // if (open) {
+                //     UI.generator.setOpen(true);
+                //     UI.selection.setOpen(true);
+                // }
             },
             clear: () => {
                 UI.generator.setOpen(false);
@@ -105,7 +115,7 @@ export class GUIGenerator {
                     velocity: "1,0,0",
                     randomVelocity: true,
 
-                    radius: '1',
+                    radius: '1000',
                     quantity: '1',
                     pattern: 'circle',
                     preset: 'default',

@@ -23,19 +23,6 @@ let options, selection, mouse, hexagonMap;
 
 const refreshCallbackList = [];
 
-function translateFolder(folder) {
-    const regex = /[a-z]+/i;
-    const result = regex.exec(folder.name)[0];
-    const map = {
-        'GENERATOR': 'controls',
-        'Mass': 'mass',
-        'Charge': 'charge',
-        'Nuclear': 'nuclearCharge',
-        'Velocity': 'velocity',
-    }
-    return map[result];
-}
-
 function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,

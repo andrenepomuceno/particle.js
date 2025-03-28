@@ -5,13 +5,22 @@ import { Particle, ParticleType } from '../particle';
 let particleList = undefined;
 
 export const scenarios0 = [
-    simulation0,
-    simulation1,
-    //simulationAtom,
-    //simulationCross,
-    //simulationGrid2D,
-    simulationGrid3D,
-    simulationSpheres,
+    {
+        name: 'Simulation 0',
+        callback: simulation0
+    },
+    {
+        name: 'Simulation 1',
+        callback: simulation1
+    },
+    {
+        name: 'Grid 3D',
+        callback: simulationGrid3D
+    },
+    {
+        name: 'Spheres',
+        callback: simulationSpheres
+    }
 ];
 
 function createParticle__(mass = 1, charge = 0, position = new Vector3(), velocity = new Vector3(), fixed = false) {

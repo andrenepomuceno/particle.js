@@ -7,19 +7,30 @@ import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
-    // hexagonalCrystal2,
-    //colorTest,
-    theEgg,
-    gravity,
-    welcome,
-    experiments4,
-    uncertainty,
-    //rngTest,
-    //nuclearField,
-    //experiments3,
-    //experiments2,
-    //experiments1,
-    hexagonalCrystal,
+    {
+        name: 'The Egg',
+        callback: theEgg
+    },
+    {
+        name: 'Gravity',
+        callback: gravity
+    },
+    {
+        name: 'Welcome',
+        callback: welcome
+    },
+    {
+        name: 'Experiments 4',
+        callback: experiments4
+    },
+    {
+        name: 'Uncertainty',
+        callback: uncertainty
+    },
+    {
+        name: 'Hexagonal Crystal',
+        callback: hexagonalCrystal
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

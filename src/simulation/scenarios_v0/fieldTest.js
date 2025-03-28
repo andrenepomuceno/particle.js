@@ -2,9 +2,18 @@ import { Vector3 } from 'three';
 import { Particle, ParticleType } from '../particle';
 
 export const fields = [
-    nuclearField,
-    electromagneticField,
-    gravityField,
+    {
+        name: 'Nuclear Field',
+        callback: nuclearField
+    },
+    {
+        name: 'Electromagnetic Field',
+        callback: electromagneticField
+    },
+    {
+        name: 'Gravity Field',
+        callback: gravityField
+    }
 ];
 
 let particleList = undefined;

@@ -4,24 +4,70 @@ import { random, hexagonGenerator, shuffleArray } from '../helpers';
 import { randomSphericVector } from '../helpers';
 
 export const experiments0 = [
-    hexagon3,
-    //hexagon3d,
-    hexagon1,
-    hexagon2,
-    //hexagon0,
-    density2,
-    density,
-    //magnecticForce,
-    experiment9,
-    donut,
-    terrarium,
-    twinsCollision,
-    experiment5,
-    wildParticles,
-    easterEgg,
-    experiment2,
-    //experiment1,
-    experiment0,
+    {
+        name: 'Hexagon 3',
+        callback: hexagon3
+    },
+    //{
+    //    name: 'Hexagon 3D',
+    //    callback: hexagon3d
+    //},
+    {
+        name: 'Hexagon 1',
+        callback: hexagon1
+    },
+    {
+        name: 'Hexagon 2',
+        callback: hexagon2
+    },
+    //{
+    //    name: 'Hexagon 0',
+    //    callback: hexagon0
+    //},
+    {
+        name: 'Density 2',
+        callback: density2
+    },
+    {
+        name: 'Density',
+        callback: density
+    },
+    {
+        name: 'Experiment 9',
+        callback: experiment9
+    },
+    {
+        name: 'Donut',
+        callback: donut
+    },
+    {
+        name: 'Terrarium',
+        callback: terrarium
+    },
+    {
+        name: 'Twins Collision',
+        callback: twinsCollision
+    },
+    {
+        name: 'Experiment 5',
+        callback: experiment5
+    },
+    {
+        name: 'Wild Particles',
+        callback: wildParticles
+    },
+    {
+        name: 'Easter Egg',
+        callback: easterEgg
+    },
+    {
+        name: 'Experiment 2',
+        callback: experiment2
+    },
+    {
+        name: 'Experiment 0',
+        callback: experiment0
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

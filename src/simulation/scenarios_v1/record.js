@@ -6,9 +6,18 @@ import { calcGridSize } from '../scenariosHelpers';
 import { core } from '../core';
 
 export const record = [
-    planetoidFormation3,
-    planetoidFormation2,
-    planetoidFormation
+    {
+        name: 'Planetoid Formation 3',
+        callback: planetoidFormation3
+    },
+    {
+        name: 'Planetoid Formation 2',
+        callback: planetoidFormation2
+    },
+    {
+        name: 'Planetoid Formation',
+        callback: planetoidFormation
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

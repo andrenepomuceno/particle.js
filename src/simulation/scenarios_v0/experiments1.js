@@ -4,16 +4,38 @@ import { createParticles, hexagonGenerator, shuffleArray, cubeGenerator, random 
 import { NuclearPotentialType } from '../physics';
 
 export const experiments1 = [
-    //randomElements,
-    //periodicTable,
-    carbonCrystal,
-    superNucleus3D,
-    hexagonalCrystal,
-    tetragonalCrystal,
-    standardModel3,
-    standardModel2,
-    standardModel1,
-    plasmaBall,
+    {
+        name: 'Carbon Crystal',
+        callback: carbonCrystal
+    },
+    {
+        name: 'Super Nucleus 3D',
+        callback: superNucleus3D
+    },
+    {
+        name: 'Hexagonal Crystal',
+        callback: hexagonalCrystal
+    },
+    {
+        name: 'Tetragonal Crystal',
+        callback: tetragonalCrystal
+    },
+    {
+        name: 'Standard Model 3',
+        callback: standardModel3
+    },
+    {
+        name: 'Standard Model 2',
+        callback: standardModel2
+    },
+    {
+        name: 'Standard Model 1',
+        callback: standardModel1
+    },
+    {
+        name: 'Plasma Ball',
+        callback: plasmaBall
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

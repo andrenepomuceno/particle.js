@@ -1,17 +1,40 @@
-
 import { Vector3 } from 'three';
 import { createNuclei0, atom0, createCloud3 } from '../scenariosHelpers.js';
 import { FrictionModel, NuclearPotentialType } from '../physics';
 
 export const elements = [
-    //h2,
-    hydrogen,
-    helium,
-    //lithium,
-    //carbon,
-    //nitrogen,
-    oxigen,
-    water,
+    //{
+    //    name: 'H2',
+    //    callback: h2
+    //},
+    {
+        name: 'Hydrogen',
+        callback: hydrogen
+    },
+    {
+        name: 'Helium',
+        callback: helium
+    },
+    //{
+    //    name: 'Lithium',
+    //    callback: lithium
+    //},
+    //{
+    //    name: 'Carbon',
+    //    callback: carbon
+    //},
+    //{
+    //    name: 'Nitrogen',
+    //    callback: nitrogen
+    //},
+    {
+        name: 'Oxygen',
+        callback: oxigen
+    },
+    {
+        name: 'Water',
+        callback: water
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

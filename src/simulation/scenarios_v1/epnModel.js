@@ -5,8 +5,14 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const epnModel = [
-    periodicTable,
-    //randomElements,
+    {
+        name: 'Periodic Table',
+        callback: periodicTable
+    },
+    //{
+    //    name: 'Random Elements',
+    //    callback: randomElements
+    //},
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

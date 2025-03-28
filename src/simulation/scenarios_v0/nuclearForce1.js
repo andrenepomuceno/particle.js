@@ -3,26 +3,34 @@ import { random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 
 export const nuclearForce1 = [
-    cloud2,
-    cloud1,
-    //cloud0,
-    triforce2,
-    triforce1,
-    //triforce0,
-    //charge_nuclearCharge_point0,
-    //GPU_point14,
-    //GPU_point13,
-    //GPU_point12,
-    //GPU_point11,
-    GPU_point10,
-    GPU_blob9_posNQ,
-    //GPU_blob8_posNQ_rng,
-    GPU_point7,
-    //GPU_point6,
-    //GPU_point5,
-    //GPU_point4,
-    //GPU_point3,
-    //GPU_point2,
+    {
+        name: 'Cloud 2',
+        callback: cloud2
+    },
+    {
+        name: 'Cloud 1',
+        callback: cloud1
+    },
+    {
+        name: 'Triforce 2',
+        callback: triforce2
+    },
+    {
+        name: 'Triforce 1',
+        callback: triforce1
+    },
+    {
+        name: 'GPU Point 10',
+        callback: GPU_point10
+    },
+    {
+        name: 'GPU Blob 9 PosNQ',
+        callback: GPU_blob9_posNQ
+    },
+    {
+        name: 'GPU Point 7',
+        callback: GPU_point7
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

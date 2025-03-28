@@ -8,12 +8,9 @@ module.exports = (env) => {
         ...common(env),
         mode: 'production',
         optimization: {
+            minimize: true,
             minimizer: [
-                new TerserPlugin({
-                    terserOptions: {
-                        keep_fnames: true,
-                    },
-                }),
+                new TerserPlugin()
             ],
         }
     }

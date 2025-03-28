@@ -5,9 +5,7 @@ function log(msg) {
 
 export class Keyboard {
     constructor(guiOptions) {
-        this.mouseHelper = guiOptions.mouseHelper;
         this.guiOptions = guiOptions;
-
         this.zPressed = false;
         this.onKeyDownMap = new Map();
         this.onKeyUpMap = new Map();

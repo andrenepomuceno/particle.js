@@ -26,11 +26,11 @@ export function addUIOption({
     const defaultValue = options[variable];
 
     // If no callback provided, create default one that updates the option value
-    if (onFinishChange === undefined) {
-        onFinishChange = (val) => {
-            options[variable] = val;
-        };
-    }
+    // if (onFinishChange === undefined) {
+    //     onFinishChange = (val) => {
+    //         options[variable] = val;
+    //     };
+    // }
 
     const item = {
         title: title,

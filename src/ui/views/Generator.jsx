@@ -31,19 +31,19 @@ const GeneratorView = ({view}) => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['controls']}></GridList>
+                    <GridList itemList={view.state['controls']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={view.state.parameters['mass']}></GridList>
+                    <GridList itemList={view.state['mass']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={view.state.parameters['charge']}></GridList>
+                    <GridList itemList={view.state['charge']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={view.state.parameters['nuclearCharge']}></GridList>
+                    <GridList itemList={view.state['nuclearCharge']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={4}>
-                    <GridList itemList={view.state.parameters['velocity']}></GridList>
+                    <GridList itemList={view.state['velocity']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

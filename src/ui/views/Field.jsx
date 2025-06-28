@@ -13,7 +13,7 @@ const FieldView = ({view}) => {
                 open={view.isOpen}
                 onClose={(e) => view.onClickClose(e)}
             >
-                <GridList itemList={view.state.parameters['field']}></GridList>
+                <GridList itemList={view.state['field']}></GridList>
             </CustomDialog>
         </div>
     );

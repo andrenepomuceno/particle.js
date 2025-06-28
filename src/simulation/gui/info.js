@@ -189,7 +189,9 @@ export class GUIInfo {
             if (callback != undefined) {
                 callback();
             }
-        })
+        });
+
+        // UI.info.setState(UI.info);
     }
 
     reset() {

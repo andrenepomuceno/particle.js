@@ -13,7 +13,7 @@ const ParticleView = ({view}) => {
                 open={view.isOpen}
                 onClose={(e) => view.onClickClose(e)}
             >
-                <GridList itemList={view.state.parameters['particle']}></GridList>
+                <GridList itemList={view.state['particle']}></GridList>
             </CustomDialog>
         </div>
     );

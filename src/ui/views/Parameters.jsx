@@ -33,25 +33,25 @@ const ParametersView = ({view}) => {
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
                     <Box sx={{ paddingBottom: 2 }}>
-                        <GridList itemList={view.state.parameters['forces']}></GridList>
+                        <GridList itemList={view.state['forces']}></GridList>
                     </Box>
                     <Box sx={{ paddingBottom: 2 }}>
-                        <GridList itemList={view.state.parameters['nuclear']}></GridList>
+                        <GridList itemList={view.state['nuclear']}></GridList>
                     </Box>
                     <Box sx={{ paddingBottom: 2 }}>
-                        <GridList itemList={view.state.parameters['friction']}></GridList>
+                        <GridList itemList={view.state['friction']}></GridList>
                     </Box>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
                     <Box sx={{ paddingBottom: 2 }}>
-                        <GridList itemList={view.state.parameters['other']}></GridList>
+                        <GridList itemList={view.state['other']}></GridList>
                     </Box>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={view.state.parameters['boundaries']}></GridList>
+                    <GridList itemList={view.state['boundaries']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={view.state.parameters['experimental']}></GridList>
+                    <GridList itemList={view.state['experimental']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

@@ -4,6 +4,7 @@ import {
 } from '../core.js';
 import { randomSphericVector } from '../helpers.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 let options;
 
@@ -11,17 +12,16 @@ function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,
 ) {
-    const defaultValue = options.advanced[variable];
-    const variableList = undefined;
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder: folder
-    }
-    UI.addItem(UI.advanced, item);
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.advanced,
+        component: UI.advanced,
+        refreshCallbacks: [], // Advanced doesn't use refresh callbacks
+        onFinishChange,
+        selectionList: undefined
+    });
 }
 
 export class GUIAdvanced {

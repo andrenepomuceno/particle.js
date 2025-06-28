@@ -28,10 +28,10 @@ const SelectionView = ({view}) => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['selection']}></GridList>
+                    <GridList itemList={view.state['selection']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={view.state.parameters['properties']}></GridList>
+                    <GridList itemList={view.state['properties']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

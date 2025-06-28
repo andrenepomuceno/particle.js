@@ -2,8 +2,14 @@ import { drawGrid } from '../scenariosHelpers';
 import { NuclearPotentialType } from '../physics';
 
 export const sandbox = [
-    sandbox0,
-    scaledSandbox,
+    {
+        name: 'Sandbox',
+        callback: sandbox0
+    },
+    {
+        name: 'Scaled Sandbox',
+        callback: scaledSandbox
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

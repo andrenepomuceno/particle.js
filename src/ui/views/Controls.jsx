@@ -30,16 +30,16 @@ const ControlsView = ({view}) => {
                     </Tabs>
                 </Box>
                 {/* <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['controls']}></GridList>
+                    <GridList itemList={view.state['controls']}></GridList>
                 </CustomTabPanel> */}
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['simulation']}></GridList>
+                    <GridList itemList={view.state['simulation']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={view.state.parameters['camera']}></GridList>
+                    <GridList itemList={view.state['camera']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={view.state.parameters['view']}></GridList>
+                    <GridList itemList={view.state['view']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

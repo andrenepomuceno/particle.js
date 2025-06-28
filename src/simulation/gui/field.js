@@ -3,6 +3,7 @@ import {
     core,
 } from '../core.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 let options;
 const refreshCallbackList = [];
@@ -11,24 +12,16 @@ function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,
 ) {
-    const defaultValue = options.field[variable];
-    const variableList = undefined;
-
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-
-    UI.addItem(UI.field, item);
-    
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.field[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.field,
+        component: UI.field,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: undefined
+    });
 }
 
 export class GUIField {

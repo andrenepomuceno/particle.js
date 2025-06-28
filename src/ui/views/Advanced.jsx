@@ -13,7 +13,7 @@ const AdvancedView = ({ view }) => {
                 open={view.isOpen}
                 onClose={(e) => view.onClickClose(e)}
             >
-                <GridList itemList={view.state.parameters['advanced']} cols={1}></GridList>
+                <GridList itemList={view.state['advanced']} cols={1}></GridList>
             </CustomDialog>
         </div>
     );

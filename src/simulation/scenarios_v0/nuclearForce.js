@@ -1,17 +1,17 @@
-
 import { Vector3 } from 'three';
 import { createParticle, createParticlesList, randomVector } from '../scenariosHelpers';
 import { cubeGenerator, random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 
 export const nuclearForce = [
-    crystal,
-    //randomBlob,
-    molecule,
-    //oppositChargeBall,
-    //sameChargeBall,
-    //oppositeCharge,
-    //sameCharge,
+    {
+        name: 'Crystal',
+        callback: crystal
+    },
+    {
+        name: 'Molecule',
+        callback: molecule
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

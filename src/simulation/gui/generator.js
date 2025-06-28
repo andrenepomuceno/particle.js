@@ -13,6 +13,7 @@ import { Selection, SourceType } from '../components/selection';
 import { createParticle, randomVector } from '../scenariosHelpers.js';
 import { scaleEPN } from '../physics.js';
 import { UI } from '../../ui/App';
+import { addUIOption } from './uiHelper.js';
 
 function log(msg) {
     console.log("menu/generator: " + msg);
@@ -22,46 +23,27 @@ let options, selection, mouse, hexagonMap;
 
 const refreshCallbackList = [];
 
-function translateFolder(folder) {
-    const regex = /[a-z]+/i;
-    const result = regex.exec(folder.name)[0];
-    const map = {
-        'GENERATOR': 'controls',
-        'Mass': 'mass',
-        'Charge': 'charge',
-        'Nuclear': 'nuclearCharge',
-        'Velocity': 'velocity',
-    }
-    return map[result];
-}
-
 function addMenuControl(
     folder, title, variable,
     onFinishChange = undefined,
     variableList = undefined,
 ) {
-    const defaultValue = options.generator[variable];
-
     if (onFinishChange == undefined) {
         onFinishChange = (val) => {
             options.generator[variable] = val;
         }
     }
 
-    const item = {
-        title: title,
-        value: defaultValue,
-        onFinish: onFinishChange,
-        selectionList: variableList,
-        folder
-    }
-    UI.addItem(UI.generator, item);
-
-    if (typeof defaultValue != 'function') {
-        refreshCallbackList.push(() => {
-            item.value = options.generator[variable];
-        });
-    }
+    addUIOption({
+        folder,
+        title,
+        variable,
+        options: options.generator,
+        component: UI.generator,
+        refreshCallbacks: refreshCallbackList,
+        onFinishChange,
+        selectionList: variableList
+    });
 }
 
 export class GUIGenerator {
@@ -102,7 +84,11 @@ export class GUIGenerator {
             fixed: false,
             generate: () => {
                 particleGenerator(options.generator);
-                UI.generator.setOpen(true);
+
+                // if (open) {
+                //     UI.generator.setOpen(true);
+                //     UI.selection.setOpen(true);
+                // }
             },
             clear: () => {
                 UI.generator.setOpen(false);
@@ -129,7 +115,7 @@ export class GUIGenerator {
                     velocity: "1,0,0",
                     randomVelocity: true,
 
-                    radius: '1',
+                    radius: '1000',
                     quantity: '1',
                     pattern: 'circle',
                     preset: 'default',

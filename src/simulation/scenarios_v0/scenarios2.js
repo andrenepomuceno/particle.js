@@ -4,12 +4,30 @@ import { cubeGenerator, random } from '../helpers';
 import { randomSphericVector } from '../helpers';
 
 export const scenarios2 = [
-    //string,
-    //nucleiGrid,
-    //shootedBarrier,
-    standardModelBlob2,
-    //standardModelBlobSymetric,
-    standardModelBlob0,
+    //{
+    //    name: 'String',
+    //    callback: string
+    //},
+    //{
+    //    name: 'Nuclei Grid',
+    //    callback: nucleiGrid
+    //},
+    //{
+    //    name: 'Shooted Barrier',
+    //    callback: shootedBarrier
+    //},
+    {
+        name: 'Standard Model Blob 2',
+        callback: standardModelBlob2
+    },
+    //{
+    //    name: 'Standard Model Blob Symetric',
+    //    callback: standardModelBlobSymetric
+    //},
+    {
+        name: 'Standard Model Blob 0',
+        callback: standardModelBlob0
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

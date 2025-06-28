@@ -32,16 +32,16 @@ const InformationView = ({view}) => {
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tab} index={0}>
-                    <GridList itemList={view.state.parameters['general']}></GridList>
+                    <GridList itemList={view.state['general']}></GridList>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>
-                    <GridList itemList={view.state.parameters['statistics']}></GridList>
+                    <GridList itemList={view.state['statistics']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={2}>
-                    <GridList itemList={view.state.parameters['ruler']}></GridList>
+                    <GridList itemList={view.state['ruler']}></GridList>
                 </CustomTabPanel >
                 <CustomTabPanel value={tab} index={3}>
-                    <GridList itemList={view.state.parameters['debug']}></GridList>
+                    <GridList itemList={view.state['debug']}></GridList>
                 </CustomTabPanel >
             </CustomDialog>
         </div>

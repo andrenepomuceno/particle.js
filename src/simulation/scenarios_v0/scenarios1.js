@@ -7,21 +7,30 @@ import { randomSphericVector } from '../helpers';
 let particleList = undefined;
 
 export const scenarios1 = [
-    simulationNuclei4,
-    simulationNuclei3,
-    simulationStrongCube0,
-    simulationStrongBlob0,
-    //simulationNuclei2,
-    //simulationNuclei0,
-    simulationNuclei1,
-    //simulationStrong2,
-    //simulationStrong1,
-    //simulationStrong0,
-    //simulationMove1,
-    //simulationMove0,
-    simulationBlob0,
-    //simulationAtom1,
-    //simulationAtom0,
+    {
+        name: 'Nuclei 4',
+        callback: simulationNuclei4
+    },
+    {
+        name: 'Nuclei 3',
+        callback: simulationNuclei3
+    },
+    {
+        name: 'Strong Cube 0',
+        callback: simulationStrongCube0
+    },
+    {
+        name: 'Strong Blob 0',
+        callback: simulationStrongBlob0
+    },
+    {
+        name: 'Nuclei 1',
+        callback: simulationNuclei1
+    },
+    {
+        name: 'Blob 0',
+        callback: simulationBlob0
+    }
 ];
 
 function createParticles__(n, massFunc, chargeFunc, positionFunc, velocityFunc) {

@@ -34,18 +34,18 @@ export class SimulationGPU {
         this.actionList = [];
     }
 
-    setup(populateSimulationCallback) {
+    setup(particleSetup) {
         log('setup');
 
-        if (populateSimulationCallback != undefined) {
-            this.populateSimulationCallback = populateSimulationCallback;
-            this.name = populateSimulationCallback.name;
-            this.folderName = populateSimulationCallback.folderName;
+        if (particleSetup != undefined) {
+            this.particleSetup = particleSetup;
+            this.name = particleSetup.name;
+            this.folderName = particleSetup.folderName;
 
             this.graphics.cameraDefault();
 
-            log('Populating ' + populateSimulationCallback.name + '...');
-            populateSimulationCallback(this);
+            log('Populating ' + particleSetup.name + '...');
+            particleSetup.callback(this);
             log('Populating done.');
             
             log('Sorting action list...');

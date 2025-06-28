@@ -17,6 +17,7 @@ import ParticleView from './views/Particle';
 import SelectionView from './views/Selection';
 import GeneratorView from './views/Generator';
 import AboutView from './views/About';
+import SimulationView from '../simulation/view';
 
 const darkTheme = createTheme({
     palette: {
@@ -24,62 +25,50 @@ const darkTheme = createTheme({
     },
 });
 
-class DialogView {
-    constructor(viewName, open = true) {
-        const localStorageKey = "DialogView:" + viewName;
-
-        function getInitialState() {
-            const savedState = localStorage.getItem(localStorageKey);
-            if (savedState) {
-                return JSON.parse(savedState);
-            }
-
-            return { open };
-        };
-
-        [this.isOpen, this.setOpen] = useState( getInitialState().open );
-
-        this.name = viewName;
-        
-        const initialState = UI[viewName] || {};
-        this.state = initialState;
-
-        if (!initialState.setOpen) {
-            initialState.setOpen = this.setOpen;
-        }
-
-        useEffect(() => {
-            localStorage.setItem(
-                localStorageKey,
-                JSON.stringify({ open: this.isOpen })
-            );
-        }, [this.isOpen]);
+const useDialogView = (viewName, defaultOpen = true) => {
+    const localStorageKey = `DialogView:${viewName}`;
+    
+    const getInitialState = () => {
+        const savedState = localStorage.getItem(localStorageKey);
+        return savedState ? JSON.parse(savedState) : { open: defaultOpen };
     };
 
-    onClickOpen(e) {
-        this.setOpen(!this.isOpen);
-    };
+    const obj = UI[viewName] || {};
 
-    onClickClose(e) {
-        this.setOpen(false);
+    const [isOpen, setOpen] = useState(getInitialState().open);
+    const [state, setState] = useState(obj.parameters);
+
+    obj.setOpen = setOpen;
+
+    useEffect(() => {
+        localStorage.setItem(localStorageKey, JSON.stringify({ open: isOpen }));
+    }, [isOpen]);
+
+    return {
+        name: viewName,
+        isOpen,
+        state,
+        setState,
+        onClickOpen: () => setOpen(!isOpen),
+        onClickClose: () => setOpen(false)
     };
-}
+};
 
 const App = () => {
-    const aboutView = new DialogView('about');
-    const informationView = new DialogView('info');
-    const parametersView = new DialogView('parameters', false)
-    const controlsView = new DialogView('controls', false)
-    const advancedView = new DialogView('advanced', false)
-    const fieldView = new DialogView('field', false)
-    const particleView = new DialogView('particle', false)
-    const selectionView = new DialogView('selection', false)
-    const generatorView = new DialogView('generator', false)
+    const aboutView = useDialogView('about');
+    const informationView = useDialogView('info');
+    const parametersView = useDialogView('parameters', false);
+    const controlsView = useDialogView('controls', false);
+    const advancedView = useDialogView('advanced', false);
+    const fieldView = useDialogView('field', false);
+    const particleView = useDialogView('particle', false);
+    const selectionView = useDialogView('selection', false);
+    const generatorView = useDialogView('generator', false);
 
     return (
         <div>
             <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
+                <CssBaseline />
                 <AboutView view={aboutView} />
                 <InformationView view={informationView} />
                 <ParametersView view={parametersView} />
@@ -109,12 +98,15 @@ export const UI = {
     root: null,
 
     start: () => {
+        // console.log(UI);
         UI.root = ReactDOM.createRoot(document.getElementById('root'));
-        UI.refresh();
+        UI.root.render(<App />);
+        // UI.refresh();
     },
 
     refresh: () => {
         UI.root.render(<App />);
+        // UI.updateCallbacks.updateInfo(UI.info.parameters);
     },
 
     addItem: (view, item) => {
@@ -123,7 +115,7 @@ export const UI = {
 
         const parameters = view.parameters;
         if (!parameters[item.folder]) parameters[item.folder] = [];
-        
+
         parameters[item.folder].push(item);
     },
 

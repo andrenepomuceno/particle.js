@@ -4,8 +4,14 @@ import { random, } from '../helpers';
 import { Particle } from '../particle';
 
 export const tests = [
-    boundaryTest,
-    colisionTest,
+    {
+        name: 'Boundary Test',
+        callback: boundaryTest
+    },
+    {
+        name: 'Colision Test',
+        callback: colisionTest
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 5000) {

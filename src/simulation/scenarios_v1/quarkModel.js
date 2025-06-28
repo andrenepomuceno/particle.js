@@ -5,15 +5,42 @@ import { NuclearPotentialType } from '../physics';
 import { calcGridSize, calcAvgMass } from '../scenariosHelpers';
 
 export const quarkModel = [
-    //colorTests,
-    //colorCharge,
-    //crystal,
-    air,
-    fullScaleModel,
-    water2,
-    //miniverse2,
-    //cosmological,
-    essentialElements,
+    //{
+    //    name: 'Color Tests',
+    //    callback: colorTests
+    //},
+    //{
+    //    name: 'Color Charge',
+    //    callback: colorCharge
+    //},
+    //{
+    //    name: 'Crystal',
+    //    callback: crystal
+    //},
+    {
+        name: 'Air',
+        callback: air
+    },
+    {
+        name: 'Full Scale Model',
+        callback: fullScaleModel
+    },
+    {
+        name: 'Water 2',
+        callback: water2
+    },
+    //{
+    //    name: 'Miniverse 2',
+    //    callback: miniverse2
+    //},
+    //{
+    //    name: 'Cosmological',
+    //    callback: cosmological
+    //},
+    {
+        name: 'Essential Elements',
+        callback: essentialElements
+    }
 ];
 
 function defaultParameters(simulation, cameraDistance = 1e4) {

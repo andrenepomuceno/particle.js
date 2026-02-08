@@ -4,7 +4,7 @@ import { Box, Typography } from '@mui/material';
 
 const About = () => {
     return (
-        <div>
+        <Box sx={{ px: 2 }}>
             <Typography variant="h3" gutterBottom>
                 Welcome to particle.js!
             </Typography>
@@ -46,7 +46,7 @@ const About = () => {
                 <br/>
                 Check out the project on <a href="https://github.com/andrenepomuceno/particle.js" target="_blank" style={{ color: "#4CAF50" }}>GitHub</a> for more details and enjoy!
             </Typography>
-        </div>
+        </Box>
     );
 }
 

@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TextField from '@mui/material/TextField'
 
 const TextInput = ({
@@ -9,7 +8,7 @@ const TextInput = ({
     // readOnly = false,
 }) => {
     const [value, setValue] = useState(inputValue);
-    const [lastValue, setLastValue] = useState();
+    const lastValueRef = useRef();
     const [isEditing, setEditing] = useState(false);
     const readOnly = (onFinish == undefined) ? true : false;
 
@@ -25,7 +24,7 @@ const TextInput = ({
 
         if (onFinish) {
             const value = e.target.value;
-            if (value == lastValue) return;
+            if (value == lastValueRef.current) return;
             
             onFinish(value);
         }
@@ -35,7 +34,7 @@ const TextInput = ({
         if (readOnly) return;
         if (!isEditing) {
             setEditing(true);
-            setLastValue(value);
+            lastValueRef.current = value;
         }
     }
 

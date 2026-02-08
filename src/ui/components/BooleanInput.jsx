@@ -1,6 +1,5 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { FormControlLabel, FormGroup, Grid2, Switch } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { FormControlLabel, FormGroup, Switch } from '@mui/material';
 
 const BooleanInput = ({
     name,
@@ -11,11 +10,7 @@ const BooleanInput = ({
 
     const onToggle = (e) => {
         const value = e.target.checked;
-        setChecked(!checked);
-        onFinish_(value);
-    }
-
-    const onFinish_ = (value) => {
+        setChecked(value);
         if (onFinish) {
             onFinish(value);
         }

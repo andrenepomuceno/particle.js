@@ -9,10 +9,6 @@ const SelectionInput = ({
 }) => {
     const onChange = (e) => {
         const value = e.target.value;
-        onFinish_(value);
-    }
-
-    const onFinish_ = (value) => {
         if (onFinish) {
             onFinish(value);
         }

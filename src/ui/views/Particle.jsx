@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Box } from '@mui/material';
 import CustomDialog from '../components/CustomDialog';
 import GridList from '../components/GridList';
 
@@ -13,7 +14,9 @@ const ParticleView = ({view}) => {
                 open={view.isOpen}
                 onClose={(e) => view.onClickClose(e)}
             >
-                <GridList itemList={view.state['particle']}></GridList>
+                <Box sx={{ px: 2 }}>
+                    <GridList itemList={view.state['particle']}></GridList>
+                </Box>
             </CustomDialog>
         </div>
     );

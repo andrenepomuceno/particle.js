@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { InputLabel, MenuItem, Select, FormControl } from '@mui/material';
 
 const SelectionInput = ({
@@ -8,12 +7,8 @@ const SelectionInput = ({
     onFinish = undefined,
     selectionList = undefined,
 }) => {
-    const [state, setState] = useState(value);
-    const [selectionMap] = useState([]);
-
     const onChange = (e) => {
         const value = e.target.value;
-        setState(value);
         onFinish_(value);
     }
 
@@ -23,20 +18,14 @@ const SelectionInput = ({
         }
     }
 
-    useEffect(() => {
-        setState(state);
-    }, [state]);
-
-    if (selectionMap.length == 0) {
-        for (let key in selectionList) {
-            selectionMap.push(
-                <MenuItem
-                    value={selectionList[key]}
-                    key={crypto.randomUUID()}>{key}
-                </MenuItem>
-            )
-        }
-    }
+    const selectionMap = useMemo(() => {
+        if (!selectionList) return [];
+        return Object.keys(selectionList).map((key) => (
+            <MenuItem value={selectionList[key]} key={key}>
+                {key}
+            </MenuItem>
+        ));
+    }, [selectionList]);
 
     return (
         <FormControl fullWidth size="small">

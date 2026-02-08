@@ -32,37 +32,38 @@ const CustomDialog = ({
     const [zIndex, setZIndex] = useState(1000);
     const [isDragging, setIsDragging] = useState(false);
 
-    if (dialogPos.x < 0) {
-        setPosition({
-            x: 0,
-            y: dialogPos.y
-        });
-    }
+    const clampPosition = (pos, size, viewport) => {
+        const maxX = Math.max(0, viewport.width - size.width);
+        const maxY = Math.max(0, viewport.height - size.height);
+        return {
+            x: Math.min(Math.max(0, pos.x), maxX),
+            y: Math.min(Math.max(0, pos.y), maxY)
+        };
+    };
 
-    if (dialogPos.y < 0) {
-        setPosition({
-            x: dialogPos.x,
-            y: 0
+    const applyClampedPosition = (pos, size) => {
+        const clamped = clampPosition(pos, size, {
+            width: window.innerWidth,
+            height: window.innerHeight,
         });
-    }
-
-    if (dialogPos.x + dialogSize.width > window.innerWidth) {
-        setPosition({
-            x: window.innerWidth - dialogSize.width,
-            y: dialogPos.y
-        });
-    }
-
-    if (dialogPos.y + dialogSize.height > window.innerHeight) {
-        setPosition({
-            x: dialogPos.x,
-            y: window.innerHeight - dialogSize.height
-        });
-    }
+        if (clamped.x !== pos.x || clamped.y !== pos.y) {
+            setPosition(clamped);
+        }
+    };
 
     useEffect(() => {
         setIsOpen(open);
     }, [open]);
+
+    useEffect(() => {
+        applyClampedPosition(dialogPos, dialogSize);
+    }, [dialogPos, dialogSize]);
+
+    useEffect(() => {
+        const onResize = () => applyClampedPosition(dialogPos, dialogSize);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, [dialogPos, dialogSize]);
 
     // Save state to localStorage whenever size or position changes
     useEffect(() => {
@@ -89,6 +90,7 @@ const CustomDialog = ({
 
     const onResizeStop = (e, { size }) => {
         setSize(size);
+        applyClampedPosition(dialogPos, size);
     };
 
     const handleMouseEnter = () => setZIndex(1100);

@@ -17,7 +17,6 @@ import ParticleView from './views/Particle';
 import SelectionView from './views/Selection';
 import GeneratorView from './views/Generator';
 import AboutView from './views/About';
-import SimulationView from '../simulation/view';
 
 const darkTheme = createTheme({
     palette: {

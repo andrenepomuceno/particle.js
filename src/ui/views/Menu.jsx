@@ -20,7 +20,7 @@ const MenuView = ({
             <CustomDialog
                 title="Control Panel"
                 canClose={false}
-                size={{ width: 134, height: 372 }}
+                size={{ width: 134, height: 432 }}
                 position={{ x: 10, y: 70 }}
                 header={false}
             >

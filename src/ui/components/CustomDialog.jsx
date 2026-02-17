@@ -6,10 +6,16 @@ import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
 
+const clampPosition = (pos, dialogSize, margin = 40) => ({
+    x: Math.max(margin - dialogSize.width, Math.min(pos.x, window.innerWidth - margin)),
+    y: Math.max(0, Math.min(pos.y, window.innerHeight - margin)),
+});
+
 const CustomDialog = ({
     title = 'Dialog',
     canClose = true,
     size = { width: 200, height: 200 },
+    minSize = { width: 128, height: 200 },
     position = { x: 10, y: 10 },
     open = true,
     onClose,
@@ -43,6 +49,14 @@ const CustomDialog = ({
         );
     }, [dialogSize, dialogPos]);
 
+    useEffect(() => {
+        const onResize = () => {
+            setPosition(prev => clampPosition(prev, dialogSize));
+        };
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, [dialogSize]);
+
     const onClickClose = (e) => {
         setIsOpen(false);
         if (onClose) onClose(e);
@@ -53,9 +67,9 @@ const CustomDialog = ({
         setZIndex(1200);
     }
 
-    const onDragStop = (e, position) => {
+    const onDragStop = (e, data) => {
         setIsDragging(false);
-        setPosition({ x: position.x, y: position.y });
+        setPosition(clampPosition({ x: data.x, y: data.y }, dialogSize));
     };
 
     const onResizeStop = (e, { size }) => {
@@ -88,7 +102,7 @@ const CustomDialog = ({
                 <ResizableBox
                     width={dialogSize.width}
                     height={dialogSize.height}
-                    minConstraints={[132, 100]}
+                    minConstraints={[minSize.width, minSize.height]}
                     maxConstraints={[1200, 1000]}
                     onResizeStop={onResizeStop}
                 >

@@ -32,40 +32,10 @@ const CustomDialog = ({
     const [zIndex, setZIndex] = useState(1000);
     const [isDragging, setIsDragging] = useState(false);
 
-    const clampPosition = (pos, size, viewport) => {
-        const maxX = Math.max(0, viewport.width - size.width);
-        const maxY = Math.max(0, viewport.height - size.height);
-        return {
-            x: Math.min(Math.max(0, pos.x), maxX),
-            y: Math.min(Math.max(0, pos.y), maxY)
-        };
-    };
-
-    const applyClampedPosition = (pos, size) => {
-        const clamped = clampPosition(pos, size, {
-            width: window.innerWidth,
-            height: window.innerHeight,
-        });
-        if (clamped.x !== pos.x || clamped.y !== pos.y) {
-            setPosition(clamped);
-        }
-    };
-
     useEffect(() => {
         setIsOpen(open);
     }, [open]);
 
-    useEffect(() => {
-        applyClampedPosition(dialogPos, dialogSize);
-    }, [dialogPos, dialogSize]);
-
-    useEffect(() => {
-        const onResize = () => applyClampedPosition(dialogPos, dialogSize);
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, [dialogPos, dialogSize]);
-
-    // Save state to localStorage whenever size or position changes
     useEffect(() => {
         localStorage.setItem(
             localStorageKey,
@@ -90,7 +60,6 @@ const CustomDialog = ({
 
     const onResizeStop = (e, { size }) => {
         setSize(size);
-        applyClampedPosition(dialogPos, size);
     };
 
     const handleMouseEnter = () => setZIndex(1100);
@@ -118,24 +87,31 @@ const CustomDialog = ({
             >
                 <ResizableBox
                     width={dialogSize.width}
-                    // height={dialogSize.height}
+                    height={dialogSize.height}
                     minConstraints={[132, 100]}
                     maxConstraints={[1200, 1000]}
                     onResizeStop={onResizeStop}
                 >
                     <Card
                         variant='outlined'
-                        sx={{ bgcolor: 'rgba(20, 20, 20, 0.95)' }}
+                        sx={{
+                            bgcolor: 'rgba(20, 20, 20, 0.95)',
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxSizing: 'border-box',
+                        }}
                     >
                         {header && (
                             <CardHeader
                                 className="dialog-header"
                                 subheader={title}
-                                sx={{ cursor: 'move' }}
+                                sx={{ cursor: 'move', flexShrink: 0 }}
                             />
                         )}
 
-                        <CardContent>
+                        <CardContent sx={{ flex: 1, overflow: 'auto' }}>
                             {children}
                         </CardContent>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
 import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@mui/material';
@@ -6,72 +6,57 @@ import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
 
+const clampPosition = (pos, dialogSize, margin = 40) => ({
+    x: Math.max(margin - dialogSize.width, Math.min(pos.x, window.innerWidth - margin)),
+    y: Math.max(0, Math.min(pos.y, window.innerHeight - margin)),
+});
+
 const CustomDialog = ({
+    id,
     title = 'Dialog',
     canClose = true,
     size = { width: 200, height: 200 },
+    minSize = { width: 128, height: 200 },
     position = { x: 10, y: 10 },
     open = true,
     onClose,
     children,
     header = true,
 }) => {
-    // Load initial state from localStorage or fallback to default props
-    const localStorageKey = "CustomDialog:" + title;
-    const getInitialState = () => {
-        const savedState = localStorage.getItem(localStorageKey);
-        if (savedState) {
-            return JSON.parse(savedState);
-        }
-        return { size, position };
-    };
+    const localStorageKey = "CustomDialog:" + (id || title);
+    const nodeRef = useRef(null);
 
     const [isOpen, setIsOpen] = useState(open);
-    const [dialogSize, setSize] = useState(getInitialState().size);
-    const [dialogPos, setPosition] = useState(getInitialState().position);
+    const [dialogSize, setSize] = useState(() => {
+        const saved = localStorage.getItem(localStorageKey);
+        return saved ? JSON.parse(saved).size || size : size;
+    });
+    const [dialogPos, setPosition] = useState(() => {
+        const saved = localStorage.getItem(localStorageKey);
+        const pos = saved ? JSON.parse(saved).position || position : position;
+        return clampPosition(pos, size);
+    });
     const [zIndex, setZIndex] = useState(1000);
     const [isDragging, setIsDragging] = useState(false);
-
-    const clampPosition = (pos, size, viewport) => {
-        const maxX = Math.max(0, viewport.width - size.width);
-        const maxY = Math.max(0, viewport.height - size.height);
-        return {
-            x: Math.min(Math.max(0, pos.x), maxX),
-            y: Math.min(Math.max(0, pos.y), maxY)
-        };
-    };
-
-    const applyClampedPosition = (pos, size) => {
-        const clamped = clampPosition(pos, size, {
-            width: window.innerWidth,
-            height: window.innerHeight,
-        });
-        if (clamped.x !== pos.x || clamped.y !== pos.y) {
-            setPosition(clamped);
-        }
-    };
 
     useEffect(() => {
         setIsOpen(open);
     }, [open]);
 
     useEffect(() => {
-        applyClampedPosition(dialogPos, dialogSize);
-    }, [dialogPos, dialogSize]);
-
-    useEffect(() => {
-        const onResize = () => applyClampedPosition(dialogPos, dialogSize);
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, [dialogPos, dialogSize]);
-
-    // Save state to localStorage whenever size or position changes
-    useEffect(() => {
         localStorage.setItem(
             localStorageKey,
             JSON.stringify({ size: dialogSize, position: dialogPos })
         );
     }, [dialogSize, dialogPos]);
+
+    useEffect(() => {
+        const onResize = () => {
+            setPosition(prev => clampPosition(prev, dialogSize));
+        };
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, [dialogSize]);
 
     const onClickClose = (e) => {
         setIsOpen(false);
@@ -83,14 +68,13 @@ const CustomDialog = ({
         setZIndex(1200);
     }
 
-    const onDragStop = (e, position) => {
+    const onDragStop = (e, data) => {
         setIsDragging(false);
-        setPosition({ x: position.x, y: position.y });
+        setPosition(clampPosition({ x: data.x, y: data.y }, dialogSize));
     };
 
     const onResizeStop = (e, { size }) => {
         setSize(size);
-        applyClampedPosition(dialogPos, size);
     };
 
     const handleMouseEnter = () => setZIndex(1100);
@@ -111,41 +95,51 @@ const CustomDialog = ({
             }}
         >
             <Draggable
+                nodeRef={nodeRef}
                 handle=".dialog-header"
                 position={dialogPos}
                 onDrag={onDrag}
                 onStop={onDragStop}
             >
-                <ResizableBox
-                    width={dialogSize.width}
-                    // height={dialogSize.height}
-                    minConstraints={[132, 100]}
-                    maxConstraints={[1200, 1000]}
-                    onResizeStop={onResizeStop}
-                >
-                    <Card
-                        variant='outlined'
-                        sx={{ bgcolor: 'rgba(20, 20, 20, 0.95)' }}
+                <div ref={nodeRef}>
+                    <ResizableBox
+                        width={dialogSize.width}
+                        height={dialogSize.height}
+                        minConstraints={[minSize.width, minSize.height]}
+                        maxConstraints={[1200, 1000]}
+                        onResizeStop={onResizeStop}
                     >
-                        {header && (
-                            <CardHeader
-                                className="dialog-header"
-                                subheader={title}
-                                sx={{ cursor: 'move' }}
-                            />
-                        )}
+                        <Card
+                            variant='outlined'
+                            sx={{
+                                bgcolor: 'rgba(20, 20, 20, 0.95)',
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                boxSizing: 'border-box',
+                            }}
+                        >
+                            {header && (
+                                <CardHeader
+                                    className="dialog-header"
+                                    subheader={title}
+                                    sx={{ cursor: 'move', flexShrink: 0 }}
+                                />
+                            )}
 
-                        <CardContent>
-                            {children}
-                        </CardContent>
+                            <CardContent sx={{ flex: 1, overflow: 'auto' }}>
+                                {children}
+                            </CardContent>
 
-                        {canClose && (
-                            <CardActions>
-                                <Button onClick={onClickClose}>Close</Button>
-                            </CardActions>
-                        )}
-                    </Card>
-                </ResizableBox>
+                            {canClose && (
+                                <CardActions>
+                                    <Button onClick={onClickClose}>Close</Button>
+                                </CardActions>
+                            )}
+                        </Card>
+                    </ResizableBox>
+                </div>
             </Draggable>
         </div>
     );

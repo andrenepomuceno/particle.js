@@ -15,7 +15,7 @@ const GeneratorView = ({view}) => {
         <div>
             <CustomDialog
                 title='Generator'
-                size={{ width: 400, height: 290 }}
+                size={{ width: 400, height: 460 }}
                 position={{ x: 720, y: 450 }}
                 canClose={true}
                 open={view.isOpen}

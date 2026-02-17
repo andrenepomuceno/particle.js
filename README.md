@@ -6,8 +6,6 @@
 
 [About](#about)
 
-[Features](#features)
-
 [Mathematical Model](#mathematical-model)
 
 [Build](#build)
@@ -63,7 +61,7 @@ $$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$$
 
 $$d = |\vec{d_{ij}}|$$
 
-$$\bar{n_{ij}} = \frac{|\vec{d_{ij}}|}{d}$$
+$$\bar{n_{ij}} = \frac{\vec{d_{ij}}}{d}$$
 
 Where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
 
@@ -101,7 +99,7 @@ In the case of a collision between $P_i$ and $P_j$, the conservation of momentum
 
 $$m_i \vec{v_i} + m_j \vec{v_j} = m_i \vec{u_i} + m_j \vec{u_j}$$
 
-$$m_i \vec{v_i}^2 + m_j \vec{v_j}^2 = m_i \vec{u_i}^2 + m_j \vec{u_j}^2$$
+$$m_i |\vec{v_i}|^2 + m_j |\vec{v_j}|^2 = m_i |\vec{u_i}|^2 + m_j |\vec{u_j}|^2$$
 
 Where $u_i$ is the final velocity of $P_i$.
 
@@ -113,13 +111,21 @@ $$F(P_i) = \frac{2 m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
 
 [![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
 
-To run the test server on `localhost:8080`
+Requires Node.js and a browser with WebGL2 support. A discrete GPU is recommended for larger particle counts.
+
+To run the development server on `localhost:8080`:
 ```
 git clone https://github.com/andrenepomuceno/particle.js.git
 cd particle.js
 npm install
 npm start
-````
+```
+
+Other run modes:
+```
+npm run low       # 10k particles (for weaker hardware)
+npm run record    # 50k particles on port 8081 with video recording
+```
 
 To build the production package:
 ```

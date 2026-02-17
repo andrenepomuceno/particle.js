@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
 import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@mui/material';
@@ -12,6 +12,7 @@ const clampPosition = (pos, dialogSize, margin = 40) => ({
 });
 
 const CustomDialog = ({
+    id,
     title = 'Dialog',
     canClose = true,
     size = { width: 200, height: 200 },
@@ -22,19 +23,19 @@ const CustomDialog = ({
     children,
     header = true,
 }) => {
-    // Load initial state from localStorage or fallback to default props
-    const localStorageKey = "CustomDialog:" + title;
-    const getInitialState = () => {
-        const savedState = localStorage.getItem(localStorageKey);
-        if (savedState) {
-            return JSON.parse(savedState);
-        }
-        return { size, position };
-    };
+    const localStorageKey = "CustomDialog:" + (id || title);
+    const nodeRef = useRef(null);
 
     const [isOpen, setIsOpen] = useState(open);
-    const [dialogSize, setSize] = useState(getInitialState().size);
-    const [dialogPos, setPosition] = useState(getInitialState().position);
+    const [dialogSize, setSize] = useState(() => {
+        const saved = localStorage.getItem(localStorageKey);
+        return saved ? JSON.parse(saved).size || size : size;
+    });
+    const [dialogPos, setPosition] = useState(() => {
+        const saved = localStorage.getItem(localStorageKey);
+        const pos = saved ? JSON.parse(saved).position || position : position;
+        return clampPosition(pos, size);
+    });
     const [zIndex, setZIndex] = useState(1000);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -94,48 +95,51 @@ const CustomDialog = ({
             }}
         >
             <Draggable
+                nodeRef={nodeRef}
                 handle=".dialog-header"
                 position={dialogPos}
                 onDrag={onDrag}
                 onStop={onDragStop}
             >
-                <ResizableBox
-                    width={dialogSize.width}
-                    height={dialogSize.height}
-                    minConstraints={[minSize.width, minSize.height]}
-                    maxConstraints={[1200, 1000]}
-                    onResizeStop={onResizeStop}
-                >
-                    <Card
-                        variant='outlined'
-                        sx={{
-                            bgcolor: 'rgba(20, 20, 20, 0.95)',
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            boxSizing: 'border-box',
-                        }}
+                <div ref={nodeRef}>
+                    <ResizableBox
+                        width={dialogSize.width}
+                        height={dialogSize.height}
+                        minConstraints={[minSize.width, minSize.height]}
+                        maxConstraints={[1200, 1000]}
+                        onResizeStop={onResizeStop}
                     >
-                        {header && (
-                            <CardHeader
-                                className="dialog-header"
-                                subheader={title}
-                                sx={{ cursor: 'move', flexShrink: 0 }}
-                            />
-                        )}
+                        <Card
+                            variant='outlined'
+                            sx={{
+                                bgcolor: 'rgba(20, 20, 20, 0.95)',
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                boxSizing: 'border-box',
+                            }}
+                        >
+                            {header && (
+                                <CardHeader
+                                    className="dialog-header"
+                                    subheader={title}
+                                    sx={{ cursor: 'move', flexShrink: 0 }}
+                                />
+                            )}
 
-                        <CardContent sx={{ flex: 1, overflow: 'auto' }}>
-                            {children}
-                        </CardContent>
+                            <CardContent sx={{ flex: 1, overflow: 'auto' }}>
+                                {children}
+                            </CardContent>
 
-                        {canClose && (
-                            <CardActions>
-                                <Button onClick={onClickClose}>Close</Button>
-                            </CardActions>
-                        )}
-                    </Card>
-                </ResizableBox>
+                            {canClose && (
+                                <CardActions>
+                                    <Button onClick={onClickClose}>Close</Button>
+                                </CardActions>
+                            )}
+                        </Card>
+                    </ResizableBox>
+                </div>
             </Draggable>
         </div>
     );

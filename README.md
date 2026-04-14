@@ -10,6 +10,8 @@
 
 [Build](#build)
 
+[Documentation](#documentation)
+
 [Special Thanks](#special-thanks)
 
 ## About
@@ -132,11 +134,31 @@ To build the production package:
 npm run prod
 ```
 
+For a detailed explanation of local workflows, runtime modes and performance constraints, see [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md).
+
+## Documentation
+
+Detailed project documentation now lives in the [docs](docs) folder.
+The goal is to keep the top-level README focused on discovery while moving contributor-facing depth into a small number of substantial guides.
+
+Start with [docs/README.md](docs/README.md) for the documentation index and recommended reading order.
+
+Main guides:
+
+- [docs/architecture-and-simulation-lifecycle.md](docs/architecture-and-simulation-lifecycle.md)
+- [docs/scenario-authoring-and-physics-configuration.md](docs/scenario-authoring-and-physics-configuration.md)
+- [docs/ui-bridge-and-runtime-controls.md](docs/ui-bridge-and-runtime-controls.md)
+- [docs/gpu-compute-and-shader-pipeline.md](docs/gpu-compute-and-shader-pipeline.md)
+- [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md)
+
 ### Code Architecture
 
 Simplified diagram.
 
 ![first layer](img/simple.svg)
+
+The diagram above is intentionally high level.
+For the full startup, scenario, UI and GPU lifecycle, see [docs/architecture-and-simulation-lifecycle.md](docs/architecture-and-simulation-lifecycle.md).
 
 ## Special Thanks
 

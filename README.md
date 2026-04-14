@@ -4,35 +4,25 @@
 
 ## Table of Contents  
 
-[About](#about)
-
-[Mathematical Model](#mathematical-model)
-
-[Build](#build)
-
-[Documentation](#documentation)
-
-[Special Thanks](#special-thanks)
+- [About](#about)
+- [Quick Start](#quick-start)
+- [Mathematical Model](#mathematical-model)
+- [Documentation](#documentation)
+- [Special Thanks](#special-thanks)
 
 ## About
 
-Particle.js is a JavaScript 3D n-body particle simulator that uses a simplified model of Physics.
-
-Try to simulate 3 forces on point-like particles:
-- Gravity
-- Electromagnetic
-- Nuclear force
+Particle.js is a JavaScript 3D n-body particle simulator with GPU-accelerated interaction updates.
+It models gravity, electromagnetism, and a configurable short-range nuclear force on point-like particles.
 
 ### Features
-- Real time simulations
-- Runs particle interaction computations in parallel on GPU.
-- Supports 2D and 3D modes.
-- Can export and import simulations.
-- Adjustable parameters during runtime.
-- Vector field visualization.
-- Interactive simulation and particles. Almost everything is editable!
-- Sandbox Mode
-- And much more...
+- Real-time simulations with GPU-backed particle updates
+- 2D and 3D modes
+- Import and export of simulation snapshots
+- Runtime parameter editing
+- Vector field visualization with probe particles
+- Interactive particle inspection and editing
+- Sandbox mode and curated scenario groups
 
 ### Live Demo
 
@@ -109,13 +99,13 @@ So, the force exerted by a collision is (a lot of omitted algebra here...)
 
 $$F(P_i) = \frac{2 m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
 
-## Build
+## Quick Start
 
 [![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
 
 Requires Node.js and a browser with WebGL2 support. A discrete GPU is recommended for larger particle counts.
 
-To run the development server on `localhost:8080`:
+Run the default development server on `localhost:8080`:
 ```
 git clone https://github.com/andrenepomuceno/particle.js.git
 cd particle.js
@@ -123,27 +113,21 @@ npm install
 npm start
 ```
 
-Other run modes:
+Other local modes:
 ```
 npm run low       # 10k particles (for weaker hardware)
 npm run record    # 50k particles on port 8081 with video recording
-```
-
-To build the production package:
-```
-npm run prod
+npm run build     # production bundle in dist/
 ```
 
 For a detailed explanation of local workflows, runtime modes and performance constraints, see [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md).
 
 ## Documentation
 
-Detailed project documentation now lives in the [docs](docs) folder.
-The goal is to keep the top-level README focused on discovery while moving contributor-facing depth into a small number of substantial guides.
+The detailed technical documentation lives in the [docs](docs) folder.
+Start with [docs/README.md](docs/README.md) for the documentation index and reading order.
 
-Start with [docs/README.md](docs/README.md) for the documentation index and recommended reading order.
-
-Main guides:
+Quick links:
 
 - [docs/architecture-and-simulation-lifecycle.md](docs/architecture-and-simulation-lifecycle.md)
 - [docs/scenario-authoring-and-physics-configuration.md](docs/scenario-authoring-and-physics-configuration.md)
@@ -151,7 +135,7 @@ Main guides:
 - [docs/gpu-compute-and-shader-pipeline.md](docs/gpu-compute-and-shader-pipeline.md)
 - [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md)
 
-### Code Architecture
+### Architecture Snapshot
 
 Simplified diagram.
 

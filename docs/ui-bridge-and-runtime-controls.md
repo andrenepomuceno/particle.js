@@ -9,6 +9,22 @@ The project has two UI systems working together:
 The bridge between them is intentionally lightweight.
 The simulation remains the source of truth for runtime state, while the React layer renders dialogs and input components around that state.
 
+Navigation: [Previous: Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md) | [Docs Index](./README.md) | [Next: GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md) | [Project README](../README.md)
+
+## UI Bridge Diagram
+
+```mermaid
+flowchart LR
+	A[GUI class in src/simulation/gui] --> B[addUIOption()]
+	B --> C[UI.addItem()]
+	C --> D[UI view parameter bag]
+	D --> E[React dialog view]
+	E --> F[Input onFinish callback]
+	F --> G[core.updatePhysics() or runtime action]
+	H[animate() refresh cadence] --> I[GUI.refresh()]
+	I --> D
+```
+
 ## The Two-Layer UI Model
 
 The easiest way to understand the UI is to separate ownership from presentation.
@@ -259,3 +275,5 @@ Before merging a UI change, verify the following:
 
 If the new control affects physics flags or GPU-backed behavior, continue with [GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md).
 If it introduces new setup semantics for a scenario, continue with [Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md).
+
+Navigation: [Previous: Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md) | [Docs Index](./README.md) | [Next: GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md) | [Project README](../README.md)

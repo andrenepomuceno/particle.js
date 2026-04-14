@@ -8,6 +8,15 @@ The goal is to keep the documentation substantial instead of fragmented.
 Most guides in this folder are intentionally long-form and should usually stay above 100 lines.
 If a topic is too small for a full guide, it should normally be merged into an existing document instead of becoming a new page.
 
+## Quick Navigation
+
+- [Project README](../README.md)
+- [Architecture and Simulation Lifecycle](./architecture-and-simulation-lifecycle.md)
+- [Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md)
+- [UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md)
+- [GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md)
+- [Developer Workflows and Performance](./developer-workflows-and-performance.md)
+
 ## What This Folder Covers
 
 The docs are organized around the parts of the codebase that carry the most conceptual weight:
@@ -133,3 +142,5 @@ Instead, the scenario guide explains the shared authoring patterns and points to
 For a first technical pass through the project, begin with [Architecture and Simulation Lifecycle](./architecture-and-simulation-lifecycle.md).
 After that, choose between the scenario, UI, and GPU guides based on the subsystem you want to change.
 If your goal is simply to run the project or compare `npm start`, `npm run low`, and `npm run record`, go directly to [Developer Workflows and Performance](./developer-workflows-and-performance.md).
+
+Every substantive guide in this folder includes direct links back to this index, to the project README, and to the previous or next guide in the reading order.

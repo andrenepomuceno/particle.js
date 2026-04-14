@@ -9,6 +9,22 @@ It focuses on the boundary between three pieces of the system:
 
 If you want to change a force model, add a shader-facing boolean, or understand why some physics edits need a redraw while others only need a uniform refresh, this is the guide to read.
 
+Navigation: [Previous: UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md) | [Docs Index](./README.md) | [Next: Developer Workflows and Performance](./developer-workflows-and-performance.md) | [Project README](../README.md)
+
+## GPU Pipeline Diagram
+
+```mermaid
+flowchart TD
+    A[Physics object] --> B[generateComputeVelocity and generateComputePosition]
+    B --> C[drawParticles(shaderUpdate?)]
+    C --> D[Initialize textures and render targets]
+    D --> E[compute()]
+    E --> F[textureVelocity and texturePosition]
+    F --> G[Particle shaders render to canvas]
+    F --> H[readbackParticleData()]
+    H --> I[JS particleList is synchronized again]
+```
+
 ## High-Level Pipeline
 
 The runtime pipeline looks like this:
@@ -291,3 +307,5 @@ The most frequent mistakes in this part of the codebase are:
 If the GPU change originates from a scenario default, read [Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md).
 If it originates from a runtime control, read [UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md).
 If you are choosing the right local mode for debugging a GPU-heavy scenario, read [Developer Workflows and Performance](./developer-workflows-and-performance.md).
+
+Navigation: [Previous: UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md) | [Docs Index](./README.md) | [Next: Developer Workflows and Performance](./developer-workflows-and-performance.md) | [Project README](../README.md)

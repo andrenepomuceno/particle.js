@@ -6,6 +6,23 @@ It is written for contributors who want to add a new experiment, tune an existin
 The key idea is that a scenario is not a separate runtime engine.
 It is a configuration callback that receives the live `SimulationGPU` instance during setup and fills in the data that the shared engine will run.
 
+Navigation: [Previous: Architecture and Simulation Lifecycle](./architecture-and-simulation-lifecycle.md) | [Docs Index](./README.md) | [Next: UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md) | [Project README](../README.md)
+
+## Scenario Authoring Flow
+
+```mermaid
+flowchart LR
+    A[Scenario file] --> B[Export array of entries]
+    B --> C[addFolder() in scenarios.js]
+    C --> D[scenariosList]
+    D --> E[core.setup(idx)]
+    E --> F[simulation.setup(particleSetup)]
+    F --> G[Scenario callback(simulation)]
+    G --> H[Configure physics, camera, and mode]
+    G --> I[Populate particleList]
+    I --> J[SimulationGPU.drawParticles()]
+```
+
 ## Where Scenarios Are Registered
 
 Scenario registration happens in `src/simulation/scenarios.js`.
@@ -282,3 +299,5 @@ Before considering a scenario finished, verify the following:
 6. the simulation can be reset without leaving stale objects behind
 
 After you are comfortable with scenario authoring, continue with [GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md) if the new scenario requires shader-aware physics changes, or [UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md) if it needs new controls.
+
+Navigation: [Previous: Architecture and Simulation Lifecycle](./architecture-and-simulation-lifecycle.md) | [Docs Index](./README.md) | [Next: UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md) | [Project README](../README.md)

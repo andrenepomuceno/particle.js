@@ -10,6 +10,25 @@ When you change core behavior, your main verification loop is usually a combinat
 - loading one or more representative scenarios
 - observing performance, UI behavior, and reset behavior directly in the browser
 
+Navigation: [Previous: GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md) | [Docs Index](./README.md) | [Project README](../README.md)
+
+## Workflow Selection Diagram
+
+```mermaid
+flowchart TD
+	A[Start a local task] --> B{What do you need?}
+	B --> C[General development]
+	B --> D[Faster feedback or weaker hardware]
+	B --> E[Recording or higher density]
+	B --> F[Production bundle]
+	B --> G[Architecture review]
+	C --> H[npm start]
+	D --> I[npm run low]
+	E --> J[npm run record]
+	F --> K[npm run build]
+	G --> L[npm run madge-simple]
+```
+
 ## Available npm Scripts
 
 The canonical script list lives in `package.json`.
@@ -262,3 +281,5 @@ Because the project has no automated tests, a solid manual pass should include:
 5. one build run when the change affects bundling or environment behavior
 
 If the change touches startup, lifecycle, UI control wiring, or GPU behavior, cross-reference the relevant guides in this folder before finishing the work.
+
+Navigation: [Previous: GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md) | [Docs Index](./README.md) | [Project README](../README.md)

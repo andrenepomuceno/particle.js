@@ -3,6 +3,32 @@
 This guide describes how particle.js starts, constructs its runtime objects, loads a scenario, and advances the simulation every frame.
 It is the best starting point for understanding the project because the remaining guides all depend on the lifecycle described here.
 
+Navigation: [Docs Index](./README.md) | [Next: Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md) | [Project README](../README.md)
+
+![Simplified architecture diagram](../img/simple.svg)
+
+## Lifecycle Diagram
+
+```mermaid
+flowchart TD
+	A[main()] --> B{WebGL2 available?}
+	B -- yes --> C[simulationStart()]
+	B -- no --> D[Render browser warning]
+	C --> E[viewSetup()]
+	E --> F[UI.start()]
+	E --> G[Create helpers and GUI classes]
+	E --> H[scenarioSetup()]
+	H --> I[core.setup(idx)]
+	I --> J[Create new SimulationGPU and FieldGPU]
+	J --> K[simulation.setup(particleSetup)]
+	K --> L[Scenario callback configures physics and particles]
+	L --> M[drawParticles()]
+	E --> N[animate()]
+	N --> O[simulation.step(dt, time)]
+	O --> P[graphics.compute()]
+	N --> Q[graphics.render()]
+```
+
 The short version is:
 
 - `src/main.js` verifies WebGL2 and starts the app
@@ -241,3 +267,5 @@ When you add a feature that touches lifecycle code, verify the following:
 If the change affects scenarios, continue with [Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md).
 If it affects controls or dialogs, continue with [UI Bridge and Runtime Controls](./ui-bridge-and-runtime-controls.md).
 If it affects compute or render behavior, continue with [GPU Compute and Shader Pipeline](./gpu-compute-and-shader-pipeline.md).
+
+Navigation: [Docs Index](./README.md) | [Next: Scenario Authoring and Physics Configuration](./scenario-authoring-and-physics-configuration.md) | [Project README](../README.md)

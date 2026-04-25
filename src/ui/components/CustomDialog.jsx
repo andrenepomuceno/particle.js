@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Button, Card, CardActions, CardContent, CardHeader, CardMedia } from '@mui/material';
+import { Card, CardContent, CardHeader, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 import 'react-resizable/css/styles.css';
 import './CustomDialog.css';
@@ -125,18 +126,22 @@ const CustomDialog = ({
                                     className="dialog-header"
                                     subheader={title}
                                     sx={{ cursor: 'move', flexShrink: 0 }}
+                                    action={canClose && (
+                                        <IconButton
+                                            aria-label="close"
+                                            size="small"
+                                            onClick={onClickClose}
+                                            onMouseDown={(e) => e.stopPropagation()}
+                                        >
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    )}
                                 />
                             )}
 
                             <CardContent sx={{ flex: 1, overflow: 'auto' }}>
                                 {children}
                             </CardContent>
-
-                            {canClose && (
-                                <CardActions>
-                                    <Button onClick={onClickClose}>Close</Button>
-                                </CardActions>
-                            )}
                         </Card>
                     </ResizableBox>
                 </div>

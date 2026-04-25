@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useId, useMemo } from 'react';
 import { InputLabel, MenuItem, Select, FormControl } from '@mui/material';
 
 const SelectionInput = ({
@@ -7,6 +7,8 @@ const SelectionInput = ({
     onFinish = undefined,
     selectionList = undefined,
 }) => {
+    const labelId = useId();
+
     const onChange = (e) => {
         const value = e.target.value;
         if (onFinish) {
@@ -25,9 +27,9 @@ const SelectionInput = ({
 
     return (
         <FormControl fullWidth size="small">
-            <InputLabel id='selection-label'>{name}</InputLabel>
+            <InputLabel id={labelId}>{name}</InputLabel>
             <Select
-                labelId='selection-label'
+                labelId={labelId}
                 value={value}
                 onChange={onChange}
                 label={name}

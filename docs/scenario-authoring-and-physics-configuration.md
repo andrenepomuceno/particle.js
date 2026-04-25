@@ -12,15 +12,15 @@ Navigation: [Previous: Architecture and Simulation Lifecycle](./architecture-and
 
 ```mermaid
 flowchart LR
-    A[Scenario file] --> B[Export array of entries]
-    B --> C[addFolder() in scenarios.js]
-    C --> D[scenariosList]
-    D --> E[core.setup(idx)]
-    E --> F[simulation.setup(particleSetup)]
-    F --> G[Scenario callback(simulation)]
-    G --> H[Configure physics, camera, and mode]
-    G --> I[Populate particleList]
-    I --> J[SimulationGPU.drawParticles()]
+    A["Scenario file"] --> B["Export array of entries"]
+    B --> C["addFolder() in scenarios.js"]
+    C --> D["scenariosList"]
+    D --> E["core.setup(idx)"]
+    E --> F["simulation.setup(particleSetup)"]
+    F --> G["Scenario callback(simulation)"]
+    G --> H["Configure physics, camera, and mode"]
+    G --> I["Populate particleList"]
+    I --> J["SimulationGPU.drawParticles()"]
 ```
 
 ## Where Scenarios Are Registered

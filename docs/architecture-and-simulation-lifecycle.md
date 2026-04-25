@@ -11,22 +11,22 @@ Navigation: [Docs Index](./README.md) | [Next: Scenario Authoring and Physics Co
 
 ```mermaid
 flowchart TD
-	A[main()] --> B{WebGL2 available?}
-	B -- yes --> C[simulationStart()]
-	B -- no --> D[Render browser warning]
-	C --> E[viewSetup()]
-	E --> F[UI.start()]
-	E --> G[Create helpers and GUI classes]
-	E --> H[scenarioSetup()]
-	H --> I[core.setup(idx)]
-	I --> J[Create new SimulationGPU and FieldGPU]
-	J --> K[simulation.setup(particleSetup)]
-	K --> L[Scenario callback configures physics and particles]
-	L --> M[drawParticles()]
-	E --> N[animate()]
-	N --> O[simulation.step(dt, time)]
-	O --> P[graphics.compute()]
-	N --> Q[graphics.render()]
+    A["main()"] --> B{"WebGL2 available?"}
+    B -- yes --> C["simulationStart()"]
+    B -- no --> D["Render browser warning"]
+    C --> E["viewSetup()"]
+    E --> F["UI.start()"]
+    E --> G["Create helpers and GUI classes"]
+    E --> H["scenarioSetup()"]
+    H --> I["core.setup(idx)"]
+    I --> J["Create new SimulationGPU and FieldGPU"]
+    J --> K["simulation.setup(particleSetup)"]
+    K --> L["Scenario callback configures physics and particles"]
+    L --> M["drawParticles()"]
+    E --> N["animate()"]
+    N --> O["simulation.step(dt, time)"]
+    O --> P["graphics.compute()"]
+    N --> Q["graphics.render()"]
 ```
 
 The short version is:

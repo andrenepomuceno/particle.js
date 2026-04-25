@@ -15,14 +15,14 @@ Navigation: [Previous: Scenario Authoring and Physics Configuration](./scenario-
 
 ```mermaid
 flowchart LR
-	A[GUI class in src/simulation/gui] --> B[addUIOption()]
-	B --> C[UI.addItem()]
-	C --> D[UI view parameter bag]
-	D --> E[React dialog view]
-	E --> F[Input onFinish callback]
-	F --> G[core.updatePhysics() or runtime action]
-	H[animate() refresh cadence] --> I[GUI.refresh()]
-	I --> D
+    A["GUI class in src/simulation/gui"] --> B["addUIOption()"]
+    B --> C["UI.addItem()"]
+    C --> D["UI view parameter bag"]
+    D --> E["React dialog view"]
+    E --> F["Input onFinish callback"]
+    F --> G["core.updatePhysics() or runtime action"]
+    H["animate() refresh cadence"] --> I["GUI.refresh()"]
+    I --> D
 ```
 
 ## The Two-Layer UI Model

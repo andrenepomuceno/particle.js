@@ -15,14 +15,14 @@ Navigation: [Previous: UI Bridge and Runtime Controls](./ui-bridge-and-runtime-c
 
 ```mermaid
 flowchart TD
-    A[Physics object] --> B[generateComputeVelocity and generateComputePosition]
-    B --> C[drawParticles(shaderUpdate?)]
-    C --> D[Initialize textures and render targets]
-    D --> E[compute()]
-    E --> F[textureVelocity and texturePosition]
-    F --> G[Particle shaders render to canvas]
-    F --> H[readbackParticleData()]
-    H --> I[JS particleList is synchronized again]
+    A["Physics object"] --> B["generateComputeVelocity and generateComputePosition"]
+    B --> C["drawParticles(shaderUpdate?)"]
+    C --> D["Initialize textures and render targets"]
+    D --> E["compute()"]
+    E --> F["textureVelocity and texturePosition"]
+    F --> G["Particle shaders render to canvas"]
+    F --> H["readbackParticleData()"]
+    H --> I["JS particleList is synchronized again"]
 ```
 
 ## High-Level Pipeline

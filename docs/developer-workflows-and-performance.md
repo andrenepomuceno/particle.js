@@ -16,17 +16,17 @@ Navigation: [Previous: GPU Compute and Shader Pipeline](./gpu-compute-and-shader
 
 ```mermaid
 flowchart TD
-	A[Start a local task] --> B{What do you need?}
-	B --> C[General development]
-	B --> D[Faster feedback or weaker hardware]
-	B --> E[Recording or higher density]
-	B --> F[Production bundle]
-	B --> G[Architecture review]
-	C --> H[npm start]
-	D --> I[npm run low]
-	E --> J[npm run record]
-	F --> K[npm run build]
-	G --> L[npm run madge-simple]
+    A["Start a local task"] --> B{"What do you need?"}
+    B --> C["General development"]
+    B --> D["Faster feedback or weaker hardware"]
+    B --> E["Recording or higher density"]
+    B --> F["Production bundle"]
+    B --> G["Architecture review"]
+    C --> H["npm start"]
+    D --> I["npm run low"]
+    E --> J["npm run record"]
+    F --> K["npm run build"]
+    G --> L["npm run madge-simple"]
 ```
 
 ## Available npm Scripts

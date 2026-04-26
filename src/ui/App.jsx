@@ -118,6 +118,11 @@ export const UI = {
         parameters[item.folder].push(item);
     },
 
+    about: {
+        parameters: {},
+        setOpen: null,
+    },
+
     info: {
         parameters: {},
         setOpen: null,

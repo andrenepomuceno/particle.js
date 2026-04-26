@@ -164,11 +164,6 @@ class Core {
                 fillPhysics = false;
                 updateShader = true;
             },
-            'enablePostGravity': (value) => {
-                physics.enablePostGravity = value;
-                fillPhysics = false;
-                updateShader = true;
-            },
             'nuclearPotential': (value) => {
                 physics.nuclearPotential = value;
                 fillPhysics = false;
@@ -518,6 +513,7 @@ class Core {
         switch (parameter) {
             case 'mass':
                 {
+                    if (totalMass === 0) return;
                     let newMass = safeParseFloat(value, totalMass);
                     let ratio = newMass/totalMass;
                     if (ratio == 1.0) {
@@ -527,27 +523,29 @@ class Core {
                     graphics.readbackParticleData();
                     list.forEach((p) => {
                         p.mass *= ratio;
-                    });                }
+                    });
+                }
                 break;
 
             case 'charge':
                 {
+                    if (totalCharge === 0) return;
                     let newCharge = safeParseFloat(value, totalCharge);
                     let ratio = newCharge/totalCharge;
                     if (ratio == 1.0) {
                         return;
                     }
 
-                    console.log("ratio = " + ratio);
-
                     graphics.readbackParticleData();
                     list.forEach((p) => {
                         p.charge *= ratio;
-                    });                }
+                    });
+                }
                 break;
 
             case 'nuclearCharge':
                 {
+                    if (totalNuclearCharge === 0) return;
                     let newNuclearCharge = safeParseFloat(value, totalNuclearCharge);
                     let ratio = newNuclearCharge/totalNuclearCharge;
                     if (ratio == 1.0) {
@@ -672,8 +670,7 @@ class Core {
     deleteAll() {
         log('deleteAll');
 
-        simulation.particleList = [];
-        simulation.physics.particleList = [];
+        simulation.particleList.splice(0);
         simulation.drawParticles();
     }
 
@@ -696,15 +693,11 @@ class Core {
 
         if (list) snapshotObj.physics.particleList = list;
 
-        snapshotObj.physics.velocityShader = undefined;
-        snapshotObj.physics.positionShader = undefined;
-        snapshotObj.physics.particleList.forEach((particle) => {
-            particle.force = undefined;
-            particle.uv = undefined;
-        })
-        //snapshotObj.physics.particleList = undefined;
-
-        return JSON.stringify(snapshotObj, null, 4);
+        const excludeKeys = new Set(['force', 'uv', 'velocityShader', 'positionShader']);
+        return JSON.stringify(snapshotObj, (key, value) => {
+            if (excludeKeys.has(key)) return undefined;
+            return value;
+        }, 4);
     }
 
     parseJson(content) {

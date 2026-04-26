@@ -1,5 +1,6 @@
 import {
     Vector3,
+    HalfFloatType,
     WebGLRenderer,
     Scene,
     PerspectiveCamera,
@@ -139,9 +140,9 @@ export class GraphicsGPU {
         log('cameraSetup');
         log("distance = " + distance + " phi = " + phi + " theta = " + theta);
 
-        this.cameraDistance = (distance || this.cameraDistance);
-        this.cameraPhi = (phi || this.cameraPhi);
-        this.cameraTheta = (theta || this.cameraTheta);
+        this.cameraDistance = (distance ?? this.cameraDistance);
+        this.cameraPhi = (phi ?? this.cameraPhi);
+        this.cameraTheta = (theta ?? this.cameraTheta);
 
         let [x, y, z] = sphericalToCartesian(this.cameraDistance, this.cameraPhi * Math.PI / 180.0, this.cameraTheta * Math.PI / 180.0);
         this.camera.position.set(x, y, z);
@@ -373,7 +374,7 @@ export class GraphicsGPU {
         let gpuCompute = this.gpuCompute;
 
         if (this.renderer.capabilities.isWebGL2 === false) {
-            gpuCompute.setDataType(THREE.HalfFloatType);
+            gpuCompute.setDataType(HalfFloatType);
         }
 
         this.dtPosition = gpuCompute.createTexture();

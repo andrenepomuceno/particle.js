@@ -146,8 +146,8 @@ export function calcListStatistics(list) {
     list.forEach(p => {
         switch (p.type) {
             case ParticleType.fixed:
-                if (p.type == ParticleType.fixed) stats.fixed++;
-                //break;
+                stats.fixed++;
+                break;
 
             case ParticleType.default:
                 stats.center.add(p.position);

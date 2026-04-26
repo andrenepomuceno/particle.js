@@ -1,6 +1,6 @@
 {
   "name": "particle.js",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
@@ -29,6 +29,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.15",
+    "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.0.2",
     "image-js": "^0.35.6",
     "jszip": "^3.10.1",

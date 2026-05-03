@@ -91,4 +91,49 @@ describe('headless functional runtime', () => {
         expect(parsed.physics.particleList[0].position.x).toBe(1);
         expect(parsed.cycles).toBe(3);
     });
+
+    it('rejects runtime particle creation above the configured budget', () => {
+        const runtime = createHeadlessRuntime({
+            maxParticles: 4,
+            scenarios: [{
+                name: 'Budget Probe',
+                callback: () => {},
+            }],
+        });
+        const particles = Array.from({ length: 5 }, () => new Particle());
+
+        runtime.setupByName('Budget Probe');
+
+        expect(() => runtime.core.createParticleList(particles)).toThrow(/maxParticles exceeded/);
+        expect(runtime.core.simulation.particleList).toHaveLength(0);
+    });
+
+    it('imports exported JSON into a fresh simulation instance', () => {
+        const runtime = createHeadlessRuntime({
+            scenarios: [{
+                name: 'Import Probe',
+                callback: (simulation) => {
+                    const particle = new Particle();
+                    particle.mass = 4;
+                    particle.position = new Vector3(10, 0, 0);
+                    simulation.physics.particleList.push(particle);
+                },
+            }],
+        });
+
+        runtime.setupByName('Import Probe');
+        runtime.runSteps({ steps: 5 });
+        const exported = runtime.exportJson();
+        const previousSimulation = runtime.core.simulation;
+
+        runtime.core.deleteAll();
+        runtime.core.importJson('imported-probe.json', exported);
+
+        expect(runtime.core.simulation).not.toBe(previousSimulation);
+        expect(runtime.core.simulation.name).toBe('imported-probe.json');
+        expect(runtime.core.simulation.folderName).toBe('imported');
+        expect(runtime.core.simulation.cycles).toBe(5);
+        expect(runtime.core.simulation.particleList).toHaveLength(1);
+        expect(runtime.core.simulation.particleList[0].mass).toBe(4);
+    });
 });

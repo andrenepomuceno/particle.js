@@ -15,5 +15,5 @@ export default defineConfig({
         url: 'http://127.0.0.1:8090/headless.html',
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
-        },
-    });
+    },
+});

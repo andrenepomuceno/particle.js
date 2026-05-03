@@ -69,5 +69,5 @@ export function createHeadlessRuntime({ maxParticles = 10000, scenarios = scenar
         snapshot,
         exportJson: (list) => core.exportJson(list),
         parseJson: (content) => core.parseJson(content),
-        };
-    }
+    };
+}

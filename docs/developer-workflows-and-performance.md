@@ -2,8 +2,8 @@
 
 This guide explains how to run particle.js locally, what each npm script is for, how webpack injects runtime flags, and how to think about performance limits in a GPU-backed particle simulator.
 
-The project does not currently have an automated test suite.
-That makes local workflow discipline more important than in a typical app.
+The project has a small headless test suite, but browser-based manual checks are still important for UI and visual behavior.
+That makes local workflow discipline important even when automated checks pass.
 When you change core behavior, your main verification loop is usually a combination of:
 
 - choosing the correct local run mode
@@ -42,6 +42,10 @@ At the time of writing, the main scripts are:
 | `npm run record` | webpack dev server on port 8081, `maxParticles=50e3`, record mode | capture-focused workflow |
 | `npm run build` | production webpack build, `maxParticles=10e3` | build distributable assets |
 | `npm run prod` | alias for `npm run build` | production build shortcut |
+| `npm run test:functional` | Vitest with `GraphicsHeadless` | Node headless lifecycle and contract checks |
+| `npm run headless:serve` | webpack dev server for the headless harness on port 8090 | browser headless harness debugging |
+| `npm run test:perf` | Playwright against the headless harness | Chromium headless GPU performance report |
+| `npm run test:headless` | functional tests, then performance report | full local headless pass |
 | `npm run madge0` | full dependency graph image | dependency inspection |
 | `npm run madge1` | filtered graph image | lighter dependency inspection |
 | `npm run madge2` | filtered graph plus npm dependencies | broader dependency inspection |
@@ -49,6 +53,22 @@ At the time of writing, the main scripts are:
 
 A contributor should almost never guess script behavior from the name alone.
 The exact values are injected through the script definitions, so the documentation always needs to stay aligned with `package.json`.
+
+## Headless Test Workflows
+
+The project now has two complementary headless paths.
+
+`npm run test:functional` runs in Node through `GraphicsHeadless`.
+This path is intentionally deterministic and does not try to reproduce GPU physics.
+It validates lifecycle contracts such as scenario setup, particle budget checks, finite statistics, scheduled actions, physics update policy, and JSON import/export behavior.
+
+`npm run test:perf` runs Chromium through Playwright and loads a minimal browser harness instead of the React UI.
+This path uses the real `GraphicsGPU`, WebGL renderer, and `GPUComputationRenderer`, so it is the right place to measure setup, compute, optional render, and readback costs.
+The first version writes JSON reports under `reports/headless/` and only fails on structural problems such as missing WebGL2, setup exceptions, invalid metrics, or particle budget violations.
+It does not fail on timing thresholds yet.
+
+The headless workflows are local-first for now.
+Do not add performance thresholds to CI until there is enough report history to choose stable baselines for the machines that run them.
 
 ## Standard Local Workflow
 
@@ -272,7 +292,7 @@ Use this quick mapping when choosing a workflow:
 
 ## Before You Call a Change Done
 
-Because the project has no automated tests, a solid manual pass should include:
+Because the automated coverage is intentionally focused on headless contracts and performance reporting, a solid manual pass should still include:
 
 1. one representative scenario reset
 2. one UI interaction path related to your change

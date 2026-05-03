@@ -62,6 +62,12 @@ export class GUIParticle {
             },
         };
 
+        const updateParticle = (key, val) => {
+            core.updateParticle(options.particle.obj, key, val);
+            this.refresh();
+            UI.refresh();
+        };
+
         addMenuControl('particle', 'ID 🔍', 'id', (val) => {
             if (val == "") return;
             let obj = core.findParticle(parseInt(val));
@@ -81,10 +87,14 @@ export class GUIParticle {
                 return;
             }
             options.particle.obj = obj;
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('particle', 'Name', 'name', (val) => {
             if (options.particle.obj != undefined) {
                 options.particle.obj.name = val;
+                this.refresh();
+                UI.refresh();
             }
         });
         // 'particle'.addColor(options.particle, 'color').name('Color').listen().onFinishChange(val => {
@@ -93,33 +103,39 @@ export class GUIParticle {
         addMenuControl('particle', 'Energy', 'energy');
 
         addMenuControl('particle', 'Mass', 'mass', (val) => {
-            core.updateParticle(options.particle.obj, 'mass', val);
+            updateParticle('mass', val);
         });
         addMenuControl('particle', 'Charge', 'charge', (val) => {
-            core.updateParticle(options.particle.obj, 'charge', val);
+            updateParticle('charge', val);
         });
         addMenuControl('particle', 'Nuclear Charge', 'nuclearCharge', (val) => {
-            core.updateParticle(options.particle.obj, 'nuclearCharge', val);
+            updateParticle('nuclearCharge', val);
         });
-        addMenuControl('particle', 'Color Charge', 'colorCharge');
+        addMenuControl('particle', 'Color Charge', 'colorCharge', (val) => {
+            updateParticle('colorCharge', val);
+        });
 
         addMenuControl('particle', 'Position', 'position', (val) => {
-            core.updateParticle(options.particle.obj, 'position', val);
+            updateParticle('position', val);
         });
         addMenuControl('particle', 'Velocity', 'velocityAbs', (val) => {
-            core.updateParticle(options.particle.obj, 'velocityAbs', val);
+            updateParticle('velocityAbs', val);
         });
         addMenuControl('particle', 'Direction', 'velocityDir', (val) => {
-            core.updateParticle(options.particle.obj, 'velocityDir', val);
+            updateParticle('velocityDir', val);
         });
 
         addMenuControl('particle', 'Follow/Unfollow', 'follow');
         addMenuControl('particle', 'Look At', 'lookAt');
 
         addMenuControl('particle', 'Fixed position?', 'fixed', (val) => {
-            core.updateParticle(options.particle.obj, 'fixed', val);
+            updateParticle('fixed', val);
         });
         //addMenuControl(controls, 'Reset Attributes', 'reset');
+    }
+
+    clear() {
+        guiParticleClose();
     }
 
     refresh() {
@@ -149,13 +165,13 @@ export class GUIParticle {
                 particle.velocity.clone().normalize().toArray(), 3);
             particleView.velocityAbs = particle.velocity.length().toExponential(3);
             particleView.energy = particle.energy().toExponential(3);
-
-            refreshCallbackList.forEach((callback) => {
-                if (callback != undefined) {
-                    callback();
-                }
-            });
         }
+
+        refreshCallbackList.forEach((callback) => {
+            if (callback != undefined) {
+                callback();
+            }
+        });
     }
 }
 
@@ -165,9 +181,11 @@ function guiParticleClose(clear = true) {
         let particleView = options.particle;
         particleView.obj = undefined;
         particleView.id = '';
+        particleView.name = '';
         particleView.mass = '';
         particleView.charge = '';
         particleView.nuclearCharge = '';
+        particleView.colorCharge = '';
         particleView.color = '';
         particleView.position = '';
         particleView.velocityDir = '';
@@ -176,5 +194,5 @@ function guiParticleClose(clear = true) {
         particleView.fixed = false;
     }
 
-    UI.particle.setOpen(false);
+    UI.particle.setOpen?.(false);
 }

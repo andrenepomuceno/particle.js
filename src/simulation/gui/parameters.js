@@ -13,12 +13,21 @@ function addPhysicsControl(
     onFinishChange = undefined,
 ) {
     options.parameters[variable] = defaultValue;
-    const onFinish = (val) => {
+    const updatePhysics = (val) => {
         core.updatePhysics(variable, val);
     };
     if (onFinishChange == undefined) {
-        onFinishChange = onFinish;
+        onFinishChange = updatePhysics;
     }
+
+    const onFinish = (val) => {
+        onFinishChange(val);
+        options.guiParameters.refresh();
+        options.guiInfo.refresh();
+        options.guiControls.refresh();
+        options.guiField.refresh();
+        UI.refresh();
+    };
 
     if (refreshCallback != undefined) {
         refreshCallbackList.push(refreshCallback);
@@ -31,7 +40,7 @@ function addPhysicsControl(
         options: options.parameters,
         component: UI.parameters,
         refreshCallbacks: refreshCallbackList,
-        onFinishChange,
+        onFinishChange: onFinish,
         selectionList: variableList
     });
 }

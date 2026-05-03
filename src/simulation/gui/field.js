@@ -60,7 +60,7 @@ export class GUIField {
             grid: '50',
             automaticRefresh: true,
             fieldResize: () => {
-                if (simulation.field.enable == false) return;
+                if (simulation.field.enabled == false) return;
                 let center = simulation.graphics.controls.target.clone();
                 simulation.field.resize(center);
             },
@@ -77,6 +77,8 @@ export class GUIField {
             if (val == true) {
                 options.field.fieldResize();
             }
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', 'Grid', 'grid', val => {
             options.field.grid = simulation.field.grid[0];
@@ -98,18 +100,28 @@ export class GUIField {
                 return;
             }
             options.field.grid = grid;
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', 'Mass', 'm', val => {
             updateFieldParameter('m', val);
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', 'Charge', 'q', val => {
             updateFieldParameter('q', val);
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', 'Nuclear Charge', 'nq', val => {
             updateFieldParameter('nq', val);
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', 'Color Charge', 'color', val => {
             updateFieldParameter('color', val);
+            this.refresh();
+            UI.refresh();
         });
         addMenuControl('field', "Refresh [F]", 'fieldResize');
     }
@@ -152,8 +164,10 @@ export class GUIField {
             options.field.enabled = true;
 
             // this.refresh();
-            UI.field.setOpen(true);
+            UI.field.setOpen?.(true);
         }
+        this.refresh();
+        UI.refresh();
     }
 }
 

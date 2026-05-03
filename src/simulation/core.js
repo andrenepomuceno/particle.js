@@ -16,6 +16,15 @@ function log(msg) {
     console.log(timestamp + " | " + simulation.cycles + " | Core: " + msg);
 }
 
+function parseColorCharge(value) {
+    const colorCharge = Math.round(parseFloat(value));
+    if (isNaN(colorCharge) || colorCharge < 0 || colorCharge > 3) {
+        alert('Invalid color charge. Use 0, 1, 2, or 3.');
+        return undefined;
+    }
+    return colorCharge;
+}
+
 class Core {
     constructor() {
         this.scenariosList = scenariosList;
@@ -355,6 +364,14 @@ class Core {
                 particle.nuclearCharge = safeParseFloat(value, particle.nuclearCharge);
                 break;
 
+            case 'colorCharge':
+                {
+                    const colorCharge = parseColorCharge(value);
+                    if (colorCharge == undefined) return;
+                    particle.colorCharge = colorCharge;
+                }
+                break;
+
             case 'position':
                 {
                     let v = decodeVector3(value);
@@ -436,9 +453,9 @@ class Core {
     }
 
     deleteParticleList(list) {
-        log('deleteParticleList ' + list.length);
-
         if (list == undefined) return;
+
+        log('deleteParticleList ' + list.length);
 
         graphics.readbackParticleData();
 
@@ -555,6 +572,18 @@ class Core {
                     graphics.readbackParticleData();
                     list.forEach((p) => {
                         p.nuclearCharge *= ratio;
+                    });
+                }
+                break;
+
+            case 'colorCharge':
+                {
+                    const colorCharge = parseColorCharge(value);
+                    if (colorCharge == undefined) return;
+
+                    graphics.readbackParticleData();
+                    list.forEach((p) => {
+                        p.colorCharge = colorCharge;
                     });
                 }
                 break;

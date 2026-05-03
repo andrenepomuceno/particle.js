@@ -72,10 +72,7 @@ export class GUIControls {
             },
             importJson: function () {
                 uploadJsonZip((name, content) => {
-                    core.importJson(name, content);
-                    options.guiInfo.refresh();
-                    options.guiParameters.refresh();
-                    options.guiControls.refresh();
+                    options.importSimulation(name, content);
                 });
             },
             hideAxis: function () {
@@ -101,6 +98,8 @@ export class GUIControls {
             deleteAll: () => {
                 if (confirm("This will delete all particles.\nAre you sure?")) {
                     core.deleteAll();
+                    options.clearTransientState();
+                    options.refreshGUI();
                 }
             },
             sandbox: () => {

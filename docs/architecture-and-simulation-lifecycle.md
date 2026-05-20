@@ -89,6 +89,10 @@ Understanding who owns what prevents most accidental regressions.
 | `Physics` | `src/simulation/core.js` | force constants, booleans, shader-related config | recreated with the simulation unless explicitly reused |
 | `FieldGPU` | `src/simulation/core.js` | probe particles and field visualization logic | recreated with the simulation |
 
+`src/simulation/core.js` is now the browser composition wrapper for an injectable runtime implemented in `src/simulation/runtime.js`.
+The browser wrapper still exports the familiar `core` object and live `simulation` binding, but the underlying runtime can also be created with alternate graphics adapters.
+That is what allows Node functional tests to use `GraphicsHeadless` while the app and the browser performance harness continue to use `GraphicsGPU`.
+
 The persistence model is intentional.
 `GraphicsGPU` is created once at module scope in `src/simulation/core.js`.
 When a scenario is reset, the code does not build a brand-new renderer or camera stack.

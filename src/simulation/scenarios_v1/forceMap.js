@@ -3,7 +3,6 @@ import { createNucleiFromList } from '../scenariosHelpers';
 import { createParticles, hexagonGenerator, random, shuffleArray, stringToCoordinates, caption } from '../helpers';
 import { FrictionModel, NuclearPotentialType } from '../physics';
 import { calcGridSize } from '../scenariosHelpers';
-import { core } from '../core';
 import { Particle, ParticleType } from '../particle';
 
 export const forceMap = [
@@ -350,7 +349,7 @@ function theEgg(simulation) {
         {
             cycle: 2 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e41
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e41
                 );
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2));
             }
@@ -358,8 +357,8 @@ function theEgg(simulation) {
         {
             cycle: 5 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -367,8 +366,8 @@ function theEgg(simulation) {
         {
             cycle: 6.0 * 1e3 * cyclesPerMs,
             callback: () => {
-                //core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                //simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -376,8 +375,8 @@ function theEgg(simulation) {
         {
             cycle: 7.0 * 1e3 * cyclesPerMs,
             callback: () => {
-                //core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                //simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -385,8 +384,8 @@ function theEgg(simulation) {
         {
             cycle: 8.0 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -394,8 +393,8 @@ function theEgg(simulation) {
         {
             cycle: 120.0 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                //core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                //simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -403,8 +402,8 @@ function theEgg(simulation) {
         {
             cycle: 122.0 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-1);
-                //core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-1);
+                //simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant.toExponential(2) + 
                         "\nFriction: " + physics.frictionConstant.toExponential(2));
             }
@@ -507,7 +506,7 @@ function uncertainty(simulation) {
         {
             cycle: 2 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e41
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e41
                 );
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
@@ -515,29 +514,29 @@ function uncertainty(simulation) {
         {
             cycle: 5 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-2);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
             cycle: 60 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
             }
         },
         {
             cycle: 70 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         },
         {
             cycle: 80 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         }
@@ -808,7 +807,7 @@ function experiments4(simulation) {
         {
             cycle: 2 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e41
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e41
                 );
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
@@ -816,29 +815,29 @@ function experiments4(simulation) {
         {
             cycle: 5 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-2);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
             cycle: 60 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', physics.massConstant * 1e-2);
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
+                simulation.core.updatePhysics('massConstant', physics.massConstant * 1e-2);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e1);
                 caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
             }
         },
         {
             cycle: 70 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         },
         /*{
             cycle: 80 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
+                simulation.core.updatePhysics('frictionConstant', physics.frictionConstant * 1e-1);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         }*/
@@ -931,29 +930,29 @@ function experiments3(simulation) {
         {
             cycle: 2 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', 2e4);
+                simulation.core.updatePhysics('massConstant', 2e4);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
             cycle: 5 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', 5e1);
+                simulation.core.updatePhysics('massConstant', 5e1);
                 caption(graphics,"Gravity: " + physics.massConstant);
             }
         },
         {
             cycle: 45 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('massConstant', 1);
-                core.updatePhysics('frictionConstant', 1e-4);
+                simulation.core.updatePhysics('massConstant', 1);
+                simulation.core.updatePhysics('frictionConstant', 1e-4);
                 caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
             }
         },
         {
             cycle: 50 * 1e3 * cyclesPerMs,
             callback: () => {
-                core.updatePhysics('frictionConstant', 1e-6);
+                simulation.core.updatePhysics('frictionConstant', 1e-6);
                 caption(graphics,"Friction: " + physics.frictionConstant);
             }
         }
@@ -1256,7 +1255,7 @@ function hexagonalCrystal(simulation) {
     simulation.actionList.push({
         cycle: Math.round(2000/60),
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-4);
+            simulation.core.updatePhysics('frictionConstant', 1e-4);
         }
     });
 }

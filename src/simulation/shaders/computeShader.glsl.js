@@ -411,20 +411,6 @@ void main() {
         }
     }
 
-    #if ENABLE_FRICTION
-    {
-        if (vel1Abs > 1.0e-6) {
-            vec3 f = -frictionConstant * normalize(vel1);
-            #if FRICTION_DEFAULT // -cv
-                f *= sqrt(vel1Abs);
-            #else // -cv^2
-                f *= vel1Abs;
-            #endif
-            rForce += f;
-        }
-    }
-    #endif
-
     #if USE_LORENTZ_FACTOR
     {
         float lf = 1.0 - vel1Abs / maxVel2;
@@ -451,6 +437,27 @@ void main() {
             accel /= abs(m1);
         }
         vel1 += timeStep * accel;
+
+        #if ENABLE_FRICTION
+        {
+            float speed = length(vel1);
+            if (speed > 1.0e-6) {
+                float mass = abs(m1);
+                if (mass == 0.0) {
+                    mass = 1.0;
+                }
+
+                float damping = 1.0;
+                float drag = max(frictionConstant, 0.0);
+                #if FRICTION_DEFAULT // -cv
+                    damping = exp(-drag * timeStep / mass);
+                #else // -cv^2
+                    damping = 1.0 / (1.0 + drag * timeStep * speed / mass);
+                #endif
+                vel1 *= damping;
+            }
+        }
+        #endif
 
         // velocity clamp
         //vel1 = clamp(vel1, -maxVel, maxVel);

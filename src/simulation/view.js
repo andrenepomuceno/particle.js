@@ -65,36 +65,103 @@ const guiOptions = {
     field: {},
 
     scenarioSetup,
+    importSimulation,
+    clearTransientState,
+    refreshGUI,
     showCursor,
     cameraTargetSet,
 };
 
-function scenarioSetup(idx) {
-    log('setup ' + idx);
+function closeDialog(view) {
+    if (view?.setOpen) {
+        view.setOpen(false);
+    }
+}
 
-    simulation.graphics.cleanup();
+function clearTransientState() {
+    if (guiOptions.particle) {
+        guiOptions.particle.followParticle = false;
+    }
+
+    if (guiOptions.guiParticle) {
+        guiOptions.guiParticle.clear();
+    }
+
+    if (guiOptions.selectionHelper) {
+        guiOptions.selectionHelper.clear();
+    }
+
+    if (simulation.field) {
+        simulation.field.cleanup();
+    }
+
+    if (guiOptions.field) {
+        guiOptions.field.enabled = false;
+        guiOptions.field.needResize = false;
+    }
+
+    closeDialog(UI.particle);
+    closeDialog(UI.selection);
+    closeDialog(UI.field);
+}
+
+function resetRuntimePanels() {
     velocityPanel.cleanup();
     computePanel.cleanup();
     statsPanel.fpsPanel.cleanup();
 
     guiOptions.guiInfo.reset();
-    guiOptions.selectionHelper.clear();
     guiOptions.generator.default();
     simulation.graphics.controls.autoRotate = false;
+}
 
-    core.setup(idx);
-
+function restoreViewState() {
     simulation.graphics.showAxis(guiOptions.controls.showAxis, simulation.mode2D, simulation.graphics.axisWidth);
     if (guiOptions.controls.showCursor == true) {
         showCursor();
     }
+}
 
+function refreshGUI() {
     guiOptions.guiInfo.refresh();
-    guiOptions.guiControls.refresh();
+    guiOptions.guiParticle.refresh();
+    guiOptions.guiSelection.refresh();
     guiOptions.guiParameters.refresh();
+    guiOptions.guiControls.refresh();
     guiOptions.guiField.refresh();
+    guiOptions.guiGenerator.refresh();
+
+    UI.refresh();
+}
+
+function scenarioSetup(idx) {
+    log('setup ' + idx);
+
+    clearTransientState();
+    simulation.graphics.cleanup();
+    resetRuntimePanels();
+
+    core.setup(idx);
+
+    restoreViewState();
+    refreshGUI();
 
     log('setup done');
+}
+
+function importSimulation(filename, content) {
+    log('import ' + filename);
+
+    clearTransientState();
+    simulation.graphics.cleanup();
+    resetRuntimePanels();
+
+    core.importJson(filename, content);
+
+    restoreViewState();
+    refreshGUI();
+
+    log('import done');
 }
 
 export function viewSetup() {
@@ -208,7 +275,7 @@ function onPointerUp(event) {
                 guiOptions.particle.obj = particle;
                 guiOptions.guiParticle.refresh();
                 
-                UI.particle.setOpen(true);
+                UI.particle.setOpen?.(true);
             }
         });
     } else if (event.button == 1) {
@@ -258,15 +325,7 @@ function animate(time) {
             simulation.graphics.readbackParticleData();
         }
 
-        guiOptions.guiInfo.refresh();
-        guiOptions.guiParticle.refresh();
-        guiOptions.guiSelection.refresh();
-        guiOptions.guiParameters.refresh();
-        guiOptions.guiControls.refresh();
-        guiOptions.guiField.refresh();
-        guiOptions.guiGenerator.refresh();
-
-        UI.refresh();
+        refreshGUI();
     }
 
     simulation.graphics.render();

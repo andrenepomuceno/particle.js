@@ -83,7 +83,7 @@ export class Selection {
             this.source = SourceType.simulation;
             this.guiRefresh();
 
-            UI.selection.setOpen(true);
+            UI.selection.setOpen?.(true);
         } else {
             this.clear();
             // UI.selection.setOpen(false);
@@ -256,7 +256,8 @@ export class Selection {
             view.mass = this.stats.totalMass.toExponential(2);
             view.charge = this.stats.totalCharge.toExponential(2);
             view.nuclearCharge = this.stats.totalNuclearCharge.toExponential(2);
-            view.colorCharge = this.stats.totalColorCharge.toArray();
+            const colorCharge = this.list[0].colorCharge;
+            view.colorCharge = this.list.every(p => p.colorCharge == colorCharge) ? colorCharge : 'mixed';
             view.velocity = this.stats.avgVelocity.length().toExponential(2);
             view.velocityDir = arrayToString(this.stats.avgVelocity.clone().normalize().toArray(), 2);
             let center = this.stats.center.toArray();

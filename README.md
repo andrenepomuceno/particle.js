@@ -118,6 +118,8 @@ Other local modes:
 npm run low       # 10k particles (for weaker hardware)
 npm run record    # 50k particles on port 8081 with video recording
 npm run build     # production bundle in dist/
+npm run test:functional  # Node headless lifecycle and contract tests
+npm run test:perf        # Chromium headless GPU performance report
 ```
 
 For a detailed explanation of local workflows, runtime modes and performance constraints, see [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md).

@@ -3,7 +3,6 @@ import { createNucleiFromList } from '../scenariosHelpers';
 import { hexagonGenerator, caption, shuffleArray, stringToCoordinates } from '../helpers';
 import { FrictionModel, NuclearPotentialType } from '../physics';
 import { calcGridSize } from '../scenariosHelpers';
-import { core } from '../core';
 
 export const record = [
     {
@@ -171,8 +170,8 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 5 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1);
-            core.updatePhysics('massConstant', 512);
+            simulation.core.updatePhysics('frictionConstant', 1);
+            simulation.core.updatePhysics('massConstant', 512);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -182,7 +181,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 13 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -190,7 +189,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 16 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -198,7 +197,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 19 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -206,7 +205,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 22 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -214,7 +213,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 25 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -222,7 +221,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 28 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -230,7 +229,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 31 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -240,7 +239,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 40 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 0.5);
+            simulation.core.updatePhysics('massConstant', 0.5);
             caption(graphics,"Gravity: " + physics.massConstant);
         }
     });
@@ -248,7 +247,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 43 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-1);
+            simulation.core.updatePhysics('frictionConstant', 1e-1);
             caption(graphics,"Friction: " + physics.frictionConstant);
         }
     });
@@ -256,7 +255,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 48 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-2);
+            simulation.core.updatePhysics('frictionConstant', 1e-2);
             caption(graphics,"Friction: " + physics.frictionConstant);
         }
     });
@@ -264,7 +263,7 @@ function planetoidFormation3(simulation) {
     simulation.addAction({
         cycle: 53 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-3);
+            simulation.core.updatePhysics('frictionConstant', 1e-3);
             caption(graphics,"Friction: " + physics.frictionConstant);
         }
     });
@@ -371,7 +370,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 3 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-3);
+            simulation.core.updatePhysics('frictionConstant', 1e-3);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -379,7 +378,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 30 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-2);
+            simulation.core.updatePhysics('frictionConstant', 1e-2);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -387,7 +386,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 40 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-1);
+            simulation.core.updatePhysics('frictionConstant', 1e-1);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -395,7 +394,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 50 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e0);
+            simulation.core.updatePhysics('frictionConstant', 1e0);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -403,7 +402,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.0 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -411,7 +410,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.1 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -419,7 +418,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.2 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -427,7 +426,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.3 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -435,7 +434,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.4 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -443,7 +442,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.5 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -451,7 +450,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.6 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -459,7 +458,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.7 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -467,7 +466,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.8 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -475,7 +474,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 1.9 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -483,7 +482,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.0 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -491,7 +490,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.1 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -499,7 +498,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.2 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 32);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 32);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -507,7 +506,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.3 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-1);
+            simulation.core.updatePhysics('frictionConstant', 1e-1);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -515,7 +514,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.4 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-2);
+            simulation.core.updatePhysics('frictionConstant', 1e-2);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -523,7 +522,7 @@ function planetoidFormation2(simulation) {
     simulation.addAction({
         cycle: 2.5 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-3);
+            simulation.core.updatePhysics('frictionConstant', 1e-3);
             caption(graphics,"Gravity: " + physics.massConstant + "\nFriction: " + physics.frictionConstant);
         }
     });
@@ -623,84 +622,84 @@ function planetoidFormation(simulation) {
     simulation.addAction({
         cycle: 3 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-3);
+            simulation.core.updatePhysics('frictionConstant', 1e-3);
         }
     });
 
     simulation.addAction({
         cycle: 1.2 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-2);
+            simulation.core.updatePhysics('frictionConstant', 1e-2);
         }
     });
 
     simulation.addAction({
         cycle: 1.4 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-1);
+            simulation.core.updatePhysics('frictionConstant', 1e-1);
         }
     });
 
     simulation.addAction({
         cycle: 1.5 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
         }
     });
 
     simulation.addAction({
         cycle: 1.6 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
         }
     });
 
     simulation.addAction({
         cycle: 1.8 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
         }
     });
 
     simulation.addAction({
         cycle: 1.9 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', 2 * physics.massConstant);
+            simulation.core.updatePhysics('massConstant', 2 * physics.massConstant);
         }
     });
 
     simulation.addAction({
         cycle: 2.1 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
         }
     });
 
     simulation.addAction({
         cycle: 2.2 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
         }
     });
 
     simulation.addAction({
         cycle: 2.3 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
         }
     });
 
     simulation.addAction({
         cycle: 2.4 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('massConstant', physics.massConstant / 2);
+            simulation.core.updatePhysics('massConstant', physics.massConstant / 2);
         }
     });
 
     simulation.addAction({
         cycle: 2.5 * 60 * 1e3 * cyclesPerMs,
         callback: () => {
-            core.updatePhysics('frictionConstant', 1e-3);
+            simulation.core.updatePhysics('frictionConstant', 1e-3);
         }
     });
 

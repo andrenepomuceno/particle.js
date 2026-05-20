@@ -126,7 +126,9 @@ export class GUISelection {
         addMenuControl('properties', "Nuclear Charge (sum)", 'nuclearCharge', (val) => {
             selectionListUpdate('nuclearCharge', val);
         });
-        addMenuControl('properties', "Color Charge (sum)", 'colorCharge');
+        addMenuControl('properties', "Color Charge", 'colorCharge', (val) => {
+            selectionListUpdate('colorCharge', val);
+        });
 
         addMenuControl('properties', 'Velocity', 'velocity', (val) => {
             selectionListUpdate('velocityAbs', val);
@@ -163,11 +165,13 @@ export class GUISelection {
 
 function guiSelectionClose(clear = true) {
     if (clear) selection.clear();
-    UI.selection.setOpen(false);
+    UI.selection.setOpen?.(false);
 }
 
 function selectionListUpdate(param, val) {
     core.updateParticleList(param, val, selection.list);
+    options.guiSelection.refresh();
+    UI.refresh();
 }
 
 function selectionPlace() {

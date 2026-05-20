@@ -91,7 +91,7 @@ export class GUIGenerator {
                 // }
             },
             clear: () => {
-                UI.generator.setOpen(false);
+                UI.generator.setOpen?.(false);
             },
             default: () => {
                 let clean = {

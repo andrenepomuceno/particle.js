@@ -109,7 +109,7 @@ export const UI = {
     },
 
     addItem: (view, item) => {
-        item.id = crypto.randomUUID();
+        item.id = (crypto.randomUUID?.() ?? `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
         item.type = item.type || typeof item.value;
 
         const parameters = view.parameters;

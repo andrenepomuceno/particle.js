@@ -6,79 +6,159 @@ on:
       - main
       - dev
       - react
+  pull_request:
+    branches:
+      - main
+      - dev
 
-permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     strategy:
       matrix:
         node-version: [20.x]
-    
+
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-    - name: Get version
-      id: get_version
-      shell: bash
-      run: |
-        BUILD_VERSION=$(jq -r .version package.json)
-        echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build
-      run: |
-        npm install
-        npm run prod --env version=${{ env.BUILD_VERSION }} --env gtag_config=${{ vars.GTAG_CONFIG }}
+      - name: Run functional tests
+        run: npm run test:functional
 
-    - name: Pack
-      run: |
-        zip -r particle.js_${{ env.BUILD_VERSION }}.zip dist
+  perf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    continue-on-error: true
+    strategy:
+      matrix:
+        node-version: [20.x]
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: build
-        path: particle.js_${{ env.BUILD_VERSION }}.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run headless performance tests
+        run: npm run test:perf
+
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-report
+          path: reports/headless/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          BUILD_VERSION=$(jq -r .version package.json)
+          echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          GTAG_CONFIG: ${{ vars.GTAG_CONFIG }}
+        run: |
+          npx webpack -c webpack-prod.config.js \
+            --env maxParticles=10e3 \
+            --env production \
+            --env version="${BUILD_VERSION}" \
+            --env gtag_config="${GTAG_CONFIG}"
+
+      - name: Pack
+        run: zip -r "particle.js_${BUILD_VERSION}.zip" dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: particle.js_${{ env.BUILD_VERSION }}.zip
+          retention-days: 14
 
   deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [build, perf]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Get version
-      id: get_version
-      shell: bash
-      run: |
-        BUILD_VERSION=$(jq -r .version package.json)
-        echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          BUILD_VERSION=$(jq -r .version package.json)
+          echo "BUILD_VERSION=v$BUILD_VERSION" >> $GITHUB_ENV
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: build
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
 
-    - name: Extract
-      run: |
-        unzip -o particle.js_${{ env.BUILD_VERSION }}.zip
+      - name: Extract
+        run: unzip -o "particle.js_${BUILD_VERSION}.zip"
 
-    - uses: ncipollo/release-action@v1
-      with:
-        artifacts: "particle.js*.zip"
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ env.BUILD_VERSION }}
-        draft: true
-        commit: ${{ github.ref }}
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "particle.js*.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.BUILD_VERSION }}
+          draft: true
+          commit: ${{ github.ref }}
+          skipIfReleaseExists: true
 
-    - name: Deploy gh-pages
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: dist
-        branch: gh-pages
+      - name: Deploy gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages

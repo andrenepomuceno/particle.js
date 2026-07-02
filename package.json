@@ -42,7 +42,7 @@
     "react-dom": "^19.2.7",
     "react-draggable": "^4.4.6",
     "react-resizable": "^4.0.1",
-    "three": "^0.184.0"
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

@@ -35,7 +35,13 @@ module.exports = (env) => {
         },
 
         resolve: {
-            extensions: ['.js', '.jsx']
+            extensions: ['.js', '.jsx'],
+            alias: {
+                // image-js@1.x imports named ESM exports from bresenham-zingl,
+                // but its package.json "browser" field points at a UMD build with
+                // no ESM exports. Force resolution to the ESM entry.
+                'bresenham-zingl$': require.resolve('bresenham-zingl/dist/index.mjs'),
+            }
         }
     }
 };

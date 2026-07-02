@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid2 as Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import AutomaticInput from '../components/AutomaticInput';
 
 const GridList = ({ itemList = [], cols = 2 }) => {

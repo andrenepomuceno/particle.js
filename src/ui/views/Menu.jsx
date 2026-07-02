@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid2 as Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import ControlButton from '../components/ControlButton';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tabs, Tab, Box, Grid2 as Grid } from '@mui/material';
+import { Tabs, Tab, Box, Grid } from '@mui/material';
 
 import CustomDialog from '../components/CustomDialog';
 import { CustomTabPanel, a11yProps } from '../components/CustomTabPanel';

@@ -1,6 +1,6 @@
 {
   "name": "particle.js",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "JavaScript 3D particle simulator.",
   "private": true,
   "scripts": {
@@ -42,12 +42,12 @@
     "react-dom": "^19.2.7",
     "react-draggable": "^4.4.6",
     "react-resizable": "^4.0.1",
-    "three": "^0.184.0"
+    "three": "^0.185.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/preset-react": "^7.29.7",
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "@babel/preset-react": "^8.0.1",
     "@playwright/test": "^1.60.0",
     "babel-loader": "^10.1.1",
     "canvas-capture": "^2.0.5",

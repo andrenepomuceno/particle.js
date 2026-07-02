@@ -11,7 +11,10 @@ module.exports = (env) => {
 
         plugins: [
             new webpack.DefinePlugin({
-                'ENV': JSON.stringify(env)
+                'ENV': JSON.stringify(env),
+                // react-draggable@4.7.x references process.env.DRAGGABLE_DEBUG,
+                // which crashes in the browser (webpack 5 doesn't polyfill process).
+                'process.env.DRAGGABLE_DEBUG': JSON.stringify(false),
             }),
         ],
 

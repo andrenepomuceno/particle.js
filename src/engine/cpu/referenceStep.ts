@@ -36,6 +36,7 @@ export function referenceStep(
         q_i: attr[oi + 1]!, q_j: attr[oj + 1]!,
         s_i: attr[oi + 2]!, s_j: attr[oj + 2]!,
         p_i: attr[oi + 3]!, p_j: attr[oj + 3]!,
+        n_i: color[oi + 3]!, n_j: color[oj + 3]!,
         cr_i: color[oi]!, cg_i: color[oi + 1]!, cb_i: color[oi + 2]!,
         cr_j: color[oj]!, cg_j: color[oj + 1]!, cb_j: color[oj + 2]!,
         t_i: tau1, t_j: vel[oj + 3]!,

@@ -13,6 +13,6 @@
     { "preset": "coulomb", "softening": 1, "params": { "k": 0.5 } }
   ],
   "groups": [
-    { "count": 1500, "shape": { "type": "disk", "radius": 400 }, "charge": { "choice": [0, 1] } }
+    { "count": 1500, "shape": { "type": "disk", "radius": 400 }, "charge": { "choice": [0, 1] }, "nuclearCharge": 1 }
   ]
 }

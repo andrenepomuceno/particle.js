@@ -37,12 +37,13 @@ export interface ParticleGroup {
   charge: Sampled<number>;
   spin: Sampled<number>;
   parity: Sampled<number>;
+  nuclearCharge: Sampled<number>;
   color: Sampled<Vec3>;
 }
 
 const ORIGIN: Vec3 = [0, 0, 0];
 const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups'] as const;
-const GROUP_KEYS = ['count', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'color'] as const;
+const GROUP_KEYS = ['count', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
   sampledNumber(value: unknown, path: string): Sampled<number> {
@@ -162,6 +163,7 @@ class ScenarioReader extends JsonReader {
       charge: optionalNumber('charge', 0),
       spin: optionalNumber('spin', 0),
       parity: optionalNumber('parity', 1),
+      nuclearCharge: optionalNumber('nuclearCharge', 0),
       color: o.color === undefined ? ORIGIN : this.sampledVec3(o.color, `${path}.color`),
     };
     if (group.shape.type === 'grid') {
@@ -249,6 +251,7 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
         charge: sample(group.charge, rng, index),
         spin: sample(group.spin, rng, index),
         parity: sample(group.parity, rng, index),
+        nuclearCharge: sample(group.nuclearCharge, rng, index),
         color: [...sample(group.color, rng, index)],
       };
     }),

@@ -23,6 +23,7 @@ export interface GeneratorTemplate {
   chargeSpread: 'fixed' | 'random sign';
   spin: number;
   parity: number;
+  nuclearCharge: number;
   color: Vec3;
   speed: number;
   fixed: boolean;
@@ -30,7 +31,7 @@ export interface GeneratorTemplate {
 
 export const DEFAULT_GENERATOR: GeneratorTemplate = {
   count: 100, cloudRadius: 50, mass: 1, charge: 1, chargeSpread: 'random sign',
-  spin: 0, parity: 1, color: [0, 0, 0], speed: 0, fixed: false,
+  spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
 };
 
 export interface Notice {
@@ -504,6 +505,7 @@ export class SimulationController {
         charge: g.chargeSpread === 'random sign' && uniform(rng, 0, 1) < 0.5 ? -g.charge : g.charge,
         spin: g.spin,
         parity: g.parity,
+        nuclearCharge: g.nuclearCharge,
         color: [...g.color],
       };
     });

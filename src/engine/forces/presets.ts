@@ -24,7 +24,7 @@ export const FORCE_PRESETS = {
   nuclear: {
     name: 'Nuclear (v1 sine)',
     mode: 'force',
-    expression: 'k * sin(2 * pi * x)',
+    expression: 'k * n_i * n_j * sin(2 * pi * x)',
     range: 'short',
     cutoff: 10,
     softening: 0,

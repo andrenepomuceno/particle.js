@@ -12,6 +12,8 @@ export interface Particle {
   charge: number;
   spin: number;
   parity: number;
+  /** v1's nuclear charge: couples the nuclear force through n_i·n_j. */
+  nuclearCharge: number;
   color: Vec3;
 }
 
@@ -20,7 +22,7 @@ export const TEXEL = 4;
 /**
  * Struct-of-arrays layout mirroring the GPU textures one-to-one:
  * position = (x, y, z, kind), velocity = (vx, vy, vz, time),
- * attributes = (mass, charge, spin, parity), color = (r, g, b, 0).
+ * attributes = (mass, charge, spin, parity), color = (r, g, b, nuclear charge).
  */
 export class ParticleSet {
   readonly position: Float32Array;
@@ -71,6 +73,7 @@ export class ParticleSet {
       charge: a[o + 1]!,
       spin: a[o + 2]!,
       parity: a[o + 3]!,
+      nuclearCharge: c[o + 3]!,
       color: [c[o]!, c[o + 1]!, c[o + 2]!],
     };
   }
@@ -109,7 +112,7 @@ export class ParticleSet {
     this.position.set([...particle.position, particle.kind], o);
     this.velocity.set([...particle.velocity, particle.time], o);
     this.attributes.set([particle.mass, particle.charge, particle.spin, particle.parity], o);
-    this.color.set([...particle.color, 0], o);
+    this.color.set([...particle.color, particle.nuclearCharge], o);
   }
 
   private copySlot(from: number, to: number): void {
@@ -134,7 +137,7 @@ export class ParticleSet {
 export function assertValidParticle(particle: Particle, index: number): void {
   const numbers = [
     ...particle.position, ...particle.velocity, ...particle.color,
-    particle.time, particle.mass, particle.charge, particle.spin, particle.parity,
+    particle.time, particle.mass, particle.charge, particle.spin, particle.parity, particle.nuclearCharge,
   ];
   if (!numbers.every(Number.isFinite)) {
     throw new Error(`particle #${index} has a non-finite field: ${JSON.stringify(particle)}`);
@@ -157,6 +160,7 @@ export function defaultParticle(overrides: Partial<Particle> = {}): Particle {
     charge: 0,
     spin: 0,
     parity: 1,
+    nuclearCharge: 0,
     color: [0, 0, 0],
     ...overrides,
   };

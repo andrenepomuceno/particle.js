@@ -22,6 +22,7 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   ...perParticle('q', 'electric charge', (k) => `attr${k}.y`),
   ...perParticle('s', 'spin', (k) => `attr${k}.z`),
   ...perParticle('p', 'parity', (k) => `attr${k}.w`),
+  ...perParticle('n', 'nuclear charge', (k) => `color${k}.w`),
   ...perParticle('cr', 'red color charge', (k) => `color${k}.x`),
   ...perParticle('cg', 'green color charge', (k) => `color${k}.y`),
   ...perParticle('cb', 'blue color charge', (k) => `color${k}.z`),

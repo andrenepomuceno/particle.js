@@ -3,7 +3,7 @@ import {
   type Texture,
 } from 'three';
 
-export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity'] as const;
+export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear'] as const;
 export type ColorMode = (typeof COLOR_MODES)[number];
 
 export const PARTICLE_STYLES = ['spherow', 'flat'] as const;
@@ -65,11 +65,11 @@ vec3 signedColor(float value) {
   return vec3(0.75);
 }
 
-// v1 generateParticleColor: charge picks blue/red/gray, color charge and odd parity tint it.
-vec3 meaningfulColor(vec4 attr, vec3 color) {
+// v1 generateParticleColor: charge picks blue/red/gray, color charge and negative nuclear charge tint it.
+vec3 meaningfulColor(vec4 attr, vec4 color) {
   vec3 rgb = attr.y > 0.0 ? vec3(0.0, 0.0, 6.0) : attr.y < 0.0 ? vec3(6.0, 0.0, 0.0) : vec3(2.0);
-  if (any(notEqual(color, vec3(0.0)))) rgb += 2.0 * (displayColor(color) - 0.15) / 0.85;
-  if (attr.w < 0.0) rgb.g += 1.0;
+  if (any(notEqual(color.rgb, vec3(0.0)))) rgb += 2.0 * (displayColor(color.rgb) - 0.15) / 0.85;
+  if (color.w < 0.0) rgb.g += 1.0;
   return normalize(rgb);
 }
 
@@ -78,16 +78,17 @@ void main() {
   ivec2 coord = ivec2(index % uWidth, index / uWidth);
   vec4 pos = texelFetch(uPosition, coord, 0);
   vec4 attr = texelFetch(uAttributes, coord, 0);
-  vec3 color = texelFetch(uColor, coord, 0).rgb;
+  vec4 color = texelFetch(uColor, coord, 0);
   vVelocity = texelFetch(uVelocity, coord, 0).xyz;
   vCenter = pos.xyz;
 
   if (uColorMode == 0) vColor = meaningfulColor(attr, color);
-  else if (uColorMode == 1) vColor = displayColor(color);
+  else if (uColorMode == 1) vColor = displayColor(color.rgb);
   else if (uColorMode == 2) vColor = speedColor(length(vVelocity), uAverageSpeed);
   else if (uColorMode == 3) vColor = mix(vec3(0.5), vec3(1.0), clamp(log(attr.x + 1.0) * 0.3, 0.0, 1.0));
   else if (uColorMode == 4) vColor = signedColor(attr.z);
-  else vColor = signedColor(attr.w);
+  else if (uColorMode == 5) vColor = signedColor(attr.w);
+  else vColor = signedColor(color.w);
   if (pos.w == 2.0) vColor *= 0.6;
   vHighlight = index == uHighlight ? 1.0 : 0.0;
 

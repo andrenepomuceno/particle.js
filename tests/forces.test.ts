@@ -5,7 +5,7 @@ import { generateVelocityShader, POSITION_SHADER } from '../src/engine/shaders/c
 
 
 const pair: PairScope = {
-  r: 2, m_i: 1, m_j: 1, q_i: 1, q_j: 3, s_i: 0.5, s_j: -0.5, p_i: 1, p_j: -1,
+  r: 2, m_i: 1, m_j: 1, q_i: 1, q_j: 3, s_i: 0.5, s_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: 0.5, cg_j: 1, cb_j: 0, t_i: 4, t_j: 5, time: 9,
 };
 
@@ -23,6 +23,12 @@ describe('compileForce', () => {
   it('expands x = r / cutoff before differentiating a short-range potential', () => {
     const force = compileForce(makeForce({ mode: 'potential', range: 'short', cutoff: 4, expression: 'k * x^2', params: [{ name: 'k', value: 1 }] }));
     expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(-2 * 2 / 16, 12);
+  });
+
+  it('exposes nuclear charge', () => {
+    const force = compileForce(makeForce({ expression: 'n_i * n_j', params: [] }));
+    expect(force.evaluate(forceScope(force, pair))).toBe(6);
+    expect(forceToGlsl(force, 0)).toBe('(color1.w * color2.w)');
   });
 
   it('exposes color, spin, parity and clocks', () => {

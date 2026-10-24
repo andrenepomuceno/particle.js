@@ -131,6 +131,7 @@ export function ParticleView() {
         <NumberField label="Charge" value={particle.charge} onCommit={(charge) => edit({ charge })} />
         <NumberField label="Spin" value={particle.spin} onCommit={(spin) => edit({ spin })} />
         <NumberField label="Parity" value={particle.parity} onCommit={(parity) => edit({ parity })} />
+        <NumberField label="Nuclear charge" value={particle.nuclearCharge} onCommit={(nuclearCharge) => edit({ nuclearCharge })} />
         {(['red', 'green', 'blue'] as const).map((channel, k) => (
           <NumberField key={channel} label={`Color ${channel}`} value={particle.color[k]!}
             onCommit={(v) => edit({ color: particle.color.map((c, j) => (j === k ? v : c)) as typeof particle.color })} />
@@ -174,6 +175,7 @@ export function GeneratorView() {
         <SelectField label="Charge sign" value={g.chargeSpread} options={['fixed', 'random sign'] as const} onChange={(chargeSpread) => set({ chargeSpread })} />
         <NumberField label="Spin" value={g.spin} onCommit={(spin) => set({ spin })} />
         <NumberField label="Parity" value={g.parity} onCommit={(parity) => set({ parity })} />
+        <NumberField label="Nuclear charge" value={g.nuclearCharge} onCommit={(nuclearCharge) => set({ nuclearCharge })} />
         {(['red', 'green', 'blue'] as const).map((channel, k) => (
           <NumberField key={channel} label={`Color ${channel}`} value={g.color[k]!}
             onCommit={(v) => set({ color: g.color.map((c, j) => (j === k ? v : c)) as typeof g.color })} />

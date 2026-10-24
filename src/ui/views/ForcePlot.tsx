@@ -9,7 +9,7 @@ const SAMPLES = 240;
 const SYMLOG_RATIO = 1e3;
 
 export const PLOT_PAIR: Omit<PairScope, 'r'> = {
-  m_i: 1, m_j: 1, q_i: 1, q_j: 1, s_i: 0.5, s_j: 0.5, p_i: 1, p_j: 1,
+  m_i: 1, m_j: 1, q_i: 1, q_j: 1, s_i: 0.5, s_j: 0.5, p_i: 1, p_j: 1, n_i: 1, n_j: 1,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: -1, cg_j: 0, cb_j: 0, t_i: 0, t_j: 0, time: 0,
 };
 

@@ -135,6 +135,7 @@ export interface PairScope {
   q_i: number; q_j: number;
   s_i: number; s_j: number;
   p_i: number; p_j: number;
+  n_i: number; n_j: number;
   cr_i: number; cg_i: number; cb_i: number;
   cr_j: number; cg_j: number; cb_j: number;
   t_i: number; t_j: number;

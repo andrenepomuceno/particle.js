@@ -428,7 +428,7 @@ function water2() {
       "each hydrogen as a uud triplet 2.85 fm away at ±30° with its electron around it, bound by v1's powAXv3 nuclear force and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
     seed: 1,
-    view: { cameraDistance: 15000, particleRadius: 120, colorMode: 'charge' },
+    view: { cameraDistance: 140000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100 * range, restitution: 0.9 },
     forces: [powAXv3(range, u.nuclear), coulomb(u.coulomb, 6)],
     groups,
@@ -477,7 +477,7 @@ function essentialElements() {
       "(charges and nuclear charge flipped). Each atom is 3Z up + 3Z down quarks and Z electrons under v1's powAXv2 nuclear force and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
     seed: 1,
-    view: { cameraDistance: 45000, particleRadius: 120, colorMode: 'charge' },
+    view: { cameraDistance: 115000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: half, restitution: 0.9 },
     forces: [powAXv2(range, u.nuclear), coulomb(u.coulomb, 6)],
     groups,

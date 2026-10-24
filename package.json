@@ -19,7 +19,8 @@
     "parity": "node scripts/parity.mjs",
     "smoke:all": "node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,dipole-chains,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs",
     "cluster-stats": "node scripts/cluster-stats.mjs",
-    "snap:library": "node scripts/snap.mjs --wait 2500 --scenario all"
+    "snap:library": "node scripts/snap.mjs --wait 2500 --scenario all",
+    "kpis": "node scripts/scenario-kpis.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

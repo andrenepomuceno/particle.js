@@ -7,7 +7,7 @@
   "description": "v1's quark-model mix of life's elements scattered at random (192 H, 47 N, 55 C, 20 O, 2 Mg, 1 Fe, 4 Zn, 3 Cu); 26 of them are antimatter (charges and nuclear charge flipped). Each atom is 3Z up + 3Z down quarks and Z electrons under v1's powAXv2 nuclear force and Coulomb. Gravity (G ≈ 7e-39) is negligible and omitted.",
   "seed": 1,
   "view": {
-    "cameraDistance": 45000,
+    "cameraDistance": 115000,
     "particleRadius": 120,
     "colorMode": "charge"
   },

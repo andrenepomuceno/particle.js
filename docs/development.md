@@ -10,6 +10,7 @@
 | `npm run snap -- --scenario a,b --wait ms [--press j]` | headless Chromium screenshots to `reports/screenshots/` (`--press` sends keys first, e.g. `j` for the force field); fails on console/shader errors or non-finite state |
 | `npm run smoke` | drives keyboard and mouse gestures headlessly, prints PASS/FAIL per gesture |
 | `npm run parity` | runs the same steps on the GPU and on the float64 `referenceStep` inside the page, and the field probe pass against `referenceField`; fails above a float32 tolerance |
+| `npm run kpis` | scenario quality KPIs on the GPU (health, escapes, runaway speeds, clusters, framing); table + `reports/kpis.json`; `--scenario id,…` and `--steps n` |
 | `npm run snap:library` | every bundled scenario through `snap` (heavier: several have ~10k particles) |
 | `npm run smoke:all` | `parity`, every scenario through `snap`, then `smoke` |
 | `node scripts/cluster-stats.mjs --scenario id --link 5,30 --at 10,60` | runs a scenario headless and reports cluster sizes and color neutrality at each time; used to tune bound-state scenarios |

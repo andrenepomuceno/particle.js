@@ -7,7 +7,7 @@
   "description": "v1's quark-model water: a 12×12 lattice of H2O molecules, oxygen as 24 up + 24 down quarks with 8 electrons and each hydrogen as a uud triplet 2.85 fm away at ±30° with its electron around it, bound by v1's powAXv3 nuclear force and Coulomb. Gravity (G ≈ 7e-39) is negligible and omitted.",
   "seed": 1,
   "view": {
-    "cameraDistance": 15000,
+    "cameraDistance": 140000,
     "particleRadius": 120,
     "colorMode": "charge"
   },

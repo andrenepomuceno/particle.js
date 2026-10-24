@@ -17,7 +17,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
     ~~`v1-branding-and-about.md`~~ (done), ~~`v1-scenarios-port.md`~~ (13 ported; scripted parts pending the timeline), analytics (decided: keep, with notice; done)
 11. Vector spin (in progress), ~~collisions~~ (done), then
     ~~`scenario-timeline.md`~~ (done)
-12. `scenario-quality-kpis.md` (user request: cheap automated scenario KPIs), then
+12. ~~`scenario-quality-kpis.md`~~ (done: `npm run kpis`), then
     `v1-favorite-scenarios.md` (the v1 scenarios the user likes; checked with the KPIs)
 13. ~~`adopt-shader-autodiff.md`~~ (done) → ~~`vector-forces-from-potential.md`~~ (done), then ~~`velocity-dependent-forces.md`~~ (done)
     (user decision 2026-10-24: force + potential suffice, no general Lagrangian)

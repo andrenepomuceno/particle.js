@@ -22,3 +22,17 @@ Per scenario, over a short horizon (default a few thousand steps):
 
 Thresholds per KPI give pass / warn; scenarios may declare expected behavior (e.g. "gas" vs
 "clusters") later if one rule does not fit all. Cost target: whole library well under a minute.
+
+## Result
+
+`npm run kpis` (scripts/scenario-kpis.mjs): per scenario, GPU run of `--steps` (2000) steps, O(N)
+metrics at start/half/end in the page: finite state, escapes (> 10× the initial rms radius),
+crossings (mean speed × time / rms: frozen < 1e-3, runaway > 100; a kinetic-energy ratio is
+meaningless for scenes starting at rest), clusters by a hash grid at half the mean spacing (count
+and largest fraction → a structure score), visibility at start (framing) and end. Whole library in
+~75 s. Exit 1 only on non-finite state; the rest are warnings (hints, not verdicts: lattice
+formation and collective drifts do not register as clusters).
+
+First run findings: Water 2 and Essential Elements started 3% / 38% visible → cameras fixed.
+Open: Strong Blob and Standard Model show runaway speeds and 25–50% escapes (to review with the
+favorite-scenarios port); The Egg, Air, Nuclei spread out of view over time (physical).

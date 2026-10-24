@@ -14,7 +14,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 8. `short-range-neighbor-grid.md` + `benchmark-script.md`
 9. `test-suite-and-coverage-gate.md`
 10. Release 2.0 blockers: ~~`particle-budget.md`~~ (done), ~~`field-visualization.md`~~ (done),
-    ~~`v1-branding-and-about.md`~~ (done), `v1-scenarios-port.md`, analytics (decided: keep, with notice; done)
+    ~~`v1-branding-and-about.md`~~ (done), ~~`v1-scenarios-port.md`~~ (13 ported; scripted parts pending the timeline), analytics (decided: keep, with notice; done)
 11. Vector spin (in progress), ~~collisions~~ (done), then
     `scenario-timeline.md` (user request: v1 scripted animations)
 12. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`

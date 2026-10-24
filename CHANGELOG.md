@@ -6,6 +6,9 @@
   settings at given simulation times, captions with live values, camera transitions. The Egg runs
   v1's script.
 - Expressions reference dialog; collapsible force cards.
+- Zooming far out no longer hides the particles: the camera's near/far planes follow the orbit
+  distance (the far plane was fixed at 1e6), and spherow particles only a few pixels wide are drawn
+  as discs, as in v1 (the raymarched sphere missed every pixel center).
 - Browser scripts run on the real GPU (fail on a software renderer); SwiftShader only on CI.
 
 ## 2.0.0-rc.1

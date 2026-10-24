@@ -12,6 +12,8 @@ export type ParticleStyle = (typeof PARTICLE_STYLES)[number];
 
 /** Sphere radius inside the raymarched sprite, as a fraction of the sprite's half-size. */
 const SPHERE_FRACTION = 0.6;
+/** Sprite size (px) below which the spherow style falls back to a flat disc. */
+const MIN_SPHEROW_PIXELS = '6.0';
 
 const COMMON = /* glsl */ `
 ${V1_PALETTE_GLSL}
@@ -40,6 +42,7 @@ out vec3 vColor;
 out vec3 vVelocity;
 out vec3 vCenter;
 out float vHighlight;
+out float vPixels;
 ${COMMON}
 
 // Anticolor shows as the complementary color: anti-red (-1, 0, 0) is cyan.
@@ -95,6 +98,7 @@ void main() {
   float diameter = 2.0 * uRadius * uScale / -mvPosition.z;
   if (uStyle == 0) diameter /= ${SPHERE_FRACTION};
   gl_PointSize = max(diameter * (vHighlight > 0.0 ? 1.6 : 1.0), 2.0);
+  vPixels = gl_PointSize;
 }
 `;
 
@@ -103,6 +107,7 @@ in vec3 vColor;
 in vec3 vVelocity;
 in vec3 vCenter;
 in float vHighlight;
+in float vPixels;
 uniform int uStyle;
 uniform float uAverageSpeed;
 out vec4 fragmentColor;
@@ -225,7 +230,9 @@ void flatDisc() {
 }
 
 void main() {
-  if (uStyle == 0) spherow();
+  // A few-pixel sprite has too few pixel centers to hit the raymarched sphere (it fills only part of
+  // the sprite), so distant particles would vanish; draw them as v1 did, as plain discs.
+  if (uStyle == 0 && vPixels >= ${MIN_SPHEROW_PIXELS}) spherow();
   else flatDisc();
 }
 `;

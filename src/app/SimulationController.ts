@@ -146,6 +146,9 @@ const DEFAULT_CAPACITY = 128 * 128;
 /** 256² slots: the O(N²) step is already far from interactive there (v1 topped out at 50k in its record build). */
 export const MAX_CAPACITY = 256 * 256;
 const NOTICE_LIFETIME_MS = 6000;
+/** Near/far planes as fractions of the orbit distance (depth range 1e6). */
+const DEPTH_NEAR = 1e-3;
+const DEPTH_FAR = 1e3;
 /** The probe pass is O(probes × N) plus a readback, so it is not repeated every frame. */
 const FIELD_INTERVAL_MS = 100;
 /** The color scale needs a readback (pipeline stall), so it is refreshed far less often than the field. */
@@ -976,7 +979,22 @@ export class SimulationController {
     this.arrows.setViewport(this.renderer.domElement.width, height, this.camera.fov);
   }
 
-  private render(): void {
+/**
+   * Near and far planes follow the orbit distance (scenes span 10 to 1e6 units): a fixed far plane
+   * clipped zoomed-out worlds, and a fixed huge range would waste depth precision.
+   */
+  private fitDepthRange(): void {
+    const distance = Math.max(this.camera.position.distanceTo(this.controls.target), 1e-6);
+    const near = distance * DEPTH_NEAR;
+    const far = distance * DEPTH_FAR;
+    if (near === this.camera.near && far === this.camera.far) return;
+    this.camera.near = near;
+    this.camera.far = far;
+    this.camera.updateProjectionMatrix();
+  }
+
+    private render(): void {
+    this.fitDepthRange();
     this.points.bind({
       position: this.gpu.positionTexture,
       velocity: this.gpu.velocityTexture,

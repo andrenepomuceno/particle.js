@@ -119,8 +119,33 @@ describe('GLSL generation', () => {
     expect(() => plain.glsl('p', 'float r', 0, 'potential')).toThrow(/has no potential/);
   });
 
-  it('turns library name clashes into validation problems', () => {
-    expect(() => compileForce(makeForce({ expression: 'mix * r', params: [{ name: 'mix', value: 1 }] }))).toThrow(ForceValidationError);
+  it('keeps the sign of negative constants under powers', () => {
+    const force = compileForce(makeForce({ expression: '(-2)^n / r + (1 - 3)^n', params: [{ name: 'n', value: 2 }] }));
+    expect(force.evaluate(forceScope(force, { ...pair, r: 2 }))).toBe(2 + 4);
+  });
+
+  it('rejects constants outside float32 at compile time', () => {
+    for (const expression of ['1e39 * r', '1e-50 * r']) {
+      expect(() => compileForce(makeForce({ expression, params: [] })), expression).toThrow(/outside float32 range/);
+    }
+    expect(() => compileForce(makeForce({ expression: '0 * r + 1e-30 * r', params: [] }))).not.toThrow();
+  });
+
+  it('accepts large integer powers and reports library errors without generated-text offsets', () => {
+    expect(() => compileForce(makeForce({ mode: 'potential', expression: 'r^-48 + r^40', params: [] }))).not.toThrow();
+    expect(() => compileForce(makeForce({ expression: 'r^2000', params: [] }))).toThrow(/^(?!.*\(at \d+\)).*exponent/);
+  });
+
+  it('reads only what the differentiated force uses', () => {
+    const force = compileForce(makeForce({ mode: 'potential', expression: 'q_i * q_j * t_j + k / r', params: [{ name: 'k', value: 1 }] }));
+    expect([...force.reads].sort()).toEqual(['k']);
+    expect([...force.potentialReads].sort()).toEqual(['k', 'q_i', 'q_j', 't_j']);
+  });
+
+  it('turns library name clashes into validation problems, used or not', () => {
+    for (const name of ['mix', 'input', 'E']) {
+      expect(() => compileForce(makeForce({ expression: 'r', params: [{ name, value: 1 }] })), name).toThrow(/reserved in generated shader code/);
+    }
   });
 
   it('emits one function and accumulation per force', () => {

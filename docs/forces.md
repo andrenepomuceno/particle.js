@@ -133,10 +133,13 @@ complementary color (anti-red is cyan). Code: `src/engine/colorCharge.ts`.
 
 ## GPU notes
 
-- Integer powers up to 8 (`r^-2`, `q^3`) are unrolled into multiplications because GLSL
-  `pow()` is undefined for negative bases. Exponents that are parameters or expressions
-  (e.g. the `n - 1` from differentiating `(r - r0)^n`) go through `spow()`, which matches
-  `Math.pow` for negative bases with integer exponents. A negative base with a
-  non-integer exponent gives NaN on both CPU and GPU.
+- Expressions compile through shader-autodiff: shared subexpressions are computed once and
+  integer powers (`r^-12`, `q^3`, up to ±1024) are unrolled by repeated squaring. Other powers go
+  through `spow()`, which matches `Math.pow` for negative bases with integer exponents (GLSL
+  `pow()` is undefined there). A negative base with a non-integer exponent gives NaN on CPU and GPU.
+- Constants must fit float32 (|c| between 1.2e-38 and 3.4e38, or 0); others are rejected, since
+  the GPU would see 0 or ∞ while the float64 reference would not. Rescale the units instead.
+- Parameter names may not clash with GLSL/WGSL/JS keywords or the library's built-ins (`input`,
+  `mix`, `E`, …); the editor reports the clash.
 - The pair loop is O(N²) for all forces today; short-range forces only skip the
   evaluation, not the visit. See `tasks/inbox/short-range-neighbor-grid.md`.

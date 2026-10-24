@@ -1,5 +1,5 @@
-import { createProgram, type Handle, type Program } from 'shader-autodiff';
-import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, toInfix, variable, type Expr } from '../expr/ast';
+import { createProgram, ExpressionError, type Handle, type Limits, type Program } from 'shader-autodiff';
+import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, num, toInfix, variable, type Expr } from '../expr/ast';
 import { colorDot, colorPlane } from '../colorCharge';
 import type { CompiledFn } from '../expr/evaluate';
 import type { Vec3 } from '../particles';
@@ -9,6 +9,14 @@ import type { ForceDefinition } from './types';
 import { PAIR_VARIABLES, PAIR_VARIABLE_NAMES } from './variables';
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/**
+ * shader-autodiff's guards, raised well above its defaults: toInfix parenthesises every operation
+ * (depth grows with each term), and integer powers are unrolled by squaring, so r^-48 is cheap.
+ */
+const LIMITS: Partial<Limits> = { maxExponent: 1024, maxDepth: 1000, maxLength: 200_000, maxNodes: 50_000 };
+/** Smallest normal and largest finite float32: constants outside are 0 or ∞ on the GPU but not on the CPU. */
+const FLOAT32_MIN = 1.1754944e-38;
+const FLOAT32_MAX = 3.4028235e38;
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
@@ -18,8 +26,10 @@ const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...
  */
 export interface CompiledForce {
   definition: ForceDefinition;
-  /** Pair variables, parameters and `cutoff` the expression reads (r excluded). */
+  /** Pair variables, parameters and `cutoff` the force magnitude reads (r excluded). */
   reads: ReadonlySet<string>;
+  /** Same for V(r); empty in force mode. */
+  potentialReads: ReadonlySet<string>;
   /** Signed force magnitude as a function of r; positive pushes the pair apart. */
   evaluate: CompiledFn;
   /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
@@ -49,10 +59,24 @@ export function validateForceShape(def: ForceDefinition): string[] {
     else if (param.name.startsWith('_') || param.name.includes('__')) problems.push(`parameter name '${param.name}' may not start with '_' or contain '__'`);
     else if (RESERVED.has(param.name)) problems.push(`parameter name '${param.name}' is reserved`);
     else if (seen.has(param.name)) problems.push(`parameter '${param.name}' is declared twice`);
+    else {
+      const clash = libraryNameProblem(param.name);
+      if (clash) problems.push(`parameter name '${param.name}' is reserved in generated shader code (${clash})`);
+    }
     seen.add(param.name);
     if (!Number.isFinite(param.value)) problems.push(`parameter '${param.name}' must be finite, got ${param.value}`);
   }
   return problems;
+}
+
+/** shader-autodiff refuses names that clash with GLSL/WGSL/JS keywords and its built-ins. */
+function libraryNameProblem(name: string): string | undefined {
+  try {
+    createProgram({ parameters: [name] });
+    return undefined;
+  } catch (error) {
+    return (error as Error).message;
+  }
 }
 
 export function compileForce(def: ForceDefinition): CompiledForce {
@@ -74,33 +98,56 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   if (problems.length > 0 || !parsed) throw new ForceValidationError(def.name, problems);
 
   const inR = simplify(substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff'))));
-  const nonFinite = nonFiniteConstants(inR);
+  const badConstants = outOfFloat32(inR);
+  const nonFinite = badConstants.filter((c) => !Number.isFinite(c));
   if (nonFinite.length > 0) {
     throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
   }
-  const reads = new Set([...collectVariables(inR)].filter((name) => name !== 'r' && !(name in CONSTANTS)));
+  if (badConstants.length > 0) {
+    throw new ForceValidationError(def.name, [`constant(s) ${badConstants.join(', ')} outside float32 range (|c| between ${FLOAT32_MIN} and ${FLOAT32_MAX}, or 0): the GPU would compute 0 or ∞ while the CPU would not; rescale the units`]);
+  }
+  const names = [...collectVariables(inR)].filter((name) => name !== 'r' && !(name in CONSTANTS));
   let program: Program;
   let magnitude: Handle;
   let potential: Handle | undefined;
   try {
-    program = createProgram({ variables: ['r'], parameters: [...reads] });
-    const source = program.expression(toInfix(inlineConstants(inR)));
+    program = createProgram({ variables: ['r'], parameters: names, limits: LIMITS });
+    const source = program.expression(toInfix(Object.entries(CONSTANTS).reduce((e, [name, value]) => substitute(e, name, num(value)), inR)));
     potential = def.mode === 'potential' ? source : undefined;
     magnitude = potential === undefined ? source : program.neg(program.derivative(potential, 'r'));
   } catch (error) {
-    throw new ForceValidationError(def.name, [(error as Error).message]);
+    // Offsets in library messages point into our generated text, not what the user typed.
+    throw new ForceValidationError(def.name, [error instanceof ExpressionError ? error.reason : (error as Error).message]);
   }
-  return {
+  const reads = readNames(program, magnitude, names);
+  const potentialReads = potential === undefined ? new Set<string>() : readNames(program, potential, names);
+  const compiled: CompiledForce = {
     definition: def,
     reads,
+    potentialReads,
     evaluate: jsFunction(program, magnitude),
     evaluatePotential: potential === undefined ? undefined : jsFunction(program, potential),
     glsl: (name, args, index, which = 'magnitude') => {
       const handle = which === 'potential' ? potential : magnitude;
       if (handle === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
-      return glslFunction(program, handle, name, args, index, def, reads);
+      return glslFunction(program, handle, name, args, index, def, which === 'potential' ? potentialReads : reads);
     },
   };
+  // Emit once now so code-generation failures surface as validation problems, not at shader build.
+  try {
+    compiled.glsl('check', 'float r', 0);
+    if (potential !== undefined) compiled.glsl('check', 'float r', 0, 'potential');
+  } catch (error) {
+    throw new ForceValidationError(def.name, [(error as Error).message]);
+  }
+  return compiled;
+}
+
+/** Names the emitted code of `handle` actually uses: a term constant in r drops out of -dV/dr. */
+function readNames(program: Program, handle: Handle, names: readonly string[]): Set<string> {
+  const glsl = program.glsl({ name: 'reads', returns: { type: 'float', components: [handle] } });
+  const used = new Set(glsl.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g));
+  return new Set(names.filter((name) => used.has(name)));
 }
 
 /** The library's emitted JS, wrapped to the scope-in, number-out shape the CPU code uses. */
@@ -132,17 +179,6 @@ function glslFunction(program: Program, handle: Handle, name: string, args: stri
   return `float ${name}(${args}) {${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
 }
 
-/** Named constants as numbers: the library spells e as E. */
-function inlineConstants(expr: Expr): Expr {
-  switch (expr.kind) {
-    case 'num': return expr;
-    case 'var': return expr.name in CONSTANTS ? { kind: 'num', value: CONSTANTS[expr.name]! } : expr;
-    case 'neg': return { kind: 'neg', arg: inlineConstants(expr.arg) };
-    case 'bin': return { ...expr, left: inlineConstants(expr.left), right: inlineConstants(expr.right) };
-    case 'call': return { ...expr, args: expr.args.map(inlineConstants) };
-  }
-}
-
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
   const params = new Set(def.params.map((p) => p.name));
   const allowed = PAIR_VARIABLES.filter((v) => def.range === 'short' || !v.shortRangeOnly).map((v) => v.name);
@@ -157,22 +193,22 @@ function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
     });
 }
 
-function nonFiniteConstants(expr: Expr, found: number[] = []): number[] {
+function outOfFloat32(expr: Expr, found: number[] = []): number[] {
   switch (expr.kind) {
     case 'num':
-      if (!Number.isFinite(expr.value)) found.push(expr.value);
+      if (expr.value !== 0 && !(Math.abs(expr.value) >= FLOAT32_MIN && Math.abs(expr.value) <= FLOAT32_MAX)) found.push(expr.value);
       break;
     case 'var':
       break;
     case 'neg':
-      nonFiniteConstants(expr.arg, found);
+      outOfFloat32(expr.arg, found);
       break;
     case 'bin':
-      nonFiniteConstants(expr.left, found);
-      nonFiniteConstants(expr.right, found);
+      outOfFloat32(expr.left, found);
+      outOfFloat32(expr.right, found);
       break;
     case 'call':
-      expr.args.forEach((arg) => nonFiniteConstants(arg, found));
+      expr.args.forEach((arg) => outOfFloat32(arg, found));
       break;
   }
   return found;

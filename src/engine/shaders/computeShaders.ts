@@ -44,6 +44,10 @@ function reads(forces: readonly CompiledForce[], names: readonly string[]): bool
   return forces.some((f) => names.some((name) => f.reads.has(name)));
 }
 
+function readsPotential(forces: readonly CompiledForce[], names: readonly string[]): boolean {
+  return forces.some((f) => names.some((name) => f.potentialReads.has(name)));
+}
+
 // GLSL pow() is undefined for negative bases; the emitted code calls spow, which matches Math.pow.
 const SIGNED_POW = `float spow(float b, float e) {
   if (b >= 0.0 || fract(e) != 0.0) return pow(b, e);
@@ -289,8 +293,8 @@ function potentialTerm(force: CompiledForce, index: number): string {
  */
 export function generatePotentialShader(forces: readonly CompiledForce[]): string {
   const potentials = forces.filter((f) => f.evaluatePotential);
-  const needsTau2 = reads(potentials, TAU_J_VARIABLES);
-  const fetchSpin2 = reads(potentials, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
+  const needsTau2 = readsPotential(potentials, TAU_J_VARIABLES);
+  const fetchSpin2 = readsPotential(potentials, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   return `${COMMON_UNIFORMS}
 ${SIGNED_POW}
 ${GLSL_COLOR_HELPERS}

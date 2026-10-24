@@ -52,8 +52,9 @@ export function collectVariables(expr: Expr, into = new Set<string>()): Set<stri
 
 export function toInfix(expr: Expr): string {
   switch (expr.kind) {
+    // Parenthesised when negative: in -2^n the power binds first, unlike (-2)^n.
     case 'num':
-      return String(expr.value);
+      return expr.value < 0 ? `(${expr.value})` : String(expr.value);
     case 'var':
       return expr.name;
     case 'neg':

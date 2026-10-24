@@ -5,7 +5,7 @@ import type { SimulationSettings } from '../engine/settings';
 
 /** Settings a timeline may change: the numeric ones (mode, boundary shape and integrator stay fixed). */
 export const TIMELINE_SETTINGS = [
-  'timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution',
+  'timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution',
 ] as const;
 export type TimelineSetting = (typeof TIMELINE_SETTINGS)[number];
 

@@ -13,7 +13,7 @@ const build = (extra: object, seed = 1) => {
 describe('bundled scenario library', () => {
   it('parses every file with unique ids in file-name order', () => {
     expect(SCENARIOS.map((s) => s.id)).toEqual([
-      'galaxy', 'plasma', 'nuclei', 'crystal', 'dipole-chains', 'dipole-crystal', 'radiation-belt', 'cyclotron', 'beam-pinch', 'quarks', 'hadrons', 'welcome', 'the-egg', 'gravity',
+      'galaxy', 'plasma', 'nuclei', 'crystal', 'crystal-slab', 'dipole-chains', 'dipole-crystal', 'radiation-belt', 'cyclotron', 'beam-pinch', 'quarks', 'hadrons', 'welcome', 'the-egg', 'gravity',
       'experiments-4', 'hexagonal-crystal-quarks', 'air', 'water-2', 'essential-elements', 'periodic-table', 'hexagonal-crystal', 'tetragonal-crystal', 'hydrogen', 'helium',
       'water', 'super-nucleus-3d', 'plasma-ball', 'strong-blob', 'standard-model', 'standard-model-1', 'wild-particles', 'planetoid-formation', 'hexagon-1', 'hexagon-2',
       'hexagon-3', 'terrarium', 'sandbox',

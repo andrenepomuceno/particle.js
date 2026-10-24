@@ -28,7 +28,7 @@ v1's quadratic friction (`v /= 1 + c·dt·|v|/m`) is the `quadraticDrag` setting
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
 | `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`) |
-| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`); the rest keeps the defaults |
+| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
 | `groups` | no | list of particle groups (below) |
 | `timeline` | no | scripted events in time order (below; v1's scenario actions) |
@@ -78,7 +78,8 @@ multiple of `size`; with a `grid` shape each cluster takes one site.
 `scale` (optional, default `true`): when the user sets a particle total in the Information dialog,
 every group with `scale: true` grows or shrinks proportionally (whole clusters only) at **constant
 density** — disks, shells and flat boxes grow by √factor, spheres and 3D boxes by ∛factor, grids
-gain columns/rows/layers — and the boundary size and camera distance follow the largest length
+gain columns/rows/layers (only columns/rows in 2D and in a slab box, whose `boundaryDepth` is
+physical and never scales) — and the boundary size and camera distance follow the largest length
 factor. Scaled counts are rounded to whole cycles of the group's `{ "cycle" }` values (and its
 cluster size) so the mix stays balanced. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
 or the particles of one atom.
@@ -141,7 +142,7 @@ when the simulation time first reaches `at`; pausing pauses the script and a res
 | Key | Meaning |
 | --- | --- |
 | `at` | simulation time, ≥ 0; events must be in non-decreasing order |
-| `set` | `"<force name>.<param>"` or `"settings.<key>"` → a number (replace) or `{ "multiply": f }` (scale the value current at that moment). Settings: `timeStep`, `friction`, `quadraticDrag`, `maxSpeed`, `boundarySize`, `restitution`, `collisionDistance`, `collisionRestitution` |
+| `set` | `"<force name>.<param>"` or `"settings.<key>"` → a number (replace) or `{ "multiply": f }` (scale the value current at that moment). Settings: `timeStep`, `friction`, `quadraticDrag`, `maxSpeed`, `boundarySize`, `boundaryDepth`, `restitution`, `collisionDistance`, `collisionRestitution` |
 | `caption` | overlay text (`\n` for new lines; `""` clears it); `{<path>}` shows that value live (it follows later edits too). Braces are reserved for paths |
 | `camera` | `position`, `target` (default origin) and `duration` in wall-clock seconds (0 jumps); eased like v1's camera transitions. Orbiting, resetting or following stops it |
 

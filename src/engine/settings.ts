@@ -15,6 +15,8 @@ export interface SimulationSettings {
   boundary: BoundaryShape;
   /** Sphere radius or box half-size. */
   boundarySize: number;
+  /** Box half-size along z (a slab when smaller than boundarySize); 0 = boundarySize. */
+  boundaryDepth: number;
   /** Fraction of the normal velocity kept after bouncing off the boundary. */
   restitution: number;
   /** Pairs closer than this collide (v1's minimum distance); 0 disables collisions. */
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   maxSpeed: 0,
   boundary: 'none',
   boundarySize: 1000,
+  boundaryDepth: 0,
   restitution: 1,
   collisionDistance: 0,
   collisionRestitution: 1,
@@ -53,6 +56,8 @@ export function validateSettings(settings: SimulationSettings): string[] {
     Number.isFinite(settings.boundarySize) && settings.boundarySize > 0,
     `boundarySize must be > 0, got ${settings.boundarySize}`,
   );
+  check(Number.isFinite(settings.boundaryDepth) && settings.boundaryDepth >= 0, `boundaryDepth must be >= 0 (0 = boundarySize), got ${settings.boundaryDepth}`);
+  check(settings.boundary === 'box' || settings.boundaryDepth === 0, `boundaryDepth applies to box boundaries only (boundary is '${settings.boundary}'), got ${settings.boundaryDepth}`);
   check(
     Number.isFinite(settings.restitution) && settings.restitution >= 0 && settings.restitution <= 1,
     `restitution must be within [0, 1], got ${settings.restitution}`,
@@ -68,7 +73,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
+const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -84,11 +89,11 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
   const settings: SimulationSettings = {
     timeStep: read('timeStep', (v, p) => json.finite(v, p), base?.timeStep),
     friction: read('friction', (v, p) => json.finite(v, p), base?.friction),
-    // Added after snapshots v4 shipped: an absent key means the drag did not exist (0).
-    quadraticDrag: read('quadraticDrag', (v, p) => json.finite(v, p), base?.quadraticDrag ?? 0),
+    quadraticDrag: read('quadraticDrag', (v, p) => json.finite(v, p), base?.quadraticDrag),
     maxSpeed: read('maxSpeed', (v, p) => json.finite(v, p), base?.maxSpeed),
     boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
+    boundaryDepth: read('boundaryDepth', (v, p) => json.finite(v, p), base?.boundaryDepth),
     restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
     collisionDistance: read('collisionDistance', (v, p) => json.finite(v, p), base?.collisionDistance),
     collisionRestitution: read('collisionRestitution', (v, p) => json.finite(v, p), base?.collisionRestitution),
@@ -98,4 +103,18 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
   const problems = validateSettings(settings);
   if (problems.length > 0) json.fail(path, problems.join('; '));
   return settings;
+}
+
+/** Box half-sizes per axis: boundarySize in x and y, boundaryDepth (or boundarySize when 0) in z. */
+export function boxHalfSize(settings: Pick<SimulationSettings, 'boundarySize' | 'boundaryDepth'>): [number, number, number] {
+  const { boundarySize: size, boundaryDepth: depth } = settings;
+  return [size, size, depth > 0 ? depth : size];
+}
+
+/**
+ * Scenes that only extend in a plane: 2D mode, or a slab box (boundaryDepth set). Their particle
+ * count scales in x and y only; a slab's thickness belongs to the physics (a few diameters), not to N.
+ */
+export function isPlanar(settings: Pick<SimulationSettings, 'mode2D' | 'boundary' | 'boundaryDepth'>): boolean {
+  return settings.mode2D || (settings.boundary === 'box' && settings.boundaryDepth > 0);
 }

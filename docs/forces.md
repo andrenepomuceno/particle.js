@@ -24,7 +24,8 @@ Two integrators (Parameters → Integrator), both one force evaluation per step:
 
 After the velocity update both apply friction `v *= e^(−friction·dt)`, v1's quadratic drag
 `v /= 1 + quadraticDrag·dt·|v|/m` (mass-scaled, 0 = off), the optional speed clamp,
-then boundary reflection. Fixed particles never move; every clock `t` advances by `dt`.
+then boundary reflection (a sphere of radius `boundarySize`, or a box of half-size `boundarySize`
+in x and y and `boundaryDepth` in z — a slab when thinner; 0 = cubic). Fixed particles never move; every clock `t` advances by `dt`.
 Measured on a gravitational binary over t = 200 (relative energy error): Euler 7.3e-3 / 1.4e-3,
 Verlet 2.3e-4 / 9.0e-6 at dt = 0.5 / 0.1. `src/engine/cpu/referenceStep.ts` is the executable
 specification of both, and `npm run parity` checks the GPU against it.

@@ -16,6 +16,7 @@ uniform float uQuadraticDrag;
 uniform float uMaxSpeed;
 uniform int uBoundary;
 uniform float uBoundarySize;
+uniform float uBoundaryDepth;
 uniform float uRestitution;
 uniform float uCollisionDistance;
 uniform float uCollisionRestitution;
@@ -25,6 +26,11 @@ uniform sampler2D uAccelerationNext;
 uniform float uClockShift;
 
 #define KIND_FIXED 2.0
+
+// Box half-sizes: boundarySize in x and y, boundaryDepth (a slab) in z when set.
+vec3 boxHalfSize() {
+  return vec3(uBoundarySize, uBoundarySize, uBoundaryDepth > 0.0 ? uBoundaryDepth : uBoundarySize);
+}
 `;
 
 function forceUniforms(force: CompiledForce, index: number): string {
@@ -98,8 +104,9 @@ vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration, float mass) {
       if (outward > 0.0) vel -= (1.0 + uRestitution) * outward * normal;
     }
   } else if (uBoundary == ${BOUNDARY_CODE.box}) {
+    vec3 half_ = boxHalfSize();
     for (int axis = 0; axis < 3; axis++) {
-      if (abs(next[axis]) > uBoundarySize && next[axis] * vel[axis] > 0.0) vel[axis] = -uRestitution * vel[axis];
+      if (abs(next[axis]) > half_[axis] && next[axis] * vel[axis] > 0.0) vel[axis] = -uRestitution * vel[axis];
     }
   }
   return vel;
@@ -151,7 +158,7 @@ vec3 confinePosition(vec3 pos) {
     float len = length(pos);
     if (len > uBoundarySize) pos *= uBoundarySize / len;
   } else if (uBoundary == ${BOUNDARY_CODE.box}) {
-    pos = clamp(pos, vec3(-uBoundarySize), vec3(uBoundarySize));
+    pos = clamp(pos, -boxHalfSize(), boxHalfSize());
   }
   return pos;
 }

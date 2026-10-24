@@ -44,6 +44,15 @@ describe('snapshots', () => {
     expect(parseSnapshot(JSON.stringify(v2)).settings.integrator).toBe('euler');
   });
 
+  it('migrates version 4, which had no quadratic drag or slab depth', () => {
+    // Version 4 particles already have the current shape (vector spin, 2D charge, isospin).
+    const v4 = { ...JSON.parse(JSON.stringify(snapshot())), version: 4 };
+    delete v4.settings.quadraticDrag;
+    delete v4.settings.boundaryDepth;
+    const { settings } = parseSnapshot(JSON.stringify(v4));
+    expect([settings.quadraticDrag, settings.boundaryDepth]).toEqual([0, 0]);
+  });
+
   it('migrates version 1, which had no nuclear charge', () => {
     const v1 = legacy(1);
     delete v1.particles[0].nuclearCharge;
@@ -51,7 +60,8 @@ describe('snapshots', () => {
   });
 
   it.each([
-    [(s: Record<string, unknown>) => (s.version = 5), /at 'version': expected one of 1, 2, 3, 4, got 5/],
+    [(s: Record<string, unknown>) => (s.version = 6), /at 'version': expected one of 1, 2, 3, 4, 5, got 6/],
+    [(s: Record<string, unknown>) => delete (s.settings as Record<string, unknown>).boundaryDepth, /settings.boundaryDepth': is required/],
     [(s: Record<string, unknown>) => delete (s.particles as Record<string, unknown>[])[0]!.nuclearCharge, /particles\[0\].nuclearCharge': expected a finite number/],
     [(s: Record<string, unknown>) => ((s.forces as Record<string, unknown>[])[0]!.expression = 'zz'), /forces\[0\]'.*unknown variable 'zz'/],
     [(s: Record<string, unknown>) => ((s.settings as Record<string, unknown>).timeStep = 0), /timeStep must be > 0/],

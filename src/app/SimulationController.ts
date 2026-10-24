@@ -12,6 +12,7 @@ import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/G
 import type { SpeciesId } from '../engine/species';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk } from '../engine/random';
+import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
@@ -128,6 +129,8 @@ export interface AppState {
   energyError: string | undefined;
   particleRadius: number;
   showAxes: boolean;
+  /** The user's choice to draw the boundary (E); nothing is drawn while the boundary is 'none'. */
+  showBoundary: boolean;
   inspected: { index: number; particle: Particle } | undefined;
   followInspected: boolean;
   selection: number[];
@@ -178,6 +181,8 @@ export class SimulationController {
   private gpu: GpuCompute;
   private points: ParticlePoints;
   private readonly arrows = new FieldArrows();
+  private readonly boundaryLines = new BoundaryLines();
+  private boundaryDrawn = false;
   private fieldDirty = false;
   private fieldTime = NaN;
   private fieldComputedAt = 0;
@@ -216,13 +221,13 @@ export class SimulationController {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.gpu = new GpuCompute(this.renderer, this.set);
     this.points = new ParticlePoints(width);
-    this.scene.add(this.points.object, this.arrows.object, this.axes);
+    this.scene.add(this.points.object, this.arrows.object, this.axes, this.boundaryLines.object);
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -258,6 +263,7 @@ export class SimulationController {
     this.gpu.dispose();
     this.points.dispose();
     this.arrows.dispose();
+    this.boundaryLines.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -288,6 +294,7 @@ export class SimulationController {
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
     const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
     const base = { ...DEFAULT_SETTINGS, ...scenario.settings };
+    // A slab's depth is physical (a few diameters) and stays; planar scenes scale in x and y only.
     const settings = { ...base, boundarySize: base.boundarySize * linearScale };
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
     this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
@@ -407,7 +414,12 @@ export class SimulationController {
     if (problems.length > 0) throw new Error(problems.join('; '));
     const planeChanged = settings.mode2D !== this.state.settings.mode2D;
     this.gpu.setSettings(settings);
+    const previous = this.state.settings;
     this.store.set({ settings });
+    if (['boundary', 'boundarySize', 'boundaryDepth', 'mode2D'].some((key) => settings[key as keyof SimulationSettings] !== previous[key as keyof SimulationSettings]) || !this.boundaryDrawn) {
+      this.boundaryLines.update(settings);
+      this.boundaryDrawn = true;
+    }
     this.refreshCaption();
     this.refreshForceWarnings();
     this.fieldDirty = true;
@@ -598,6 +610,11 @@ export class SimulationController {
     if (!(particleRadius > 0)) throw new Error(`particle radius must be > 0, got ${particleRadius}`);
     this.store.set({ particleRadius });
     this.applyRadius();
+  }
+
+  toggleBoundary(): void {
+    this.boundaryLines.setVisible(!this.state.showBoundary);
+    this.store.set({ showBoundary: !this.state.showBoundary });
   }
 
   toggleAxes(): void {

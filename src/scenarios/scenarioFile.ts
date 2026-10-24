@@ -10,7 +10,7 @@ import { JsonReader } from '../engine/json';
 import { ParticleKind, type Particle, type Vec3 } from '../engine/particles';
 import { inDisk, inSphere, onSphere, pick, uniform, type Rng } from '../engine/random';
 import { COLOR_MODES } from '../engine/render/ParticlePoints';
-import { DEFAULT_SETTINGS, readSettings } from '../engine/settings';
+import { DEFAULT_SETTINGS, isPlanar, readSettings } from '../engine/settings';
 import type { Scenario } from './types';
 
 export const SCENARIO_FORMAT = 'particle.js-v2/scenario';
@@ -384,7 +384,7 @@ export function readScenario(value: unknown, source: string): Scenario {
     forces: (): ForceDefinition[] => forces.map((f) => ({ ...f, id: newForceId(), params: f.params.map((p) => ({ ...p })) })),
     defaultCount: groups.reduce((sum, g) => sum + g.count, 0),
     build: (rng, targetCount) => {
-      const scaled = scaleGroups(groups, targetCount, settings.mode2D);
+      const scaled = scaleGroups(groups, targetCount, isPlanar(settings));
       return { particles: buildParticles(scaled.groups, rng, settings.mode2D), linearScale: scaled.linearScale };
     },
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),

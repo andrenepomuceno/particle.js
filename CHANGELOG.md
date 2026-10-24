@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0 — 2026-10-24
+
+- The boundary is drawn (sphere or box lines; E or Parameters toggles it).
+- Slab boxes: `boundaryDepth` sets the box half-size in z (semi-2D worlds); new scenario
+  *Crystal in a Slab*.
+- Snapshots are version 5 (adds `quadraticDrag` and `boundaryDepth`); versions 1–4 still load.
+
 ## 2.0.0 — 2026-10-24
 
 First stable release of particle.js v2. Changes since 2.0.0-rc.1:

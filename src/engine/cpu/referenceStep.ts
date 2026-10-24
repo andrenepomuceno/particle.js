@@ -1,7 +1,7 @@
 import type { CompiledForce } from '../forces/compile';
 import { pairScope, addPairForce } from './pairs';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
-import type { SimulationSettings } from '../settings';
+import { boxHalfSize, type SimulationSettings } from '../settings';
 
 type Vec = [number, number, number];
 
@@ -149,7 +149,8 @@ function finishVelocity(v: Vec, pos: Vec, a: Vec, mass: number, settings: Simula
       if (outward > 0) v.forEach((c, k) => (v[k] = c - (1 + settings.restitution) * outward * normal[k]!));
     }
   } else if (settings.boundary === 'box') {
-    for (let k = 0; k < 3; k++) if (Math.abs(next[k]!) > size && next[k]! * v[k]! > 0) v[k] = -settings.restitution * v[k]!;
+    const half = boxHalfSize(settings);
+    for (let k = 0; k < 3; k++) if (Math.abs(next[k]!) > half[k]! && next[k]! * v[k]! > 0) v[k] = -settings.restitution * v[k]!;
   }
   return v;
 }
@@ -161,7 +162,8 @@ function confinePosition(p: Vec, settings: SimulationSettings): Vec {
     const len = Math.hypot(...p);
     if (len > size) p.forEach((c, k) => (p[k] = (c * size) / len));
   } else if (settings.boundary === 'box') {
-    p.forEach((c, k) => (p[k] = Math.min(Math.max(c, -size), size)));
+    const half = boxHalfSize(settings);
+    p.forEach((c, k) => (p[k] = Math.min(Math.max(c, -half[k]!), half[k]!)));
   }
   return p;
 }

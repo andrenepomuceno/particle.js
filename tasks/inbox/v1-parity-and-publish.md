@@ -19,3 +19,23 @@ When the code moves into the particle.js repo, keep v1 reachable: build v1 from 
 from v2 (About tab and the menu: "particle.js v1 (classic)"). The Pages workflow builds both: v2 at
 the root, v1 from the tag into `dist/v1/`. Check v1's asset paths work under the sub-path (Vite
 `base`/webpack `publicPath`) and that its analytics/ids do not clash with v2's.
+
+## Release plan (user decisions, 2026-10-24)
+
+Scope of 2.0: softening (done), vector/velocity forces (done), scenario KPIs (done), favorite v1
+scenarios (in progress), then release.
+
+1. v2: version 2.0.0, CHANGELOG section, final /code-review, push, CI green.
+2. Migration, **merge histories on particle.js main** (decided): in a fresh clone of
+   andrenepomuceno/particle.js, tag the current main `v1-final`; `git merge -s ours
+   --allow-unrelated-histories --no-commit v2/main`, then `git read-tree -u --reset v2/main` and
+   commit — both histories kept, tree = v2, no force push.
+3. Frozen v1 at /v1/ (decided: **copy the current build**): the gh-pages branch content (2.8 MB,
+   relative paths only, last deployed 2026-07-02 from 1c75a04) goes to `public/v1/`, so Vite ships it
+   as `dist/v1/`. Link it from About and the menu ("particle.js v1 (classic)").
+4. Pages: the site is a legacy gh-pages project site under the custom domain of the user site
+   (www.andrenepomuceno.com.br/particle.js/). Switch Pages to GitHub Actions (v2's pages.yml, gated
+   to this repo; Vite base './' already relative). Keep the gh-pages branch untouched as a fallback.
+5. Tag `v2.0.0`, check the live site (v2 at the root, v1 at /v1/), then announce.
+The particle.js-v2 repo stays active (decided). Every outward step (push, Pages switch, tags) is
+confirmed with the user before it happens.

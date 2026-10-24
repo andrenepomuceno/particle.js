@@ -151,6 +151,18 @@ describe('referenceStep (velocity Verlet)', () => {
     expect(set.get(1).position[1]).toBeCloseTo(1, 3);
   });
 
+  it('bounds the drift by maxSpeed·dt, including the ½·a·dt² term', () => {
+    const set = setOf(defaultParticle());
+    const state: ReferenceState = { acceleration: new Float64Array([1000, 0, 0]) };
+    referenceStep(set, [], verlet({ timeStep: 0.1, maxSpeed: 2 }), 0, state);
+    expect(set.get(0).position[0]).toBeCloseTo(0.2, 6);
+  });
+
+  it('refuses a stored acceleration for a different particle count', () => {
+    const set = setOf(defaultParticle());
+    expect(() => referenceStep(set, [], verlet(), 0, { acceleration: new Float64Array(6) })).toThrow(/covers 2 particles but the set has 1/);
+  });
+
   it('keeps fixed particles still and advances every clock', () => {
     const set = setOf(defaultParticle({ kind: ParticleKind.fixed }), defaultParticle({ position: [3, 0, 0] }));
     referenceStep(set, [gravity], verlet(), 0);

@@ -48,14 +48,15 @@ function forceAccumulation(force: CompiledForce, index: number): string {
   return `magnitude += ${call};`;
 }
 
-const BOUNDARY_HELPERS = /* glsl */ `
-// Friction, 2D projection, speed clamp, then reflection if the coming drift would leave the boundary.
-vec3 finishVelocity(vec3 vel, vec3 pos) {
+const VELOCITY_HELPERS = /* glsl */ `
+// Friction, 2D projection, speed clamp, then reflection if the coming drift would leave the
+// boundary. The drift is predicted with the acceleration it will use (zero for Euler).
+vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration) {
   if (uFriction > 0.0) vel *= exp(-uFriction * uTimeStep);
   if (uMode2D) vel.z = 0.0;
   float speed = length(vel);
   if (uMaxSpeed > 0.0 && speed > uMaxSpeed) vel *= uMaxSpeed / speed;
-  vec3 next = pos + uTimeStep * vel;
+  vec3 next = pos + uTimeStep * vel + 0.5 * uTimeStep * uTimeStep * acceleration;
   if (uBoundary == ${BOUNDARY_CODE.sphere}) {
     float len = length(next);
     if (len > uBoundarySize) {
@@ -69,6 +70,16 @@ vec3 finishVelocity(vec3 vel, vec3 pos) {
     }
   }
   return vel;
+}
+`;
+
+const POSITION_HELPERS = /* glsl */ `
+// The speed clamp bounds the step length too, so Verlet's ½·a·dt² cannot overshoot it.
+vec3 limitDisplacement(vec3 displacement) {
+  float limit = uMaxSpeed * uTimeStep;
+  float length2 = dot(displacement, displacement);
+  if (uMaxSpeed > 0.0 && length2 > limit * limit) displacement *= limit / sqrt(length2);
+  return displacement;
 }
 
 vec3 confinePosition(vec3 pos) {
@@ -127,7 +138,7 @@ const PARTICLE_HEADER = /* glsl */ `
 /** Semi-implicit Euler, velocity half: v += F/m·dt, using positions x_n. */
 export function generateVelocityShader(forces: readonly CompiledForce[]): string {
   return `${COMMON_UNIFORMS}
-${BOUNDARY_HELPERS}
+${VELOCITY_HELPERS}
 ${totalForceFunction(forces)}
 
 void main() {
@@ -144,7 +155,7 @@ ${PARTICLE_HEADER}
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
   vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), tau1);
   vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x;
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz), tau1 + uTimeStep);
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
 }
 `;
 }
@@ -171,7 +182,7 @@ ${PARTICLE_HEADER}
 
 /** Velocity Verlet, drift: x' = x + v·dt + ½·a·dt². */
 export const VERLET_POSITION_SHADER = `${COMMON_UNIFORMS}
-${BOUNDARY_HELPERS}
+${POSITION_HELPERS}
 void main() {
 ${PARTICLE_HEADER}
   if (inactive || fixedParticle) {
@@ -179,14 +190,14 @@ ${PARTICLE_HEADER}
     return;
   }
   vec3 acceleration = texelFetch(uAcceleration, coord1, 0).xyz;
-  vec3 pos = positionTexel.xyz + uTimeStep * velocityTexel.xyz + 0.5 * uTimeStep * uTimeStep * acceleration;
-  gl_FragColor = vec4(confinePosition(pos), positionTexel.w);
+  vec3 displacement = uTimeStep * velocityTexel.xyz + 0.5 * uTimeStep * uTimeStep * acceleration;
+  gl_FragColor = vec4(confinePosition(positionTexel.xyz + limitDisplacement(displacement)), positionTexel.w);
 }
 `;
 
 /** Velocity Verlet, kick: v' = v + ½(a + a')·dt, with texturePosition already at x'. */
 export const VERLET_VELOCITY_SHADER = `${COMMON_UNIFORMS}
-${BOUNDARY_HELPERS}
+${VELOCITY_HELPERS}
 void main() {
 ${PARTICLE_HEADER}
   if (inactive) {
@@ -198,9 +209,9 @@ ${PARTICLE_HEADER}
     gl_FragColor = vec4(0.0, 0.0, 0.0, tau1 + uTimeStep);
     return;
   }
-  vec3 average = 0.5 * (texelFetch(uAcceleration, coord1, 0).xyz + texelFetch(uAccelerationNext, coord1, 0).xyz);
-  vec3 vel = velocityTexel.xyz + uTimeStep * average;
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz), tau1 + uTimeStep);
+  vec3 accelerationNext = texelFetch(uAccelerationNext, coord1, 0).xyz;
+  vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (texelFetch(uAcceleration, coord1, 0).xyz + accelerationNext);
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext), tau1 + uTimeStep);
 }
 `;
 
@@ -258,7 +269,7 @@ void main() {
 
 /** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity. */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}
-${BOUNDARY_HELPERS}
+${POSITION_HELPERS}
 void main() {
 ${PARTICLE_HEADER}
   if (inactive || fixedParticle) {

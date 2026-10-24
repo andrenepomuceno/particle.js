@@ -184,9 +184,10 @@ export class GpuCompute {
     u.uBoundary!.value = BOUNDARY_CODE[settings.boundary];
     u.uBoundarySize!.value = settings.boundarySize;
     u.uRestitution!.value = settings.restitution;
+    // a(x) depends on positions and forces only; mode2D zeroes its z, and Euler leaves it stale.
+    if (u.uMode2D!.value !== settings.mode2D || this.integrator !== settings.integrator) this.accelerationValid = false;
     u.uMode2D!.value = settings.mode2D;
     this.integrator = settings.integrator;
-    this.accelerationValid = false;
   }
 
   upload(): void {

@@ -5,7 +5,11 @@ import type { SimulationSettings } from '../settings';
 
 type Vec = [number, number, number];
 
-/** Carries Verlet's a(x_n) from one step to the next, as the GPU acceleration texture does. */
+/**
+ * Carries Verlet's a(x_n) from one step to the next, as the GPU acceleration texture does.
+ * Clear it (set `acceleration` to undefined) after editing particles, forces or settings,
+ * exactly when the GPU would recompute it.
+ */
 export interface ReferenceState {
   acceleration?: Float64Array;
 }
@@ -30,23 +34,30 @@ const read = (array: Float32Array, i: number): Vec => [array[i * TEXEL]!, array[
 
 /** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
 function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number): Vec {
-  const pi = read(set.position, i);
-  const force: Vec = [0, 0, 0];
+  const pos = set.position;
+  const oi = i * TEXEL;
+  let fx = 0;
+  let fy = 0;
+  let fz = 0;
   for (let j = 0; j < set.count; j++) {
     if (j === i) continue;
-    const pj = read(set.position, j);
-    const delta: Vec = [pi[0] - pj[0], pi[1] - pj[1], pi[2] - pj[2]];
-    const r2 = delta[0] ** 2 + delta[1] ** 2 + delta[2] ** 2;
-    if (r2 === 0) continue;
+    const oj = j * TEXEL;
+    const dx = pos[oi]! - pos[oj]!;
+    const dy = pos[oi + 1]! - pos[oj + 1]!;
+    const dz = pos[oi + 2]! - pos[oj + 2]!;
+    const r2 = dx * dx + dy * dy + dz * dz;
+    if (r2 === 0 || forces.length === 0) continue;
     const dist = Math.sqrt(r2);
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;
     let magnitude = 0;
     for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, r2, dist);
-    for (let k = 0; k < 3; k++) force[k] = force[k]! + (magnitude * delta[k]!) / dist;
+    fx += (magnitude * dx) / dist;
+    fy += (magnitude * dy) / dist;
+    fz += (magnitude * dz) / dist;
   }
-  return force;
+  return [fx, fy, fz];
 }
 
 function accelerations(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShift: number): Float64Array {
@@ -60,14 +71,14 @@ function accelerations(set: ParticleSet, forces: readonly CompiledForce[], setti
   return result;
 }
 
-/** Friction, 2D projection, speed clamp, then reflection if the coming drift would leave. */
-function finishVelocity(v: Vec, pos: Vec, settings: SimulationSettings): Vec {
+/** Friction, 2D projection, speed clamp, then reflection if the coming drift (with `a`) would leave. */
+function finishVelocity(v: Vec, pos: Vec, a: Vec, settings: SimulationSettings): Vec {
   const dt = settings.timeStep;
   if (settings.friction > 0) v.forEach((c, k) => (v[k] = c * Math.exp(-settings.friction * dt)));
   if (settings.mode2D) v[2] = 0;
   const speed = Math.hypot(...v);
   if (settings.maxSpeed > 0 && speed > settings.maxSpeed) v.forEach((c, k) => (v[k] = (c * settings.maxSpeed) / speed));
-  const next: Vec = [pos[0] + dt * v[0], pos[1] + dt * v[1], pos[2] + dt * v[2]];
+  const next = [0, 1, 2].map((k) => pos[k]! + dt * v[k]! + 0.5 * dt * dt * a[k]!) as Vec;
   const size = settings.boundarySize;
   if (settings.boundary === 'sphere') {
     const len = Math.hypot(...next);
@@ -106,7 +117,7 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
     const mass = set.attributes[i * TEXEL]!;
     const force = totalForce(set, i, forces, time, 0);
     const v = read(set.velocity, i).map((c, k) => c + (dt * force[k]!) / mass) as Vec;
-    nextVelocity.set([...finishVelocity(v, read(set.position, i), settings), tau + dt], i * TEXEL);
+    nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], settings), tau + dt], i * TEXEL);
   }
   set.velocity.set(nextVelocity);
   for (let i = 0; i < set.count; i++) {
@@ -118,11 +129,18 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
 
 function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, state: ReferenceState): void {
   const dt = settings.timeStep;
-  const before = state.acceleration?.length === set.count * 3 ? state.acceleration : accelerations(set, forces, settings, time, 0);
+  if (state.acceleration && state.acceleration.length !== set.count * 3) {
+    throw new Error(`stored acceleration covers ${state.acceleration.length / 3} particles but the set has ${set.count}; clear ReferenceState after edits`);
+  }
+  const before = state.acceleration ?? accelerations(set, forces, settings, time, 0);
+  const limit = settings.maxSpeed * dt;
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
     const v = read(set.velocity, i);
-    const drift = read(set.position, i).map((c, k) => c + dt * v[k]! + 0.5 * dt * dt * before[i * 3 + k]!) as Vec;
+    const d = [0, 1, 2].map((k) => dt * v[k]! + 0.5 * dt * dt * before[i * 3 + k]!) as Vec;
+    const length = Math.hypot(...d);
+    const scale = settings.maxSpeed > 0 && length > limit ? limit / length : 1;
+    const drift = read(set.position, i).map((c, k) => c + scale * d[k]!) as Vec;
     set.position.set(confinePosition(drift, settings), i * TEXEL);
   }
   const after = accelerations(set, forces, settings, time + dt, dt);
@@ -133,7 +151,8 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
       continue;
     }
     const v = read(set.velocity, i).map((c, k) => c + 0.5 * dt * (before[i * 3 + k]! + after[i * 3 + k]!)) as Vec;
-    set.velocity.set([...finishVelocity(v, read(set.position, i), settings), tau + dt], i * TEXEL);
+    const aNext: Vec = [after[i * 3]!, after[i * 3 + 1]!, after[i * 3 + 2]!];
+    set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, settings), tau + dt], i * TEXEL);
   }
   state.acceleration = after;
 }

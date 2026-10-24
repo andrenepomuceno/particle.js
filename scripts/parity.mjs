@@ -51,11 +51,9 @@ const failures = await withBrowser(async ({ browser, base }) => {
         cpu.addAll(start);
         const { settings } = c.state;
         const state = {};
-        for (let k = 0; k < steps; k++) {
-          c.gpu.step(k * settings.timeStep);
-          referenceStep(cpu, c.compiledForces, settings, k * settings.timeStep, state);
-        }
-        c.cpuStale = true;
+        const t0 = c.state.time;
+        for (let k = 0; k < steps; k++) referenceStep(cpu, c.compiledForces, settings, t0 + k * settings.timeStep, state);
+        c.advance(steps);
         const gpu = c.readParticles();
         let worst = 0;
         gpu.forEach((p, i) => p.position.forEach((v, k) => (worst = Math.max(worst, Math.abs(v - cpu.get(i).position[k])))));

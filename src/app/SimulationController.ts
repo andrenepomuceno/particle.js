@@ -329,6 +329,18 @@ export class SimulationController {
     this.store.set({ paused: !this.state.paused });
   }
 
+  /** Runs `steps` simulation steps immediately (benchmarks and parity checks). */
+  advance(steps: number): void {
+    if (!Number.isInteger(steps) || steps < 0) throw new Error(`steps must be an integer >= 0, got ${steps}`);
+    let time = this.state.time;
+    for (let k = 0; k < steps; k++) {
+      this.gpu.step(time);
+      time += this.state.settings.timeStep;
+    }
+    this.cpuStale = true;
+    this.store.set({ time });
+  }
+
   requestStep(): void {
     this.stepRequested = true;
   }

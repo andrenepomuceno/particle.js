@@ -75,7 +75,7 @@ you can also load your own with <kbd>I</kbd>.
 | Hydrogen, Helium, Water *(v1)* | v1 force map 2 + 1/d Coulomb | single atoms and a molecule with orbiting electrons |
 | Strong Blob *(v1)* | v1 nuclear sine + 1/d Coulomb | a 3D ball of ± nuclear charges clumping into blobs |
 | Standard Model *(v1)* | v1 powAX nuclear + Coulomb | 10000 neutrinos, electrons and quarks with ± nuclear charge |
-| Planetoid Formation *(v1)* | v1 force map 1 + 1/d Coulomb + 1/d gravity | text of deuterons collapsing into a planetoid |
+| Planetoid Formation *(v1)* | v1 force map 1 + 1/d Coulomb + 1/d gravity | text of deuterons collapsing into a planetoid; v1's script squeezes it with 16× gravity, then pulls the camera back |
 | Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
 
 ## Development

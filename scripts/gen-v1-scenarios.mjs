@@ -288,6 +288,23 @@ function welcome() {
   });
 }
 
+/** record.js planetoidFormation's actions: v1 cycles at 60 per second, v1 drag c → c / 8. */
+function planetoidScript() {
+  const caption = 'Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}';
+  const at = (seconds) => Math.round(seconds * 60);
+  const drag = (seconds, c) => ({ at: at(seconds), set: { 'settings.friction': c / 8 }, caption });
+  const gravity = (seconds, factor) => ({ at: at(seconds), set: { 'Gravity (v1 1/d).G': { multiply: factor } }, caption });
+  return [
+    { at: 0, caption },
+    drag(3, 1e-3),
+    drag(72, 1e-2),
+    drag(84, 1e-1),
+    ...[90, 96, 108, 114].map((s) => gravity(s, 2)),
+    ...[126, 132, 138, 144].map((s) => gravity(s, 0.5)),
+    { ...drag(150, 1e-3), camera: { position: [0, 0, 280000], target: [0, 0, 0], duration: 5 } },
+  ];
+}
+
 function planetoidFormation() {
   // record.js planetoidFormation(): v1 replaced the SI constants by G = 0.1, k = 1e-4, nuclear 3.
   const M = 1e18;
@@ -307,9 +324,11 @@ function planetoidFormation() {
       `v1's recording scene (commented out in v1): ${count} text pixels, each a deuteron-like pair of nucleons (12 quarks) with four electrons, ` +
       "under v1's step force map (pull inside half the 3 fm range, push outside), 1/d Coulomb and strong 1/d gravity that collapses " +
       "the text into planetoids. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass (8). " +
-      "Initial state of v1's script, which later lowers the drag and raises gravity up to 16-fold.",
+      "Scripted like v1 (times are v1's seconds × 60, drags its c / 8): the drag drops at t = 180, rises again from t = 4320, " +
+      'gravity doubles four times from t = 5400 and halves back from t = 7560, then the camera pulls back at t = 9000.',
     seed: 1,
     view: { cameraDistance: 140000, particleRadius: 300, colorMode: 'charge' },
+    timeline: planetoidScript(),
     settings: { timeStep: 1, mode2D: true, friction: 0.125 },
     forces: [
       nuclearForce('Nuclear (v1 force map 1)', FORCE_MAP_1, range, 3, {}),

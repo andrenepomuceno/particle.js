@@ -4,13 +4,132 @@
   "id": "planetoid-formation",
   "name": "Planetoid Formation",
   "folder": "Record",
-  "description": "v1's recording scene (commented out in v1): 382 text pixels, each a deuteron-like pair of nucleons (12 quarks) with four electrons, under v1's step force map (pull inside half the 3 fm range, push outside), 1/d Coulomb and strong 1/d gravity that collapses the text into planetoids. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass (8). Initial state of v1's script, which later lowers the drag and raises gravity up to 16-fold.",
+  "description": "v1's recording scene (commented out in v1): 382 text pixels, each a deuteron-like pair of nucleons (12 quarks) with four electrons, under v1's step force map (pull inside half the 3 fm range, push outside), 1/d Coulomb and strong 1/d gravity that collapses the text into planetoids. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass (8). Scripted like v1 (times are v1's seconds × 60, drags its c / 8): the drag drops at t = 180, rises again from t = 4320, gravity doubles four times from t = 5400 and halves back from t = 7560, then the camera pulls back at t = 9000.",
   "seed": 1,
   "view": {
     "cameraDistance": 140000,
     "particleRadius": 300,
     "colorMode": "charge"
   },
+  "timeline": [
+    {
+      "at": 0,
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 180,
+      "set": {
+        "settings.friction": 0.000125
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 4320,
+      "set": {
+        "settings.friction": 0.00125
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 5040,
+      "set": {
+        "settings.friction": 0.0125
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 5400,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 2
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 5760,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 2
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 6480,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 2
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 6840,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 2
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 7560,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 0.5
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 7920,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 0.5
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 8280,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 0.5
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 8640,
+      "set": {
+        "Gravity (v1 1/d).G": {
+          "multiply": 0.5
+        }
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"
+    },
+    {
+      "at": 9000,
+      "set": {
+        "settings.friction": 0.000125
+      },
+      "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}",
+      "camera": {
+        "position": [
+          0,
+          0,
+          280000
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "duration": 5
+      }
+    }
+  ],
   "settings": {
     "timeStep": 1,
     "mode2D": true,

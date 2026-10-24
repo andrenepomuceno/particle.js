@@ -1,7 +1,7 @@
 # Automated scenario quality KPIs
 
 User request (2026-10-24): automated KPIs for scenario quality, cheap to compute. Motivation: the
-user discarded v1 ports "without physical sense or interesting emergence"; a KPI table should flag
+user wants scenarios "without physical sense or interesting emergence" discarded; a KPI table should flag
 such scenarios (and regressions in the good ones) without anyone watching them.
 
 ## Design

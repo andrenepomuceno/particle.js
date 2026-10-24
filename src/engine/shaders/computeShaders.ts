@@ -91,8 +91,10 @@ vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration) {
 
 /**
  * Impulse on particle index1 from every pair closer than uCollisionDistance that is still
- * approaching: Δv = -(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n)·n, with n pointing from j to i.
- * Each pair's impulses are equal and opposite, so momentum is conserved; e = 1 keeps kinetic energy.
+ * approaching: Δv = -(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n)·n, with n pointing from j to i; a fixed
+ * partner acts as infinite mass, Δv = -(1 + e)·((v_i − v_j)·n)·n. All pairs use the pre-step
+ * velocities: an isolated pair conserves momentum (and kinetic energy for e = 1) exactly, while
+ * simultaneous multi-particle contacts are resolved pairwise and only approximately (as in v1).
  */
 const COLLISION_HELPERS = /* glsl */ `
 vec3 collisionImpulse(int index1, vec3 pos1, vec3 vel1, float mass1) {
@@ -108,8 +110,10 @@ vec3 collisionImpulse(int index1, vec3 pos1, vec3 vel1, float mass1) {
     vec3 n = delta / sqrt(r2);
     float approach = dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, n);
     if (approach >= 0.0) continue;
+    bool fixedPartner = texelFetch(texturePosition, coord2, 0).w == KIND_FIXED;
     float mass2 = texelFetch(uAttributes, coord2, 0).x;
-    dv -= (1.0 + uCollisionRestitution) * mass2 / (mass1 + mass2) * approach * n;
+    float share = fixedPartner ? 1.0 : mass2 / (mass1 + mass2);
+    dv -= (1.0 + uCollisionRestitution) * share * approach * n;
   }
   return dv;
 }
@@ -147,7 +151,7 @@ function totalForceFunction(forces: readonly CompiledForce[]): string {
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
-vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, vec4 spin1, float tau1) {
+vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance) {
   int width = TEXTURE_WIDTH;
   vec3 force = vec3(0.0);
   for (int index2 = 0; index2 < uCount; index2++) {
@@ -157,8 +161,9 @@ vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, vec4 spin1, floa
     float r2 = dot(delta, delta);
     if (r2 == 0.0) continue;
     float dist = sqrt(r2);
-    // Colliding pairs exchange momentum in collisionImpulse instead (v1 skipped them the same way).
-    if (dist < uCollisionDistance) continue;
+    // An approaching pair inside the collision distance exchanges momentum in collisionImpulse
+    // instead; overlapping pairs at rest or separating keep their force so they can push apart.
+    if (dist < collisionDistance && dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, delta) < 0.0) continue;
     vec4 attr2 = texelFetch(uAttributes, coord2, 0);
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
@@ -200,7 +205,7 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1);
+  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance);
   vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x
     + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
@@ -220,7 +225,7 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift);
+  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift, uCollisionDistance);
   vec3 acceleration = force / attr1.x;
   if (uMode2D) acceleration.z = 0.0;
   gl_FragColor = vec4(acceleration, 0.0);
@@ -344,7 +349,8 @@ void main() {
     return;
   }
   vec3 pos = texelFetch(uProbePositions, coord, 0).xyz;
-  vec3 force = totalForce(-1, pos, uProbeAttributes, uProbeColor, uProbeSpin, 0.0);
+  // Probes do not collide: the field shows every force, including inside the collision distance.
+  vec3 force = totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0);
   gl_FragColor = vec4(force, length(force));
 }
 `;

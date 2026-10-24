@@ -113,7 +113,7 @@ describe('GLSL generation', () => {
     const shader = generateFieldShader([compileForce(makeForce())]);
     expect(shader).toContain('float force0(');
     expect(shader.match(/vec3 totalForce\(/g)).toHaveLength(1);
-    expect(shader).toContain('totalForce(-1, pos, uProbeAttributes, uProbeColor, uProbeSpin, 0.0)');
+    expect(shader).toContain('totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0)');
   });
 
   it('skips the clock fetch when no force reads t_j', () => {

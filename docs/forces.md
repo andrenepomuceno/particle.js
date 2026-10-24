@@ -86,9 +86,14 @@ All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 Parameters → *Collision distance* (0 = off, as in v1) and *Collision restitution* (1 elastic,
 0 perfectly inelastic). In each velocity update, every pair closer than the distance that is
 still approaching gets the impulse `Δv_i = −(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n̂)·n̂` (n̂ from j
-to i), computed from the same pre-step velocities for all pairs, so momentum is conserved and
-kinetic energy too for e = 1. Pairs inside the distance contribute no force that step, which
-keeps 1/r² terms from exploding on contact. Both integrators apply it (Verlet after its drift).
+to i); a fixed partner acts as infinite mass (`Δv_i = −(1 + e)·((v_i − v_j)·n̂)·n̂`). All pairs use
+the same pre-step velocities: an isolated pair conserves momentum (and kinetic energy for e = 1)
+exactly, while simultaneous contacts among three or more particles are resolved pairwise and only
+approximately (as in v1). An approaching pair inside the distance contributes no force that step
+(the impulse replaces it, keeping 1/r² terms from exploding); overlapping pairs at rest or
+separating keep their force, so they can push apart. The energy chart's potential still counts
+pairs inside the distance, so with collisions on the total is not a conserved quantity. Both
+integrators apply the impulse (Verlet after its drift); field probes ignore collisions.
 
 ## Spin, 2D charge and isospin
 

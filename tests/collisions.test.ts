@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { referenceStep } from '../src/engine/cpu/referenceStep';
 import { compileForce } from '../src/engine/forces/compile';
-import { defaultParticle, ParticleSet, type Particle } from '../src/engine/particles';
+import { defaultParticle, ParticleKind, ParticleSet, type Particle } from '../src/engine/particles';
 import { DEFAULT_SETTINGS, type SimulationSettings } from '../src/engine/settings';
 import { makeForce } from './helpers';
 
@@ -41,11 +41,21 @@ describe.each(['euler', 'verlet'] as const)('collisions (%s)', (integrator) => {
     momentum(set).forEach((p, k) => expect(p).toBeCloseTo(p0[k]!, 6));
   });
 
-  it('does not collide a pair that is already separating, and skips its force', () => {
-    const repulsion = compileForce(makeForce({ expression: '1000', params: [] }));
-    const set = setOf(defaultParticle({ position: [-0.4, 0, 0], velocity: [-1, 0, 0] }), defaultParticle({ position: [0.4, 0, 0], velocity: [1, 0, 0] }));
-    referenceStep(set, [repulsion], settings({ integrator }), 0);
+  it('bounces off a fixed particle as off an infinite mass', () => {
+    const set = setOf(defaultParticle({ position: [-0.4, 0, 0], velocity: [1, 0, 0] }), defaultParticle({ position: [0.4, 0, 0], kind: ParticleKind.fixed }));
+    referenceStep(set, [], settings({ integrator }), 0);
     expect(set.get(0).velocity[0]).toBeCloseTo(-1, 6);
+    expect(set.get(1).velocity).toEqual([0, 0, 0]);
+  });
+
+  it('skips the force of an approaching pair but keeps it for overlapping pairs at rest', () => {
+    const repulsion = compileForce(makeForce({ expression: '1', params: [] }));
+    const approaching = setOf(defaultParticle({ position: [-0.4, 0, 0], velocity: [0.5, 0, 0] }), defaultParticle({ position: [0.4, 0, 0], velocity: [-0.5, 0, 0] }));
+    referenceStep(approaching, [repulsion], settings({ integrator }), 0);
+    expect(approaching.get(0).velocity[0]).toBeCloseTo(-0.5, 6);
+    const resting = setOf(defaultParticle({ position: [-0.4, 0, 0] }), defaultParticle({ position: [0.4, 0, 0] }));
+    referenceStep(resting, [repulsion], settings({ integrator }), 0);
+    expect(resting.get(0).velocity[0]).toBeLessThan(0);
   });
 });
 

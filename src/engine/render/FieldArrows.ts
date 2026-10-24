@@ -45,6 +45,7 @@ in vec3 vField;
 in vec2 vDirection;
 in float vLength;
 uniform float uReference;
+uniform bool uLogScale;
 out vec4 fragmentColor;
 
 ${V1_PALETTE_GLSL}
@@ -75,7 +76,9 @@ float arrowSdf(vec2 p, float len) {
 // v1's field palette: hue sweeps red to magenta up to the reference strength, white beyond.
 // sqrt spreads the low end, where most of a 1/r^2 field sits.
 vec3 fieldColor(float magnitude) {
-  return v1Palette(sqrt(magnitude / max(uReference, 1e-30)), 0.35);
+  float ratio = magnitude / max(uReference, 1e-30);
+  // log10(1 + 9·ratio) maps 0 → 0 and the reference → 1, like the sqrt scale, but keeps decades apart.
+  return v1Palette(uLogScale ? log(1.0 + 9.0 * ratio) / log(10.0) : sqrt(ratio), 0.35);
 }
 
 void main() {
@@ -111,6 +114,7 @@ export class FieldArrows {
         uScale: { value: 400 },
         uViewport: { value: new Vector2(1, 1) },
         uReference: { value: 1 },
+        uLogScale: { value: false },
       },
     });
     this.object = new Points(this.geometry, this.material);
@@ -141,6 +145,10 @@ export class FieldArrows {
   }
 
   /** |F| drawn at the top of the palette. */
+  setLogScale(enabled: boolean): void {
+    this.material.uniforms.uLogScale!.value = enabled;
+  }
+
   setReference(reference: number): void {
     this.material.uniforms.uReference!.value = reference;
   }

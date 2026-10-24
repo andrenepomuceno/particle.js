@@ -32,8 +32,10 @@ export function referenceStep(
 const isFixed = (set: ParticleSet, i: number) => set.position[i * TEXEL + 3] === ParticleKind.fixed;
 const read = (array: Float32Array, i: number): Vec => [array[i * TEXEL]!, array[i * TEXEL + 1]!, array[i * TEXEL + 2]!];
 
-/** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
-/** Impulses from approaching pairs closer than collisionDistance, all from the same pre-step velocities. */
+/**
+ * Impulses from approaching pairs closer than collisionDistance, all from the same pre-step
+ * velocities (mirrors the GLSL collisionImpulse; fixed partners act as infinite mass).
+ */
 function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Float64Array {
   const result = new Float64Array(set.count * 3);
   const d = settings.collisionDistance;
@@ -45,20 +47,26 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
     for (let j = 0; j < set.count; j++) {
       if (j === i) continue;
       const oj = j * TEXEL;
-      const delta = [x[oi]! - x[oj]!, x[oi + 1]! - x[oj + 1]!, x[oi + 2]! - x[oj + 2]!];
-      const r2 = delta[0]! ** 2 + delta[1]! ** 2 + delta[2]! ** 2;
+      const dx = x[oi]! - x[oj]!;
+      const dy = x[oi + 1]! - x[oj + 1]!;
+      const dz = x[oi + 2]! - x[oj + 2]!;
+      const r2 = dx * dx + dy * dy + dz * dz;
       if (r2 === 0 || r2 >= d * d) continue;
-      const n = delta.map((c) => c / Math.sqrt(r2));
-      const approach = [0, 1, 2].reduce((s, k) => s + (v[oi + k]! - v[oj + k]!) * n[k]!, 0);
+      const r = Math.sqrt(r2);
+      const approach = ((v[oi]! - v[oj]!) * dx + (v[oi + 1]! - v[oj + 1]!) * dy + (v[oi + 2]! - v[oj + 2]!) * dz) / r;
       if (approach >= 0) continue;
-      const share = ((1 + settings.collisionRestitution) * a[oj]!) / (a[oi]! + a[oj]!);
-      for (let k = 0; k < 3; k++) result[i * 3 + k] = result[i * 3 + k]! - share * approach * n[k]!;
+      const share = isFixed(set, j) ? 1 : a[oj]! / (a[oi]! + a[oj]!);
+      const scale = ((1 + settings.collisionRestitution) * share * approach) / r;
+      result[i * 3] = result[i * 3]! - scale * dx;
+      result[i * 3 + 1] = result[i * 3 + 1]! - scale * dy;
+      result[i * 3 + 2] = result[i * 3 + 2]! - scale * dz;
     }
   }
   return result;
 }
 
-function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance = 0): Vec {
+/** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
+function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance: number): Vec {
   const pos = set.position;
   const oi = i * TEXEL;
   let fx = 0;
@@ -73,7 +81,9 @@ function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[
     const r2 = dx * dx + dy * dy + dz * dz;
     if (r2 === 0 || forces.length === 0) continue;
     const dist = Math.sqrt(r2);
-    if (dist < collisionDistance) continue;
+    const v = set.velocity;
+    const approaching = (v[oi]! - v[oj]!) * dx + (v[oi + 1]! - v[oj + 1]!) * dy + (v[oi + 2]! - v[oj + 2]!) * dz < 0;
+    if (dist < collisionDistance && approaching) continue;
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;

@@ -13,8 +13,8 @@ const build = (extra: object, seed = 1) => {
 describe('bundled scenario library', () => {
   it('parses every file with unique ids in file-name order', () => {
     expect(SCENARIOS.map((s) => s.id)).toEqual([
-      'galaxy', 'plasma', 'nuclei', 'crystal', 'quarks', 'hadrons', 'welcome', 'the-egg', 'gravity', 'air', 'water-2',
-      'essential-elements', 'periodic-table', 'hydrogen', 'helium', 'water', 'strong-blob', 'standard-model', 'planetoid-formation', 'sandbox',
+      'galaxy', 'plasma', 'nuclei', 'crystal', 'quarks', 'hadrons', 'air', 'water-2',
+      'essential-elements', 'hydrogen', 'helium', 'water', 'strong-blob', 'planetoid-formation', 'sandbox',
     ]);
   });
 

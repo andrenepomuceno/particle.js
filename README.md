@@ -65,16 +65,11 @@ you can also load your own with <kbd>I</kbd>.
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
 | Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
 | Quarks to nuclei | color + v1 nuclear force + Coulomb + quark core | quark triplets bound into molecules and ring-shaped nuclei |
-| Welcome *(v1)* | v1 force map 2 + v1 color + Coulomb | "Welcome to particle.js !" written in quark nuclei |
-| The Egg *(v1)* | v1 force map 2 + v1 color + 1/d Coulomb + 1/d gravity | a 10000-quark soup (gravity script pending the timeline) |
-| Gravity *(v1)* | 1/d gravity | a rotating annulus of 10000 bodies collapsing into clumps |
 | Air *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of N, O and Ar atoms made of quarks and electrons |
 | Water 2 *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of H2O molecules made of quarks and electrons |
 | Essential Elements *(v1)* | v1 powAXv2 nuclear + Coulomb | H, C, N, O and traces of metals, 10% antimatter |
-| Periodic Table *(v1)* | v1 powAXv3 nuclear + Coulomb | elements Z = 1…64 of protons, neutrons and electrons |
 | Hydrogen, Helium, Water *(v1)* | v1 force map 2 + 1/d Coulomb | single atoms and a molecule with orbiting electrons |
 | Strong Blob *(v1)* | v1 nuclear sine + 1/d Coulomb | a 3D ball of ± nuclear charges clumping into blobs |
-| Standard Model *(v1)* | v1 powAX nuclear + Coulomb | 10000 neutrinos, electrons and quarks with ± nuclear charge |
 | Planetoid Formation *(v1)* | v1 force map 1 + 1/d Coulomb + 1/d gravity | text of deuterons collapsing into a planetoid |
 | Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
 

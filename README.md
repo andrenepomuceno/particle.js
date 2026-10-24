@@ -1,151 +1,111 @@
-# particle.js
+# particle.js v2
 
-![banner](img/hexagonalCrystal_2022_12_21T01_35_24.213Z.png)
+![Color confinement scenario](docs/img/quarks.png)
 
-## Table of Contents  
+A classical n-body particle simulator that runs in the browser. You write the forces:
+each one is an expression such as `k * q_i * q_j / r^2` or a potential such as
+`4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)`, short or long range. The expression is
+compiled to GLSL and every particle pair is evaluated in parallel on the GPU.
 
-- [About](#about)
-- [Quick Start](#quick-start)
-- [Mathematical Model](#mathematical-model)
-- [Documentation](#documentation)
-- [Special Thanks](#special-thanks)
+Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewritten from scratch.
 
-## About
+## Features
 
-Particle.js is a JavaScript 3D n-body particle simulator with GPU-accelerated interaction updates.
-It models gravity, electromagnetism, and a configurable short-range nuclear force on point-like particles.
+- **Custom forces**: any number of pair forces, each with its own expression, parameters,
+  range (long, or short with a cutoff) and softening. Change a parameter and the GPU picks
+  it up on the next frame; change the expression and the shader is recompiled and
+  validated before it replaces the old one.
+- **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr`, differentiated
+  exactly by [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff).
+- **Vectors and velocity**: expressions may be vectors (`cross(v_i, B)`, `d`, `s_j`, …); a vector force
+  is applied as written, and velocity-dependent ones (v × B) get an exact implicit step.
+- **Vector forces**: a potential of the relative position (`dx`, `dy`, `dz`, or the spin projections)
+  gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
+- **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
+  and a color charge modeled with three base vectors 120° apart, all usable in expressions.
+- **Statistics**: energy, speed, temperature and performance charts.
+- **Force field view**: a grid of arrows showing the net force a configurable test particle
+  would feel, computed on the GPU by the same generated force code (<kbd>J</kbd>, <kbd>F</kbd> to re-fit).
+- **Live plot** of each force as the integrator applies it (softening and cutoff included).
+- **v1 look**: spheres with a velocity arrow through them, colored by charge, color charge or speed.
+- **v1-style interaction**: keyboard shortcuts, draggable dialogs, click to inspect and
+  edit a particle, shift+drag to select, copy and place groups, particle generator.
+- **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file.
+- **Snapshots**: export the full state (forces, settings, particles) to JSON plus a PNG,
+  and import it back with field-by-field validation.
+- **Adjustable particle count**: scenarios regenerate at the chosen size, keeping their density.
+- 2D and 3D modes, sphere or box boundaries, friction, optional speed clamp.
 
-### Features
-- Real-time simulations with GPU-backed particle updates
-- 2D and 3D modes
-- Import and export of simulation snapshots
-- Runtime parameter editing
-- Vector field visualization with probe particles
-- Interactive particle inspection and editing
-- Sandbox mode and curated scenario groups
+## Quick start
 
-### Live Demo
+Requires Node.js 22+ and a browser with WebGL2 and `EXT_color_buffer_float`.
 
-[particle.js](https://andrenepomuceno.github.io/particle.js/)
-
-### Media
-
-[Youtube Playlist](https://www.youtube.com/watch?v=z5RhBaDnkOE&list=PLr48cTU7J6cyvKp1v-1bpH4j5qCZbR-AV)
-
-[Photo Gallery](https://photos.app.goo.gl/1x41ZhipNKr5yrYa7)
-
-## Mathematical Model
-Main considerations:
-- Each particle $P_i$ is a point (no volume) in space.
-- Particles have vectorial properties like position $\vec{x_i}$ and velocity $\vec{v_i}$.
-- Particles have scalar properties like mass $m_i$, charge $q_i$ and nuclear charge $n_i$.
-- Particles interact in pairs each simulation step $\Delta t$.
-- Particles can collide if $d \le d_{min}$.
-- There is a maximum speed $c$ so $|\vec{v_i}| \le c$.
-- Uses Coulomb's Law for electromagnetism and Newton's Law for gravity.
-- Uses a limited range potential for nuclear force, trying to model the Strong Force.
-
-For each particle $P_i$ interacting with $P_j$, the resulting force acting on this particle is
-
-$$\vec{F}(P_i)=\sum_{j \ne i}^N [\vec{F_g}(P_i,P_j) + \vec{F_e}(P_i,P_j) + \vec{F_n}(P_i,P_j)].\bar{n_{ij}}$$
-
-$$\vec{d_{ij}} = \vec{x_j} - \vec{x_i}$$
-
-$$d = |\vec{d_{ij}}|$$
-
-$$\bar{n_{ij}} = \frac{\vec{d_{ij}}}{d}$$
-
-Where $F_g$, $F_e$ and $F_n$ are respectively the forces by the gravitational, electromagnetic and nuclear fields:
-
-$$\vec{F_g}(P_i,P_j)=G.\frac{m_i.m_j}{d^2}$$
-
-$$\vec{F_e}(P_i,P_j)=-k_e.\frac{q_i.q_j}{d^2}$$
-
-$$\vec{F_n}(P_i,P_j)=n_i.n_j.V(d).H(d_{range}-d)$$
-
-Where $H(d)$ is the Heaviside step function used to confine the nuclear potential range into $d<d_{range}$.
-
-and $V(d)$ represents the nuclear potential, that can be any nuclear potential function like Yukawa, Reci, Lennard-Jones and so on...
-
-For example, function $V(d)$ can be described as $V(d) = k_n.(2.(d/d_{range})-1)$, becoming similar to Hooke's Law.
-
-So, the velocity of the particle is described by
-
-$$\frac{d\vec{v_i}}{dt} = \vec{a} = \frac{\vec{F}(P_i)}{m_i}$$
-
-And the position
-
-$$\frac{d\vec{x_i}}{dt} = \vec{v_i}$$
-
-This project uses a first-order symplectic integrator to solve this differential equations:
-
-$$v' = v + a.\Delta t$$
-
-$$x' = x + v'.\Delta t$$
-
-### Collisions
-
-A collision occurs when the distance between two particles is less than a minimal allowed distance $d_{min}$.
-
-In the case of a collision between $P_i$ and $P_j$, the conservation of momentum and energy are applied:
-
-$$m_i \vec{v_i} + m_j \vec{v_j} = m_i \vec{u_i} + m_j \vec{u_j}$$
-
-$$m_i |\vec{v_i}|^2 + m_j |\vec{v_j}|^2 = m_i |\vec{u_i}|^2 + m_j |\vec{u_j}|^2$$
-
-Where $u_i$ is the final velocity of $P_i$.
-
-So, the force exerted by a collision is (a lot of omitted algebra here...)
-
-$$F(P_i) = \frac{2 m_j}{m_i + m_j} (\vec{v_{ij}}.\bar{n_{ij}}) \bar{n_{ij}}$$
-
-## Quick Start
-
-[![NodeJS with Webpack](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml/badge.svg?branch=main)](https://github.com/andrenepomuceno/particle.js/actions/workflows/webpack.yml)
-
-Requires Node.js and a browser with WebGL2 support. A discrete GPU is recommended for larger particle counts.
-
-Run the default development server on `localhost:8080`:
 ```
-git clone https://github.com/andrenepomuceno/particle.js.git
-cd particle.js
 npm install
-npm start
+npm run dev
 ```
 
-Other local modes:
+Open the printed URL. An About dialog (also in the top menu) explains the basics on the first visit. Press <kbd>?</kbd> for the shortcut list. URL options:
+`?scenario=quarks` picks the starting scenario, `?capacity=65536` raises the particle
+limit (default 16384).
+
+## Physics in one paragraph
+
+Classical mechanics. For every pair, each enabled force contributes a signed magnitude
+`F(r)` along the line joining the particles; **positive pushes them apart**. Short-range
+forces are zero beyond their cutoff; softening ε replaces `r` with `√(r² + ε²)` inside the
+expression. Particles advance with velocity Verlet (default) or semi-implicit Euler. Details: [docs/forces.md](docs/forces.md).
+
+## Scenarios
+
+Scenarios are JSON files in `src/scenarios/library/` (format: [docs/scenarios.md](docs/scenarios.md));
+you can also load your own with <kbd>I</kbd>.
+
+| Scenario | Forces | What to look for |
+| --- | --- | --- |
+| Galaxy disk | gravity | a fixed core with 3000 bodies on near-circular orbits |
+| Neutral plasma | Coulomb + weak gravity | ± charges in a reflecting sphere |
+| Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
+| Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
+| Dipole Chains | spin dipole (vector force) + repulsive core | a 2D ferrofluid: in-plane dipoles join head to tail into chains |
+| Dipole Crystal | spin dipole (vector force) + repulsive core | perpendicular dipoles repel into a triangular lattice; flipped ones bind defects |
+| Radiation Belt | dipole magnetic field, q v × B | charges gyrate, mirror between the poles and drift around a magnetized planet |
+| Cyclotron and E×B Drift | uniform E and B + Coulomb | electrons and ions gyrate opposite ways, yet the plasma drifts together at E/B |
+| Beam Pinch | Coulomb + Biot–Savart | a slow beam blows apart while a fast one self-focuses (magnetic attraction ∝ v²) |
+| Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
+| Quarks to nuclei | color + v1 nuclear force + Coulomb + quark core | quark triplets bound into molecules and ring-shaped nuclei |
+| Welcome *(v1)* | v1 force map 2 + v1 color + Coulomb | "Welcome to particle.js !" written in quark nuclei |
+| The Egg *(v1)* | v1 force map 2 + v1 color + 1/d Coulomb + 1/d gravity | a quark soup scripted like v1: G jumps 1e41-fold, the soup collapses, rebounds and settles into an egg |
+| Gravity *(v1)* | 1/d gravity | a rotating annulus of 10000 bodies collapsing into clumps |
+| Experiments 4 *(v1)* | v1 force map 2 + v1 color + 1/d Coulomb + 1/d gravity + v1 drag | The Egg's sibling, scripted: G jumps 1e41-fold, the soup collapses into a lattice of nuclei whose rim later evaporates |
+| Hexagonal Crystal, force map *(v1)* | v1 eight-step force map + Coulomb + v1 drag | a honeycomb of 96 carbon-like quark atoms settling in place |
+| Air *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of N, O and Ar atoms made of quarks and electrons |
+| Water 2 *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of H2O molecules made of quarks and electrons |
+| Essential Elements *(v1)* | v1 powAXv2 nuclear + Coulomb | H, C, N, O and traces of metals, 10% antimatter |
+| Periodic Table *(v1)* | v1 powAXv3 nuclear + Coulomb | elements Z = 1…64 of protons, neutrons and electrons |
+| Hexagonal Crystal, Tetragonal Crystal *(v1)* | v1 powAX nuclear + Coulomb | neutral quark atoms on a honeycomb or square lattice, nuclear charge alternating |
+| Hydrogen, Helium, Water *(v1)* | v1 force map 2 + 1/d Coulomb | single atoms and a molecule with orbiting electrons |
+| Super Nucleus 3D *(v1)* | v1 powAX nuclear + Coulomb + gravity | 10000 particles burst from a point and gather into giant 3D nuclei |
+| Plasma Ball *(v1)* | v1 powAX nuclear + weak Coulomb + gravity | a burst from a point filling a reflecting sphere with 3D plasma |
+| Strong Blob *(v1)* | v1 nuclear sine + 1/d Coulomb | a 3D ball of ± nuclear charges clumping into blobs |
+| Standard Model *(v1)* | v1 powAX nuclear + Coulomb | 10000 neutrinos, electrons and quarks with ± nuclear charge |
+| Standard Model 1 *(v1)* | v1 powAX nuclear + Coulomb | electrons and quarks bursting from a point across the 1e6 nuclear range |
+| Wild Particles *(v1)* | v1 sine nuclear + Coulomb + gravity | five particle kinds flung around a reflecting circle |
+| Planetoid Formation *(v1)* | v1 force map 1 + 1/d Coulomb + 1/d gravity | text of deuterons collapsing into a planetoid; v1's script squeezes it with 16× gravity, then pulls the camera back |
+| Hexagon 1, 2, 3 *(v1)* | v1 sine nuclear + Coulomb | electron beams shot through tilted honeycombs of tiny nuclei (1, 3); two honeycombs colliding (2) |
+| Terrarium *(v1)* | v1 sine nuclear spanning the arena + Coulomb | light neutral particles swirling around clumps of heavy charges |
+| Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
+
+## Development
+
 ```
-npm run low       # 10k particles (for weaker hardware)
-npm run record    # 50k particles on port 8081 with video recording
-npm run build     # production bundle in dist/
-npm run test:functional  # Node headless lifecycle and contract tests
-npm run test:perf        # Chromium headless GPU performance report
+npm run check      # typecheck + lint + unit tests
+npm run smoke:all  # headless Chromium: every scenario + interaction smoke test
+npm run build      # production bundle in dist/
 ```
 
-For a detailed explanation of local workflows, runtime modes and performance constraints, see [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md).
+Release notes: [CHANGELOG.md](CHANGELOG.md). More in [docs/development.md](docs/development.md). Documentation index: [docs/README.md](docs/README.md).
 
-## Documentation
+## Thanks
 
-The detailed technical documentation lives in the [docs](docs) folder.
-Start with [docs/README.md](docs/README.md) for the documentation index and reading order.
-
-Quick links:
-
-- [docs/architecture-and-simulation-lifecycle.md](docs/architecture-and-simulation-lifecycle.md)
-- [docs/scenario-authoring-and-physics-configuration.md](docs/scenario-authoring-and-physics-configuration.md)
-- [docs/ui-bridge-and-runtime-controls.md](docs/ui-bridge-and-runtime-controls.md)
-- [docs/gpu-compute-and-shader-pipeline.md](docs/gpu-compute-and-shader-pipeline.md)
-- [docs/developer-workflows-and-performance.md](docs/developer-workflows-and-performance.md)
-
-### Architecture Snapshot
-
-Simplified diagram.
-
-![first layer](img/simple.svg)
-
-The diagram above is intentionally high level.
-For the full startup, scenario, UI and GPU lifecycle, see [docs/architecture-and-simulation-lifecycle.md](docs/architecture-and-simulation-lifecycle.md).
-
-## Special Thanks
-
-Big thanks to [three.js](https://threejs.org/) guys who made this amazing WebGL library, making the entire process a lot easier and fun.
+[three.js](https://threejs.org/) for the WebGL layer.

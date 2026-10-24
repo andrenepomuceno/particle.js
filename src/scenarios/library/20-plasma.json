@@ -1,0 +1,23 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "plasma",
+  "name": "Neutral plasma",
+  "folder": "Electromagnetism",
+  "description": "Equal numbers of positive and negative charges inside a reflecting sphere.",
+  "seed": 2,
+  "view": { "cameraDistance": 1100, "particleRadius": 3, "colorMode": "charge" },
+  "settings": { "timeStep": 0.2, "boundary": "sphere", "boundarySize": 400, "maxSpeed": 20 },
+  "forces": [
+    { "preset": "coulomb", "softening": 3 },
+    { "preset": "gravity", "params": { "G": 0.1 } }
+  ],
+  "groups": [
+    {
+      "count": 2000,
+      "shape": { "type": "sphere", "radius": 350 },
+      "charge": { "cycle": [1, -1] },
+      "mass": { "cycle": [10, 1] }
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "super-nucleus-3d",
+  "name": "Super Nucleus 3D",
+  "folder": "Experiments",
+  "description": "v1's Super Nucleus 3D: 10000 particles packed in a ball of radius 1 with random mass (up to 256), random charge (up to ±16) and ±1 nuclear charge burst out under Coulomb (k = 0.01) and gravity (G = 1e-6), then v1's powAX nuclear force (range 1e6: equal nuclear charges pull below a quarter of it, push beyond) gathers them into a giant 3D nucleus. v1 rounded masses and charges to integers; they are uniform here.",
+  "seed": 1,
+  "view": { "cameraDistance": 600000, "particleRadius": 1000, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "boundary": "sphere", "boundarySize": 50000000, "restitution": 0.9 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 powAX)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 1000000,
+      "expression": "-k * n_i * n_j * sin(A * (1 - B^x))",
+      "params": [{ "name": "k", "value": 1 }, { "name": "A", "value": 7.22423 }, { "name": "B", "value": 0.13026 }]
+    },
+    { "preset": "coulomb", "softening": 0.1, "params": { "k": 0.01 } },
+    { "preset": "gravity", "softening": 0.1, "params": { "G": 1e-6 } }
+  ],
+  "groups": [
+    {
+      "count": 10000,
+      "shape": { "type": "sphere", "radius": 1 },
+      "velocity": { "type": "random", "speed": { "min": 0, "max": 1 } },
+      "mass": { "min": 1, "max": 256 },
+      "charge": { "min": -16, "max": 16 },
+      "nuclearCharge": { "choice": [-1, 1] }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "strong-blob",
+  "name": "Strong Blob",
+  "folder": "Experiments",
+  "description": "v1's Strong Blob 0 in 3D: 1100 particles with random ±50 charge and ±1 nuclear charge in a 2000 ball, under v1's default nuclear sine (equal nuclear charges pull inside half of the 2000 range and push in the outer half; opposite ones the reverse) and weak 1/d Coulomb (k = 1/137). Gravity (G = 1e-6) is negligible and omitted.",
+  "seed": 1,
+  "view": { "cameraDistance": 10000, "particleRadius": 50, "colorMode": "nuclear" },
+  "settings": { "timeStep": 1 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 sine)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 2000,
+      "expression": "-k * n_i * n_j * sin(2 * pi * x)",
+      "params": [{ "name": "k", "value": 1 }]
+    },
+    {
+      "name": "Coulomb (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 0.5,
+      "expression": "k * q_i * q_j / r",
+      "params": [{ "name": "k", "value": 0.0072993 }]
+    }
+  ],
+  "groups": [
+    {
+      "count": 1100,
+      "shape": { "type": "sphere", "radius": 2000 },
+      "charge": { "choice": [-50, 50] },
+      "nuclearCharge": { "choice": [-1, 1] }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "crystal",
+  "name": "Lennard-Jones crystal",
+  "folder": "Short range",
+  "description": "A Lennard-Jones solid started on a square grid slightly wider than the potential minimum; friction cools it while it reorganizes into a hexagonal lattice.",
+  "seed": 4,
+  "view": {
+    "cameraDistance": 800,
+    "particleRadius": 4,
+    "colorMode": "speed"
+  },
+  "settings": {
+    "timeStep": 0.05,
+    "mode2D": true,
+    "boundary": "box",
+    "boundarySize": 300,
+    "friction": 0.05,
+    "maxSpeed": 50
+  },
+  "forces": [
+    {
+      "preset": "lennardJones",
+      "params": {
+        "epsilon": 5,
+        "sigma": 10
+      }
+    }
+  ],
+  "groups": [
+    {
+      "count": 1200,
+      "shape": {
+        "type": "grid",
+        "spacing": 12,
+        "columns": 35,
+        "rows": 35
+      },
+      "velocity": {
+        "type": "random",
+        "speed": {
+          "min": 0,
+          "max": 1
+        }
+      }
+    }
+  ]
+}

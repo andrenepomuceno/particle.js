@@ -1,0 +1,13 @@
+{
+  "name": "particle.js",
+  "short_name": "particle.js",
+  "description": "Classical n-body particle simulator with user-defined forces compiled to GPU shaders.",
+  "icons": [
+    { "src": "android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }
+  ],
+  "start_url": "./",
+  "scope": "./",
+  "theme_color": "#11151c",
+  "background_color": "#11151c",
+  "display": "standalone"
+}

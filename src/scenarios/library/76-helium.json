@@ -1,0 +1,40 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "helium",
+  "name": "Helium",
+  "folder": "Elements",
+  "description": "v1's helium: two protons and two neutrons bound by v1's force map 2 against their 1/d Coulomb repulsion, with two electrons around them. v1 gave the electrons a tangential speed of 16 with a random sense; here they start on orbits with that speed at the middle of their ring. Gravity (G = 1e-6) is negligible and omitted.",
+  "seed": 1,
+  "view": { "cameraDistance": 3000, "particleRadius": 30, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "mode2D": true },
+  "forces": [
+    {
+      "name": "Nuclear (v1 force map 2)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 200,
+      "expression": "-k * n_i * n_j * (a * exp(-x / b) - c * x)",
+      "params": [{ "name": "k", "value": 1 }, { "name": "a", "value": 1 }, { "name": "b", "value": 0.2 }, { "name": "c", "value": 1 }]
+    },
+    {
+      "name": "Coulomb (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 0.5,
+      "expression": "k * q_i * q_j / r",
+      "params": [{ "name": "k", "value": 0.5 }]
+    }
+  ],
+  "groups": [
+    { "count": 2, "scale": false, "shape": { "type": "disk", "radius": 20 }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
+    { "count": 2, "scale": false, "shape": { "type": "disk", "radius": 20 }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
+    {
+      "count": 2, "scale": false,
+      "shape": { "type": "disk", "radius": 240, "innerRadius": 60 },
+      "mass": 0.01,
+      "charge": -1,
+      "velocity": { "type": "orbit", "centralMass": 1, "G": 44800, "center": [0, 0, 0] }
+    }
+  ]
+}

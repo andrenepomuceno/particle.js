@@ -1,0 +1,26 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "beam-pinch",
+  "name": "Beam Pinch",
+  "folder": "Magnetism",
+  "description": "Two beams of like charges moving along +x. Inside each beam Coulomb repulsion fights the magnetic attraction of parallel currents (Biot–Savart, ∝ v_i·v_j), which grows with speed: the slow beam (top, v = 0.5) spreads apart, while the fast one (bottom, v = 3) self-focuses into a pinched filament.",
+  "seed": 13,
+  "view": { "cameraDistance": 420, "particleRadius": 0.8, "colorMode": "speed" },
+  "settings": { "timeStep": 0.02, "mode2D": true, "integrator": "euler" },
+  "forces": [
+    { "preset": "coulomb", "softening": 1, "params": { "k": 0.08 } },
+    {
+      "name": "Biot–Savart",
+      "mode": "force",
+      "range": "long",
+      "softening": 1,
+      "expression": "k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))",
+      "params": [{ "name": "k", "value": 0.02 }]
+    }
+  ],
+  "groups": [
+    { "count": 300, "shape": { "type": "box", "center": [-60, 40, 0], "size": [120, 6, 0] }, "charge": 1, "velocity": { "type": "constant", "value": [0.5, 0, 0] } },
+    { "count": 300, "shape": { "type": "box", "center": [-60, -40, 0], "size": [120, 6, 0] }, "charge": 1, "velocity": { "type": "constant", "value": [3, 0, 0] } }
+  ]
+}

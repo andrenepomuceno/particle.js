@@ -1,0 +1,55 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "galaxy",
+  "name": "Galaxy disk",
+  "folder": "Gravity",
+  "description": "A massive fixed core with a rotating disk of light bodies in near-circular orbits.",
+  "seed": 1,
+  "view": {
+    "cameraDistance": 1400,
+    "particleRadius": 3,
+    "colorMode": "speed"
+  },
+  "settings": {
+    "timeStep": 0.5
+  },
+  "forces": [
+    {
+      "preset": "gravity",
+      "softening": 2,
+      "params": {
+        "G": 1
+      }
+    }
+  ],
+  "groups": [
+    {
+      "count": 1,
+      "kind": "fixed",
+      "mass": 20000,
+      "shape": {
+        "type": "point"
+      },
+      "scale": false
+    },
+    {
+      "count": 3000,
+      "mass": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 600,
+        "innerRadius": 40,
+        "thickness": 20
+      },
+      "velocity": {
+        "type": "orbit",
+        "centralMass": 20000,
+        "G": 1
+      }
+    }
+  ]
+}

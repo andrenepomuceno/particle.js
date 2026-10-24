@@ -1,0 +1,18 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "nuclei",
+  "name": "Nuclear clusters",
+  "folder": "Short range",
+  "description": "v1-style short-range sine force plus Coulomb repulsion: charged nucleons clump into nuclei.",
+  "seed": 3,
+  "view": { "cameraDistance": 1000, "particleRadius": 2, "colorMode": "charge" },
+  "settings": { "timeStep": 0.5, "mode2D": true, "friction": 0.002 },
+  "forces": [
+    { "preset": "nuclear", "cutoff": 12, "params": { "k": 2 } },
+    { "preset": "coulomb", "softening": 1, "params": { "k": 0.5 } }
+  ],
+  "groups": [
+    { "count": 1500, "shape": { "type": "disk", "radius": 400 }, "charge": { "choice": [0, 1] }, "nuclearCharge": 1 }
+  ]
+}

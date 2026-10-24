@@ -1,68 +1,86 @@
-# CLAUDE.md — particle.js
+# CLAUDE.md — particle.js v2
 
-Guidance for Claude Code when working in this repository.
+Simulador clássico de n-corpos no navegador (frontend only). Forças/potenciais são
+**expressões definidas pelo usuário**, compiladas para GLSL e executadas em paralelo
+na GPU. React + TypeScript + three.js, build com Vite.
 
-## Project
+Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não de modelo).
 
-JavaScript 3D n-body particle simulator with GPU-accelerated interaction updates (gravity, electromagnetism, configurable short-range nuclear force). Plain JS + JSX with Babel — no TypeScript.
+## Modelo físico
 
-## Architecture
+- Física **clássica**: nada de relatividade. `maxSpeed` é só um clamp numérico opcional.
+- Partícula: posição, velocidade, tempo próprio (relógio/idade, acumula `dt`), massa (> 0),
+  carga 2D (q, q2), spin vetorial fixo (sem torque), isospin I₃, paridade, carga de cor (quantidades r,g,b sobre 3 vetores-base a 120°;
+  `c_dot` = C_i·C_j, ver `docs/forces.md`), carga nuclear (`n`, conceito do v1), tipo (`dynamic` | `fixed`).
+- Força de par: magnitude escalar `F(r)`, **positiva = repulsiva**, aplicada ao longo de
+  `(x_i - x_j)/|x_i - x_j|`. No modo `potential` o usuário escreve `V(r)` e o motor usa
+  `F = -dV/dr` (derivada exata pelo shader-autodiff). Exceção: um potencial que lê `dx`, `dy`, `dz`
+  (Δx = x_i − x_j) ou `si_r`/`sj_r` é vetorial — a força é o gradiente completo `−∇_Δx V` (não central).
+  No modo `force` a expressão pode ser um vetor (`cross`, `v_i`, `d`, …), aplicado como a própria força;
+  forças que leem `v_i` usam passo implícito de ponto médio com o Jacobiano ∂F/∂v_i (Boris para v × B).
+- Curto alcance: corte rígido em `cutoff` (`x = r/cutoff` disponível). Longo alcance: sem corte.
+- `softening` ε: a expressão recebe `r = sqrt(r² + ε²)`; a direção usa a distância real. No modo
+  `potential` a força é o gradiente exato do V suavizado: `−V'(r)·d/r` (Plummer, conserva energia).
+- Integradores: Velocity Verlet (padrão, 2ª ordem) e Euler semi-implícito; ambos espelhados em
+  `referenceStep.ts`. `npm run parity` compara GPU × CPU.
 
-- Entry point: [src/main.js](src/main.js) → `viewSetup()` from [src/simulation/view.js](src/simulation/view.js) (wires input, GUI panels, `requestAnimationFrame` loop, `guiOptions` bridge).
-- [src/simulation/core.js](src/simulation/core.js) is now a thin bootstrapper that constructs `GraphicsGPU` and delegates to `createSimulationRuntime()` in [src/simulation/runtime.js](src/simulation/runtime.js). It exports live bindings `simulation` and `core`; `simulation` is reassigned on scenario change via `onSimulationChange`, so always import it as a live binding.
-- [src/simulation/runtime.js](src/simulation/runtime.js) — `CoreRuntime` class: scenario selector, `setup()`, `updatePhysics()`, particle creation routed through `updateFunctionMap` flags (`updateShader` / `fillPhysics`).
-- [src/simulation/simulation.js](src/simulation/simulation.js) — `SimulationGPU`: owns `particleList`, per-frame `step(dt, time)`, delegates GPU work to `GraphicsGPU`.
-- [src/simulation/graphics.js](src/simulation/graphics.js) — `GraphicsGPU`: three.js renderer + `GPUComputationRenderer`. A **single** instance is shared across scenario resets (only `cleanup()` + `drawParticles()` are called, not a new constructor).
-- [src/simulation/field.js](src/simulation/field.js) — `FieldGPU`: injects probe particles for vector-field visualization; shares the particle list.
-- Shaders are JS→GLSL: [src/simulation/shaders/computeShader.glsl.js](src/simulation/shaders/computeShader.glsl.js) builds velocity/position compute shaders; [src/simulation/shaders/particleShader.glsl.js](src/simulation/shaders/particleShader.glsl.js) builds rendering shaders. Both emit GLSL strings with `#define` flags derived from `Physics` properties.
-- Scenarios: arrays of `{ name, callback }` composed in [src/simulation/scenarios.js](src/simulation/scenarios.js) via `addFolder()`. Two generations live side by side: [src/simulation/scenarios_v0](src/simulation/scenarios_v0) and [src/simulation/scenarios_v1](src/simulation/scenarios_v1). Callbacks receive `simulation`, configure `physics.*`, and populate `particleList` (often via helpers in [src/simulation/scenariosHelpers.js](src/simulation/scenariosHelpers.js)).
-- Headless runtime: [src/simulation/headless/createHeadlessRuntime.js](src/simulation/headless/createHeadlessRuntime.js) + [src/simulation/headless/graphicsHeadless.js](src/simulation/headless/graphicsHeadless.js) provide a no-render GraphicsGPU stub for Node/browser headless tests.
-- UI is two-layered:
-  - React/MUI ([src/ui](src/ui)) — `UI` singleton in [src/ui/App.jsx](src/ui/App.jsx) owns dialog state and renders views. `useDialogView()` persists open/closed state in `localStorage`.
-  - Simulation GUI ([src/simulation/gui](src/simulation/gui)) — classes like `GUIParameters`, `GUIControls` register items via `addUIOption()` from [src/simulation/gui/uiHelper.js](src/simulation/gui/uiHelper.js), which calls `UI.addItem()`. Input handlers live in [src/simulation/components](src/simulation/components).
+## Arquitetura
 
-## Key data flow
+- `src/engine/expr/` — parser próprio → AST (validação e mensagens); `compileForce` entrega a AST ao
+  `shader-autodiff` (biblioteca do usuário): um grafo por força gera GLSL e JS e deriva `-dV/dr`.
+  O mesmo grafo alimenta GPU, gráfico da UI e referência em CPU: nunca escreva GLSL de força à mão.
+- `src/engine/forces/` — `ForceDefinition` (dados serializáveis), `compileForce` (valida e
+  devolve todos os problemas de uma vez), catálogo de variáveis em `variables.ts`.
+- `src/engine/particles.ts` — `ParticleSet` em struct-of-arrays, espelho 1:1 das texturas:
+  position=(xyz, kind), velocity=(xyz, time), attributes=(mass, q, q2, parity), color=(rgb, nuclear charge), spin=(sxyz, isospin).
+- `src/engine/shaders/` — geração dos compute shaders. Parâmetros de força, cutoff e
+  softening são **uniforms** (mudar valor não recompila); mudar expressão/alcance/ativação recompila.
+- `src/scenarios/library/*.json` — cenários declarativos (formato em `docs/scenarios.md`);
+  `scenarioFile.ts` valida (chaves desconhecidas rejeitadas) e constrói as partículas.
+- `src/engine/cpu/referenceStep.ts` — mesmo algoritmo em float64; é a especificação executável.
+  Toda mudança de semântica no shader muda a referência no mesmo commit.
 
-- **Scenario load**: `core.setup(idx)` → new `SimulationGPU(graphics, new Physics())` → `simulation.setup(particleSetup)` → scenario callback populates `simulation.physics.particleList` → `simulation.drawParticles()` rebuilds GPU textures.
-- **Per-frame**: `SimulationGPU.step(dt, time)` → `graphics.compute(dt, time)` (GPU advances positions/velocities) → `graphics.render()`.
-- **Physics → shader**: boolean physics flags map to `#define`s. Flag changes affecting shaders require `graphics.drawParticles(list, physics, shaderUpdate=true)`. Always route UI updates through `core.updatePhysics(key, value)`.
-- **Max particles**: `ENV.maxParticles` (webpack `--env`) → `calcTextWidth()` → square texture width. Adjustable at runtime via `graphics.setMaxParticles()`.
-- **GPU readback**: call `graphics.readbackParticleData()` before reading particle positions/velocities from JS (creating particles, exporting, etc.).
+## Regras do projeto
 
-## Developer workflows
+- Sem estado global mutável de módulo nem "live bindings" reatribuídos (erro do v1).
+  Objetos de runtime são criados uma vez e passados explicitamente.
+- Sem código comentado, `#if 0` ou blocos experimentais esquecidos.
+- Valores inválidos falham alto (mensagem com campo, valor e limite); nunca caia num padrão silencioso.
+- Sem MUI: componentes de UI próprios e leves.
+- Interatividade segue o v1 (atalhos de teclado, diálogos arrastáveis, clique para inspecionar,
+  shift+arrastar para selecionar). Mapa de teclas documentado em `docs/`.
+
+## Comandos
 
 ```
-npm start                 # dev server, localhost:8080, 20k particles
-npm run low               # 10k particles (weaker hardware)
-npm run record            # 50k particles, port 8081, canvas-capture enabled
-npm run build             # production bundle in dist/ (10k particles)
-npm run headless:serve    # headless webpack dev server
-npm run test:functional   # vitest run — Node headless lifecycle + contract tests
-npm run test:perf         # playwright — Chromium headless GPU performance report
-npm run test:headless     # functional + perf, sequential
-npm run madge-simple      # dependency SVG → img/
+npm run dev         # servidor de desenvolvimento
+npm test            # vitest (unitários, Node, sem GPU)
+npm run typecheck
+npm run lint
+npm run build
+npm run check       # typecheck + lint + test (rode antes de cada commit)
+npm run smoke:all   # Chromium headless: todos os cenários + gestos de interação
 ```
 
-Tests live in [tests/headless](tests/headless) ([functional.test.js](tests/headless/functional.test.js), [performance.spec.js](tests/headless/performance.spec.js)). Vitest config: [vitest.config.js](vitest.config.js); Playwright: [playwright.config.js](playwright.config.js).
+Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/screenshots/`.
 
-Global `ENV` is injected by webpack `DefinePlugin` from `--env`: access via `ENV?.maxParticles`, `ENV?.record`, `ENV?.production`, `ENV?.version`, `ENV?.gtag_config`.
+## Fluxo de trabalho
 
-## Conventions
-
-- **Scenario structure**: each scenario file exports an array. A callback receives `simulation`, sets `physics.*` properties, calls helpers like `createParticlesList()` / `createNuclei()`, and often opens with a local `defaultParameters()`. See [src/simulation/scenarios_v0/sandbox.js](src/simulation/scenarios_v0/sandbox.js) for a minimal example.
-- **Particle creation**: use `createParticle()` / `createParticlesList()` from `scenariosHelpers.js` for scenarios; use `core.createParticleList()` for runtime additions (handles readback + GPU rebuild).
-- **Physics config** is centralized in [src/simulation/physics.js](src/simulation/physics.js). Don't scatter raw constants — use `safeParseFloat()` and route updates through `core.updatePhysics()`.
-- **2D mode**: `simulation.bidimensionalMode(true)` sets `mode2D` and disables orbit rotation. Scenarios set `simulation.mode2D = true` before `drawParticles()`.
-- **GUI ↔ React bridge**: simulation-side GUI classes push items to React via `UI.addItem(component, item)` with `{ title, value, onFinish, folder }`. Refresh callbacks sync physics state back to the UI options object.
-- **Particle types** (`ParticleType`): `default` (0), `probe` (1), `fixed` (2) — float values used in GLSL. Probes are used by `FieldGPU`; fixed particles skip velocity integration in the shader.
-- **localStorage** key prefixes: `CustomDialog:` (position/size) and `DialogView:` (open/closed).
-- The `src/simulation/types/` directory exists but is currently empty/unused.
-
-## Documentation
-
-Detailed technical docs live in [docs/](docs). Start with [docs/README.md](docs/README.md). Topics: architecture lifecycle, scenario authoring, UI bridge, GPU compute pipeline, developer workflows.
-
-## Rules for commits in this repo
-
-- **Never** add a `Co-Authored-By` trailer (or any co-author attribution) to commit messages.
-- Match the existing terse, imperative style ("Fix X", "Add Y", "Refactor Z").
+- Tarefas: um `.md` por tarefa em `tasks/inbox/`; ao concluir, escreva a seção `## Result`
+  e mova com `git mv` para `tasks/done/`. Pedidos no meio de uma tarefa viram tarefa na hora.
+- Commits pequenos, conventional commits em inglês, mensagem via `git commit -F`, stage explícito,
+  sem trailers de coautoria. Suíte verde antes de cada commit.
+- **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/main` sempre que
+  um lote estiver commitado, verde e revisado. Nunca force push nem reescreva histórico publicado.
+- **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados. **Um passe por lote**
+  (pedido do usuário): as correções vão para o push sem novo review; nada de review de commits pequenos isolados.
+- **Testes de navegador na GPU** (`npm run snap|smoke|parity|smoke:all|cluster-stats`): falham se
+  caírem em renderer de software; SwiftShader (CPU, lento) só no CI. O limite de CPU antigo foi
+  removido a pedido do usuário (a carga vinha do Chromium sem GPU).
+- Subagentes: no máximo 3, sem filhos; os que escrevem usam worktree. Escolha o modelo mais adequado para a tarefa.
+- Documentação (`README.md`, `docs/`, este arquivo) muda no mesmo commit do comportamento.
+- Toda feature nova ganha um cenário que a demonstra (pedido do usuário); ideias de cenários
+  interessantes também entram na biblioteca.
+- Automação repetitiva de CLI vai para `scripts/`.
+- Fase atual: **MVP**. Testes completos/gate de cobertura/e2e estão em `tasks/inbox/`.
+- Docs: `docs/README.md` é o índice; `docs/forces.md` descreve o modelo e a linguagem de expressões.

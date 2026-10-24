@@ -6,6 +6,7 @@ import { ControllerContext, useAppState } from './context';
 import { usePointerGestures } from './input/usePointerGestures';
 import { loadJson, saveJson } from './persist';
 import { AboutView } from './views/AboutView';
+import { ExpressionsView } from './views/ExpressionsView';
 import { ForcesView } from './views/ForcesView';
 import { StatsView } from './views/StatsView';
 import { ControlsView, FieldView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
@@ -21,7 +22,8 @@ const right = (offset: number) => ({ x: Math.max(window.innerWidth - offset, 8),
 
 const DIALOGS: readonly DialogSpec[] = [
   { id: 'info', title: 'Information', position: { x: 8, y: 56 }, render: () => <InfoView /> },
-  { id: 'forces', title: 'Forces', position: right(470), render: () => <ForcesView /> },
+  { id: 'forces', title: 'Forces', position: right(470), render: (ctx) => <ForcesView onReference={() => ctx.openDialog('expressions')} /> },
+  { id: 'expressions', title: 'Expressions', position: right(950), render: () => <ExpressionsView /> },
   { id: 'parameters', title: 'Parameters', position: { x: 8, y: 320 }, render: () => <ParametersView /> },
   { id: 'controls', title: 'Controls', position: { x: 290, y: 56 }, render: (ctx) => <ControlsView ctx={ctx} /> },
   { id: 'particle', title: 'Particle', position: { x: 8, y: 520 }, render: () => <ParticleView /> },
@@ -99,6 +101,7 @@ function Shell({ controller }: { controller: SimulationController }) {
     collapseAll: () => setOpen([]),
     toggleOverlay: () => setOverlayHidden((hidden) => !hidden),
     toggleDialog: (id) => setOpen((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
+    openDialog: (id) => setOpen((ids) => (ids.includes(id) ? ids : [...ids, id])),
     importFile: () => {
       const input = document.getElementById(IMPORT_INPUT_ID);
       if (!(input instanceof HTMLInputElement)) throw new Error(`#${IMPORT_INPUT_ID} is missing from the page`);

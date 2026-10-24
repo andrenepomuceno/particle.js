@@ -1,8 +1,6 @@
-import { Fragment, useState, type KeyboardEvent } from 'react';
-import { FUNCTION_ARITY } from '../../engine/expr/ast';
+import { useState, type KeyboardEvent } from 'react';
 import { FORCE_PRESETS, newForceId, type ForcePresetId } from '../../engine/forces/presets';
 import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
-import { PAIR_VARIABLES } from '../../engine/forces/variables';
 import { NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
 import { ForcePlot } from './ForcePlot';
@@ -41,7 +39,10 @@ function ParamRow({ param, onChange, onRemove }: {
   );
 }
 
-function ForceCard({ force, errors, warnings }: { force: ForceDefinition; errors: string[] | undefined; warnings: string[] | undefined }) {
+function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
+  force: ForceDefinition; errors: string[] | undefined; warnings: string[] | undefined;
+  collapsed: boolean; onToggle: () => void;
+}) {
   const controller = useController();
   const update = (patch: Partial<ForceDefinition>) => controller.updateForce(force.id, patch);
   const setParam = (index: number, param: ForceParam) =>
@@ -55,11 +56,23 @@ function ForceCard({ force, errors, warnings }: { force: ForceDefinition; errors
   return (
     <article className={force.enabled ? 'force-card' : 'force-card disabled'} data-force={force.name}>
       <header>
+        <button className="collapse" aria-expanded={!collapsed} aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${force.name}`} onClick={onToggle}>
+          {collapsed ? '▸' : '▾'}
+        </button>
         <input type="checkbox" aria-label={`Enable ${force.name}`} checked={force.enabled} onChange={(e) => update({ enabled: e.target.checked })} />
         <TextCommit label="force name" value={force.name} onCommit={(name) => update({ name })} />
         <button title="Duplicate" aria-label={`Duplicate ${force.name}`} onClick={() => controller.setForces([...controller.state.forces, { ...force, id: newForceId(), name: `${force.name} copy` }])}>⧉</button>
         <button className="danger" title="Remove" aria-label={`Remove ${force.name}`} onClick={() => controller.removeForce(force.id)}>✕</button>
       </header>
+      {collapsed ? (
+        <p className="force-summary mono" title={force.expression}>
+          {errors && <span className="badge error">error</span>}
+          {warnings && <span className="badge warning">warning</span>}
+          {force.mode === 'potential' ? 'V' : 'F'} = {force.expression}
+          <span className="muted"> · {force.range}{force.range === 'short' ? ` < ${force.cutoff}` : ''}</span>
+        </p>
+      ) : (
+      <>
       <div className="grid">
         <SelectField label="Mode" value={force.mode} options={['force', 'potential'] as const} onChange={(mode) => update({ mode })} />
         <SelectField label="Range" value={force.range} options={['long', 'short'] as const} onChange={(range) => update({ range })} />
@@ -78,42 +91,48 @@ function ForceCard({ force, errors, warnings }: { force: ForceDefinition; errors
       {errors && <ul className="errors">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
       {warnings && <ul className="warnings">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
       {!errors && <ForcePlot definition={force} />}
+      </>
+      )}
     </article>
   );
 }
 
-export function ForcesView() {
+export function ForcesView({ onReference }: { onReference: () => void }) {
   const controller = useController();
   const forces = useAppState((s) => s.forces);
   const forceErrors = useAppState((s) => s.forceErrors);
   const forceWarnings = useAppState((s) => s.forceWarnings);
   const shaderError = useAppState((s) => s.shaderError);
   const [preset, setPreset] = useState<ForcePresetId>('gravity');
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (id: string) => setCollapsed((ids) => {
+    const next = new Set(ids);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
 
   return (
     <div className="stack">
       {shaderError && <pre className="errors">{shaderError}</pre>}
       {forces.length === 0 && <p className="muted">No forces: particles move freely.</p>}
-      {forces.map((force) => <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]} />)}
+      {forces.length > 1 && (
+        <div className="row">
+          <button className="outlined" onClick={() => setCollapsed(new Set(forces.map((f) => f.id)))}>Collapse all</button>
+          <button className="outlined" onClick={() => setCollapsed(new Set())}>Expand all</button>
+        </div>
+      )}
+      {forces.map((force) => (
+        <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]}
+          collapsed={collapsed.has(force.id)} onToggle={() => toggle(force.id)} />
+      ))}
       <div className="row">
         <select aria-label="Force preset" value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>
           {Object.entries(FORCE_PRESETS).map(([id, p]) => <option key={id} value={id}>{p.name}</option>)}
         </select>
         <button className="primary" onClick={() => controller.addForce(preset)}>Add force</button>
+        <button className="outlined" onClick={onReference}>Reference</button>
       </div>
-      <details>
-        <summary className="muted">Expression reference</summary>
-        <p className="muted">Positive F pushes the pair apart. In potential mode F = −dV/dr is derived symbolically. Ctrl+Enter applies the expression.</p>
-        <dl className="stats">
-          {PAIR_VARIABLES.map((v) => (
-            <Fragment key={v.name}>
-              <dt className="mono">{v.name}</dt>
-              <dd style={{ textAlign: 'left', fontFamily: 'inherit' }}>{v.description}{v.shortRangeOnly ? ' (short range)' : ''}</dd>
-            </Fragment>
-          ))}
-        </dl>
-        <p className="muted mono">{Object.keys(FUNCTION_ARITY).join(' ')} · pi e · + - * / ^</p>
-      </details>
     </div>
   );
 }

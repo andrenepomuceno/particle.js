@@ -52,6 +52,10 @@ localStorage) and is never restored from the saved list of open dialogs.
 Placement and generation use the plane through the orbit target facing the camera
 (z = 0 in 2D mode).
 
+**Forces**: each force card collapses to a one-line summary (▸/▾, or *Collapse all*), flagged
+when it has an error or warning. *Reference* opens **Expressions**, the full list of variables
+(grouped by topic), functions, operators and range/softening rules.
+
 ## Look
 
 Particles are drawn in v1's **spherow** style: a raymarched sphere with an arrow through it
@@ -73,7 +77,7 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 
 ## Dialogs
 
-Information, Forces, Parameters, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
+Information, Forces, Expressions, Parameters, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
 
 **Field** (<kbd>J</kbd>) draws a grid of arrows over the view showing the net force a test
 particle would feel there, using the enabled forces exactly as the integrator does. The grid

@@ -8,6 +8,7 @@ export interface ActionContext {
   collapseAll: () => void;
   toggleOverlay: () => void;
   toggleDialog: (id: string) => void;
+  openDialog: (id: string) => void;
   importFile: () => void;
 }
 

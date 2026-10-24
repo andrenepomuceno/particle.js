@@ -165,6 +165,16 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
 .chart-legend b { color: var(--ink-1); font-weight: 500; }
 .chart-note { margin: 2px 0 0; color: var(--ink-3); font-size: 11px; }
 
+.reference { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 0; }
+.reference dt { color: var(--ink-1); }
+.reference dd { margin: 0; color: var(--ink-2); }
+
+.force-card button.collapse { padding: 2px 6px; }
+.force-summary { margin: 0; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { font-family: var(--font); font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-right: 6px; }
+.badge.error { color: var(--danger); background: var(--danger-surface); }
+.badge.warning { color: var(--warning); background: var(--warning-surface); }
+
 .force-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);

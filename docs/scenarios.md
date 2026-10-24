@@ -66,6 +66,12 @@ rotated (an equilateral triplet), so bound groups start near equilibrium; the ve
 shared by its members. `count` must be a
 multiple of `size`; with a `grid` shape each cluster takes one site.
 
+`scale` (optional, default `true`): when the user sets a particle total in the Information dialog,
+every group with `scale: true` grows or shrinks proportionally (whole clusters only) at **constant
+density** — disks, shells and flat boxes grow by √factor, spheres and 3D boxes by ∛factor, grids
+gain columns/rows/layers — and the boundary size and camera distance follow the largest length
+factor. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core.
+
 `count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `spin` and
 `nuclearCharge` to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
 

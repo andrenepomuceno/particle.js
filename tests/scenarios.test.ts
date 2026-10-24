@@ -7,7 +7,7 @@ const base = { format: 'particle.js-v2/scenario', version: 1, id: 't', name: 'Te
 const parse = (extra: object) => parseScenario(JSON.stringify({ ...base, ...extra }), 'test.json');
 const build = (extra: object, seed = 1) => {
   const scenario = parse(extra);
-  return scenario.particles(createRng(seed));
+  return scenario.build(createRng(seed)).particles;
 };
 
 describe('bundled scenario library', () => {
@@ -16,8 +16,8 @@ describe('bundled scenario library', () => {
   });
 
   it.each(SCENARIOS.map((s) => [s.id, s] as const))('%s builds deterministically with valid forces', (_, scenario) => {
-    const first = scenario.particles(createRng(scenario.seed));
-    const second = scenario.particles(createRng(scenario.seed));
+    const first = scenario.build(createRng(scenario.seed)).particles;
+    const second = scenario.build(createRng(scenario.seed)).particles;
     expect(first).toEqual(second);
     expect(scenario.forces().length).toBeGreaterThan(0);
   });
@@ -29,7 +29,7 @@ describe('parseScenario', () => {
     expect(scenario.folder).toBe('Custom');
     expect(scenario.colorMode).toBe('charge');
     expect(scenario.settings.timeStep).toBe(1);
-    expect(scenario.particles(createRng(1))).toEqual([]);
+    expect(scenario.build(createRng(1)).particles).toEqual([]);
   });
 
   it('expands presets with overrides and full definitions', () => {

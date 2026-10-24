@@ -9,3 +9,12 @@ Information menu, applied on reset).
 - Scenario groups scale with it; groups can opt out (e.g. a galaxy's single core). Clusters keep
   their size; grids grow their columns/rows.
 - Open design questions asked to the user (density vs region size, default count).
+
+## Result
+
+Done. Information → "Particles (next reset)" (persisted) sets `particleTarget`; scenario groups scale
+at constant density via `src/scenarios/scaling.ts` (user decision 2026-10-24: keep density, not
+region), `"scale": false` pins groups (galaxy core), clusters stay whole, grids add sites; boundary
+and camera follow the length factor; GPU capacity is rebuilt when the target exceeds it (up to
+2048²). Verified: 6 scaling unit tests; in headless Chromium galaxy 3001 → 20001 particles,
+capacity 16384 → 20164, camera 1400 → 3615, finite state, back to 3001 on "scenario default".

@@ -75,6 +75,7 @@ export interface AppState {
   time: number;
   particleCount: number;
   capacity: number;
+  particleTarget: number | undefined;
   colorMode: ColorMode;
   particleStyle: ParticleStyle;
   fpsLimit: FpsLimit;
@@ -100,6 +101,8 @@ export const FPS_LIMITS = [30, 60, 0] as const;
 export type FpsLimit = (typeof FPS_LIMITS)[number];
 
 const DEFAULT_CAPACITY = 128 * 128;
+/** 2048² texels: far beyond what an O(N²) step can run interactively, but a hard GPU-memory bound. */
+export const MAX_CAPACITY = 2048 * 2048;
 const NOTICE_LIFETIME_MS = 6000;
 
 function structureKey(forces: readonly CompiledForce[]): string {
@@ -113,9 +116,9 @@ export class SimulationController {
   readonly controls: OrbitControls;
   private readonly scene = new Scene();
   private readonly axes = new AxesHelper(100);
-  private readonly set: ParticleSet;
-  private readonly gpu: GpuCompute;
-  private readonly points: ParticlePoints;
+  private set: ParticleSet;
+  private gpu: GpuCompute;
+  private points: ParticlePoints;
   private compiled: CompiledForce[] = [];
   private compiledKey = '';
   private cpuStale = false;
@@ -143,7 +146,7 @@ export class SimulationController {
     this.scene.add(this.points.object, this.axes);
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
-      shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
+      shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
     });
@@ -200,12 +203,16 @@ export class SimulationController {
   }
 
   private startScenario(scenario: Scenario, scenarioId: string): void {
-    const settings = { ...DEFAULT_SETTINGS, ...scenario.settings };
-    const particles = scenario.particles(createRng(scenario.seed));
+    // An empty scenario (sandbox) has nothing to scale; the target only resizes populated ones.
+    const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
+    const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
+    const base = { ...DEFAULT_SETTINGS, ...scenario.settings };
+    const settings = { ...base, boundarySize: base.boundarySize * linearScale };
+    this.ensureCapacity(particles.length);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
     this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
-    this.resetCamera(scenario.cameraDistance);
+    this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
     this.restart = () => this.startScenario(scenario, scenarioId);
   }
@@ -250,6 +257,37 @@ export class SimulationController {
     };
     load();
     this.restart = load;
+  }
+
+  /**
+   * Particle total for the next generated scenario (v1's adjustable max particles); undefined
+   * keeps each scenario's own count. Applied on the next reset or scenario load.
+   */
+  setParticleTarget(particleTarget: number | undefined): void {
+    if (particleTarget !== undefined && !(Number.isInteger(particleTarget) && particleTarget >= 1 && particleTarget <= MAX_CAPACITY)) {
+      throw new Error(`particle count must be an integer within [1, ${MAX_CAPACITY}], got ${particleTarget}`);
+    }
+    this.store.set({ particleTarget });
+  }
+
+  /** Rebuilds the GPU buffers when a world needs more slots than the current capacity. */
+  private ensureCapacity(count: number): void {
+    if (count <= this.set.capacity) return;
+    if (count > MAX_CAPACITY) throw new Error(`${count} particles exceed the maximum capacity ${MAX_CAPACITY}`);
+    const width = textureWidthFor(count);
+    this.scene.remove(this.points.object);
+    this.gpu.dispose();
+    this.points.dispose();
+    this.set = new ParticleSet(width * width);
+    this.gpu = new GpuCompute(this.renderer, this.set);
+    this.points = new ParticlePoints(width);
+    this.points.setStyle(this.state.particleStyle);
+    this.points.setColorMode(this.state.colorMode);
+    this.scene.add(this.points.object);
+    this.compiledKey = '';
+    this.cpuStale = false;
+    this.applyRadius();
+    this.store.set({ capacity: this.set.capacity });
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {

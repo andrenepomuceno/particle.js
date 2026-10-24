@@ -27,6 +27,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
 - **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file.
 - **Snapshots**: export the full state (forces, settings, particles) to JSON plus a PNG,
   and import it back with field-by-field validation.
+- **Adjustable particle count**: scenarios regenerate at the chosen size, keeping their density.
 - 2D and 3D modes, sphere or box boundaries, friction, optional speed clamp.
 
 ## Quick start

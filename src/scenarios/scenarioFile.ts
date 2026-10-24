@@ -1,5 +1,6 @@
 import { newForceId } from '../engine/forces/presets';
 import { readForce } from '../engine/forces/readForce';
+import { scaleGroups } from './scaling';
 import type { ForceDefinition } from '../engine/forces/types';
 import { JsonReader } from '../engine/json';
 import { ParticleKind, type Particle, type Vec3 } from '../engine/particles';
@@ -30,6 +31,8 @@ export type VelocitySpec =
 
 export interface ParticleGroup {
   count: number;
+  /** False pins the count when the user changes the particle total (e.g. a galaxy core). */
+  scale: boolean;
   /**
    * Every `size` consecutive particles share one center drawn from the shape and sit evenly
    * spaced on a circle of `radius` around it, randomly rotated (a triplet is an equilateral
@@ -49,7 +52,7 @@ export interface ParticleGroup {
 
 const ORIGIN: Vec3 = [0, 0, 0];
 const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups'] as const;
-const GROUP_KEYS = ['count', 'cluster', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
+const GROUP_KEYS = ['count', 'scale', 'cluster', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
   sampledNumber(value: unknown, path: string): Sampled<number> {
@@ -168,6 +171,7 @@ class ScenarioReader extends JsonReader {
       o[key] === undefined ? fallback : this.sampledNumber(o[key], `${path}.${key}`);
     const group: ParticleGroup = {
       count: this.count(o.count, `${path}.count`),
+      scale: o.scale === undefined ? true : this.boolean(o.scale, `${path}.scale`),
       cluster: o.cluster === undefined ? undefined : this.cluster(o.cluster, `${path}.cluster`),
       kind: o.kind === undefined ? 'dynamic' : this.oneOf(o.kind, ['dynamic', 'fixed'] as const, `${path}.kind`),
       shape: this.shape(o.shape, `${path}.shape`),
@@ -337,7 +341,11 @@ export function readScenario(value: unknown, source: string): Scenario {
     seed,
     settings,
     forces: (): ForceDefinition[] => forces.map((f) => ({ ...f, id: newForceId(), params: f.params.map((p) => ({ ...p })) })),
-    particles: (rng) => buildParticles(groups, rng, settings.mode2D),
+    defaultCount: groups.reduce((sum, g) => sum + g.count, 0),
+    build: (rng, targetCount) => {
+      const scaled = scaleGroups(groups, targetCount);
+      return { particles: buildParticles(scaled.groups, rng, settings.mode2D), linearScale: scaled.linearScale };
+    },
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),
     colorMode: view.colorMode === undefined ? 'charge' : json.oneOf(view.colorMode, COLOR_MODES, 'view.colorMode'),

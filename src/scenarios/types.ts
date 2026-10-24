@@ -12,7 +12,10 @@ export interface Scenario {
   seed: number;
   settings: Partial<SimulationSettings>;
   forces: () => ForceDefinition[];
-  particles: (rng: Rng) => Particle[];
+  /** Particle total as written in the file. */
+  defaultCount: number;
+  /** Generates the particles, rescaled to `targetCount` at constant density when given. */
+  build: (rng: Rng, targetCount?: number) => { particles: Particle[]; linearScale: number };
   cameraDistance: number;
   particleRadius: number;
   colorMode: ColorMode;

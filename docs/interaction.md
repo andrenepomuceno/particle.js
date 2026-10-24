@@ -54,6 +54,13 @@ are cheaper. Controls → FPS limit caps rendering (and stepping) at 30, 60 (def
 (no software cap, e.g. 144 fps on a 144 Hz screen). Browsers never present frames faster
 than the display refreshes, so there is no higher setting.
 
+## Particle count
+
+Information → **Particles (next reset)** sets the total for generated scenarios, like v1's max
+particles. It is applied on the next reset (R) or scenario load, remembered by the browser, and
+scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity grows on demand
+(the default 16384 can also be raised with `?capacity=`); the cost per step is O(N²).
+
 ## Dialogs
 
 Information, Forces, Parameters, Controls, Particle, Selection, Generator, Statistics, Shortcuts.

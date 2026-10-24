@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { SimulationController } from './app/SimulationController';
 import { App } from './ui/App';
+import { loadJson } from './ui/persist';
+import { PARTICLE_TARGET_KEY } from './ui/storageKeys';
 import './ui/styles.css';
 
 function readCapacity(): number | undefined {
@@ -40,6 +42,14 @@ function start(): void {
     return;
   }
   const controller = new SimulationController(readCapacity());
+  const savedTarget = loadJson<number | null>(PARTICLE_TARGET_KEY, null);
+  if (savedTarget !== null) {
+    try {
+      controller.setParticleTarget(savedTarget);
+    } catch (error) {
+      console.warn(`ignoring the saved particle count: ${(error as Error).message}`);
+    }
+  }
   controller.loadScenario(readScenario());
   Object.assign(window, { particleController: controller });
   createRoot(document.getElementById('root')!).render(

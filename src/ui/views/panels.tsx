@@ -1,7 +1,9 @@
 import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
 import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
-import { FPS_LIMITS } from '../../app/SimulationController';
+import { FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
+import { saveJson } from '../persist';
+import { PARTICLE_TARGET_KEY } from '../storageKeys';
 import { SCENARIOS } from '../../scenarios';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
 import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
@@ -23,6 +25,12 @@ export function InfoView() {
   const paused = useAppState((s) => s.paused);
   const forces = useAppState((s) => s.forces.filter((f) => f.enabled).length);
   const description = useAppState((s) => s.description);
+  const target = useAppState((s) => s.particleTarget);
+  const defaultCount = SCENARIOS.find((s) => s.id === scenarioId)?.defaultCount;
+  const applyTarget = (value: number | undefined) => {
+    controller.setParticleTarget(value);
+    saveJson(PARTICLE_TARGET_KEY, value ?? null);
+  };
 
   return (
     <div className="stack">
@@ -31,6 +39,15 @@ export function InfoView() {
         {SCENARIOS.map((s) => <option key={s.id} value={s.id}>{s.folder} / {s.name}</option>)}
       </select>
       {description && <p className="muted" style={{ margin: 0 }}>{description}</p>}
+      <div className="grid">
+        <NumberField label="Particles (next reset)" value={target ?? defaultCount ?? count}
+          validate={(v) => (Number.isInteger(v) && v >= 1 && v <= MAX_CAPACITY ? undefined : `must be an integer within [1, ${MAX_CAPACITY}]`)}
+          onCommit={(v) => applyTarget(v)} />
+      </div>
+      <div className="row">
+        <button className="outlined" onClick={() => controller.reset()}>Apply (reset) <kbd>R</kbd></button>
+        {target !== undefined && <button className="outlined" onClick={() => applyTarget(undefined)}>Use scenario default{defaultCount ? ` (${defaultCount})` : ''}</button>}
+      </div>
       <dl className="stats">
         <dt>Status</dt><dd>{paused ? 'paused' : 'running'}</dd>
         <dt>Particles</dt><dd>{count} / {capacity}</dd>

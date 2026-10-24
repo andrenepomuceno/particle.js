@@ -2,7 +2,7 @@
 // largest position deviation. Exits 1 if any case exceeds the float32 tolerance.
 // Usage: node scripts/parity.mjs [--scale 1]   (multiplies every case's step count)
 import { parseArgs } from 'node:util';
-import { collectProblems, withBrowser } from './lib/browser.mjs';
+import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
 
 const { values } = parseArgs({ options: { scale: { type: 'string', default: '1' } } });
 const scale = Number(values.scale);
@@ -30,7 +30,7 @@ const GROUPS = {
 };
 
 const failures = await withBrowser(async ({ browser, base }) => {
-  const page = await browser.newPage();
+  const page = await newAppPage(browser);
   const problems = collectProblems(page);
   await page.goto(`${base}?scenario=sandbox`);
   let failed = 0;

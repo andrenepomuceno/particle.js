@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { startAnalytics } from './analytics';
 import { SimulationController } from './app/SimulationController';
 import { App } from './ui/App';
-import { loadJson } from './ui/persist';
+import { loadJson, saveJson } from './ui/persist';
 import { PARTICLE_TARGET_KEY } from './ui/storageKeys';
 import './ui/styles.css';
 
@@ -43,15 +43,19 @@ function start(): void {
     return;
   }
   const controller = new SimulationController(readCapacity());
+  const scenarioId = readScenario();
   const savedTarget = loadJson<number | null>(PARTICLE_TARGET_KEY, null);
-  if (savedTarget !== null) {
-    try {
-      controller.setParticleTarget(savedTarget);
-    } catch (error) {
-      console.warn(`ignoring the saved particle count: ${(error as Error).message}`);
-    }
+  try {
+    if (savedTarget !== null) controller.setParticleTarget(savedTarget);
+    controller.loadScenario(scenarioId);
+  } catch (error) {
+    if (savedTarget === null) throw error;
+    // A saved total that no longer works must not lock the page out on every reload.
+    saveJson(PARTICLE_TARGET_KEY, null);
+    controller.setParticleTarget(undefined);
+    controller.loadScenario(scenarioId);
+    controller.notify(`The saved particle count ${savedTarget} could not be used and was cleared: ${(error as Error).message}`, 'error');
   }
-  controller.loadScenario(readScenario());
   Object.assign(window, { particleController: controller });
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

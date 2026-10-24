@@ -35,6 +35,15 @@ describe('scaling scenarios to a particle total', () => {
     expect(xs.size).toBe(8);
   });
 
+  it('scales a sphere by the square root in 2D, where it is projected onto a disk', () => {
+    expect(scenario([{ count: 10, shape: { type: 'sphere', radius: 5 } }], { mode2D: true }).build(createRng(1), 40).linearScale).toBeCloseTo(2, 12);
+  });
+
+  it('grows a single-site grid in the plane instead of stacking particles', () => {
+    const { particles } = scenario([{ count: 1, shape: { type: 'grid', spacing: 1, columns: 1, rows: 1 } }]).build(createRng(1), 9);
+    expect(new Set(particles.map((p) => p.position.join(','))).size).toBe(9);
+  });
+
   it('keeps pinned groups and whole clusters', () => {
     const { particles } = scenario([
       { count: 1, scale: false, shape: { type: 'point' }, mass: 99 },

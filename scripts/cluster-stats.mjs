@@ -5,7 +5,7 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { collectProblems, withBrowser } from './lib/browser.mjs';
+import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
 
 const { values } = parseArgs({
   options: {
@@ -20,7 +20,7 @@ const times = values.at.split(',').map(Number);
 for (const n of [...links, ...times]) if (!(n > 0)) throw new Error(`--link and --at take positive numbers, got ${n}`);
 
 const problemCount = await withBrowser(async ({ browser, base }) => {
-  const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
+  const page = await newAppPage(browser, { viewport: { width: 1000, height: 800 } });
   const problems = collectProblems(page);
   await page.goto(`${base}?scenario=${values.scenario}`);
   await page.waitForFunction(() => globalThis.particleController?.state.particleCount >= 0);

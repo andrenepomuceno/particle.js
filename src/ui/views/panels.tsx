@@ -31,22 +31,33 @@ export function InfoView() {
     controller.setParticleTarget(value);
     saveJson(PARTICLE_TARGET_KEY, value ?? null);
   };
+  const attempt = (label: string, action: () => void) => {
+    try {
+      action();
+    } catch (error) {
+      controller.notify(`${label} failed: ${(error as Error).message}`, 'error');
+    }
+  };
 
   return (
     <div className="stack">
-      <select aria-label="Scenario" value={scenarioId} onChange={(e) => controller.loadScenario(e.target.value)}>
+      <select aria-label="Scenario" value={scenarioId} onChange={(e) => attempt('Loading the scenario', () => controller.loadScenario(e.target.value))}>
         {scenarioId === '' && <option value="">{name} (imported)</option>}
         {SCENARIOS.map((s) => <option key={s.id} value={s.id}>{s.folder} / {s.name}</option>)}
       </select>
       {description && <p className="muted" style={{ margin: 0 }}>{description}</p>}
+      {defaultCount === 0 && target === undefined ? (
+        <p className="muted" style={{ margin: 0 }}>This scenario starts empty; a particle count applies to generated scenarios.</p>
+      ) : (
       <div className="grid">
         <NumberField label="Particles (next reset)" value={target ?? defaultCount ?? count}
           validate={(v) => (Number.isInteger(v) && v >= 1 && v <= MAX_CAPACITY ? undefined : `must be an integer within [1, ${MAX_CAPACITY}]`)}
           onCommit={(v) => applyTarget(v)} />
       </div>
+      )}
       <div className="row">
-        <button className="outlined" onClick={() => controller.reset()}>Apply (reset) <kbd>R</kbd></button>
-        {target !== undefined && <button className="outlined" onClick={() => applyTarget(undefined)}>Use scenario default{defaultCount ? ` (${defaultCount})` : ''}</button>}
+        <button className="outlined" onClick={() => attempt('Reset', () => controller.reset())}>Apply (reset) <kbd>R</kbd></button>
+        {target !== undefined && <button className="outlined" onClick={() => applyTarget(undefined)}>Use scenario default{defaultCount !== undefined ? ` (${defaultCount})` : ''}</button>}
       </div>
       <dl className="stats">
         <dt>Status</dt><dd>{paused ? 'paused' : 'running'}</dd>

@@ -343,7 +343,7 @@ export function readScenario(value: unknown, source: string): Scenario {
     forces: (): ForceDefinition[] => forces.map((f) => ({ ...f, id: newForceId(), params: f.params.map((p) => ({ ...p })) })),
     defaultCount: groups.reduce((sum, g) => sum + g.count, 0),
     build: (rng, targetCount) => {
-      const scaled = scaleGroups(groups, targetCount);
+      const scaled = scaleGroups(groups, targetCount, settings.mode2D);
       return { particles: buildParticles(scaled.groups, rng, settings.mode2D), linearScale: scaled.linearScale };
     },
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),

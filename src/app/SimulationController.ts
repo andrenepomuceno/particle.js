@@ -101,8 +101,8 @@ export const FPS_LIMITS = [30, 60, 0] as const;
 export type FpsLimit = (typeof FPS_LIMITS)[number];
 
 const DEFAULT_CAPACITY = 128 * 128;
-/** 2048² texels: far beyond what an O(N²) step can run interactively, but a hard GPU-memory bound. */
-export const MAX_CAPACITY = 2048 * 2048;
+/** 256² slots: the O(N²) step is already far from interactive there (v1 topped out at 50k in its record build). */
+export const MAX_CAPACITY = 256 * 256;
 const NOTICE_LIFETIME_MS = 6000;
 
 function structureKey(forces: readonly CompiledForce[]): string {
@@ -208,7 +208,6 @@ export class SimulationController {
     const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
     const base = { ...DEFAULT_SETTINGS, ...scenario.settings };
     const settings = { ...base, boundarySize: base.boundarySize * linearScale };
-    this.ensureCapacity(particles.length);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
     this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
@@ -275,12 +274,16 @@ export class SimulationController {
     if (count <= this.set.capacity) return;
     if (count > MAX_CAPACITY) throw new Error(`${count} particles exceed the maximum capacity ${MAX_CAPACITY}`);
     const width = textureWidthFor(count);
+    // Build first: if the GPU refuses the new buffers, the old ones must still be intact.
+    const set = new ParticleSet(width * width);
+    const gpu = new GpuCompute(this.renderer, set);
+    const points = new ParticlePoints(width);
     this.scene.remove(this.points.object);
     this.gpu.dispose();
     this.points.dispose();
-    this.set = new ParticleSet(width * width);
-    this.gpu = new GpuCompute(this.renderer, this.set);
-    this.points = new ParticlePoints(width);
+    this.set = set;
+    this.gpu = gpu;
+    this.points = points;
     this.points.setStyle(this.state.particleStyle);
     this.points.setColorMode(this.state.colorMode);
     this.scene.add(this.points.object);
@@ -291,9 +294,7 @@ export class SimulationController {
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
-    if (particles.length > this.set.capacity) {
-      throw new Error(`'${name}' needs ${particles.length} particles, capacity is ${this.set.capacity}`);
-    }
+    this.ensureCapacity(particles.length);
     this.setSettings(settings);
     this.setForces(forces);
     this.points.setHighlight(undefined);

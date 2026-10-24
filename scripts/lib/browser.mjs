@@ -16,6 +16,13 @@ export async function withBrowser(body) {
   }
 }
 
+/** A page that behaves like a returning visitor, so the first-visit About dialog does not cover screenshots. */
+export async function newAppPage(browser, options = {}) {
+  const page = await browser.newPage(options);
+  await page.addInitScript(() => localStorage.setItem('about-seen', 'true'));
+  return page;
+}
+
 /** Collects deduplicated console errors/warnings and uncaught page errors. */
 export function collectProblems(page) {
   const problems = [];

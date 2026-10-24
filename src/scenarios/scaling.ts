@@ -9,12 +9,13 @@ export interface ScaledGroups {
 const defaultTotal = (groups: readonly ParticleGroup[]) => groups.reduce((sum, g) => sum + g.count, 0);
 
 /** Scales a shape so its density stays constant when it holds `factor` times more particles. */
-function scaleShape(shape: Shape, factor: number): { shape: Shape; linear: number } {
+function scaleShape(shape: Shape, factor: number, mode2D: boolean): { shape: Shape; linear: number } {
   switch (shape.type) {
     case 'point':
       return { shape, linear: 1 };
     case 'sphere': {
-      const linear = Math.cbrt(factor);
+      // In 2D the ball is projected onto a disk, so its density is an area density.
+      const linear = mode2D ? Math.sqrt(factor) : Math.cbrt(factor);
       return { shape: { ...shape, radius: shape.radius * linear }, linear };
     }
     case 'shell': {
@@ -26,16 +27,18 @@ function scaleShape(shape: Shape, factor: number): { shape: Shape; linear: numbe
       return { shape: { ...shape, radius: shape.radius * linear, innerRadius: shape.innerRadius * linear }, linear };
     }
     case 'box': {
-      const dimensions = shape.size.filter((s) => s > 0).length;
+      const dimensions = Math.min(shape.size.filter((s) => s > 0).length, mode2D ? 2 : 3);
       const linear = dimensions === 0 ? 1 : factor ** (1 / dimensions);
       return { shape: { ...shape, size: shape.size.map((s) => s * linear) as typeof shape.size }, linear };
     }
     case 'grid': {
-      const axes = [shape.columns, shape.rows, shape.layers];
-      const dimensions = axes.filter((n) => n > 1).length || 1;
+      // Axes with more than one site grow; a single-site grid grows in the plane (or in 3D).
+      const growing = [shape.columns > 1, shape.rows > 1, !mode2D && shape.layers > 1];
+      if (!growing.some(Boolean)) growing.splice(0, 3, true, true, false);
+      const dimensions = growing.filter(Boolean).length;
       const linear = factor ** (1 / dimensions);
-      const grow = (n: number) => (n > 1 || dimensions === 0 ? Math.max(1, Math.ceil(n * linear)) : n);
-      return { shape: { ...shape, columns: grow(shape.columns), rows: grow(shape.rows), layers: grow(shape.layers) }, linear };
+      const [columns, rows, layers] = [shape.columns, shape.rows, shape.layers].map((n, k) => (growing[k] ? Math.max(1, Math.ceil(n * linear)) : n)) as [number, number, number];
+      return { shape: { ...shape, columns, rows, layers }, linear };
     }
   }
 }
@@ -45,7 +48,7 @@ function scaleShape(shape: Shape, factor: number): { shape: Shape; linear: numbe
  * marked `scale: false` keep their count, the others share the rest proportionally (rounded to
  * whole clusters) and their shapes grow by the matching root of the factor.
  */
-export function scaleGroups(groups: readonly ParticleGroup[], targetCount: number | undefined): ScaledGroups {
+export function scaleGroups(groups: readonly ParticleGroup[], targetCount: number | undefined, mode2D: boolean): ScaledGroups {
   const total = defaultTotal(groups);
   if (targetCount === undefined || targetCount === total) return { groups: [...groups], linearScale: 1 };
   if (!Number.isInteger(targetCount) || targetCount < 1) throw new Error(`particle count must be an integer >= 1, got ${targetCount}`);
@@ -61,8 +64,11 @@ export function scaleGroups(groups: readonly ParticleGroup[], targetCount: numbe
     if (!group.scale) return group;
     const size = group.cluster?.size ?? 1;
     const count = Math.max(size, Math.round((group.count * factor) / size) * size);
-    const { shape, linear } = scaleShape(group.shape, count / group.count);
+    const { shape, linear } = scaleShape(group.shape, count / group.count, mode2D);
     linearScale = Math.max(linearScale, linear);
+    if (shape.type === 'grid' && shape.columns * shape.rows * shape.layers < count / size) {
+      throw new Error(`scaled grid of ${shape.columns}×${shape.rows}×${shape.layers} sites cannot hold ${count / size} groups`);
+    }
     return { ...group, count, shape };
   });
   return { groups: scaled, linearScale };

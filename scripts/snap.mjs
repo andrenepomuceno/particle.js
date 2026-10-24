@@ -3,7 +3,7 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { collectProblems, withBrowser } from './lib/browser.mjs';
+import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
 
 const { values } = parseArgs({
   options: {
@@ -23,7 +23,7 @@ let failures = 0;
 await withBrowser(async ({ browser, base }) => {
   await mkdir(values.out, { recursive: true });
   for (const scenario of values.scenario.split(',')) {
-    const page = await browser.newPage({ viewport: { width: Number(values.width), height: Number(values.height) } });
+    const page = await newAppPage(browser, { viewport: { width: Number(values.width), height: Number(values.height) } });
     const problems = collectProblems(page);
     const query = new URLSearchParams({ scenario, ...(values.capacity ? { capacity: values.capacity } : {}) });
     await page.goto(`${base}?${query}`);

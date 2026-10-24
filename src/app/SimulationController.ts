@@ -19,6 +19,7 @@ import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '..
 import { findScenario, SCENARIOS } from '../scenarios';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import type { Scenario } from '../scenarios/types';
+import { limitFrame } from './frameLimiter';
 import { Store } from './store';
 
 export interface GeneratorTemplate {
@@ -833,16 +834,11 @@ export class SimulationController {
     if (!this.running) return;
     const limit = this.state.fpsLimit;
     // Half a millisecond of slack keeps a 60 Hz display at 60 fps despite rAF timestamp jitter.
-    if (limit > 0) {
-      const interval = 1000 / limit;
-      if (now - this.lastFrame < interval - 0.5) {
-        this.scheduleFrame();
-        return;
-      }
-      // Advance by whole intervals so 60 on a 144 Hz display averages 60, not 48; resync after stalls.
-      this.lastFrame = now - this.lastFrame > 2 * interval ? now : this.lastFrame + interval;
-    } else {
-      this.lastFrame = now;
+    const tick = limitFrame(now, this.lastFrame, limit);
+    this.lastFrame = tick.last;
+    if (!tick.render) {
+      this.scheduleFrame();
+      return;
     }
     this.scheduleFrame();
     const frameStart = performance.now();

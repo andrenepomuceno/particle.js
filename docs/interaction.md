@@ -23,9 +23,11 @@ field; click the canvas to give focus back.
 | J | show / hide the force field |
 | F | re-fit the field grid to the current view |
 | Q | cycle color mode (charge, color, speed, mass, spin direction (each axis −1…1 → 0…1), parity, nuclear, isospin) |
+| * | start / stop recording the canvas to a WebM video (downloaded when it stops) |
 | H | hide all overlays |
 | M | close all dialogs |
 | G | generate particles at the cursor (Generator dialog sets the template) |
+| O | look at the selection (centers the camera on its centroid) |
 | X | copy selection to the clipboard |
 | D | delete selection |
 | B / T / Y | zero / halve / randomly kick all velocities |
@@ -43,7 +45,7 @@ localStorage) and is never restored from the saved list of open dialogs.
 | Gesture | Effect |
 | --- | --- |
 | Click | inspect the particle under the cursor (opens the Particle dialog) |
-| Shift + drag | box-select particles |
+| Shift + drag | box-select particles; a ruler shows Δx, Δy and the distance in world units |
 | Hold Z + click | place the clipboard centered at the cursor |
 | Drag / wheel / right drag | orbit / zoom / pan (orbit is disabled in 2D) |
 
@@ -83,7 +85,8 @@ particle's mass, 2D charge, spin vector, isospin, parity, nuclear charge and col
 charge 1, parity 1, the rest 0; its clock is 0). <kbd>F</kbd> re-fits the grid to the view;
 with *Re-fit after camera moves* on (default) that happens after every orbit, pan, zoom,
 camera reset or resize. The field is recomputed at most 10 times per second while time runs.
-Probes are not particles: they never move, count, get selected or saved.
+Probes are not particles: they never move, count, get selected or saved. *Logarithmic colors* maps |F| with log10(1 + 9·|F|/reference) instead of a square root, which keeps
+fields spanning many decades (e.g. near Lennard-Jones cores) from saturating to white.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
 total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { SimulationController } from '../app/SimulationController';
-import { ACTIONS, type ActionContext } from './actions';
+import { ACTIONS, download, type ActionContext } from './actions';
 import { Dialog } from './components/Dialog';
 import { ControllerContext, useAppState } from './context';
 import { usePointerGestures } from './input/usePointerGestures';
@@ -55,6 +55,11 @@ async function importFromFile(controller: SimulationController, file: File | und
   }
 }
 
+function RecordingBadge() {
+  const recording = useAppState((s) => s.recording);
+  return recording ? <div className="recording mono" role="status">● REC</div> : null;
+}
+
 function Notices() {
   const notices = useAppState((s) => s.notices);
   return (
@@ -102,6 +107,11 @@ function Shell({ controller }: { controller: SimulationController }) {
   }), [controller, pointer]);
 
   useEffect(() => {
+    controller.setRecordingSink((video) => download(video, `particle-js-${new Date().toISOString().replaceAll(/[:.]/g, '-')}.webm`));
+    return () => controller.setRecordingSink(undefined);
+  }, [controller]);
+
+  useEffect(() => {
     const container = viewport.current!;
     const unmount = controller.mount(container);
     const observer = new ResizeObserver(() => controller.resize(container.clientWidth, container.clientHeight));
@@ -136,7 +146,8 @@ function Shell({ controller }: { controller: SimulationController }) {
   return (
     <div className={overlayHidden ? 'hidden-overlay' : undefined}>
       <div className="viewport" ref={viewport} />
-      {selectionBox && <div className="selection-box" style={selectionBox} />}
+      {selectionBox && <div className="selection-box" style={selectionBox.style}><span className="ruler mono">{selectionBox.label}</span></div>}
+      <RecordingBadge />
       <nav className="menu" aria-label="Dialogs">
         {DIALOGS.map((d) => (
           <button key={d.id} aria-pressed={open.includes(d.id)} onClick={() => ctx.toggleDialog(d.id)}>{d.title}</button>

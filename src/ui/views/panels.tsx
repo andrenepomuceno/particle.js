@@ -8,7 +8,7 @@ import { PARTICLE_TARGET_KEY } from '../storageKeys';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
 import { SCENARIOS } from '../../scenarios';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
-import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive } from '../components/fields';
+import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive, unitInterval } from '../components/fields';
 import { useAppState, useController } from '../context';
 
 const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
@@ -138,13 +138,13 @@ export function ParametersView() {
         <>
           <NumberField label="Boundary size" value={settings.boundarySize} validate={positive} onCommit={(boundarySize) => set({ boundarySize })} />
           <NumberField label="Restitution" value={settings.restitution}
-            validate={(v) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]')} onCommit={(restitution) => set({ restitution })} />
+            validate={unitInterval} onCommit={(restitution) => set({ restitution })} />
         </>
       )}
       <NumberField label="Collision distance (0 = off)" value={settings.collisionDistance} validate={nonNegative} onCommit={(collisionDistance) => set({ collisionDistance })} />
       {settings.collisionDistance > 0 && (
         <NumberField label="Collision restitution" value={settings.collisionRestitution}
-          validate={(v) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]')} onCommit={(collisionRestitution) => set({ collisionRestitution })} />
+          validate={unitInterval} onCommit={(collisionRestitution) => set({ collisionRestitution })} />
       )}
       <CheckField label="2D mode" checked={settings.mode2D} onChange={(mode2D) => {
         set({ mode2D });
@@ -254,6 +254,7 @@ export function FieldView() {
       <div className="grid">
         <CheckField label="Show field" checked={field.enabled} onChange={(enabled) => set({ enabled })} />
         <CheckField label="Re-fit after camera moves" checked={field.autoRefresh} onChange={(autoRefresh) => set({ autoRefresh })} />
+        <CheckField label="Logarithmic colors" checked={field.logScale} onChange={(logScale) => set({ logScale })} />
         <NumberField label="Grid columns" value={field.columns} validate={validateColumns} onCommit={(columns) => set({ columns })} />
       </div>
       <h3 className="section-title">Test particle</h3>

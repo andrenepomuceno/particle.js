@@ -73,10 +73,12 @@ export interface FieldSettings {
   columns: number;
   /** Re-fit the grid to the view whenever a camera move ends. */
   autoRefresh: boolean;
+  /** Logarithmic color scale, for fields whose |F| spans many orders of magnitude (e.g. near 1/r^n cores). */
+  logScale: boolean;
   probe: FieldProbe;
 }
 
-export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, probe: DEFAULT_PROBE };
+export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, logScale: false, probe: DEFAULT_PROBE };
 
 export interface FieldInfo {
   columns: number;
@@ -127,6 +129,7 @@ export interface AppState {
   fieldInfo: FieldInfo | undefined;
   fieldError: string | undefined;
   fps: number;
+  recording: boolean;
   notices: Notice[];
 }
 
@@ -175,6 +178,8 @@ export class SimulationController {
   private fpsFrames = 0;
   private fpsSince = 0;
   private noticeId = 0;
+  private recorder: MediaRecorder | undefined;
+  private onRecording: ((video: Blob) => void) | undefined;
   private statsActive = false;
   private frameMsSinceSample = 0;
   private restart: () => void = () => {
@@ -196,7 +201,7 @@ export class SimulationController {
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
-      fieldInfo: undefined, fieldError: undefined, fps: 0, notices: [],
+      fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
     });
   }
 
@@ -492,6 +497,7 @@ export class SimulationController {
     const previous = this.state.field;
     this.store.set({ field, fieldError: undefined });
     this.arrows.setVisible(field.enabled);
+    this.arrows.setLogScale(field.logScale);
     if (!field.enabled) {
       this.store.set({ fieldInfo: undefined });
       return;
@@ -686,6 +692,50 @@ export class SimulationController {
     });
     this.store.set({ selection });
     this.notify(`Selected ${selection.length} particle(s)`);
+  }
+
+  /** Centers the orbit target on the selection's centroid, keeping the camera's offset (v1's Look At). */
+  lookAtSelection(): void {
+    const { selection } = this.state;
+    if (selection.length === 0) {
+      this.notify('Nothing selected: shift+drag to select particles first', 'error');
+      return;
+    }
+    this.syncFromGpu();
+    const center = centroid(selection.map((k) => this.set.get(k).position));
+    const shift = new Vector3(...center).sub(this.controls.target);
+    this.controls.target.add(shift);
+    this.camera.position.add(shift);
+    this.controls.update();
+    this.store.set({ followInspected: false });
+  }
+
+  /** The UI decides how a finished recording is saved; undefined detaches it. */
+  setRecordingSink(sink: ((video: Blob) => void) | undefined): void {
+    this.onRecording = sink;
+  }
+
+  /** Records the canvas to a WebM file (v1's [*]); calling it again stops and downloads. */
+  toggleRecording(): void {
+    if (this.recorder) {
+      this.recorder.stop();
+      return;
+    }
+    if (typeof MediaRecorder === 'undefined') throw new Error('this browser has no MediaRecorder; recording is unavailable');
+    const mimeType = ['video/webm;codecs=vp9', 'video/webm'].find((type) => MediaRecorder.isTypeSupported(type));
+    if (!mimeType) throw new Error('this browser cannot record WebM video');
+    const chunks: Blob[] = [];
+    const recorder = new MediaRecorder(this.renderer.domElement.captureStream(60), { mimeType });
+    recorder.ondataavailable = (event) => event.data.size > 0 && chunks.push(event.data);
+    recorder.onstop = () => {
+      this.recorder = undefined;
+      this.store.set({ recording: false });
+      this.onRecording?.(new Blob(chunks, { type: 'video/webm' }));
+    };
+    recorder.start(1000);
+    this.recorder = recorder;
+    this.store.set({ recording: true });
+    this.notify('Recording… press * again to stop and save the video');
   }
 
   clearSelection(): void {

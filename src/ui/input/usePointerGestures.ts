@@ -13,7 +13,7 @@ export function usePointerGestures(
   controller: SimulationController,
   viewport: RefObject<HTMLDivElement | null>,
   pointer: { current: Point | undefined },
-): CSSProperties | undefined {
+): { style: CSSProperties; label: string } | undefined {
   const [box, setBox] = useState<{ from: Point; to: Point }>();
 
   useEffect(() => {
@@ -86,10 +86,18 @@ export function usePointerGestures(
   }, [controller, viewport, pointer]);
 
   if (!box) return undefined;
+  // v1's ruler: the drag's extent in world units on the placement plane.
+  const a = controller.worldAt(box.from.x, box.from.y);
+  const b = controller.worldAt(box.to.x, box.to.y);
+  const delta = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+  const label = `Δx ${delta[0]!.toPrecision(3)}  Δy ${delta[1]!.toPrecision(3)}  |Δ| ${Math.hypot(...delta).toPrecision(3)}`;
   return {
-    left: Math.min(box.from.x, box.to.x),
-    top: Math.min(box.from.y, box.to.y),
-    width: Math.abs(box.to.x - box.from.x),
-    height: Math.abs(box.to.y - box.from.y),
+    style: {
+      left: Math.min(box.from.x, box.to.x),
+      top: Math.min(box.from.y, box.to.y),
+      width: Math.abs(box.to.x - box.from.x),
+      height: Math.abs(box.to.y - box.from.y),
+    },
+    label,
   };
 }

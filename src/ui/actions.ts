@@ -20,7 +20,7 @@ export interface Action {
   run: (ctx: ActionContext) => void;
 }
 
-function download(blob: Blob, filename: string): void {
+export function download(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -65,10 +65,12 @@ export const ACTIONS: readonly Action[] = [
   },
   { id: 'field', label: 'Show / hide force field', key: 'j', group: 'View', run: ({ controller }) => controller.toggleField() },
   { id: 'fitField', label: 'Re-fit field grid to the view', key: 'f', group: 'View', run: ({ controller }) => controller.fitField() },
+  { id: 'record', label: 'Start / stop video recording', key: '*', group: 'View', run: ({ controller }) => controller.toggleRecording() },
   { id: 'hideOverlay', label: 'Hide everything', key: 'h', group: 'View', run: (ctx) => ctx.toggleOverlay() },
   { id: 'collapseAll', label: 'Close all dialogs', key: 'm', group: 'View', run: (ctx) => ctx.collapseAll() },
   { id: 'help', label: 'Keyboard help', key: '?', group: 'View', run: (ctx) => ctx.toggleDialog('help') },
   { id: 'generate', label: 'Generate particles at cursor', key: 'g', group: 'Particles', run: ({ controller, pointer }) => controller.generateAt(pointer?.x, pointer?.y) },
+  { id: 'lookAtSelection', label: 'Look at selection', key: 'o', group: 'Particles', run: ({ controller }) => controller.lookAtSelection() },
   { id: 'copy', label: 'Copy selection', key: 'x', group: 'Particles', run: ({ controller }) => controller.copySelection() },
   { id: 'deleteSelection', label: 'Delete selection', key: 'd', group: 'Particles', run: ({ controller }) => controller.deleteSelection() },
   { id: 'zeroVelocity', label: 'Zero all velocities', key: 'b', group: 'Particles', run: ({ controller }) => controller.scaleVelocities(0) },

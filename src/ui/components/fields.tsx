@@ -82,6 +82,7 @@ export function CheckField({ label, checked, onChange }: CheckFieldProps) {
 }
 
 export const positive = (v: number) => (v > 0 ? undefined : 'must be > 0');
+export const unitInterval = (v: number) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]');
 export const nonNegative = (v: number) => (v >= 0 ? undefined : 'must be >= 0');
 export const integerAtLeast = (min: number) => (v: number) =>
   Number.isInteger(v) && v >= min ? undefined : `must be an integer >= ${min}`;

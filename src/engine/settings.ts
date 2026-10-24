@@ -1,3 +1,5 @@
+import type { JsonReader } from './json';
+
 export type BoundaryShape = 'none' | 'sphere' | 'box';
 
 export interface SimulationSettings {
@@ -40,4 +42,31 @@ export function validateSettings(settings: SimulationSettings): string[] {
     `restitution must be within [0, 1], got ${settings.restitution}`,
   );
   return problems;
+}
+
+const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'mode2D'] as const;
+
+/** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
+export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
+  const o = json.object(value, path);
+  json.onlyKeys(o, SETTING_KEYS, path);
+  const read = <T>(key: (typeof SETTING_KEYS)[number], reader: (v: unknown, p: string) => T, fallback: T | undefined): T => {
+    if (o[key] === undefined) {
+      if (fallback === undefined) json.fail(`${path}.${key}`, 'is required');
+      return fallback;
+    }
+    return reader(o[key], `${path}.${key}`);
+  };
+  const settings: SimulationSettings = {
+    timeStep: read('timeStep', (v, p) => json.finite(v, p), base?.timeStep),
+    friction: read('friction', (v, p) => json.finite(v, p), base?.friction),
+    maxSpeed: read('maxSpeed', (v, p) => json.finite(v, p), base?.maxSpeed),
+    boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
+    boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
+    restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
+    mode2D: read('mode2D', (v, p) => json.boolean(v, p), base?.mode2D),
+  };
+  const problems = validateSettings(settings);
+  if (problems.length > 0) json.fail(path, problems.join('; '));
+  return settings;
 }

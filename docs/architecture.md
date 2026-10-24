@@ -47,6 +47,14 @@ of particle state is stale after a step; anything that reads or edits particles 
 through `syncFromGpu()` / `editParticles()` (read back, mutate, upload). Readback stalls
 the GPU, so it only happens on demand (inspect, pick, select, edit, export).
 
+## Energy pass
+
+`generatePotentialShader` builds a third program from the same ASTs: per particle Σ_j V(r_ij)
+for every potential-mode force, with the same softening and cutoff. It shares the force uniforms
+with the velocity pass and runs only for the Statistics dialog's 1 Hz sample
+(`GpuCompute.readPotentials`). `src/engine/cpu/energy.ts` is its float64 mirror and turns
+velocities and potentials into kinetic/potential energy, speeds and temperature.
+
 ## Recompilation
 
 `setForces` validates every definition, keeps the enabled valid ones and compares a

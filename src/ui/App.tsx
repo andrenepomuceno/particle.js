@@ -6,6 +6,7 @@ import { ControllerContext, useAppState } from './context';
 import { usePointerGestures } from './input/usePointerGestures';
 import { loadJson, saveJson } from './persist';
 import { ForcesView } from './views/ForcesView';
+import { StatsView } from './views/StatsView';
 import { ControlsView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
 
 interface DialogSpec {
@@ -25,6 +26,7 @@ const DIALOGS: readonly DialogSpec[] = [
   { id: 'particle', title: 'Particle', position: { x: 8, y: 520 }, render: () => <ParticleView /> },
   { id: 'selection', title: 'Selection', position: { x: 290, y: 320 }, render: (ctx) => <SelectionView ctx={ctx} /> },
   { id: 'generator', title: 'Generator', position: { x: 290, y: 420 }, render: () => <GeneratorView /> },
+  { id: 'stats', title: 'Statistics', position: right(900), render: () => <StatsView /> },
   { id: 'help', title: 'Shortcuts', position: { x: 560, y: 56 }, render: () => <HelpView /> },
 ];
 

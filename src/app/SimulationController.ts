@@ -1,6 +1,7 @@
 import { AxesHelper, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
+import { summarizeEnergy } from '../engine/cpu/energy';
 import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
@@ -35,6 +36,27 @@ export const DEFAULT_GENERATOR: GeneratorTemplate = {
   spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
 };
 
+export interface PhysicsSample {
+  time: number;
+  kinetic: number;
+  potential: number;
+  total: number;
+  meanSpeed: number;
+  maxSpeed: number;
+  temperature: number;
+}
+
+export interface PerformanceSample {
+  /** Seconds since page load. */
+  wall: number;
+  fps: number;
+  stepsPerSecond: number;
+  /** CPU time spent issuing a frame; GPU execution is asynchronous and not included. */
+  frameMs: number;
+  /** Time of the once-per-second readback (velocity + potential pass) itself. */
+  sampleMs: number;
+}
+
 export interface Notice {
   id: number;
   level: 'info' | 'error';
@@ -58,6 +80,10 @@ export interface AppState {
   particleStyle: ParticleStyle;
   fpsLimit: FpsLimit;
   averageSpeed: number;
+  physicsHistory: PhysicsSample[];
+  performanceHistory: PerformanceSample[];
+  /** Enabled forces written as F(r): their energy is not in the potential total. */
+  energyMissing: string[];
   particleRadius: number;
   showAxes: boolean;
   inspected: { index: number; particle: Particle } | undefined;
@@ -100,6 +126,9 @@ export class SimulationController {
   private fpsFrames = 0;
   private fpsSince = 0;
   private noticeId = 0;
+  private stepsSinceSample = 0;
+  private statsActive = false;
+  private frameMsSinceSample = 0;
   private restart: () => void = () => {
     throw new Error('no scenario loaded yet');
   };
@@ -116,7 +145,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
     });
   }
@@ -231,7 +260,7 @@ export class SimulationController {
     this.set.clear();
     this.set.addAll(particles);
     this.cpuStale = false;
-    this.store.set({ name, time, inspected: undefined, selection: [], followInspected: false });
+    this.store.set({ name, time, inspected: undefined, selection: [], followInspected: false, physicsHistory: [] });
     this.uploadParticles();
   }
 
@@ -612,9 +641,11 @@ export class SimulationController {
       this.lastFrame = now;
     }
     this.scheduleFrame();
+    const frameStart = performance.now();
     const { paused, settings, inspected, followInspected } = this.state;
     if (!paused || this.stepRequested) {
       this.stepRequested = false;
+      this.stepsSinceSample++;
       this.gpu.step(this.state.time);
       this.cpuStale = true;
       this.store.set({ time: this.state.time + settings.timeStep });
@@ -627,18 +658,38 @@ export class SimulationController {
     }
     this.controls.update();
     this.render();
+    this.frameMsSinceSample += performance.now() - frameStart;
     this.trackFps(now);
   };
 
   private trackFps(now: number): void {
     this.fpsFrames++;
     if (now - this.fpsSince < 1000) return;
-    const fps = (this.fpsFrames * 1000) / (now - this.fpsSince);
+    const seconds = (now - this.fpsSince) / 1000;
+    const fps = this.fpsFrames / seconds;
+    const frameMs = this.frameMsSinceSample / this.fpsFrames;
+    const stepsPerSecond = this.stepsSinceSample / seconds;
     this.fpsFrames = 0;
+    this.frameMsSinceSample = 0;
+    this.stepsSinceSample = 0;
     this.fpsSince = now;
-    this.store.set({ fps });
+    const sampleStart = performance.now();
     this.sampleState();
+    const sampleMs = performance.now() - sampleStart;
+    this.store.set({
+      fps,
+      performanceHistory: appendBounded(this.state.performanceHistory, { wall: now / 1000, fps, stepsPerSecond, frameMs, sampleMs }),
+    });
     this.refreshInspected();
+  }
+
+  /** Physics history (energy, temperature) is only sampled while the Statistics dialog is open. */
+  setStatsActive(active: boolean): void {
+    this.statsActive = active;
+  }
+
+  clearHistory(): void {
+    this.store.set({ physicsHistory: [], performanceHistory: [] });
   }
 
   /**
@@ -646,19 +697,28 @@ export class SimulationController {
    * pipeline briefly; a GPU reduction is tracked in tasks/inbox/benchmark-script.md.
    */
   private sampleState(): void {
+    const { time, settings, physicsHistory } = this.state;
+    const advanced = physicsHistory.length === 0 || physicsHistory[physicsHistory.length - 1]!.time !== time;
     const velocity = this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
-    let total = 0;
-    let dynamic = 0;
-    for (let k = 0; k < this.set.count; k++) {
-      const o = k * 4;
-      if (this.set.position[o + 3] === ParticleKind.fixed) continue;
-      total += Math.hypot(velocity[o]!, velocity[o + 1]!, velocity[o + 2]!);
-      dynamic++;
-    }
-    const averageSpeed = dynamic > 0 ? total / dynamic : 0;
-    this.points.setAverageSpeed(averageSpeed);
-    this.store.set({ averageSpeed });
+    // The potential pass is a full O(N²) sweep plus a readback, so it only runs while someone is looking.
+    const potentials = advanced && this.statsActive && this.set.count > 0 ? this.gpu.readPotentials() : new Float32Array(this.set.count);
+    const energy = summarizeEnergy(this.set, velocity, potentials, this.compiled, settings.mode2D);
+    this.points.setAverageSpeed(energy.meanSpeed);
+    this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing });
+    if (!advanced || !this.statsActive) return;
+    const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;
+    this.store.set({
+      physicsHistory: appendBounded(physicsHistory, { time, kinetic, potential, total: kinetic + potential, meanSpeed, maxSpeed, temperature }),
+    });
   }
+}
+
+const HISTORY_LENGTH = 600;
+
+function appendBounded<T>(history: readonly T[], sample: T): T[] {
+  const next = history.length >= HISTORY_LENGTH ? history.slice(history.length - HISTORY_LENGTH + 1) : [...history];
+  next.push(sample);
+  return next;
 }
 
 function centroid(points: Vec3[]): Vec3 {

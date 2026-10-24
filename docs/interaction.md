@@ -56,6 +56,12 @@ than the display refreshes, so there is no higher setting.
 
 ## Dialogs
 
-Information, Forces, Parameters, Controls, Particle, Selection, Generator, Shortcuts.
+Information, Forces, Parameters, Controls, Particle, Selection, Generator, Statistics, Shortcuts.
+
+**Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
+total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,
+frame CPU time, sampling cost). Hover a chart for the values at that sample. Potential energy
+comes from a GPU pass over all pairs that runs only while the dialog is open; forces written as
+F(r) have no known V(r) and are listed as missing from it.
 Toggle them from the top menu; drag them by the title bar. Positions and which dialogs
 are open persist in `localStorage` when the browser allows it.

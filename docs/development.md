@@ -33,6 +33,12 @@ they run without a GPU; frame rates they report are not representative.
 - To release: bump `version` in `package.json` (shown in the Information dialog as
   `__APP_VERSION__`), add a `CHANGELOG.md` entry, commit, then tag `vX.Y.Z` and push the tag.
 
+## Analytics
+
+Production builds load Google Analytics only when `VITE_GTAG_ID` is set at build time; the Pages
+workflow takes it from the repository variable `GTAG_CONFIG` (as v1 did). The About dialog
+tells visitors when it is active. Local and CI builds never include it.
+
 ## Tasks
 
 One Markdown file per task in `tasks/inbox/`. When done, add a `## Result` section (or the

@@ -27,6 +27,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+        env:
+          # Same repository variable v1 used for its gtag id; empty disables analytics.
+          VITE_GTAG_ID: ${{ vars.GTAG_CONFIG }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

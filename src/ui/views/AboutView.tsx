@@ -1,3 +1,5 @@
+import { ANALYTICS_ENABLED } from '../../analytics';
+
 const REPOSITORY_URL = 'https://github.com/andrenepomuceno/particle.js';
 
 export function AboutView() {
@@ -16,9 +18,15 @@ export function AboutView() {
       </ul>
       <div className="keys">
         <span>Version</span><span>{__APP_VERSION__}</span>
-        <span>License</span><span>see the repository</span>
+        <span>License</span><span>GPL-3.0</span>
         <span>Source</span><a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">{REPOSITORY_URL.replace('https://', '')}</a>
       </div>
+      {ANALYTICS_ENABLED && (
+        <p className="muted">
+          This site counts visits with Google Analytics (anonymous page views, no account data). The
+          simulation itself runs entirely in your browser; nothing you build is uploaded.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { startAnalytics } from './analytics';
 import { SimulationController } from './app/SimulationController';
 import { App } from './ui/App';
 import { loadJson } from './ui/persist';
@@ -60,6 +61,7 @@ function start(): void {
 }
 
 try {
+  startAnalytics();
   start();
 } catch (error) {
   fail(`Startup failed: ${(error as Error).message}`);

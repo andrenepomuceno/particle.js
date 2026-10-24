@@ -14,7 +14,7 @@ function setOf(...particles: Particle[]): ParticleSet {
 
 // A uniform magnetic field along z felt by charge q_i, written as a pair force with a fixed partner.
 const B = 2;
-const uniform = compileForce(makeForce({ expression: `q_i * cross(v_i, vec(0, 0, ${B}))`, params: [] }));
+const uniform = compileForce(makeForce({ expression: `n_j * q_i * cross(v_i, vec(0, 0, ${B}))`, params: [] }));
 
 describe('velocity-dependent vector forces', () => {
   it('gives ∂F/∂v_i matching finite differences', () => {
@@ -27,7 +27,7 @@ describe('velocity-dependent vector forces', () => {
     const pair = pairScope(set, 0, 1, 0);
     const dist = Math.hypot(1.4, -1.8, 0.3);
     const scope = forceScope(force, pair, dist);
-    const jacobian = force.evaluateJacobian!(scope);
+    const jacobian = force.evaluateWithJacobian!(scope).J;
     const h = 1e-6;
     (['vx_i', 'vy_i', 'vz_i'] as const).forEach((name, l) => {
       const plus = force.evaluateVector!({ ...scope, [name]: scope[name]! + h });
@@ -40,7 +40,7 @@ describe('velocity-dependent vector forces', () => {
     const [m, q, v] = [2, 1, 0.5];
     const set = setOf(
       defaultParticle({ position: [0, 0, 0], velocity: [v, 0, 0], mass: m, charge: q }),
-      defaultParticle({ position: [1e3, 0, 0], kind: ParticleKind.fixed }),
+      defaultParticle({ position: [1e3, 0, 0], kind: ParticleKind.fixed, nuclearCharge: 1 }),
     );
     const period = (2 * Math.PI * m) / (q * B);
     const steps = 400;

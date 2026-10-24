@@ -63,9 +63,16 @@ export function addPairForce(
     if (!acts(f, dist)) continue;
     setForceVariables(scope, f, dist);
     if (f.evaluateVector) {
-      // `jacobian` (row-major ∂F_k/∂v_i,l) collects the velocity forces' Jacobians.
-      if (jacobian && f.evaluateJacobian) f.evaluateJacobian(scope).forEach((row, k) => row.forEach((c, l) => (jacobian[k * 3 + l] = jacobian[k * 3 + l]! + c)));
-      const [x, y, z] = f.evaluateVector(scope);
+      let vector: Vec3;
+      if (jacobian && f.evaluateWithJacobian) {
+        // `jacobian` (row-major ∂F_k/∂v_i,l) collects the velocity forces' Jacobians.
+        const { F, J } = f.evaluateWithJacobian(scope);
+        J.forEach((row, k) => row.forEach((c, l) => (jacobian[k * 3 + l] = jacobian[k * 3 + l]! + c)));
+        vector = F;
+      } else {
+        vector = f.evaluateVector(scope);
+      }
+      const [x, y, z] = vector;
       out[0] += x;
       out[1] += y;
       out[2] += z;

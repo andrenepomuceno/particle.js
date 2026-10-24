@@ -751,8 +751,8 @@ export class SimulationController {
     const forceWarnings: Record<string, string[]> = {};
     for (const force of this.compiled) {
       const warnings = inactiveCouplings(force, this.set);
-      if (force.jacobian && this.state.settings.integrator === 'verlet') {
-        warnings.push('depends on v_i: the step uses the implicit Euler velocity update instead of Verlet (2nd-order Verlet assumes position-only forces)');
+      if (force.velocity && this.state.settings.integrator === 'verlet') {
+        warnings.push('depends on velocity: the step uses the Euler update (implicit for v_i) instead of Verlet, which assumes position-only forces');
       }
       if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;
     }

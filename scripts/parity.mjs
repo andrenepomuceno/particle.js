@@ -37,7 +37,11 @@ const CASES = [
       { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
     ] },
   { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
-    forces: [{ preset: 'gravity', softening: 1, params: { G: 5 } }] },
+    forces: [
+      { preset: 'gravity', softening: 1, params: { G: 5 } },
+      // A softened central potential: its force carries the Plummer factor d/r (d = |Δx| on the GPU).
+      { name: 'soft well', mode: 'potential', range: 'long', softening: 1.5, expression: '-k * q_i * q_j / r', params: [{ name: 'k', value: 2 }] },
+    ] },
 ];
 const GROUPS = {
   'binary gravity': [
@@ -57,7 +61,7 @@ const GROUPS = {
     { count: 10, shape: { type: 'shell', radius: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 1 } },
   ],
   'collisions + gravity, box': [
-    { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, velocity: { type: 'random', speed: 1 } },
+    { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, charge: { cycle: [1, -1, 1, 1] }, velocity: { type: 'random', speed: 1 } },
   ],
   'short-range LJ + Coulomb, box': [
     { count: 16, shape: { type: 'grid', spacing: 5, columns: 4, rows: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 0.5 } },

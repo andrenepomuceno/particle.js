@@ -177,7 +177,7 @@ export class GpuCompute {
     this.accelerationMaterial.dispose();
     this.accelerationMaterial = this.material(accelerationSource, uniforms);
     this.forceUniforms = uniforms;
-    this.velocityDependent = forces.some((f) => f.jacobian);
+    this.velocityDependent = forces.some((f) => f.velocity);
     this.potentialStale = true;
     this.fieldStale = true;
     this.forces = forces;

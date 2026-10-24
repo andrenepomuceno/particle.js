@@ -25,8 +25,9 @@ export function referenceStep(
   time: number,
   state: ReferenceState = {},
 ): void {
-  // Velocity-dependent forces need the implicit velocity update, which only the Euler step has.
-  if (settings.integrator === 'verlet' && !forces.some((f) => f.jacobian)) verletStep(set, forces, settings, time, state);
+  // Velocity-dependent forces break Verlet's position-only assumption; the Euler step (with the
+  // implicit kick for forces reading v_i) handles them.
+  if (settings.integrator === 'verlet' && !forces.some((f) => f.velocity)) verletStep(set, forces, settings, time, state);
   else eulerStep(set, forces, settings, time);
 }
 
@@ -162,6 +163,7 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
   const dt = settings.timeStep;
   const nextVelocity = new Float64Array(set.count * TEXEL);
   const impulses = collisionImpulses(set, settings);
+  const implicit = forces.some((f) => f.jacobian);
   for (let i = 0; i < set.count; i++) {
     const tau = set.velocity[i * TEXEL + 3]!;
     if (isFixed(set, i)) {
@@ -169,9 +171,9 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
       continue;
     }
     const mass = set.attributes[i * TEXEL]!;
-    const jacobian = new Float64Array(9);
+    const jacobian = implicit ? new Float64Array(9) : undefined;
     const force = totalForce(set, i, forces, time, 0, settings.collisionDistance, jacobian);
-    const kick = implicitKick(force, jacobian, mass, dt);
+    const kick = jacobian ? implicitKick(force, jacobian, mass, dt) : force.map((c) => (dt * c) / mass) as Vec;
     const v = read(set.velocity, i).map((c, k) => c + kick[k]! + impulses[i * 3 + k]!) as Vec;
     nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], settings), tau + dt], i * TEXEL);
   }

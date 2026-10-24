@@ -1,5 +1,5 @@
 import { createProgram, ExpressionError, type Handle, type Limits, type Program } from 'shader-autodiff';
-import { CONSTANTS, FUNCTION_ARITY, bin, call, collectVariables, num, toInfix, variable, type Expr } from '../expr/ast';
+import { CONSTANTS, FUNCTION_ARITY, VECTOR_FUNCTIONS, bin, call, collectVariables, num, toInfix, variable, type Expr } from '../expr/ast';
 import { lowerVectors, VectorTypeError, type Lowered } from '../expr/vector';
 import { colorDot, colorPlane } from '../colorCharge';
 import type { CompiledFn } from '../expr/evaluate';
@@ -28,7 +28,8 @@ const VELOCITY_I = new Set<string>(VELOCITY_I_COMPONENTS);
 /** Names that depend on velocity (catalogue flag), refused in potential mode. */
 const VELOCITY = new Set(PAIR_VARIABLES.filter((v) => v.velocity).map((v) => v.name));
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
-const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
+// 'dtrue' is the unsoftened distance the Plummer factor of softened potentials uses.
+const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), ...Object.keys(VECTOR_FUNCTIONS), 'soft2', 'cutoff', 'dtrue']);
 
 /**
  * A force compiled through shader-autodiff: one graph per force (shared subexpressions, F = -dV/dr
@@ -50,12 +51,14 @@ export interface CompiledForce {
   vector: boolean;
   /** A vector force that reads v_i: its Jacobian ∂F/∂v_i drives the implicit velocity update. */
   jacobian: boolean;
+  /** Reads any velocity (v_i or v_j): Verlet's position-only assumption does not hold. */
+  velocity: boolean;
   /** Signed force magnitude as a function of r; positive pushes the pair apart (radial part for vector forces). */
   evaluate: CompiledFn;
   /** The full force on i (−∇_{Δx} V for gradient forces). */
   evaluateVector: ((scope: Readonly<Record<string, number>>) => Vec3) | undefined;
-  /** ∂F_k/∂v_i,l as rows [k][l], for forces with `jacobian`. */
-  evaluateJacobian: ((scope: Readonly<Record<string, number>>) => [Vec3, Vec3, Vec3]) | undefined;
+  /** The force and ∂F_k/∂v_i,l as rows J[k][l] in one evaluation, for forces with `jacobian`. */
+  evaluateWithJacobian: ((scope: Readonly<Record<string, number>>) => { F: Vec3; J: [Vec3, Vec3, Vec3] }) | undefined;
   /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
   evaluatePotential: CompiledFn | undefined;
   /**
@@ -122,8 +125,9 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     const velocity = [...collectVariables(parsed)].filter((name) => VELOCITY.has(name));
     if (velocity.length > 0) problems.push(`${velocity.join(', ')} depend on velocity, which a potential cannot (F = −∇V); use force mode`);
   }
+  // Type errors are reported with the other problems, all at once.
   let lowered: Lowered | undefined;
-  if (parsed && problems.length === 0) {
+  if (parsed) {
     try {
       lowered = lowerVectors(parsed);
     } catch (error) {
@@ -160,11 +164,12 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     kind,
     vector: kind !== 'central',
     jacobian: built.jacobian !== undefined,
+    velocity: names.some((name) => VELOCITY.has(name)),
     reads: readNames(program, [...built.force, ...(built.jacobian ?? [])], built.parameters),
     potentialReads: potential === undefined ? new Set<string>() : readNames(program, [potential], built.parameters),
     evaluate: jsFunction(program, built.radial),
     evaluateVector: vectorJs && ((scope) => vectorJs(scope).F),
-    evaluateJacobian: vectorJs && built.jacobian ? (scope) => vectorJs(scope).J! : undefined,
+    evaluateWithJacobian: vectorJs && built.jacobian ? (scope) => vectorJs(scope) as { F: Vec3; J: [Vec3, Vec3, Vec3] } : undefined,
     evaluatePotential: potential === undefined ? undefined : jsFunction(program, potential),
     glsl: (name, args, index, which = 'magnitude') => {
       if (which === 'potential' && potential === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
@@ -214,18 +219,18 @@ function withProgram<T>(def: ForceDefinition, build: () => T): T {
 
 /**
  * A potential is a function of the softened r = √(d² + ε²), so its exact force along r̂ is
- * −dV/dd = −V'(r)·d/r (Plummer softening; energy is conserved). d/r = √(r² − ε²)/r is 1 without
- * softening; it is built from soft2 so the factor follows softening changes without a recompile.
+ * −dV/dd = −V'(r)·d/r (Plummer softening; energy is conserved). d is passed in as `dtrue` (the
+ * GPU's |Δx|): rebuilding it as √(r² − ε²) would cancel catastrophically in float32 when d ≪ ε.
  */
 function buildCentral(def: ForceDefinition, inR: Expr, names: string[]): Built {
-  const parameters = def.mode === 'potential' ? [...new Set([...names, 'soft2'])] : names;
+  const parameters = def.mode === 'potential' ? [...new Set([...names, 'dtrue'])] : names;
   return withProgram(def, () => {
     const program = createProgram({ variables: ['r'], parameters, limits: LIMITS });
     const source = program.expression(librarySource(inR));
     const potential = def.mode === 'potential' ? source : undefined;
     const magnitude = potential === undefined
       ? source
-      : program.mul(program.neg(program.derivative(potential, 'r')), program.expression('sqrt(max(r*r - soft2, 0)) / r'));
+      : program.mul(program.neg(program.derivative(potential, 'r')), program.expression('dtrue / r'));
     return { program, variables: ['r'], parameters, force: [magnitude], radial: magnitude, potential };
   });
 }
@@ -319,6 +324,7 @@ function glslFunction(
   const cutoff = forceUniformName(index, 'cutoff');
   const parameters = Object.fromEntries(names.map((n) => {
     if (n === 'cutoff' || n === 'soft2') return [n, forceUniformName(index, n)];
+    if (n === 'dtrue') return [n, 'length(delta)'];
     if (params.has(n)) return [n, forceUniformName(index, n)];
     const glsl = byName.get(n);
     if (glsl === undefined) throw new Error(`no GLSL binding for variable '${n}'`);
@@ -432,6 +438,7 @@ export function setForceVariables(scope: Record<string, number>, force: Compiled
   scope.r = Math.sqrt(dist * dist + softening * softening);
   scope.cutoff = cutoff;
   scope.soft2 = softening * softening;
+  scope.dtrue = dist;
   scope.dx = scope.ux! * dist;
   scope.dy = scope.uy! * dist;
   scope.dz = scope.uz! * dist;

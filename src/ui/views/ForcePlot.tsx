@@ -91,13 +91,14 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       const d = (maxDistance * (k + 1)) / SAMPLES;
       return { d, y: appliedForce(force, d) };
     });
-    return { points, maxDistance, vector: force.vector, velocity: [...force.reads].some((name) => /^v[xyz]_/.test(name)) };
+    return { points, maxDistance, kind: force.kind, velocity: force.velocity };
   }, [definition]);
   if (!curve) return null;
   return (
     <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="F" label={`F(d) for ${definition.name}`} caption={<>
       F &gt; 0 repels. {SAMPLE_PAIR}
-      {curve.vector && ' Vector force: the curve is its radial part for this orientation only; it also has a transverse part and changes with the spins’ angle to r̂.'}
+      {curve.kind === 'gradient' && ' Vector force (−∇V): the curve is its radial part for this orientation only; it also has a transverse part and changes with the spins’ angle to r̂.'}
+      {curve.kind === 'vector' && ' Vector force: the curve is its radial part only.'}
       {curve.velocity && ' It depends on velocity and is plotted for particles at rest.'}
     </>} />
   );

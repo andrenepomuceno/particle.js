@@ -92,7 +92,7 @@ velocity-dependent laws can be written directly:
 
 | Law | Expression |
 | --- | --- |
-| Lorentz force in a uniform field | `q_i * cross(v_i, vec(0, 0, B))` |
+| Lorentz force in a uniform field, from one source particle marked `n = 1` (a pair force sums over every j) | `n_j * q_i * cross(v_i, vec(0, 0, B))` |
 | Field of a magnetic dipole s_j on a moving charge | `q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)` |
 | Biot–Savart between moving charges (parallel currents attract) | `k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))` |
 | Pair drag (damps the closing speed) | `-c * v_dot` (a number: central) |
@@ -100,8 +100,9 @@ velocity-dependent laws can be written directly:
 Velocity is refused in potential mode (F = −∇V needs a V of positions). A force that reads `v_i`
 is integrated with an implicit-midpoint velocity update: shader-autodiff also yields ∂F/∂v_i, and
 each step solves (I − dt/2m·J)·Δv = dt/m·F. For F = q v × B this is exactly the Boris rotation, so
-speeds stay constant and magnetic forces do no work. Verlet assumes position-only forces, so with
-such a force the step uses this Euler update (the force card says so). Biot–Savart violates
+speeds stay constant and magnetic forces do no work. Any force that reads a velocity (v_i or v_j)
+runs with this Euler step, since Verlet assumes position-only forces (the force card says so).
+Biot–Savart violates
 Newton's third law, as it does classically without field momentum.
 
 ## Examples

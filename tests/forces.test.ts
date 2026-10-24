@@ -67,6 +67,23 @@ describe('compileForce', () => {
     expect(kind('force', 'vv_dot * q_i / r^2')).toBe('vector');
   });
 
+  it('flags any velocity read (v_j alone too) and keeps the Jacobian for v_i', () => {
+    const flags = (expression: string) => {
+      const f = compileForce(makeForce({ expression, params: [] }));
+      return [f.velocity, f.jacobian];
+    };
+    expect(flags('q_i * q_j * cross(v_j, d) / r^3')).toEqual([true, false]);
+    expect(flags('dot(v_j, rhat) / r^2')).toEqual([true, false]);
+    expect(flags('q_i * cross(v_i, s_j) / r^3')).toEqual([true, true]);
+    expect(flags('q_i * cross(s_j, d) / r^3')).toEqual([false, false]);
+  });
+
+  it('reports every problem at once, vector types included, and reserves vector function names', () => {
+    expect(() => compileForce(makeForce({ expression: 'kk * dot(s_i * s_j, d)', params: [] })))
+      .toThrow(/unknown variable 'kk'.*cannot multiply two vectors/);
+    expect(() => compileForce(makeForce({ expression: 'length * r', params: [{ name: 'length', value: 1 }] }))).toThrow(/parameter name 'length' is reserved/);
+  });
+
   it('reports vector misuse with a hint (s_i and s_j are spin vectors now)', () => {
     expect(() => compileForce(makeForce({ expression: 's_i * s_j', params: [] }))).toThrow(/cannot multiply two vectors with \*; use dot\(a, b\) or cross\(a, b\)/);
     expect(() => compileForce(makeForce({ mode: 'potential', expression: 'cross(s_i, d) * r', params: [] }))).toThrow(/a potential must be a number/);
@@ -147,7 +164,7 @@ describe('GLSL generation', () => {
 
   it('reads only what the differentiated force uses', () => {
     const force = compileForce(makeForce({ mode: 'potential', expression: 'q_i * q_j * t_j + k / r', params: [{ name: 'k', value: 1 }] }));
-    expect([...force.reads].sort()).toEqual(['k', 'soft2']);
+    expect([...force.reads].sort()).toEqual(['dtrue', 'k']);
     expect([...force.potentialReads].sort()).toEqual(['k', 'q_i', 'q_j', 't_j']);
   });
 

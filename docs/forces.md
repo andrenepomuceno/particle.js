@@ -29,7 +29,7 @@ specification of both, and `npm run parity` checks the GPU against it.
 ## Writing an expression
 
 Mode **force**: the text is `F(r)`. Mode **potential**: the text is `V(r)` and the engine
-uses `F = −dV/dr`, differentiated symbolically (exact, no finite differences). In a
+uses `F = −dV/dr`, differentiated exactly by shader-autodiff (no finite differences). In a
 short-range potential `x` is expanded to `r / cutoff` before differentiating.
 
 Operators: `+ - * / ^` (`**` is accepted for `^`; `^` is right-associative and binds

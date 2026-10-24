@@ -22,3 +22,17 @@ The user agreed a general Lagrangian adds nothing over force + potential modes (
 Euler–Lagrange gives F = −dV/dr). Go ahead with: (1) this adoption, then (2) potentials of the full
 relative position V(Δx) with the vector force F = −∇V (non-central: spin dipole angular part,
 si_r/sj_r in potential mode). Velocity-dependent forces: see `velocity-dependent-forces.md`.
+
+## Result
+
+Adopted shader-autodiff@0.2.0 (exact version). compileForce keeps our parser/validation and builds
+one library Program per force (variable r, everything else parameters renamed to our uniforms and
+pair bindings): GLSL for the force/potential functions (header patched to the pair signature) and
+JS for the plot and referenceStep. Removed our derivative.ts and toGlsl/ipow emitter; evaluate.ts
+stays as the independent interpreter the tests use to check F = -dV/dr by central differences.
+Parity 9/9, library snapshots clean, 7–17% more steps/s (memory-bound loop, CSE helps a little).
+
+Library issue found (for the user's repo): GLSL `pow(q, n)` with a negative base and a non-literal
+integer exponent is undefined while the JS output gives Math.pow; patched here by emitting spow.
+
+Next: vector forces from V(Δx) → `vector-forces-from-potential.md`.

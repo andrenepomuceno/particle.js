@@ -24,6 +24,7 @@
   "dependencies": {
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "shader-autodiff": "0.2.0",
     "three": "^0.186.1"
   },
   "devDependencies": {

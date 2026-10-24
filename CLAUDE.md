@@ -14,7 +14,7 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
   `c_dot` = C_i·C_j, ver `docs/forces.md`), carga nuclear (`n`, conceito do v1), tipo (`dynamic` | `fixed`).
 - Força de par: magnitude escalar `F(r)`, **positiva = repulsiva**, aplicada ao longo de
   `(x_i - x_j)/|x_i - x_j|`. No modo `potential` o usuário escreve `V(r)` e o motor usa
-  `F = -dV/dr` (derivada simbólica).
+  `F = -dV/dr` (derivada exata pelo shader-autodiff).
 - Curto alcance: corte rígido em `cutoff` (`x = r/cutoff` disponível). Longo alcance: sem corte.
 - `softening` ε: a expressão recebe `r = sqrt(r² + ε²)`; a direção usa a distância real.
 - Integradores: Velocity Verlet (padrão, 2ª ordem) e Euler semi-implícito; ambos espelhados em
@@ -22,8 +22,9 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
 
 ## Arquitetura
 
-- `src/engine/expr/` — parser próprio → AST → `toGlsl` / `compileJs` / `derivative` / `simplify`.
-  Uma única AST alimenta GPU, gráfico da UI e referência em CPU: nunca escreva GLSL de força à mão.
+- `src/engine/expr/` — parser próprio → AST (validação e mensagens); `compileForce` entrega a AST ao
+  `shader-autodiff` (biblioteca do usuário): um grafo por força gera GLSL e JS e deriva `-dV/dr`.
+  O mesmo grafo alimenta GPU, gráfico da UI e referência em CPU: nunca escreva GLSL de força à mão.
 - `src/engine/forces/` — `ForceDefinition` (dados serializáveis), `compileForce` (valida e
   devolve todos os problemas de uma vez), catálogo de variáveis em `variables.ts`.
 - `src/engine/particles.ts` — `ParticleSet` em struct-of-arrays, espelho 1:1 das texturas:

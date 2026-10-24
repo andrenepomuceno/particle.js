@@ -1,7 +1,5 @@
 import { GLSL_COLOR_HELPERS } from '../colorCharge';
-import { GLSL_POWER_HELPERS } from '../expr/glsl';
-import { collectVariables, type Expr } from '../expr/ast';
-import { forceToGlsl, forceUniformName, type CompiledForce } from '../forces/compile';
+import { forceUniformName, type CompiledForce } from '../forces/compile';
 import { PAIR_VARIABLES } from '../forces/variables';
 
 export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
@@ -42,18 +40,20 @@ const SPIN_J_VARIABLES = readersOf('spin2');
 const TAU_J_VARIABLES = readersOf('tau2');
 
 /** The other particle's spin and clock are fetched only when an expression reads them. */
-function reads(exprs: Expr[], names: readonly string[]): boolean {
-  return exprs.some((e) => {
-    const used = collectVariables(e);
-    return names.some((name) => used.has(name));
-  });
+function reads(forces: readonly CompiledForce[], names: readonly string[]): boolean {
+  return forces.some((f) => names.some((name) => f.reads.has(name)));
 }
+
+// GLSL pow() is undefined for negative bases; the emitted code calls spow, which matches Math.pow.
+const SIGNED_POW = `float spow(float b, float e) {
+  if (b >= 0.0 || fract(e) != 0.0) return pow(b, e);
+  float m = pow(-b, e);
+  return mod(e, 2.0) == 0.0 ? m : -m;
+}`;
 
 function forceFunction(force: CompiledForce, index: number): string {
   return `${forceUniforms(force, index)}
-float force${index}(${PAIR_ARGS}) {
-  return ${forceToGlsl(force, index)};
-}`;
+${force.glsl(`force${index}`, PAIR_ARGS, index)}`;
 }
 
 function forceAccumulation(force: CompiledForce, index: number): string {
@@ -145,9 +145,9 @@ vec3 confinePosition(vec3 pos) {
  * because Verlet evaluates forces after positions advanced but before clocks are written.
  */
 function totalForceFunction(forces: readonly CompiledForce[]): string {
-  const fetchTau2 = reads(forces.map((f) => f.magnitude), TAU_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
-  const fetchSpin2 = reads(forces.map((f) => f.magnitude), SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
-  return `${GLSL_POWER_HELPERS}
+  const fetchTau2 = reads(forces, TAU_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
+  const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
+  return `${SIGNED_POW}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
@@ -276,7 +276,7 @@ ${PARTICLE_HEADER}
 `;
 
 function potentialTerm(force: CompiledForce, index: number): string {
-  if (!force.potential) return '';
+  if (!force.evaluatePotential) return '';
   const call = `potential${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
   return force.definition.range === 'short'
     ? `if (dist < ${forceUniformName(index, 'cutoff')}) energy += ${call};`
@@ -288,16 +288,14 @@ function potentialTerm(force: CompiledForce, index: number): string {
  * Run on demand for the stats dialog; the total energy is half the sum over particles.
  */
 export function generatePotentialShader(forces: readonly CompiledForce[]): string {
-  const potentials = forces.flatMap((f) => (f.potential ? [f.potential] : []));
+  const potentials = forces.filter((f) => f.evaluatePotential);
   const needsTau2 = reads(potentials, TAU_J_VARIABLES);
   const fetchSpin2 = reads(potentials, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   return `${COMMON_UNIFORMS}
-${GLSL_POWER_HELPERS}
+${SIGNED_POW}
 ${GLSL_COLOR_HELPERS}
-${forces.map((force, index) => `${forceUniforms(force, index)}${force.potential ? `
-float potential${index}(${PAIR_ARGS}) {
-  return ${forceToGlsl(force, index, force.potential)};
-}` : ''}`).join('\n')}
+${forces.map((force, index) => `${forceUniforms(force, index)}${force.evaluatePotential ? `
+${force.glsl(`potential${index}`, PAIR_ARGS, index, 'potential')}` : ''}`).join('\n')}
 
 void main() {
   ivec2 coord1 = ivec2(gl_FragCoord.xy);

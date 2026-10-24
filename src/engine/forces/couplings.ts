@@ -1,4 +1,3 @@
-import { collectVariables } from '../expr/ast';
 import { TEXEL, type ParticleSet } from '../particles';
 import type { CompiledForce } from './compile';
 
@@ -38,7 +37,7 @@ const COUPLINGS: readonly Coupling[] = [
  */
 export function inactiveCouplings(force: CompiledForce, set: ParticleSet): string[] {
   if (set.count === 0) return [];
-  const used = collectVariables(force.magnitude);
+  const used = force.reads;
   return COUPLINGS.filter((c) => c.variables.some((v) => used.has(v)))
     .filter((c) => Array.from({ length: set.count }, (_, k) => k).every((k) => c.isZero(set, k)))
     .map((c) => `reads ${c.label}, but every particle has ${c.label} 0, so the terms using it vanish`);

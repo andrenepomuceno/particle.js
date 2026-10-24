@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Forces compile through [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff): one
+  graph per force emits the GLSL and the JS reference, with exact `−dV/dr` and shared subexpressions
+  computed once (7–17% more steps/s at 16k particles on an RTX 5060 Ti).
 - Scenario `timeline`: v1's scripted actions as data — set or multiply force parameters and
   settings at given simulation times, captions with live values, camera transitions. The Egg runs
   v1's script.

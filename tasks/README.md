@@ -19,7 +19,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
     ~~`scenario-timeline.md`~~ (done)
 12. `scenario-quality-kpis.md` (user request: cheap automated scenario KPIs), then
     `v1-favorite-scenarios.md` (the v1 scenarios the user likes; checked with the KPIs)
-13. `adopt-shader-autodiff.md` → vector forces from V(Δx), then `velocity-dependent-forces.md`
+13. ~~`adopt-shader-autodiff.md`~~ (done) → `vector-forces-from-potential.md`, then `velocity-dependent-forces.md`
     (user decision 2026-10-24: force + potential suffice, no general Lagrangian)
 14. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`
 15. `v1-parity-and-publish.md` (final step: move to the particle.js repo and publish)

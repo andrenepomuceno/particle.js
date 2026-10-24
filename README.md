@@ -15,8 +15,8 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   range (long, or short with a cutoff) and softening. Change a parameter and the GPU picks
   it up on the next frame; change the expression and the shader is recompiled and
   validated before it replaces the old one.
-- **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr` by
-  symbolic differentiation.
+- **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr`, differentiated
+  exactly by [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff).
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Statistics**: energy, speed, temperature and performance charts.

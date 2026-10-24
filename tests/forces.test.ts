@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { compileForce, forceScope, forceToGlsl, ForceValidationError, type PairScope } from '../src/engine/forces/compile';
+import { compileForce, forceScope, ForceValidationError, type PairScope } from '../src/engine/forces/compile';
 import { makeForce } from './helpers';
+import { evaluate } from '../src/engine/expr/evaluate';
+import { parseExpr } from '../src/engine/expr/parser';
 import { generateFieldShader, generateVelocityShader, POSITION_SHADER } from '../src/engine/shaders/computeShaders';
 
 
@@ -29,7 +31,7 @@ describe('compileForce', () => {
   it('exposes nuclear charge', () => {
     const force = compileForce(makeForce({ expression: 'n_i * n_j', params: [] }));
     expect(force.evaluate(forceScope(force, pair))).toBe(6);
-    expect(forceToGlsl(force, 0)).toBe('(color1.w * color2.w)');
+    expect(body(force)).toContain('color1.w * color2.w');
   });
 
   it('exposes color, parity and clocks', () => {
@@ -51,7 +53,7 @@ describe('compileForce', () => {
   it('exposes the 2D charge and isospin', () => {
     const force = compileForce(makeForce({ expression: 'q_dot + 10 * i3_i * i3_j + 100 * q2_i', params: [] }));
     expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(1 * 3 + 2 * -1 - 2.5 + 200, 12);
-    expect(forceToGlsl(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })), 0)).toBe('(dot(attr1.yz, attr2.yz) * spin2.w)');
+    expect(body(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })))).toMatch(/dot\(attr1\.yz, attr2\.yz\) \* spin2\.w|spin2\.w \* dot\(attr1\.yz, attr2\.yz\)/);
   });
 
   it('rejects direction-dependent spin terms in potential mode', () => {
@@ -92,10 +94,33 @@ describe('compileForce', () => {
   });
 });
 
+/** Body of the force's GLSL function (bindings only, not the signature). */
+const body = (force: ReturnType<typeof compileForce>) => force.glsl('f', 'float r', 0).split('\n').slice(1).join('\n');
+
 describe('GLSL generation', () => {
-  it('binds parameters, attributes and cutoff to uniforms', () => {
+  it('binds parameters, attributes and cutoff to uniforms in a function with the pair signature', () => {
     const force = compileForce(makeForce({ range: 'short', cutoff: 2, expression: 'k * m_i * cr_j * x', params: [{ name: 'k', value: 1 }] }));
-    expect(forceToGlsl(force, 3)).toBe('(((uF3_k * attr1.x) * color2.x) * (r / uF3_cutoff))');
+    const glsl = force.glsl('force3', 'float r, vec4 attr1', 3);
+    expect(glsl.startsWith('float force3(float r, vec4 attr1) {')).toBe(true);
+    for (const name of ['uF3_k', 'attr1.x', 'color2.x', 'uF3_cutoff']) expect(glsl).toContain(name);
+    expect(glsl).not.toMatch(/\b(k|m_i|cr_j|cutoff)\b/);
+  });
+
+  it('keeps powers of negative bases defined (spow, never raw pow)', () => {
+    const glsl = compileForce(makeForce({ expression: 'q_i^n / r', params: [{ name: 'n', value: 3 }] })).glsl('f', 'float r', 0);
+    expect(glsl).toContain('spow(attr1.y, uF0_n)');
+    expect(glsl).not.toMatch(/(^|[^s])pow\(/);
+  });
+
+  it('emits the potential separately and refuses it for force-mode forces', () => {
+    const lj = compileForce(makeForce({ mode: 'potential', expression: '4 * (r^-12 - r^-6)', params: [] }));
+    expect(lj.glsl('potential0', 'float r', 0, 'potential')).toMatch(/^float potential0\(float r\) \{/);
+    const plain = compileForce(makeForce({ expression: 'k / r', params: [{ name: 'k', value: 1 }] }));
+    expect(() => plain.glsl('p', 'float r', 0, 'potential')).toThrow(/has no potential/);
+  });
+
+  it('turns library name clashes into validation problems', () => {
+    expect(() => compileForce(makeForce({ expression: 'mix * r', params: [{ name: 'mix', value: 1 }] }))).toThrow(ForceValidationError);
   });
 
   it('emits one function and accumulation per force', () => {
@@ -119,5 +144,28 @@ describe('GLSL generation', () => {
   it('skips the clock fetch when no force reads t_j', () => {
     expect(generateVelocityShader([compileForce(makeForce())])).toContain('float tau2 = 0.0;');
     expect(POSITION_SHADER).toContain('void main()');
+  });
+});
+
+describe('potential mode through shader-autodiff', () => {
+  // The library differentiates; our own interpreter evaluates V, so a central difference is an
+  // independent check of F = -dV/dr.
+  it.each([
+    '4 * k * ((s / r)^12 - (s / r)^6)',
+    'exp(-r / 2) / r + tanh(r) + log(r) * sqrt(r)',
+    'sin(r) * cos(r) + asin(r / 4) + atan(r) + sinh(r) - cosh(r)',
+    'r ^ r + pow(r, 3) + abs(r - 2) + min(r, 1) + max(r, 1) + clamp(r, 0, 2)',
+    'k * q_i * q_j / r + m_i * pi * e',
+  ])('F = -dV/dr for V = %s', (expression) => {
+    const force = compileForce(makeForce({ mode: 'potential', expression, params: [{ name: 'k', value: 3 }, { name: 's', value: 2 }] }));
+    const V = parseExpr(expression);
+    for (const r of [0.7, 1.3, 2.9]) {
+      const scope = forceScope(force, { ...pair, r });
+      const h = 1e-6 * r;
+      const numeric = -(evaluate(V, { ...scope, r: r + h }) - evaluate(V, { ...scope, r: r - h })) / (2 * h);
+      expect(Math.abs(force.evaluate(scope) - numeric)).toBeLessThanOrEqual(1e-6 * Math.max(1, Math.abs(numeric)));
+      const v = evaluate(V, scope);
+      expect(Math.abs(force.evaluatePotential!(scope) - v)).toBeLessThanOrEqual(1e-12 * Math.max(1, Math.abs(v)));
+    }
   });
 });

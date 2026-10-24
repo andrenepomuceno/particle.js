@@ -41,7 +41,7 @@ export function summarizeEnergy(
   return {
     kinetic,
     potential: 0.5 * pairSum,
-    missing: forces.filter((f) => !f.potential).map((f) => f.definition.name),
+    missing: forces.filter((f) => !f.evaluatePotential).map((f) => f.definition.name),
     meanSpeed: dynamic ? speedSum / dynamic : 0,
     maxSpeed,
     temperature: dynamic ? kinetic / dynamic / (mode2D ? 1 : 1.5) : 0,

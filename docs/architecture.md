@@ -3,7 +3,7 @@
 ```
 src/
   engine/            pure simulation code, no React
-    expr/            parser → AST; toGlsl, compileJs, derivative, simplify
+    expr/            parser → AST (validation, messages), simplify; evaluate = reference interpreter for tests
     forces/          ForceDefinition, compileForce, variable catalogue, presets
     shaders/         velocity/position compute shader generation
     gpu/GpuCompute   ping-pong render targets, shader validation, upload/readback
@@ -19,12 +19,15 @@ src/
   ui/                React: dialogs, force editor, actions table, pointer gestures
 ```
 
-## One AST, three backends
+## One graph, every backend
 
-A force expression is parsed once. The same AST is emitted as GLSL for the compute
-shader, compiled to JS closures for the plot and `referenceStep`, and differentiated
-symbolically for potential mode. This keeps GPU, plot and tests in agreement by
-construction; never write force GLSL by hand.
+A force expression is parsed and validated by our parser (variable catalogue, error messages),
+then handed to [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff) as one
+hash-consed graph per force. That graph is differentiated for potential mode (F = −dV/dr, exact)
+and emitted both as GLSL (compute, potential and field shaders, shared subexpressions computed
+once) and as JS (the plot and the float64 `referenceStep`). GPU, plot and tests agree by
+construction; never write force GLSL by hand. GLSL `pow` becomes `spow`, which matches `Math.pow`
+for negative bases (GLSL leaves them undefined).
 
 ## GPU data layout
 

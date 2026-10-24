@@ -1,9 +1,8 @@
-import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, neg, variable, type Expr } from '../expr/ast';
-import { derivative } from '../expr/derivative';
+import { createProgram, type Handle, type Program } from 'shader-autodiff';
+import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, toInfix, variable, type Expr } from '../expr/ast';
 import { colorDot, colorPlane } from '../colorCharge';
-import { compileJs, type CompiledFn } from '../expr/evaluate';
+import type { CompiledFn } from '../expr/evaluate';
 import type { Vec3 } from '../particles';
-import { toGlsl } from '../expr/glsl';
 import { ExprError, parseExpr } from '../expr/parser';
 import { simplify } from '../expr/simplify';
 import type { ForceDefinition } from './types';
@@ -13,14 +12,20 @@ const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
+/**
+ * A force compiled through shader-autodiff: one graph per force (shared subexpressions, F = -dV/dr
+ * differentiated exactly) feeds the GPU shaders, the float64 reference and the UI plot alike.
+ */
 export interface CompiledForce {
   definition: ForceDefinition;
+  /** Pair variables, parameters and `cutoff` the expression reads (r excluded). */
+  reads: ReadonlySet<string>;
   /** Signed force magnitude as a function of r; positive pushes the pair apart. */
-  magnitude: Expr;
   evaluate: CompiledFn;
   /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
-  potential: Expr | undefined;
   evaluatePotential: CompiledFn | undefined;
+  /** GLSL `float <name>(<args>)` returning the magnitude (or V with `potential`), uniforms named for force `index`. */
+  glsl(name: string, args: string, index: number, which?: 'magnitude' | 'potential'): string;
 }
 
 export class ForceValidationError extends Error {
@@ -68,17 +73,74 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   }
   if (problems.length > 0 || !parsed) throw new ForceValidationError(def.name, problems);
 
-  const inR = substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff')));
-  const magnitude = def.mode === 'potential' ? simplify(neg(derivative(inR, 'r'))) : simplify(inR);
-  const potential = def.mode === 'potential' ? simplify(inR) : undefined;
-  const nonFinite = [...nonFiniteConstants(magnitude), ...(potential ? nonFiniteConstants(potential) : [])];
+  const inR = simplify(substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff'))));
+  const nonFinite = nonFiniteConstants(inR);
   if (nonFinite.length > 0) {
     throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
   }
+  const reads = new Set([...collectVariables(inR)].filter((name) => name !== 'r' && !(name in CONSTANTS)));
+  let program: Program;
+  let magnitude: Handle;
+  let potential: Handle | undefined;
+  try {
+    program = createProgram({ variables: ['r'], parameters: [...reads] });
+    const source = program.expression(toInfix(inlineConstants(inR)));
+    potential = def.mode === 'potential' ? source : undefined;
+    magnitude = potential === undefined ? source : program.neg(program.derivative(potential, 'r'));
+  } catch (error) {
+    throw new ForceValidationError(def.name, [(error as Error).message]);
+  }
   return {
-    definition: def, magnitude, evaluate: compileJs(magnitude),
-    potential, evaluatePotential: potential && compileJs(potential),
+    definition: def,
+    reads,
+    evaluate: jsFunction(program, magnitude),
+    evaluatePotential: potential === undefined ? undefined : jsFunction(program, potential),
+    glsl: (name, args, index, which = 'magnitude') => {
+      const handle = which === 'potential' ? potential : magnitude;
+      if (handle === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
+      return glslFunction(program, handle, name, args, index, def, reads);
+    },
   };
+}
+
+/** The library's emitted JS, wrapped to the scope-in, number-out shape the CPU code uses. */
+function jsFunction(program: Program, handle: Handle): CompiledFn {
+  const source = program.js({ name: 'f', returns: { type: 'float', components: [handle] } });
+  const fn = new Function(`${source}\nreturn f;`)() as (scope: Readonly<Record<string, number>>) => { value: number };
+  return (scope) => fn(scope).value;
+}
+
+/**
+ * GLSL from the library with r as the only argument, renamed to our uniforms and pair-variable
+ * bindings, then given the full pair signature. pow() becomes spow(): GLSL's pow is undefined for
+ * negative bases, while q^n with an odd integer n must behave like Math.pow (the JS side).
+ */
+function glslFunction(program: Program, handle: Handle, name: string, args: string, index: number, def: ForceDefinition, reads: ReadonlySet<string>): string {
+  const params = new Set(def.params.map((p) => p.name));
+  const byName = new Map(PAIR_VARIABLES.map((v) => [v.name, v.glsl]));
+  const cutoff = forceUniformName(index, 'cutoff');
+  const parameters = Object.fromEntries([...reads].map((n) => {
+    if (n === 'cutoff') return [n, cutoff];
+    if (params.has(n)) return [n, forceUniformName(index, n)];
+    const glsl = byName.get(n);
+    if (glsl === undefined) throw new Error(`no GLSL binding for variable '${n}'`);
+    return [n, glsl.replaceAll('CUTOFF', cutoff)];
+  }));
+  const glsl = program.glsl({ name, returns: { type: 'float', components: [handle] }, parameters });
+  const header = `float ${name}(float r) {`;
+  if (!glsl.startsWith(header)) throw new Error(`unexpected shader-autodiff header: ${glsl.split('\n')[0]}`);
+  return `float ${name}(${args}) {${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
+}
+
+/** Named constants as numbers: the library spells e as E. */
+function inlineConstants(expr: Expr): Expr {
+  switch (expr.kind) {
+    case 'num': return expr;
+    case 'var': return expr.name in CONSTANTS ? { kind: 'num', value: CONSTANTS[expr.name]! } : expr;
+    case 'neg': return { kind: 'neg', arg: inlineConstants(expr.arg) };
+    case 'bin': return { ...expr, left: inlineConstants(expr.left), right: inlineConstants(expr.right) };
+    case 'call': return { ...expr, args: expr.args.map(inlineConstants) };
+  }
 }
 
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
@@ -128,18 +190,6 @@ function substitute(expr: Expr, name: string, replacement: Expr): Expr {
 
 export function forceUniformName(forceIndex: number, name: string): string {
   return `uF${forceIndex}_${name}`;
-}
-
-export function forceToGlsl(force: CompiledForce, forceIndex: number, expr: Expr = force.magnitude): string {
-  const params = new Set(force.definition.params.map((p) => p.name));
-  const byName = new Map(PAIR_VARIABLES.map((v) => [v.name, v.glsl]));
-  const cutoff = forceUniformName(forceIndex, 'cutoff');
-  return toGlsl(expr, (name) => {
-    if (params.has(name)) return forceUniformName(forceIndex, name);
-    const glsl = byName.get(name);
-    if (glsl === undefined) throw new Error(`no GLSL binding for variable '${name}'`);
-    return glsl.replaceAll('CUTOFF', cutoff);
-  });
 }
 
 export interface PairScope {

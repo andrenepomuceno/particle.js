@@ -33,6 +33,7 @@ const DIALOGS: readonly DialogSpec[] = [
 ];
 
 const OPEN_KEY = 'dialogs-open';
+const IMPORT_INPUT_ID = 'import-file';
 const ABOUT_SEEN_KEY = 'about-seen';
 
 const NON_TEXT_INPUTS = new Set(['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file']);
@@ -93,17 +94,8 @@ function Shell({ controller }: { controller: SimulationController }) {
     toggleOverlay: () => setOverlayHidden((hidden) => !hidden),
     toggleDialog: (id) => setOpen((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
     importFile: () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json,application/json';
-      input.hidden = true;
-      // Some browsers only fire change/open the picker for inputs attached to the document.
-      document.body.appendChild(input);
-      input.onchange = () => {
-        input.remove();
-        void importFromFile(controller, input.files?.[0]);
-      };
-      input.oncancel = () => input.remove();
+      const input = document.getElementById(IMPORT_INPUT_ID);
+      if (!(input instanceof HTMLInputElement)) throw new Error(`#${IMPORT_INPUT_ID} is missing from the page`);
       input.click();
     },
   }), [controller, pointer]);
@@ -154,6 +146,11 @@ function Shell({ controller }: { controller: SimulationController }) {
           {d.render(ctx)}
         </Dialog>
       ))}
+      <input id={IMPORT_INPUT_ID} type="file" accept=".json,application/json" hidden
+        onChange={(event) => {
+          const input = event.currentTarget;
+          void importFromFile(controller, input.files?.[0]).finally(() => (input.value = ''));
+        }} />
       <Notices />
     </div>
   );

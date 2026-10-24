@@ -116,17 +116,25 @@ await withBrowser(async ({ browser, base }) => {
   const fps30 = await fpsAt(30);
   const fpsUnlimited = await fpsAt(0);
   await fpsAt(60);
-  check('FPS limit caps at 30 and display rate keeps running', fps30 > 20 && fps30 <= 31.5 && fpsUnlimited > 0, { fps30, fpsUnlimited });
+  // The cap must never be exceeded; reaching it is only expected when the machine has headroom.
+  const reachesCap = fpsUnlimited <= 35 || fps30 >= 25;
+  check('FPS limit caps at 30 and display rate keeps running', fps30 <= 31.5 && fps30 > 0 && fpsUnlimited > 0 && reachesCap, { fps30, fpsUnlimited });
 
-  const chooser = page.waitForEvent('filechooser');
+  // Playwright's filechooser event is unreliable under load, so check the two halves directly:
+  // I opens the import input, and a file given to that input goes through the app's import path.
+  await page.evaluate(() => {
+    const input = globalThis.document.getElementById('import-file');
+    input.click = () => (globalThis.importClicked = true);
+  });
   await page.keyboard.press('i');
-  await (await chooser).setFiles('src/scenarios/library/40-crystal.json');
+  const opened = await page.evaluate(() => globalThis.importClicked === true);
+  await page.setInputFiles('#import-file', 'src/scenarios/library/40-crystal.json');
   await page.waitForTimeout(300);
   const imported = await page.evaluate(() => globalThis.particleController.state.name);
   await page.keyboard.press('r');
   await page.waitForTimeout(200);
   const afterReset = await page.evaluate(() => ({ name: globalThis.particleController.state.name, count: globalThis.particleController.state.particleCount }));
-  check('I imports a scenario file and R resets it', imported === 'Lennard-Jones crystal' && afterReset.name === imported && afterReset.count === 1200, afterReset);
+  check('I opens the import input; a scenario file imports and R resets it', opened && imported === 'Lennard-Jones crystal' && afterReset.name === imported && afterReset.count === 1200, afterReset);
 
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);

@@ -1,16 +1,36 @@
+import type { FieldProbe } from '../field';
 import { acts, forceScope, type CompiledForce, type PairScope } from './compile';
 import type { ForceRange } from './types';
 
-/** The pair every plot evaluates forces for (documented in the plot captions). */
-export const PLOT_PAIR: Omit<PairScope, 'r'> = {
-  m_i: 1, m_j: 1, q_i: 1, q_j: 1, q2_i: 0, q2_j: 0, i3_i: 0.5, i3_j: 0.5,
-  sx_i: 0, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 0, sz_j: 0.5, ux: 1, uy: 0, uz: 0, p_i: 1, p_j: 1, n_i: 1, n_j: 1,
-  cr_i: 1, cg_i: 0, cb_i: 0, cr_j: -1, cg_j: 0, cb_j: 0, t_i: 0, t_j: 0, time: 0,
+type Pair = Omit<PairScope, 'r'>;
+
+/** The plotted pair's particles (same attributes as the field's test particle); r̂ runs along x from j to i. */
+export interface PlotParticles {
+  i: FieldProbe;
+  j: FieldProbe;
+}
+
+export const DEFAULT_PLOT_PARTICLES: PlotParticles = {
+  i: { mass: 1, charge: 1, charge2: 0, spin: [0, 0, 0.5], isospin: 0.5, parity: 1, nuclearCharge: 1, color: [1, 0, 0] },
+  j: { mass: 1, charge: 1, charge2: 0, spin: [0, 0, 0.5], isospin: 0.5, parity: 1, nuclearCharge: 1, color: [-1, 0, 0] },
 };
 
+export function plotPair({ i, j }: PlotParticles): Pair {
+  return {
+    m_i: i.mass, m_j: j.mass, q_i: i.charge, q_j: j.charge, q2_i: i.charge2, q2_j: j.charge2, i3_i: i.isospin, i3_j: j.isospin,
+    sx_i: i.spin[0], sy_i: i.spin[1], sz_i: i.spin[2], sx_j: j.spin[0], sy_j: j.spin[1], sz_j: j.spin[2],
+    ux: 1, uy: 0, uz: 0, p_i: i.parity, p_j: j.parity, n_i: i.nuclearCharge, n_j: j.nuclearCharge,
+    cr_i: i.color[0], cg_i: i.color[1], cb_i: i.color[2], cr_j: j.color[0], cg_j: j.color[1], cb_j: j.color[2],
+    t_i: 0, t_j: 0, time: 0,
+  };
+}
+
+/** The pair the per-force plots use (documented in their caption). */
+export const PLOT_PAIR: Pair = plotPair(DEFAULT_PLOT_PARTICLES);
+
 /** What the integrator applies at true distance d: softening, then the hard cutoff (radial part for vector forces). */
-export function appliedForce(force: CompiledForce, distance: number): number {
-  return acts(force, distance) ? force.evaluate(forceScope(force, PLOT_PAIR, distance)) : 0;
+export function appliedForce(force: CompiledForce, distance: number, pair: Pair = PLOT_PAIR): number {
+  return acts(force, distance) ? force.evaluate(forceScope(force, pair, distance)) : 0;
 }
 
 /** Plot domain of one force: a little past the cutoff, or 20 softenings (at least 100) for long range. */
@@ -27,27 +47,36 @@ export interface PotentialCurve {
   integrated: string[];
 }
 
+export interface ResultantOptions {
+  pair?: Pair;
+  /** Right edge of the plot; default the largest plotDistance of the range's forces. */
+  maxDistance?: number;
+  samples?: number;
+}
+
 /**
- * Σ V(d) of the forces of one range for PLOT_PAIR, as the integrator sees them (hard cutoff, so a
+ * Σ V(d) of the forces of one range for the pair (default PLOT_PAIR), as the integrator sees them (hard cutoff, so a
  * short-range V jumps to 0 at its cutoff). Potential-mode forces contribute V exactly; force-mode
  * ones contribute ∫_d^D F with V(D) = 0 at the right edge D, since they have no closed-form V.
  * Undefined when no force of that range is given.
  */
-export function resultantPotential(forces: readonly CompiledForce[], range: ForceRange, samples = 240): PotentialCurve | undefined {
+export function resultantPotential(forces: readonly CompiledForce[], range: ForceRange, options: ResultantOptions = {}): PotentialCurve | undefined {
+  const { pair = PLOT_PAIR, samples = 240 } = options;
   const own = forces.filter((f) => f.definition.range === range);
   if (own.length === 0) return undefined;
-  const maxDistance = Math.max(...own.map(plotDistance));
+  const maxDistance = options.maxDistance ?? Math.max(...own.map(plotDistance));
+  if (!(maxDistance > 0)) throw new Error(`plot distance must be > 0, got ${maxDistance}`);
   const ds = Array.from({ length: samples }, (_, k) => (maxDistance * (k + 1)) / samples);
   const v = new Float64Array(samples);
   for (const force of own) {
     if (force.evaluatePotential) {
       ds.forEach((d, k) => {
-        if (acts(force, d)) v[k] = v[k]! + force.evaluatePotential!(forceScope(force, PLOT_PAIR, d));
+        if (acts(force, d)) v[k] = v[k]! + force.evaluatePotential!(forceScope(force, pair, d));
       });
       continue;
     }
     // Trapezoids from the right edge inwards: V(d_k) = V(d_{k+1}) + ∫_{d_k}^{d_{k+1}} F.
-    const f = ds.map((d) => appliedForce(force, d));
+    const f = ds.map((d) => appliedForce(force, d, pair));
     let integral = 0;
     for (let k = samples - 2; k >= 0; k--) {
       integral += 0.5 * (f[k]! + f[k + 1]!) * (ds[k + 1]! - ds[k]!);

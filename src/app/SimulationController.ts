@@ -195,6 +195,9 @@ export class SimulationController {
   private onRecording: ((video: Blob) => void) | undefined;
   private statsActive = false;
   private frameMsSinceSample = 0;
+  /** Settings and forces the current world was loaded with, for "restore" buttons. */
+  private loadedSettings: SimulationSettings = { ...DEFAULT_SETTINGS };
+  private loadedForces: ForceDefinition[] = [];
   private timelineEvents: readonly TimelineEvent[] = [];
   /** Caption text with its `{path}` placeholders, re-formatted whenever forces or settings change. */
   private captionTemplate: string | undefined;
@@ -372,6 +375,8 @@ export class SimulationController {
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
+    this.loadedSettings = { ...settings };
+    this.loadedForces = forces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) }));
     this.ensureCapacity(particles.length);
     this.setSettings(settings);
     this.setForces(forces);
@@ -437,6 +442,18 @@ export class SimulationController {
     this.store.set({ forces, forceErrors, shaderError });
     this.refreshForceWarnings();
     this.refreshCaption();
+  }
+
+  /** Back to the settings the world was loaded with (particles untouched). */
+  restoreSettings(): void {
+    const planeChanged = this.loadedSettings.mode2D !== this.state.settings.mode2D;
+    this.setSettings(this.loadedSettings);
+    if (planeChanged) this.resetCamera();
+  }
+
+  /** Back to the forces the world was loaded with, undoing edits and timeline changes. */
+  restoreForces(): void {
+    this.setForces(this.loadedForces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) })));
   }
 
   get compiledForces(): readonly CompiledForce[] {

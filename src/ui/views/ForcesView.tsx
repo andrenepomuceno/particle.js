@@ -4,7 +4,8 @@ import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
 import { NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
 import { compileForce, type CompiledForce } from '../../engine/forces/compile';
-import { ForcePlot, ResultantPotentialPlot } from './ForcePlot';
+import { ForcePlot } from './ForcePlot';
+import { ResultantView } from './ResultantView';
 
 function TextCommit({ value, onCommit, label, multiline = false }: {
   value: string; onCommit: (value: string) => void; label: string; multiline?: boolean;
@@ -163,8 +164,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
             if (e.currentTarget.open !== expanded.has(RESULTANT)) toggle(RESULTANT);
           }}>
           <summary className="section-title">Resultant potential</summary>
-          <ResultantPotentialPlot forces={active} range="short" />
-          <ResultantPotentialPlot forces={active} range="long" />
+          <ResultantView forces={active} />
         </details>
       )}
       {forces.map((force) => (
@@ -178,6 +178,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
         <button className="primary" onClick={() => controller.addForce(preset)}>Add force</button>
         <button className="outlined" onClick={onReference}>Reference</button>
       </div>
+      <button className="outlined" onClick={() => controller.restoreForces()}>Restore scenario forces</button>
     </div>
   );
 }

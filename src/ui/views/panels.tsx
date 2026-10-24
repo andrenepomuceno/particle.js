@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
-import { validateColumns } from '../../engine/field';
+import { DEFAULT_PROBE, validateColumns } from '../../engine/field';
 import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
-import { FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
+import { DEFAULT_GENERATOR, FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
 import { saveJson } from '../persist';
 import { PARTICLE_TARGET_KEY } from '../storageKeys';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
@@ -154,6 +154,8 @@ export function ParametersView() {
         set({ mode2D });
         controller.resetCamera();
       }} />
+      <span />
+      <button className="outlined" onClick={() => controller.restoreSettings()}>Restore scenario values</button>
     </div>
   );
 }
@@ -238,7 +240,10 @@ export function GeneratorView() {
         <NumberField label="Speed" value={g.speed} validate={nonNegative} onCommit={(speed) => set({ speed })} />
         <CheckField label="Fixed" checked={g.fixed} onChange={(fixed) => set({ fixed })} />
       </div>
-      <button className="primary" onClick={() => controller.generateAt(undefined, undefined)}>Generate at origin</button>
+      <div className="row">
+        <button className="primary" onClick={() => controller.generateAt(undefined, undefined)}>Generate at origin</button>
+        <button className="outlined" onClick={() => controller.setGenerator(DEFAULT_GENERATOR)}>Restore defaults</button>
+      </div>
       <p className="muted" style={{ margin: 0 }}>Press <kbd>G</kbd> over the canvas to generate at the cursor.</p>
     </div>
   );
@@ -273,6 +278,7 @@ export function FieldView() {
         <NumberField label="Nuclear charge" value={probe.nuclearCharge} onCommit={(nuclearCharge) => setProbe({ nuclearCharge })} />
         <Vec3Field label="Color charge" axes={['r', 'g', 'b']} value={probe.color} onCommit={(color) => setProbe({ color })} />
       </div>
+      <button className="outlined" onClick={() => set({ probe: DEFAULT_PROBE })}>Default test particle</button>
       {info && (
         <dl className="stats">
           <dt>Probes</dt><dd>{info.columns} × {info.rows}</dd>

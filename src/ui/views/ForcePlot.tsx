@@ -1,6 +1,6 @@
 import { useMemo, useState, type PointerEvent, type ReactNode } from 'react';
 import { compileForce, type CompiledForce } from '../../engine/forces/compile';
-import { appliedForce, plotDistance, resultantPotential } from '../../engine/forces/resultant';
+import { appliedForce, plotDistance, resultantPotential, type PlotParticles, plotPair } from '../../engine/forces/resultant';
 import type { ForceDefinition, ForceRange } from '../../engine/forces/types';
 
 const WIDTH = 400;
@@ -103,14 +103,19 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
 }
 
 /** Σ V(d) of the enabled forces of one range: the landscape a pair actually moves in. */
-export function ResultantPotentialPlot({ forces, range }: { forces: readonly CompiledForce[]; range: ForceRange }) {
-  const curve = useMemo(() => resultantPotential(forces, range, SAMPLES), [forces, range]);
+export function ResultantPotentialPlot({ forces, range, particles, maxDistance }: {
+  forces: readonly CompiledForce[]; range: ForceRange; particles: PlotParticles; maxDistance: number | undefined;
+}) {
+  const curve = useMemo(
+    () => resultantPotential(forces, range, { pair: plotPair(particles), maxDistance, samples: SAMPLES }),
+    [forces, range, particles, maxDistance],
+  );
   if (!curve) return null;
   const title = range === 'short' ? 'Short range' : 'Long range';
   return (
     <CurvePlot points={curve.points.map((p) => ({ d: p.d, y: p.v }))} maxDistance={curve.maxDistance} symbol="V"
       label={`${title} resultant potential`} caption={<>
-        <b>{title}</b>: Σ V(d) of the enabled {range}-range forces. {SAMPLE_PAIR}
+        <b>{title}</b>: Σ V(d) of the enabled {range}-range forces for the pair below (r̂ along x, from j to i).
         {curve.integrated.length > 0 && ` Force-mode terms (${curve.integrated.join(', ')}) are integrated from F, with V = 0 at the right edge.`}
       </>} />
   );

@@ -221,6 +221,18 @@ await withBrowser(async ({ browser, base }) => {
   check('Locked color scale keeps its reference while the test particle changes the field',
     locked.after.reference === locked.before.reference && Math.abs(locked.after.max / locked.before.max - 5) < 1e-3, locked);
 
+  // Restore buttons: settings and forces return to what the world was loaded with.
+  const restored = await page.evaluate(() => {
+    const c = globalThis.particleController;
+    const loaded = { friction: c.state.settings.friction, params: JSON.stringify(c.state.forces.map((f) => f.params)) };
+    c.setSettings({ friction: 0.37 });
+    c.updateForce(c.state.forces[0].id, { params: c.state.forces[0].params.map((p) => ({ ...p, value: p.value * 3 })) });
+    c.restoreSettings();
+    c.restoreForces();
+    return { loaded, now: { friction: c.state.settings.friction, params: JSON.stringify(c.state.forces.map((f) => f.params)) } };
+  });
+  check('Restore puts the loaded settings and forces back', JSON.stringify(restored.loaded) === JSON.stringify(restored.now), restored);
+
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   await mkdir(path.dirname(out), { recursive: true });

@@ -57,7 +57,10 @@ at the top of the view; *Information* lists the script's progress (events fired 
 
 **Forces**: *Resultant potential* plots Σ V(d) of the enabled forces for the sample pair, short and
 long range apart (potential-mode forces exactly; force-mode ones integrated from F, zero at the
-right edge; a short-range V drops to 0 at its cutoff, as the integrator sees it). Force cards and the potential plots start collapsed; what you expand is remembered for the
+right edge; a short-range V drops to 0 at its cutoff, as the integrator sees it). *Sample pair and range* sets both
+particles' attributes and each plot's right edge (remembered for the session; *Restore defaults*).
+*Restore scenario forces* undoes edits and timeline changes to the forces; Parameters has
+*Restore scenario values*, Generator *Restore defaults* and Field *Default test particle*. Force cards and the potential plots start collapsed; what you expand is remembered for the
 browser session (by force name). Each force card collapses to a one-line summary (▸/▾, or *Collapse all*), flagged
 when it has an error or warning. *Reference* opens **Expressions**, the full list of variables
 (grouped by topic), functions, operators and range/softening rules.

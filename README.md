@@ -20,6 +20,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
 - **Rich particles**: position, velocity, own clock, mass, electric charge, spin, parity
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Live plot** of each force as the integrator applies it (softening and cutoff included).
+- **v1 look**: spheres with a velocity arrow through them, colored by charge, color charge or speed.
 - **v1-style interaction**: keyboard shortcuts, draggable dialogs, click to inspect and
   edit a particle, shift+drag to select, copy and place groups, particle generator.
 - **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file.

@@ -1,10 +1,13 @@
 import { Fragment } from 'react';
-import { COLOR_MODES } from '../../engine/render/ParticlePoints';
+import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
 import type { BoundaryShape } from '../../engine/settings';
+import { FPS_LIMITS } from '../../app/SimulationController';
 import { SCENARIOS } from '../../scenarios';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
 import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
+
+const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(limit));
 
 const format = (value: number, digits = 3) => (Number.isInteger(value) ? String(value) : value.toPrecision(digits));
 
@@ -16,6 +19,7 @@ export function InfoView() {
   const capacity = useAppState((s) => s.capacity);
   const time = useAppState((s) => Math.round(s.time * 100) / 100);
   const fps = useAppState((s) => Math.round(s.fps));
+  const averageSpeed = useAppState((s) => s.averageSpeed);
   const paused = useAppState((s) => s.paused);
   const forces = useAppState((s) => s.forces.filter((f) => f.enabled).length);
   const description = SCENARIOS.find((s) => s.id === scenarioId)?.description;
@@ -32,6 +36,7 @@ export function InfoView() {
         <dt>Particles</dt><dd>{count} / {capacity}</dd>
         <dt>Active forces</dt><dd>{forces}</dd>
         <dt>Time</dt><dd>{time}</dd>
+        <dt>Mean speed</dt><dd>{format(averageSpeed)}</dd>
         <dt>FPS</dt><dd>{fps}</dd>
       </dl>
       <p className="muted" style={{ margin: 0 }}>v{__APP_VERSION__} · press <kbd>?</kbd> for shortcuts</p>
@@ -55,6 +60,8 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
   const controller = useController();
   const colorMode = useAppState((s) => s.colorMode);
   const radius = useAppState((s) => s.particleRadius);
+  const style = useAppState((s) => s.particleStyle);
+  const fpsLimit = useAppState((s) => s.fpsLimit);
   return (
     <div>
       {(['Simulation', 'Camera', 'View'] as const).map((group) => (
@@ -64,6 +71,9 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
         </Fragment>
       ))}
       <div className="grid" style={{ marginTop: 8 }}>
+        <SelectField label="FPS limit" value={fpsLimitLabel(fpsLimit)} options={FPS_LIMITS.map(fpsLimitLabel)}
+          onChange={(label) => controller.setFpsLimit(FPS_LIMITS.find((l) => fpsLimitLabel(l) === label)!)} />
+        <SelectField label="Particle style" value={style} options={PARTICLE_STYLES} onChange={(s) => controller.setParticleStyle(s)} />
         <SelectField label="Color by" value={colorMode} options={COLOR_MODES} onChange={(m) => controller.setColorMode(m)} />
         <NumberField label="Particle radius" value={radius} validate={positive} onCommit={(r) => controller.setParticleRadius(r)} />
       </div>

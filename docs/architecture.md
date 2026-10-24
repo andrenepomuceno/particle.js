@@ -7,7 +7,7 @@ src/
     forces/          ForceDefinition, compileForce, variable catalogue, presets
     shaders/         velocity/position compute shader generation
     gpu/GpuCompute   ping-pong render targets, shader validation, upload/readback
-    render/          ParticlePoints: draws particles straight from the GPU textures
+    render/          ParticlePoints: spherow/flat sprites drawn straight from the GPU textures
     cpu/             referenceStep: float64 mirror of the shaders (the spec)
     particles.ts     ParticleSet, struct-of-arrays mirroring the textures
     settings.ts      SimulationSettings + validation

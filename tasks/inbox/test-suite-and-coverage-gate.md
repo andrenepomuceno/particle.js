@@ -9,3 +9,6 @@ Deferred during the MVP phase (user request: focus on the MVP first).
   (Chromium + SwiftShader) and add a GPU-vs-`referenceStep` parity check: run N steps,
   read back, compare within a float32 tolerance.
 - UI component tests for the force editor (validation messages, recompile on edit).
+- Known flake (seen 1 in ~5 runs, machine load ≈ 7): in `smoke:all` the `filechooser` event
+  for the Import check sometimes never fires after the FPS check. Not reproduced in 3
+  standalone runs. Investigate before turning the smoke into CI.

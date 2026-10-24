@@ -111,6 +111,16 @@ const pausedBefore = (await state()).paused;
 await page.keyboard.press(' ');
 check('Space after clicking a checkbox pauses, checkbox untouched', (await state()).paused !== pausedBefore && await enable.isChecked());
 
+const fpsAt = async (limit) => {
+  await page.evaluate((l) => globalThis.particleController.setFpsLimit(l), limit);
+  await page.waitForTimeout(2500);
+  return page.evaluate(() => globalThis.particleController.state.fps);
+};
+const fps30 = await fpsAt(30);
+const fpsUnlimited = await fpsAt(0);
+await fpsAt(60);
+check('FPS limit caps at 30 and display rate keeps running', fps30 > 20 && fps30 <= 31.5 && fpsUnlimited > 0, { fps30, fpsUnlimited });
+
 const chooser = page.waitForEvent('filechooser');
 await page.keyboard.press('i');
 await (await chooser).setFiles('src/scenarios/library/40-crystal.json');

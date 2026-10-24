@@ -42,6 +42,18 @@ field; click the canvas to give focus back.
 Placement and generation use the plane through the orbit target facing the camera
 (z = 0 in 2D mode).
 
+## Look
+
+Particles are drawn in v1's **spherow** style: a raymarched sphere with an arrow through it
+along the velocity (no arrow when the particle is still). The sphere color follows the
+color mode; in `charge` mode it is v1's meaningful color (positive blue, negative red,
+neutral gray, tinted by color charge, green tint for negative parity). The arrow uses v1's
+speed palette: hue from red to magenta up to 16× the mean speed, white beyond. The mean
+speed is sampled once per second. Controls → Particle style switches to flat discs, which
+are cheaper. Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate
+(no software cap, e.g. 144 fps on a 144 Hz screen). Browsers never present frames faster
+than the display refreshes, so there is no higher setting.
+
 ## Dialogs
 
 Information, Forces, Parameters, Controls, Particle, Selection, Generator, Shortcuts.

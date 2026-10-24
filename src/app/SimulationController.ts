@@ -6,7 +6,7 @@ import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk, uniform } from '../engine/random';
-import { ParticlePoints, type ColorMode } from '../engine/render/ParticlePoints';
+import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { createSnapshot, parseSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { findScenario, SCENARIOS } from '../scenarios';
@@ -50,6 +50,9 @@ export interface AppState {
   particleCount: number;
   capacity: number;
   colorMode: ColorMode;
+  particleStyle: ParticleStyle;
+  fpsLimit: FpsLimit;
+  averageSpeed: number;
   particleRadius: number;
   showAxes: boolean;
   inspected: { index: number; particle: Particle } | undefined;
@@ -60,6 +63,10 @@ export interface AppState {
   fps: number;
   notices: Notice[];
 }
+
+export const FPS_LIMITS = [30, 60, 0] as const;
+/** 0 means unlimited. */
+export type FpsLimit = (typeof FPS_LIMITS)[number];
 
 const DEFAULT_CAPACITY = 128 * 128;
 const NOTICE_LIFETIME_MS = 6000;
@@ -82,7 +89,8 @@ export class SimulationController {
   private compiledKey = '';
   private cpuStale = false;
   private stepRequested = false;
-  private frameHandle = 0;
+  private running = false;
+  private lastFrame = 0;
   private fpsFrames = 0;
   private fpsSince = 0;
   private noticeId = 0;
@@ -102,7 +110,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       scenarioId: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
-      colorMode: 'charge', particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
     });
   }
@@ -115,15 +123,16 @@ export class SimulationController {
   mount(container: HTMLElement): () => void {
     container.appendChild(this.renderer.domElement);
     this.resize(container.clientWidth, container.clientHeight);
-    this.frameHandle = requestAnimationFrame(this.frame);
+    this.running = true;
+    this.scheduleFrame();
     return () => {
-      cancelAnimationFrame(this.frameHandle);
+      this.running = false;
       this.renderer.domElement.remove();
     };
   }
 
   dispose(): void {
-    cancelAnimationFrame(this.frameHandle);
+    this.running = false;
     this.controls.dispose();
     this.gpu.dispose();
     this.points.dispose();
@@ -219,7 +228,6 @@ export class SimulationController {
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
     this.gpu.setSettings(settings);
-    this.points.setSpeedScale(settings.maxSpeed);
     this.store.set({ settings });
   }
 
@@ -284,6 +292,11 @@ export class SimulationController {
   setColorMode(colorMode: ColorMode): void {
     this.points.setColorMode(colorMode);
     this.store.set({ colorMode });
+  }
+
+  setParticleStyle(particleStyle: ParticleStyle): void {
+    this.points.setStyle(particleStyle);
+    this.store.set({ particleStyle });
   }
 
   setParticleRadius(particleRadius: number): void {
@@ -545,8 +558,27 @@ export class SimulationController {
     this.renderer.render(this.scene, this.camera);
   }
 
+  setFpsLimit(fpsLimit: FpsLimit): void {
+    if (!FPS_LIMITS.includes(fpsLimit)) throw new Error(`fps limit must be one of ${FPS_LIMITS.join(', ')}, got ${fpsLimit}`);
+    this.store.set({ fpsLimit });
+  }
+
+  // "Unlimited" means every display refresh. Rendering faster than requestAnimationFrame
+  // (e.g. via MessageChannel) only queues frames nobody sees and starves the page.
+  private scheduleFrame(): void {
+    if (this.running) requestAnimationFrame(this.frame);
+  }
+
   private frame = (now: number): void => {
-    this.frameHandle = requestAnimationFrame(this.frame);
+    if (!this.running) return;
+    const limit = this.state.fpsLimit;
+    // Half a millisecond of slack keeps a 60 Hz display at 60 fps despite rAF timestamp jitter.
+    if (limit > 0 && now - this.lastFrame < 1000 / limit - 0.5) {
+      this.scheduleFrame();
+      return;
+    }
+    this.lastFrame = now;
+    this.scheduleFrame();
     const { paused, settings, inspected, followInspected } = this.state;
     if (!paused || this.stepRequested) {
       this.stepRequested = false;
@@ -572,7 +604,25 @@ export class SimulationController {
     this.fpsFrames = 0;
     this.fpsSince = now;
     this.store.set({ fps });
+    this.sampleState();
     this.refreshInspected();
+  }
+
+  /** Once-per-second readback that feeds the speed palette (as v1 did). */
+  private sampleState(): void {
+    if (this.set.count === 0) return;
+    this.syncFromGpu();
+    let total = 0;
+    let dynamic = 0;
+    for (let k = 0; k < this.set.count; k++) {
+      const o = k * 4;
+      if (this.set.position[o + 3] === ParticleKind.fixed) continue;
+      total += Math.hypot(this.set.velocity[o]!, this.set.velocity[o + 1]!, this.set.velocity[o + 2]!);
+      dynamic++;
+    }
+    const averageSpeed = dynamic > 0 ? total / dynamic : 0;
+    this.points.setAverageSpeed(averageSpeed);
+    this.store.set({ averageSpeed });
   }
 }
 

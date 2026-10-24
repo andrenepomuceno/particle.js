@@ -557,10 +557,10 @@ function v0Nucleus(center, s, up, down, electrons, r0, r1, velocity) {
 
 /**
  * v1's quadratic friction (FrictionModel.square: v /= 1 + c·dt·|v|/m) as the velocity-dependent force −c·|v|·v,
- * exerted by DRAG_MARKER, the only particle with q2 = 1 (q = 0 and n = 0, so no other force sees it). The 1e-30
- * keeps the derivative of |v| finite at rest, where the implicit velocity solve evaluates it.
+ * exerted by DRAG_MARKER, the only particle with q2 = 1 (q = 0 and n = 0, so no other force sees it). At rest,
+ * where ∂|v|/∂v is 0/0, the engine falls back to the explicit kick for that step.
  */
-const v1Drag = (c) => ({ name: 'Drag (v1)', mode: 'force', range: 'long', expression: '-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i', params: [{ name: 'c', value: c }] });
+const v1Drag = (c) => ({ name: 'Drag (v1)', mode: 'force', range: 'long', expression: '-c * q2_j * length(v_i) * v_i', params: [{ name: 'c', value: c }] });
 const DRAG_MARKER = { count: 1, kind: 'fixed', shape: { type: 'point' }, mass: 1e-20, charge2: 1 };
 
 /** v1's default nuclear potential (scenarios_v0): sin(2πx), positive (attractive in v1) inside half the range. */
@@ -736,7 +736,7 @@ function hexagonalCrystalQuarks() {
     seed: 1,
     view: { cameraDistance: 25000, particleRadius: 90, colorMode: 'charge' },
     timeline: [{ at: 33, set: { 'Drag (v1).c': 1e-4 } }],
-    settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9 },
+    settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9, integrator: 'euler' },
     forces: [
       {
         name: 'Nuclear (v1 force map 1)',

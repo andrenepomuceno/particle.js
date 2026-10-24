@@ -229,7 +229,9 @@ ${PARTICLE_HEADER}
   vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance, jacobian);
   vec3 kick = uTimeStep * force / attr1.x;${forces.some((f) => f.jacobian) ? `
   // Implicit midpoint for velocity-dependent forces: (I − dt/2m·J)·Δv = dt/m·F (Boris for v × B).
-  kick = inverse(mat3(1.0) - (0.5 * uTimeStep / attr1.x) * jacobian) * kick;` : ''}
+  // A non-finite Jacobian (e.g. ∂|v|/∂v at v = 0) falls back to the explicit kick for this step.
+  vec3 implicitKick = inverse(mat3(1.0) - (0.5 * uTimeStep / attr1.x) * jacobian) * kick;
+  if (!any(isnan(implicitKick)) && !any(isinf(implicitKick))) kick = implicitKick;` : ''}
   vec3 vel = velocityTexel.xyz + kick + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
 }

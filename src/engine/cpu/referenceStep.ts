@@ -36,6 +36,9 @@ export function referenceStep(
  * (I − dt/(2m)·J)·Δv = dt/m·F. For F = v × B it is the exact Boris rotation (|v| preserved).
  */
 export function implicitKick(force: Vec, jacobian: ArrayLike<number>, mass: number, dt: number): Vec {
+  const explicit = force.map((c) => (dt * c) / mass) as Vec;
+  // A non-finite Jacobian (e.g. ∂|v|/∂v at v = 0) falls back to the explicit kick, as on the GPU.
+  if (!Array.from(jacobian).every(Number.isFinite)) return explicit;
   const h = dt / (2 * mass);
   const a = [0, 1, 2].map((k) => [0, 1, 2].map((l) => (k === l ? 1 : 0) - h * jacobian[k * 3 + l]!));
   const b = force.map((c) => (dt * c) / mass) as Vec;

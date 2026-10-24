@@ -57,6 +57,14 @@ describe('velocity-dependent vector forces', () => {
     expect(Math.hypot(...set.get(0).position)).toBeLessThan(5e-3);
   });
 
+  it('falls back to the explicit kick when the Jacobian is not finite (|v| at rest)', () => {
+    const drag = compileForce(makeForce({ expression: '-c * q2_j * length(v_i) * v_i', params: [{ name: 'c', value: 0.5 }] }));
+    const set = setOf(defaultParticle({ position: [0, 0, 0] }), defaultParticle({ position: [5, 0, 0], kind: ParticleKind.fixed, charge2: 1 }));
+    referenceStep(set, [drag], { ...DEFAULT_SETTINGS, integrator: 'euler', timeStep: 0.1 }, 0);
+    expect(set.get(0).velocity).toEqual([0, 0, 0]);
+    expect(implicitKick([1, 0, 0], [NaN, 0, 0, 0, 0, 0, 0, 0, 0], 2, 0.1)).toEqual([0.05, 0, 0]);
+  });
+
   it('solves the implicit kick exactly for a rotation', () => {
     // F = v × (0,0,B) at v = (1,0,0): J = ∂F/∂v rows [[0,B,0],[-B,0,0],[0,0,0]].
     const kick = implicitKick([0, -B, 0], [0, B, 0, -B, 0, 0, 0, 0, 0], 1, 0.1);

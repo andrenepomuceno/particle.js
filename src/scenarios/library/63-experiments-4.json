@@ -4,10 +4,10 @@
   "id": "experiments-4",
   "name": "Experiments 4",
   "folder": "Force Map",
-  "description": "v1's Experiments 4, The Egg's sibling: 9996 colored quarks (uud + udd, nuclear charge 10) and electrons (nuclear charge -10/3) in a 2e5 disk under v1's force map 2 with a wider Yukawa core (b = 0.2), its color force (three times stronger than The Egg's), 1/d Coulomb and 1/d gravity, in a box of half-size 1e6. Scripted like v1 (times are v1's seconds × 60): G jumps by 1e41 at t = 120 and the soup collapses, G drops 100-fold at t = 300, again with a tenfold drag at t = 3600, and the drag eases tenfold at t = 4200. v1's quadratic drag (deceleration c·|v|·v/m) is the force 'Drag (v1)', exerted by one fixed, otherwise inert marker particle (q2 = 1) at the origin (the 1e-30 under its square root keeps the velocity derivative finite at rest), so the scene runs with the Euler step like v1; v1's random force noise is not reproduced.",
+  "description": "v1's Experiments 4, The Egg's sibling: 9996 colored quarks (uud + udd, nuclear charge 10) and electrons (nuclear charge -10/3) in a 2e5 disk under v1's force map 2 with a wider Yukawa core (b = 0.2), its color force (three times stronger than The Egg's), 1/d Coulomb and 1/d gravity, in a box of half-size 1e6. Scripted like v1 (times are v1's seconds × 60): G jumps by 1e41 at t = 120 and the soup collapses, G drops 100-fold at t = 300, again with a tenfold drag at t = 3600, and the drag eases tenfold at t = 4200. v1's quadratic drag (deceleration c·|v|·v/m) is the force 'Drag (v1)', exerted by one fixed, otherwise inert marker particle (q2 = 1) at the origin, so the scene runs with the Euler step like v1; v1's random force noise is not reproduced.",
   "seed": 1,
   "view": { "cameraDistance": 400000, "particleRadius": 500, "colorMode": "charge" },
-  "settings": { "timeStep": 1, "mode2D": true, "boundary": "box", "boundarySize": 1000000, "restitution": 0.9 },
+  "settings": { "timeStep": 1, "mode2D": true, "boundary": "box", "boundarySize": 1000000, "restitution": 0.9, "integrator": "euler" },
   "forces": [
     {
       "name": "Nuclear (v1 force map 2)",
@@ -37,7 +37,7 @@
       "name": "Drag (v1)",
       "mode": "force",
       "range": "long",
-      "expression": "-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i",
+      "expression": "-c * q2_j * length(v_i) * v_i",
       "params": [{ "name": "c", "value": 1e-5 }]
     },
     {

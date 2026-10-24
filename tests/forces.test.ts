@@ -27,7 +27,7 @@ describe('compileForce', () => {
 
   it('exposes color, spin, parity and clocks', () => {
     const force = compileForce(makeForce({ expression: 'c_dot + s_i * s_j + p_i * p_j + t_i + t_j + time', params: [] }));
-    expect(force.evaluate(forceScope(force, pair))).toBe(0.5 - 0.25 - 1 + 4 + 5 + 9);
+    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(0 - 0.25 - 1 + 4 + 5 + 9, 12);
   });
 
   it.each([

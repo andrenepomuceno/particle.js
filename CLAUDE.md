@@ -10,7 +10,8 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
 
 - Física **clássica**: nada de relatividade. `maxSpeed` é só um clamp numérico opcional.
 - Partícula: posição, velocidade, tempo próprio (relógio/idade, acumula `dt`), massa (> 0),
-  carga, spin (escalar), paridade, carga de cor (vetor ℝ³), tipo (`dynamic` | `fixed`).
+  carga, spin (escalar), paridade, carga de cor (quantidades r,g,b sobre 3 vetores-base a 120°;
+  `c_dot` = C_i·C_j, ver `docs/forces.md`), tipo (`dynamic` | `fixed`).
 - Força de par: magnitude escalar `F(r)`, **positiva = repulsiva**, aplicada ao longo de
   `(x_i - x_j)/|x_i - x_j|`. No modo `potential` o usuário escreve `V(r)` e o motor usa
   `F = -dV/dr` (derivada simbólica).

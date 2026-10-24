@@ -38,8 +38,9 @@ Variables:
 | `q_i`, `q_j` | electric charge |
 | `s_i`, `s_j` | spin (scalar) |
 | `p_i`, `p_j` | parity |
-| `cr_*`, `cg_*`, `cb_*` | color charge components |
-| `c_dot` | `c_i · c_j` |
+| `cr_*`, `cg_*`, `cb_*` | color charge amounts (r, g, b) as stored |
+| `cx_*`, `cy_*` | color vector in the 120° weight plane |
+| `c_dot` | color factor `C_i · C_j` (see below) |
 | `t_i`, `t_j` | particle clocks |
 | `time` | global simulation time |
 
@@ -61,15 +62,37 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 | Lennard-Jones | potential | short | `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)` |
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |
 | Spring | potential | short | `0.5 * k * (r - r0)^2` |
-| Cornell (color) | potential | short | `alpha * c_dot / r + sigma * r` |
+| Cornell (color) | potential | short | `c_dot * (alpha / r - sigma * r)` |
 | Spin-spin | force | short | `k * s_i * s_j * p_i * p_j / r^4` |
 
 All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 
+## Color charge
+
+A particle stores color amounts (r, g, b); anticolors are negative (anti-red = (−1, 0, 0)).
+The physical color vector is `C = r·e_r + g·e_g + b·e_b`, where `e_r`, `e_g`, `e_b` are unit
+vectors 120° apart in a 2D plane (the weight diagram of SU(3)). Hence white (1, 1, 1),
+baryons (r + g + b) and mesons (color + its anticolor) all have `C = 0`, and
+
+| Pair | `c_dot` |
+| --- | --- |
+| same color | +1 |
+| different colors | −½ |
+| color and its anticolor | −1 |
+| color and another anticolor | +½ |
+
+These ratios match the diagonal (Cartan) part of SU(3) one-gluon exchange (+1/3 : −2/3 for
+quark–quark). Not modeled: off-diagonal gluons, i.e. color charges never swap. The Cornell
+preset multiplies the whole potential by `c_dot` (Casimir scaling), so a color–anticolor pair
+feels `−α/r + σr` while equal colors repel. In color mode, anticolors are drawn as the
+complementary color (anti-red is cyan). Code: `src/engine/colorCharge.ts`.
+
 ## GPU notes
 
 - Integer powers up to 8 (`r^-2`, `q^3`) are unrolled into multiplications because GLSL
-  `pow()` is undefined for negative bases. Other exponents use `pow()` and, like
-  `Math.pow`, give NaN for a negative base.
+  `pow()` is undefined for negative bases. Exponents that are parameters or expressions
+  (e.g. the `n - 1` from differentiating `(r - r0)^n`) go through `spow()`, which matches
+  `Math.pow` for negative bases with integer exponents. A negative base with a
+  non-integer exponent gives NaN on both CPU and GPU.
 - The pair loop is O(N²) for all forces today; short-range forces only skip the
   evaluation, not the visit. See `tasks/inbox/short-range-neighbor-grid.md`.

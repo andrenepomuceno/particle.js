@@ -18,7 +18,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
 - **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr` by
   symbolic differentiation.
 - **Rich particles**: position, velocity, own clock, mass, electric charge, spin, parity
-  and a three-component color charge, all usable in expressions.
+  and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Live plot** of each force as the integrator applies it (softening and cutoff included).
 - **v1-style interaction**: keyboard shortcuts, draggable dialogs, click to inspect and
   edit a particle, shift+drag to select, copy and place groups, particle generator.
@@ -59,7 +59,7 @@ you can also load your own with <kbd>I</kbd>.
 | Neutral plasma | Coulomb + weak gravity | ± charges in a reflecting sphere |
 | Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
-| Color confinement | Cornell potential on color charge | color-neutral groups forming |
+| Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
 | Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
 
 ## Development

@@ -4,7 +4,7 @@
   "id": "quarks",
   "name": "Color confinement",
   "folder": "Color charge",
-  "description": "Red, green and blue charges and anticharges under a Cornell potential; unlike colors bind into neutral groups.",
+  "description": "Quarks and antiquarks with 120° color charge under a Casimir-scaled Cornell potential: they pair into color-neutral mesons and baryons.",
   "seed": 5,
   "view": { "cameraDistance": 900, "particleRadius": 3, "colorMode": "color" },
   "settings": { "timeStep": 0.1, "mode2D": true, "friction": 0.02, "boundary": "box", "boundarySize": 400 },

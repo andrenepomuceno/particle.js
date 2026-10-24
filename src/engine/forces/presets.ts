@@ -60,7 +60,7 @@ export const FORCE_PRESETS = {
   color: {
     name: 'Color (Cornell)',
     mode: 'potential',
-    expression: 'alpha * c_dot / r + sigma * r',
+    expression: 'c_dot * (alpha / r - sigma * r)',
     range: 'short',
     cutoff: 40,
     softening: 1,

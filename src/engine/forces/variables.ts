@@ -25,7 +25,9 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   ...perParticle('cr', 'red color charge', (k) => `color${k}.x`),
   ...perParticle('cg', 'green color charge', (k) => `color${k}.y`),
   ...perParticle('cb', 'blue color charge', (k) => `color${k}.z`),
-  { name: 'c_dot', description: 'dot product of the color charges', glsl: 'dot(color1.xyz, color2.xyz)' },
+  ...perParticle('cx', 'color vector, x in the 120° weight plane', (k) => `colorPlane(color${k}).x`),
+  ...perParticle('cy', 'color vector, y in the 120° weight plane', (k) => `colorPlane(color${k}).y`),
+  { name: 'c_dot', description: 'color factor C_i·C_j: same +1, different −½, anticolor −1', glsl: 'colorDot(color1, color2)' },
   ...perParticle('t', 'particle clock (age)', (k) => `tau${k}`),
   { name: 'time', description: 'global simulation time', glsl: 'uTime' },
 ];

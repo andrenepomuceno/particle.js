@@ -28,13 +28,21 @@ vec3 signed(float value) {
   return vec3(0.75);
 }
 
+// Anticolor shows as the complementary color: anti-red (-1, 0, 0) is cyan.
+vec3 displayColor(vec3 c) {
+  vec3 anti = max(-c, 0.0);
+  vec3 rgb = max(c, 0.0) + vec3(anti.x + anti.y + anti.z) - anti;
+  float peak = max(max(rgb.r, rgb.g), rgb.b);
+  return peak > 0.0 ? 0.15 + 0.85 * rgb / peak : vec3(0.75);
+}
+
 void main() {
   int index = int(aIndex);
   ivec2 coord = ivec2(index % uWidth, index / uWidth);
   vec4 pos = texelFetch(uPosition, coord, 0);
   vec4 attr = texelFetch(uAttributes, coord, 0);
   if (uColorMode == 0) vColor = signed(attr.y);
-  else if (uColorMode == 1) vColor = clamp(abs(texelFetch(uColor, coord, 0).rgb), 0.0, 1.0) * 0.85 + 0.15;
+  else if (uColorMode == 1) vColor = displayColor(texelFetch(uColor, coord, 0).rgb);
   else if (uColorMode == 2) {
     float t = clamp(length(texelFetch(uVelocity, coord, 0).xyz) * uSpeedScale, 0.0, 1.0);
     vColor = mix(vec3(0.15, 0.3, 1.0), vec3(1.0, 0.85, 0.2), t);

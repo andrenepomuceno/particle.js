@@ -11,3 +11,11 @@ vectors (r, g, b) 120° apart.
 - Expose the plane components `cx_*`, `cy_*` too.
 - Cornell preset with Casimir scaling: `V = c_dot · (alpha / r − sigma · r)`.
 - Display: anticolor shown as the complementary color (anti-red → cyan).
+
+## Result
+
+Done. `src/engine/colorCharge.ts` holds the 120° basis, `colorPlane`/`colorDot` (JS) and the
+matching GLSL helpers; `c_dot` now means `C_i·C_j` and `cx_*`/`cy_*` expose the plane vector.
+Cornell preset: `c_dot * (alpha / r - sigma * r)`. Color display shows anticolors as complements.
+Verified: 7 unit tests on the color factors and the preset; quarks scenario in headless
+Chromium at t≈198 shows color/anticolor pairs and triplets instead of large blobs.

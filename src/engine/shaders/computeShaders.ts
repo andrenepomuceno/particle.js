@@ -1,3 +1,4 @@
+import { GLSL_COLOR_HELPERS } from '../colorCharge';
 import { GLSL_POWER_HELPERS } from '../expr/glsl';
 import { collectVariables } from '../expr/ast';
 import { forceToGlsl, forceUniformName, type CompiledForce } from '../forces/compile';
@@ -43,6 +44,7 @@ export function generateVelocityShader(forces: readonly CompiledForce[]): string
   const fetchTau2 = needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0';
   return `${COMMON_UNIFORMS}
 ${GLSL_POWER_HELPERS}
+${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
 void main() {

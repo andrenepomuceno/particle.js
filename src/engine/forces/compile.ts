@@ -1,6 +1,8 @@
 import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, neg, variable, type Expr } from '../expr/ast';
 import { derivative } from '../expr/derivative';
+import { colorDot, colorPlane } from '../colorCharge';
 import { compileJs, type CompiledFn } from '../expr/evaluate';
+import type { Vec3 } from '../particles';
 import { toGlsl } from '../expr/glsl';
 import { ExprError, parseExpr } from '../expr/parser';
 import { simplify } from '../expr/simplify';
@@ -140,9 +142,14 @@ export interface PairScope {
 }
 
 export function forceScope(force: CompiledForce, pair: PairScope): Record<string, number> {
+  const colorI: Vec3 = [pair.cr_i, pair.cg_i, pair.cb_i];
+  const colorJ: Vec3 = [pair.cr_j, pair.cg_j, pair.cb_j];
+  const [cx_i, cy_i] = colorPlane(colorI);
+  const [cx_j, cy_j] = colorPlane(colorJ);
   const scope: Record<string, number> = {
     ...pair,
-    c_dot: pair.cr_i * pair.cr_j + pair.cg_i * pair.cg_j + pair.cb_i * pair.cb_j,
+    cx_i, cy_i, cx_j, cy_j,
+    c_dot: colorDot(colorI, colorJ),
     cutoff: force.definition.cutoff,
   };
   for (const param of force.definition.params) scope[param.name] = param.value;

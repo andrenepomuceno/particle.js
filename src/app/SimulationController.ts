@@ -17,6 +17,7 @@ import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/re
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
+import { applyEvent, formatCaption, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import type { Scenario } from '../scenarios/types';
@@ -131,6 +132,10 @@ export interface AppState {
   fps: number;
   recording: boolean;
   notices: Notice[];
+  /** Overlay text set by the scenario timeline. */
+  caption: string | undefined;
+  /** Events of the scenario timeline already fired, of `total`; `nextAt` is the next event's time. */
+  timeline: { fired: number; total: number; nextAt: number | undefined };
 }
 
 export const FPS_LIMITS = [30, 60, 0] as const;
@@ -182,6 +187,8 @@ export class SimulationController {
   private onRecording: ((video: Blob) => void) | undefined;
   private statsActive = false;
   private frameMsSinceSample = 0;
+  private timelineEvents: readonly TimelineEvent[] = [];
+  private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
   private restart: () => void = () => {
     throw new Error('no scenario loaded yet');
   };
@@ -202,6 +209,7 @@ export class SimulationController {
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
+      caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
     });
   }
 
@@ -270,6 +278,8 @@ export class SimulationController {
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
+    this.timelineEvents = scenario.timeline;
+    this.runTimeline();
     this.restart = () => this.startScenario(scenario, scenarioId);
   }
 
@@ -358,7 +368,12 @@ export class SimulationController {
     this.set.clear();
     this.set.addAll(particles);
     this.cpuStale = false;
-    this.store.set({ name, time, inspected: undefined, selection: [], followInspected: false, physicsHistory: [] });
+    this.timelineEvents = [];
+    this.cameraMove = undefined;
+    this.store.set({
+      name, time, inspected: undefined, selection: [], followInspected: false, physicsHistory: [],
+      caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
+    });
     this.uploadParticles();
     // Probes may belong to a replaced GpuCompute and the plane depends on mode2D: re-fit now
     // that settings, forces and particles are in place.
@@ -439,6 +454,11 @@ export class SimulationController {
     for (let k = 0; k < steps; k++) {
       this.gpu.step(time);
       time += this.state.settings.timeStep;
+      const { nextAt } = this.state.timeline;
+      if (nextAt !== undefined && time >= nextAt) {
+        this.store.set({ time });
+        this.runTimeline();
+      }
     }
     this.cpuStale = true;
     this.store.set({ time });
@@ -446,6 +466,58 @@ export class SimulationController {
 
   requestStep(): void {
     this.stepRequested = true;
+  }
+
+  /* Scenario timeline (v1's scripted actions) */
+
+  /** Fires every pending event whose time has come, in order; a reset rewinds by reloading the scenario. */
+  private runTimeline(): void {
+    const events = this.timelineEvents;
+    let { fired } = this.state.timeline;
+    if (fired === events.length && this.state.timeline.total === events.length) return;
+    while (fired < events.length && events[fired]!.at <= this.state.time) this.fireEvent(events[fired++]!);
+    this.store.set({ timeline: { fired, total: events.length, nextAt: events[fired]?.at } });
+  }
+
+  private fireEvent(event: TimelineEvent): void {
+    if (event.changes.length > 0) {
+      const { forces, settings, missing } = applyEvent(event, this.state.forces, this.state.settings);
+      if (missing.length > 0) this.notify(`Timeline at t = ${event.at}: ${missing.join(', ')} no longer exist (renamed or removed); skipped`, 'error');
+      try {
+        this.setSettings(settings);
+        this.setForces(forces);
+      } catch (error) {
+        this.notify(`Timeline at t = ${event.at} failed: ${(error as Error).message}`, 'error');
+      }
+    }
+    if (event.caption !== undefined) {
+      this.store.set({ caption: event.caption === '' ? undefined : formatCaption(event.caption, this.state.forces, this.state.settings) });
+    }
+    if (event.camera) {
+      const { position, target, duration } = event.camera;
+      this.cameraMove = {
+        from: [this.camera.position.clone(), this.controls.target.clone()],
+        to: [new Vector3(...position), new Vector3(...target)],
+        start: performance.now(),
+        duration: duration * 1000,
+      };
+      this.updateCameraMove(performance.now());
+    }
+  }
+
+  /** v1's cameraTransition: eases the camera and orbit target over wall-clock time. */
+  private updateCameraMove(now: number): void {
+    const move = this.cameraMove;
+    if (!move) return;
+    const t = move.duration > 0 ? Math.min(1, (now - move.start) / move.duration) : 1;
+    const s = t * t * (3 - 2 * t);
+    this.camera.position.lerpVectors(move.from[0], move.to[0], s);
+    this.controls.target.lerpVectors(move.from[1], move.to[1], s);
+    this.controls.update();
+    if (t === 1) {
+      this.cameraMove = undefined;
+      this.autoFitField();
+    }
   }
 
   /* View */
@@ -918,7 +990,9 @@ export class SimulationController {
       this.gpu.step(this.state.time);
       this.cpuStale = true;
       this.store.set({ time: this.state.time + settings.timeStep });
+      this.runTimeline();
     }
+    this.updateCameraMove(now);
     if (followInspected && inspected) {
       this.centerOn(this.gpu.readPosition(inspected.index));
       if (now - this.fieldFollowFitAt >= FIELD_FOLLOW_REFIT_MS) {

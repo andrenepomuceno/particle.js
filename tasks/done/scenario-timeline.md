@@ -14,3 +14,14 @@ v2 design (declarative, validated like the rest of the format):
 - Controller applies events when simulation time passes `at` (in order; reset rewinds); captions
   shown as an overlay; camera transitions interpolate over `duration` of wall time.
 - Then port the scripted v1 scenarios (Welcome, The Egg, Gravity, Planetoid Formation, ...).
+
+## Result
+
+Done: `timeline` in the scenario format (src/scenarios/timeline.ts: parse/validate against the
+scenario's forces, pure `applyEvent`, captions with `{path}` values, camera moves eased over wall
+time), fired by the controller per step (also inside `advance`), rewound by reset, cleared by
+snapshots. Caption overlay and a Script row in Information. Unit tests (tests/timeline.test.ts) and
+a smoke check (fire, values, caption, reset). The Egg carries v1's script; checked on the GPU to
+t = 7000: collapse at the G jump, rebound, recondensation into a crystalline egg.
+Remaining scripted ports: Planetoid Formation (v1 record.js), Experiments 4 (not yet ported) —
+tracked in `v1-favorite-scenarios.md`.

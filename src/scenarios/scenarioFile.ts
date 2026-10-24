@@ -3,6 +3,7 @@ import { migrateScalarSpin } from '../engine/forces/migrate';
 import { readForce } from '../engine/forces/readForce';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../engine/species';
 import { add, cross } from '../engine/vec3';
+import { readTimeline } from './timeline';
 import { scaleGroups } from './scaling';
 import type { ForceDefinition } from '../engine/forces/types';
 import { JsonReader } from '../engine/json';
@@ -59,7 +60,7 @@ export interface ParticleGroup {
 }
 
 const ORIGIN: Vec3 = [0, 0, 0];
-const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups'] as const;
+const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups', 'timeline'] as const;
 const GROUP_KEYS = ['count', 'scale', 'cluster', 'kind', 'shape', 'velocity', 'species', 'mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
@@ -369,6 +370,7 @@ export function readScenario(value: unknown, source: string): Scenario {
   const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
   const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
   const groups = (o.groups === undefined ? [] : json.array(o.groups, 'groups')).map((g, k) => json.group(g, `groups[${k}]`));
+  const timeline = o.timeline === undefined ? [] : readTimeline(json, o.timeline, forces);
   const seed = o.seed === undefined ? 1 : json.finite(o.seed, 'seed');
   if (!Number.isInteger(seed) || seed < 0) json.fail('seed', `must be an integer >= 0, got ${seed}`);
 
@@ -388,5 +390,6 @@ export function readScenario(value: unknown, source: string): Scenario {
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),
     colorMode: view.colorMode === undefined ? 'charge' : json.oneOf(view.colorMode, COLOR_MODES, 'view.colorMode'),
+    timeline,
   };
 }

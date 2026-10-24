@@ -1,13 +1,13 @@
 {
   "format": "particle.js-v2/scenario",
-  "version": 1,
+  "version": 2,
   "id": "the-egg",
   "name": "The Egg",
   "folder": "Force Map",
-  "description": "v1's quark soup: 10000 colored quarks (uud + udd) and electrons in a 2e5 disk under v1's force map 2, color force and 1/d Coulomb, plus 1/d gravity at v1's starting G ≈ 9e-38. Initial state of v1's script, which raises G by 1e41 at t = 106 and lowers it tenfold at t = 265, 424, 6360 and 6466, collapsing the soup into an egg. v1's random force noise and its rising quadratic drag are replaced by a constant linear drag.",
+  "description": "v1's quark soup: 9996 colored quarks (uud + udd) and electrons in a 2e5 disk under v1's force map 2, color force and 1/d Coulomb, plus 1/d gravity. Scripted like v1 (times are v1's seconds × 53): G jumps by 1e41 at t = 106 and the soup collapses into an egg; G then drops tenfold at t = 265, 424, 6360 and 6466 while the drag rises tenfold at t = 265, 318, 371 and 424. v1's quadratic, mass-scaled drag is approximated by a linear one of matching size; its random force noise is not reproduced.",
   "seed": 1,
   "view": { "cameraDistance": 900000, "particleRadius": 800, "colorMode": "charge" },
-  "settings": { "timeStep": 1, "mode2D": true, "friction": 0.005 },
+  "settings": { "timeStep": 1, "mode2D": true, "friction": 5e-7 },
   "forces": [
     {
       "name": "Nuclear (v1 force map 2)",
@@ -51,5 +51,15 @@
       "nuclearCharge": { "cycle": [10, 10, 10, 10, 10, 10, -1.6667] },
       "color": { "cycle": [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0]] }
     }
+  ],
+  "timeline": [
+    {"at": 0, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 106, "set": {"Gravity (v1 1/d).G": {"multiply": 1e+41}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 265, "set": {"Gravity (v1 1/d).G": {"multiply": 0.1}, "settings.friction": {"multiply": 10}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 318, "set": {"settings.friction": {"multiply": 10}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 371, "set": {"settings.friction": {"multiply": 10}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 424, "set": {"Gravity (v1 1/d).G": {"multiply": 0.1}, "settings.friction": {"multiply": 10}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 6360, "set": {"Gravity (v1 1/d).G": {"multiply": 0.1}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"},
+    {"at": 6466, "set": {"Gravity (v1 1/d).G": {"multiply": 0.1}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}"}
   ]
 }

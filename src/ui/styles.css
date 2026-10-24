@@ -199,6 +199,22 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
 .stats dt { color: var(--ink-3); }
 .stats dd { margin: 0; font-family: var(--mono); text-align: right; }
 
+.caption {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 6px 12px;
+  white-space: pre-line;
+  text-align: center;
+  color: var(--ink-1);
+  background: color-mix(in srgb, var(--surface-1) 70%, transparent);
+  border-radius: 6px;
+  pointer-events: none;
+  max-width: calc(100vw - 32px);
+}
+
 .notices {
   position: fixed;
   bottom: 12px;

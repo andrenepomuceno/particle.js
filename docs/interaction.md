@@ -52,6 +52,9 @@ localStorage) and is never restored from the saved list of open dialogs.
 Placement and generation use the plane through the orbit target facing the camera
 (z = 0 in 2D mode).
 
+**Scripted scenarios** (a `timeline`, see [scenarios](scenarios.md#timeline)) show their caption
+at the top of the view; *Information* lists the script's progress (events fired and the next one).
+
 **Forces**: each force card collapses to a one-line summary (▸/▾, or *Collapse all*), flagged
 when it has an error or warning. *Reference* opens **Expressions**, the full list of variables
 (grouped by topic), functions, operators and range/softening rules.

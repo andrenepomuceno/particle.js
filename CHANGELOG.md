@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Scenario `timeline`: v1's scripted actions as data — set or multiply force parameters and
+  settings at given simulation times, captions with live values, camera transitions. The Egg runs
+  v1's script.
+- Expressions reference dialog; collapsible force cards.
+- Browser scripts run on the real GPU (fail on a software renderer); SwiftShader only on CI.
+
 ## 2.0.0-rc.1
 
 First release candidate of particle.js v2, a from-scratch rewrite of

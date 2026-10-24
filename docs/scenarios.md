@@ -28,6 +28,7 @@ plain expressions (v1 counted positive as attraction, so they carry a leading mi
 | `settings` | no | any subset of `timeStep`, `friction`, `maxSpeed`, `boundary`, `boundarySize`, `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
 | `groups` | no | list of particle groups (below) |
+| `timeline` | no | scripted events in time order (below; v1's scenario actions) |
 
 ## Forces
 
@@ -118,3 +119,29 @@ or the particles of one atom.
 
 Fixed particles (`"kind": "fixed"`) always start with zero velocity. With `settings.mode2D`, every
 position is projected onto z = 0, so 3D shapes collapse into the plane.
+
+## Timeline
+
+v1 scripted some scenarios: at given moments a callback changed physics constants, showed a caption
+or moved the camera. The `timeline` is the declarative form of those actions. Each event fires once,
+when the simulation time first reaches `at`; pausing pauses the script and a reset (R) rewinds it.
+
+```json
+"timeline": [
+  { "at": 0, "caption": "Gravity: {Gravity.G}" },
+  { "at": 106, "set": { "Gravity.G": { "multiply": 1e41 }, "settings.friction": 0.005 },
+    "caption": "Gravity: {Gravity.G}\nFriction: {settings.friction}" },
+  { "at": 500, "camera": { "position": [0, 0, 2e5], "target": [0, 0, 0], "duration": 5 } }
+]
+```
+
+| Key | Meaning |
+| --- | --- |
+| `at` | simulation time, ≥ 0; events must be in non-decreasing order |
+| `set` | `"<force name>.<param>"` or `"settings.<key>"` → a number (replace) or `{ "multiply": f }` (scale the value current at that moment). Settings: `timeStep`, `friction`, `maxSpeed`, `boundarySize`, `restitution`, `collisionDistance`, `collisionRestitution` |
+| `caption` | overlay text (`\n` for new lines; `""` clears it); `{<path>}` shows that value after the event's changes |
+| `camera` | `position`, `target` (default origin) and `duration` in wall-clock seconds (0 jumps); eased like v1's camera transitions |
+
+Every path is checked against the scenario's forces when the file loads. If the user renames or
+removes a force while the script runs, its changes are skipped with an error notice and the rest of
+the event still applies. Snapshots store the world, not the script.

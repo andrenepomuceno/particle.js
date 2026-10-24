@@ -1,3 +1,4 @@
+import type { TimelineEvent } from './timeline';
 import type { ForceDefinition } from '../engine/forces/types';
 import type { Particle } from '../engine/particles';
 import type { Rng } from '../engine/random';
@@ -19,4 +20,6 @@ export interface Scenario {
   cameraDistance: number;
   particleRadius: number;
   colorMode: ColorMode;
+  /** Scripted events in time order (v1's actions); empty for unscripted scenarios. */
+  timeline: TimelineEvent[];
 }

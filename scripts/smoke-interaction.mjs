@@ -168,6 +168,31 @@ await withBrowser(async ({ browser, base }) => {
   field = await fieldState();
   check('J hides the field', !field.enabled && field.info === undefined, field);
 
+  // Timeline: a scripted scenario fires its events as time passes and a reset rewinds them.
+  const script = await page.evaluate(() => {
+    const c = globalThis.particleController;
+    c.importFile(JSON.stringify({
+      format: 'particle.js-v2/scenario', version: 2, id: 'script', name: 'Script',
+      forces: [{ name: 'Gravity', mode: 'potential', range: 'long', softening: 1, expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 2 }] }],
+      groups: [{ count: 8, shape: { type: 'disk', radius: 10 } }],
+      timeline: [
+        { at: 0, caption: 'G = {Gravity.G}' },
+        { at: 5, set: { 'Gravity.G': { multiply: 10 }, 'settings.friction': 0.5 }, caption: 'G = {Gravity.G}, friction {settings.friction}' },
+      ],
+    }), 'script.json');
+    c.store.set({ paused: true });
+    const before = { caption: c.state.caption, ...c.state.timeline };
+    c.advance(6);
+    const after = { caption: c.state.caption, ...c.state.timeline, G: c.state.forces[0].params[0].value, friction: c.state.settings.friction };
+    c.reset();
+    return { before, after, reset: { caption: c.state.caption, ...c.state.timeline, G: c.state.forces[0].params[0].value } };
+  });
+  const shown = await page.locator('.caption').textContent();
+  check('Timeline fires events in time and resets rewind them',
+    script.before.caption === 'G = 2' && script.before.fired === 1
+    && script.after.caption === 'G = 20, friction 0.5' && script.after.fired === 2 && script.after.G === 20 && script.after.friction === 0.5
+    && script.reset.fired === 1 && script.reset.G === 2 && shown === 'G = 2', { ...script, shown });
+
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   await mkdir(path.dirname(out), { recursive: true });

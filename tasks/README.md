@@ -16,7 +16,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 10. Release 2.0 blockers: ~~`particle-budget.md`~~ (done), ~~`field-visualization.md`~~ (done),
     ~~`v1-branding-and-about.md`~~ (done), ~~`v1-scenarios-port.md`~~ (13 ported; scripted parts pending the timeline), analytics (decided: keep, with notice; done)
 11. Vector spin (in progress), ~~collisions~~ (done), then
-    `scenario-timeline.md` (user request: v1 scripted animations)
+    ~~`scenario-timeline.md`~~ (done)
 12. `scenario-quality-kpis.md` (user request: cheap automated scenario KPIs), then
     `v1-favorite-scenarios.md` (the v1 scenarios the user likes; checked with the KPIs)
 13. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`

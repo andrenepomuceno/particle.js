@@ -62,6 +62,11 @@ function RecordingBadge() {
   return recording ? <div className="recording mono" role="status">● REC</div> : null;
 }
 
+function Caption() {
+  const caption = useAppState((s) => s.caption);
+  return caption ? <div className="caption mono" role="status">{caption}</div> : null;
+}
+
 function Notices() {
   const notices = useAppState((s) => s.notices);
   return (
@@ -151,6 +156,7 @@ function Shell({ controller }: { controller: SimulationController }) {
       <div className="viewport" ref={viewport} />
       {selectionBox && <div className="selection-box" style={selectionBox.style}><span className="ruler mono">{selectionBox.label}</span></div>}
       <RecordingBadge />
+      <Caption />
       <nav className="menu" aria-label="Dialogs">
         {DIALOGS.map((d) => (
           <button key={d.id} aria-pressed={open.includes(d.id)} onClick={() => ctx.toggleDialog(d.id)}>{d.title}</button>

@@ -35,6 +35,7 @@ export function InfoView() {
   const capacity = useAppState((s) => s.capacity);
   const time = useAppState((s) => Math.round(s.time * 100) / 100);
   const fps = useAppState((s) => Math.round(s.fps));
+  const timeline = useAppState((s) => s.timeline);
   const averageSpeed = useAppState((s) => s.averageSpeed);
   const paused = useAppState((s) => s.paused);
   const forces = useAppState((s) => s.forces.filter((f) => f.enabled).length);
@@ -80,6 +81,9 @@ export function InfoView() {
         <dt>Time</dt><dd>{time}</dd>
         <dt>Mean speed</dt><dd>{format(averageSpeed)}</dd>
         <dt>FPS</dt><dd>{fps}</dd>
+        {timeline.total > 0 && (
+          <><dt>Script</dt><dd>{timeline.fired} / {timeline.total} events{timeline.nextAt !== undefined ? ` · next at t = ${timeline.nextAt}` : ''}</dd></>
+        )}
       </dl>
       <p className="muted" style={{ margin: 0 }}>v{__APP_VERSION__} · press <kbd>?</kbd> for shortcuts</p>
     </div>

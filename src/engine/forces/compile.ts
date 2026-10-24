@@ -19,7 +19,9 @@ const FLOAT32_MIN = 1.1754944e-38;
 const FLOAT32_MAX = 3.4028235e38;
 /** Components of Δx = x_i − x_j: in a potential they make the force the vector −∇V. */
 export const RELATIVE_POSITION = ['dx', 'dy', 'dz'] as const;
-const VECTOR_TRIGGERS = new Set<string>([...RELATIVE_POSITION, 'si_r', 'sj_r']);
+/** Directional variables make a potential a vector potential (F = −∇V). */
+const VECTOR_TRIGGERS = new Set(PAIR_VARIABLES.filter((v) => v.directional).map((v) => v.name));
+const RELATIVE = new Set<string>(RELATIVE_POSITION);
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
@@ -104,7 +106,7 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   }
   if (parsed) problems.push(...unknownVariables(def, parsed));
   if (parsed && def.mode === 'force') {
-    const relative = [...collectVariables(parsed)].filter((name) => (RELATIVE_POSITION as readonly string[]).includes(name));
+    const relative = [...collectVariables(parsed)].filter((name) => RELATIVE.has(name));
     if (relative.length > 0) {
       problems.push(`${relative.join(', ')} are only available in potential mode, where the force is the gradient −∇V`);
     }
@@ -135,7 +137,8 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     glsl: (name, args, index, which = 'magnitude') => {
       if (which === 'potential' && potential === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
       const components = which === 'potential' ? [potential!] : built.force;
-      return glslFunction(program, components, built.variables, name, args, index, def, built.parameters);
+      const names = which === 'potential' ? compiled.potentialReads : compiled.reads;
+      return glslFunction(program, components, built.variables, name, args, index, def, [...names]);
     },
   };
   // Emit once now so code-generation failures surface as validation problems, not at shader build.
@@ -192,7 +195,7 @@ function buildCentral(def: ForceDefinition, inR: Expr, names: string[]): Built {
 function buildVector(def: ForceDefinition, inR: Expr, names: string[]): Built {
   const length = 'sqrt(dx*dx + dy*dy + dz*dz)';
   const derived: Record<string, string> = { r: `sqrt(dx*dx + dy*dy + dz*dz + soft2)` };
-  const needed = new Set(names.filter((name) => !(RELATIVE_POSITION as readonly string[]).includes(name) && name !== 'si_r' && name !== 'sj_r'));
+  const needed = new Set(names.filter((name) => !VECTOR_TRIGGERS.has(name)));
   for (const side of ['i', 'j'] as const) {
     if (!names.includes(`s${side}_r`)) continue;
     derived[`s${side}_r`] = `(sx_${side}*dx + sy_${side}*dy + sz_${side}*dz) / ${length}`;
@@ -326,16 +329,13 @@ export interface PairScope {
   time: number;
 }
 
-/**
- * Every name a compiled force may read for one pair. `dist` is the true (unsoftened) distance the
- * relative position dx, dy, dz of vector potentials is built from; it defaults to `pair.r`.
- */
-export function forceScope(force: CompiledForce, pair: PairScope, dist = pair.r): Record<string, number> {
+/** The pair's own variables (no r and nothing force-specific): built once per pair, shared by its forces. */
+export function pairVariables(pair: Omit<PairScope, 'r'>): Record<string, number> {
   const colorI: Vec3 = [pair.cr_i, pair.cg_i, pair.cb_i];
   const colorJ: Vec3 = [pair.cr_j, pair.cg_j, pair.cb_j];
   const [cx_i, cy_i] = colorPlane(colorI);
   const [cx_j, cy_j] = colorPlane(colorJ);
-  const scope: Record<string, number> = {
+  return {
     ...pair,
     cx_i, cy_i, cx_j, cy_j,
     c_dot: colorDot(colorI, colorJ),
@@ -343,10 +343,32 @@ export function forceScope(force: CompiledForce, pair: PairScope, dist = pair.r)
     s_dot: pair.sx_i * pair.sx_j + pair.sy_i * pair.sy_j + pair.sz_i * pair.sz_j,
     si_r: pair.sx_i * pair.ux + pair.sy_i * pair.uy + pair.sz_i * pair.uz,
     sj_r: pair.sx_j * pair.ux + pair.sy_j * pair.uy + pair.sz_j * pair.uz,
-    cutoff: force.definition.cutoff,
-    soft2: force.definition.softening ** 2,
-    dx: pair.ux * dist, dy: pair.uy * dist, dz: pair.uz * dist,
   };
-  for (const param of force.definition.params) scope[param.name] = param.value;
+}
+
+/**
+ * Writes one force's names into a pair's `scope`, in place: r softened from the true distance
+ * `dist`, the relative position dx, dy, dz (built from `dist`, never the softened r), cutoff,
+ * soft2 and the parameters. Names of a previous force may linger; a compiled force reads only its own.
+ */
+export function setForceVariables(scope: Record<string, number>, force: CompiledForce, dist: number): Record<string, number> {
+  const { softening, cutoff, params } = force.definition;
+  scope.r = Math.sqrt(dist * dist + softening * softening);
+  scope.cutoff = cutoff;
+  scope.soft2 = softening * softening;
+  scope.dx = scope.ux! * dist;
+  scope.dy = scope.uy! * dist;
+  scope.dz = scope.uz! * dist;
+  for (const param of params) scope[param.name] = param.value;
   return scope;
+}
+
+/** Every name `force` may read for one pair at true distance `dist`. */
+export function forceScope(force: CompiledForce, pair: Omit<PairScope, 'r'>, dist: number): Record<string, number> {
+  return setForceVariables(pairVariables(pair), force, dist);
+}
+
+/** The hard cutoff, shared by the CPU references and the plot (the shaders test the same). */
+export function acts(force: CompiledForce, dist: number): boolean {
+  return force.definition.range !== 'short' || dist < force.definition.cutoff;
 }

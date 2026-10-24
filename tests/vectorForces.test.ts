@@ -39,7 +39,7 @@ describe('vector forces from V(Δx)', () => {
     const set = setOf(A, B);
     const pair = pairScope(set, 0, 1, 0);
     const dist = Math.hypot(...[0, 1, 2].map((k) => A.position[k]! - B.position[k]!));
-    const scope = forceScope(DIPOLE, { ...pair, r: Math.sqrt(dist ** 2 + 0.04) }, dist);
+    const scope = forceScope(DIPOLE, pair, dist);
     const force = DIPOLE.evaluateVector!(scope);
     const h = 1e-6;
     (['dx', 'dy', 'dz'] as const).forEach((axis, k) => {
@@ -64,7 +64,7 @@ describe('vector forces from V(Δx)', () => {
       addPairForce([central], pair, dist, c);
       addPairForce([vector], pair, dist, v);
       v.forEach((value, k) => expect(value).toBeCloseTo(c[k]!, 10));
-      expect(vector.evaluate(forceScope(vector, { ...pair, r: dist }, dist))).toBeCloseTo(c[0]! / pair.ux, 10);
+      expect(vector.evaluate(forceScope(vector, pair, dist))).toBeCloseTo(c[0]! / pair.ux, 10);
     }
   });
 

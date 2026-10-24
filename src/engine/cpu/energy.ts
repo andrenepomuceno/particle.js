@@ -1,6 +1,6 @@
 import type { CompiledForce } from '../forces/compile';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
-import { pairScope, pairTerm } from './pairs';
+import { pairPotential, pairScope } from './pairs';
 
 export interface EnergySample {
   kinetic: number;
@@ -59,7 +59,7 @@ export function referencePotentials(set: ParticleSet, forces: readonly CompiledF
       const r2 = [0, 1, 2].reduce((acc, k) => acc + (pos[i * TEXEL + k]! - pos[j * TEXEL + k]!) ** 2, 0);
       if (r2 === 0) continue;
       const pair = pairScope(set, i, j, time);
-      for (const f of forces) if (f.evaluatePotential) sum += pairTerm(f, f.evaluatePotential, pair, Math.sqrt(r2));
+      sum += pairPotential(forces, pair, Math.sqrt(r2));
     }
     result[i] = sum;
   }

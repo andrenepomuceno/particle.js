@@ -177,8 +177,9 @@ vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
     vec4 spin2 = ${fetchSpin2};
-    vec3 dir = normalize(delta);
-    vec3 contact = dir * dist;
+    vec3 dir = normalize(delta);${forces.some((f) => f.vector) ? `
+    // Δx at the (possibly contact-clamped) distance: what vector potentials are evaluated at.
+    vec3 contact = dir * dist;` : ''}
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * dir;

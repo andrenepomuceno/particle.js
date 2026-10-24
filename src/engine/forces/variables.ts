@@ -3,7 +3,7 @@ export interface PairVariable {
   description: string;
   glsl: string;
   shortRangeOnly?: boolean;
-  /** Depends on the pair's direction: in potential mode it makes the force the vector −∇V. */
+  /** Depends on the pair's direction: reading one makes a potential a vector potential (F = −∇V). */
   directional?: boolean;
 }
 

@@ -15,34 +15,34 @@ const pair: PairScope = {
 describe('compileForce', () => {
   it('compiles a force expression', () => {
     const force = compileForce(makeForce());
-    expect(force.evaluate(forceScope(force, pair))).toBe(1.5);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBe(1.5);
   });
 
   it('turns a potential into F = -dV/dr', () => {
     const force = compileForce(makeForce({ mode: 'potential', expression: 'k * q_i * q_j / r' }));
-    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(1.5, 12);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBeCloseTo(1.5, 12);
   });
 
   it('expands x = r / cutoff before differentiating a short-range potential', () => {
     const force = compileForce(makeForce({ mode: 'potential', range: 'short', cutoff: 4, expression: 'k * x^2', params: [{ name: 'k', value: 1 }] }));
-    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(-2 * 2 / 16, 12);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBeCloseTo(-2 * 2 / 16, 12);
   });
 
   it('exposes nuclear charge', () => {
     const force = compileForce(makeForce({ expression: 'n_i * n_j', params: [] }));
-    expect(force.evaluate(forceScope(force, pair))).toBe(6);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBe(6);
     expect(body(force)).toContain('color1.w * color2.w');
   });
 
   it('exposes color, parity and clocks', () => {
     const force = compileForce(makeForce({ expression: 'c_dot + p_i * p_j + t_i + t_j + time', params: [] }));
-    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(0 - 1 + 4 + 5 + 9, 12);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBeCloseTo(0 - 1 + 4 + 5 + 9, 12);
   });
 
   it('exposes the spin vectors, their alignment and their projections on r̂', () => {
     const value = (expression: string) => {
       const force = compileForce(makeForce({ expression, params: [] }));
-      return force.evaluate(forceScope(force, pair));
+      return force.evaluate(forceScope(force, pair, pair.r));
     };
     expect(value('s_dot')).toBeCloseTo(1 * 0 + 0 * 2 + 0.5 * -0.5, 12);
     expect(value('si_r')).toBeCloseTo(1 * 0.6, 12);
@@ -52,7 +52,7 @@ describe('compileForce', () => {
 
   it('exposes the 2D charge and isospin', () => {
     const force = compileForce(makeForce({ expression: 'q_dot + 10 * i3_i * i3_j + 100 * q2_i', params: [] }));
-    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(1 * 3 + 2 * -1 - 2.5 + 200, 12);
+    expect(force.evaluate(forceScope(force, pair, pair.r))).toBeCloseTo(1 * 3 + 2 * -1 - 2.5 + 200, 12);
     expect(body(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })))).toMatch(/dot\(attr1\.yz, attr2\.yz\) \* spin2\.w|spin2\.w \* dot\(attr1\.yz, attr2\.yz\)/);
   });
 
@@ -122,7 +122,7 @@ describe('GLSL generation', () => {
 
   it('keeps the sign of negative constants under powers', () => {
     const force = compileForce(makeForce({ expression: '(-2)^n / r + (1 - 3)^n', params: [{ name: 'n', value: 2 }] }));
-    expect(force.evaluate(forceScope(force, { ...pair, r: 2 }))).toBe(2 + 4);
+    expect(force.evaluate(forceScope(force, pair, 2))).toBe(2 + 4);
   });
 
   it('rejects constants outside float32 at compile time', () => {
@@ -186,7 +186,7 @@ describe('potential mode through shader-autodiff', () => {
     const force = compileForce(makeForce({ mode: 'potential', expression, params: [{ name: 'k', value: 3 }, { name: 's', value: 2 }] }));
     const V = parseExpr(expression);
     for (const r of [0.7, 1.3, 2.9]) {
-      const scope = forceScope(force, { ...pair, r });
+      const scope = forceScope(force, pair, r);
       const h = 1e-6 * r;
       const numeric = -(evaluate(V, { ...scope, r: r + h }) - evaluate(V, { ...scope, r: r - h })) / (2 * h);
       expect(Math.abs(force.evaluate(scope) - numeric)).toBeLessThanOrEqual(1e-6 * Math.max(1, Math.abs(numeric)));

@@ -1,4 +1,4 @@
-import { forceScope, type CompiledForce, type PairScope } from '../forces/compile';
+import { acts, pairVariables, setForceVariables, type CompiledForce, type PairScope } from '../forces/compile';
 import type { FieldProbe } from '../field';
 import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
 
@@ -48,38 +48,33 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
 }
 
 /**
- * One force's contribution at distance `dist`, with the same cutoff and softening rules as the
- * shaders: `fn` is the compiled F(r) (radial part for vector forces) or V.
- */
-export function pairTerm(
-  force: CompiledForce, fn: (scope: Record<string, number>) => number, pair: Pair, dist: number,
-): number {
-  if (force.definition.range === 'short' && !(dist < force.definition.cutoff)) return 0;
-  return fn(scopeAt(force, pair, dist));
-}
-
-function scopeAt(force: CompiledForce, pair: Pair, dist: number): Record<string, number> {
-  return forceScope(force, { ...pair, r: Math.sqrt(dist * dist + force.definition.softening ** 2) }, dist);
-}
-
-/**
- * Σ over `forces` of the force on i at distance `dist` along the pair's unit vector (ux, uy, uz):
+ * Σ over `forces` of the force on i at true distance `dist` along the pair's unit vector (ux, uy, uz):
  * central forces as magnitude·û, vector potentials as −∇V. Added into `out`.
  */
 export function addPairForce(forces: readonly CompiledForce[], pair: Pair, dist: number, out: [number, number, number]): void {
+  const scope = pairVariables(pair);
   let magnitude = 0;
   for (const f of forces) {
-    if (f.definition.range === 'short' && !(dist < f.definition.cutoff)) continue;
+    if (!acts(f, dist)) continue;
+    setForceVariables(scope, f, dist);
     if (f.evaluateVector) {
-      const [x, y, z] = f.evaluateVector(scopeAt(f, pair, dist));
+      const [x, y, z] = f.evaluateVector(scope);
       out[0] += x;
       out[1] += y;
       out[2] += z;
     } else {
-      magnitude += f.evaluate(scopeAt(f, pair, dist));
+      magnitude += f.evaluate(scope);
     }
   }
   out[0] += magnitude * pair.ux;
   out[1] += magnitude * pair.uy;
   out[2] += magnitude * pair.uz;
+}
+
+/** Σ over the potential-mode `forces` of V for the pair at true distance `dist`. */
+export function pairPotential(forces: readonly CompiledForce[], pair: Pair, dist: number): number {
+  const scope = pairVariables(pair);
+  let sum = 0;
+  for (const f of forces) if (f.evaluatePotential && acts(f, dist)) sum += f.evaluatePotential(setForceVariables(scope, f, dist));
+  return sum;
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState, type PointerEvent } from 'react';
-import { compileForce, forceScope, type CompiledForce, type PairScope } from '../../engine/forces/compile';
+import { acts, compileForce, forceScope, type CompiledForce, type PairScope } from '../../engine/forces/compile';
 import type { ForceDefinition } from '../../engine/forces/types';
 
 const WIDTH = 400;
@@ -16,9 +16,7 @@ export const PLOT_PAIR: Omit<PairScope, 'r'> = {
 
 /** What the integrator applies at true distance d: softening, then the hard cutoff. */
 export function appliedForce(force: CompiledForce, distance: number): number {
-  const { range, cutoff, softening } = force.definition;
-  if (range === 'short' && !(distance < cutoff)) return 0;
-  return force.evaluate(forceScope(force, { ...PLOT_PAIR, r: Math.sqrt(distance ** 2 + softening ** 2) }, distance));
+  return acts(force, distance) ? force.evaluate(forceScope(force, PLOT_PAIR, distance)) : 0;
 }
 
 function formatNumber(value: number): string {
@@ -57,7 +55,7 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       .map((p, k) => `${k === 0 ? 'M' : 'L'}${x(p.d).toFixed(1)},${y(p.f).toFixed(1)}`)
       .join('');
     const nonFinite = points.some((p) => !Number.isFinite(p.f));
-    return { points, path, x, y, lo, hi, maxDistance, nonFinite, symlog };
+    return { points, path, x, y, lo, hi, maxDistance, nonFinite, symlog, vector: force.vector };
   }, [definition]);
 
   if (!plot) return null;
@@ -92,6 +90,7 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       </svg>
       <figcaption className="muted">
         F &gt; 0 repels. Sample pair: m=1, q=+1/+1, spin ½ẑ each (r̂ along x), I3=+½, p=+1/+1, color red/anti-red.
+        {plot.vector && ' Vector force: the curve is its radial part for this orientation only; it also has a transverse part and changes with the spins’ angle to r̂.'}
         {plot.nonFinite && <span style={{ color: 'var(--danger)' }}> Non-finite values in range (check softening).</span>}
       </figcaption>
     </figure>

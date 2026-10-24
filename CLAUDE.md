@@ -50,7 +50,10 @@ npm run typecheck
 npm run lint
 npm run build
 npm run check       # typecheck + lint + test (rode antes de cada commit)
+npm run smoke:all   # Chromium headless: todos os cenários + gestos de interação
 ```
+
+Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/screenshots/`.
 
 ## Fluxo de trabalho
 
@@ -63,3 +66,4 @@ npm run check       # typecheck + lint + test (rode antes de cada commit)
 - Documentação (`README.md`, `docs/`, este arquivo) muda no mesmo commit do comportamento.
 - Automação repetitiva de CLI vai para `scripts/`.
 - Fase atual: **MVP**. Testes completos/gate de cobertura/e2e estão em `tasks/inbox/`.
+- Docs: `docs/README.md` é o índice; `docs/forces.md` descreve o modelo e a linguagem de expressões.

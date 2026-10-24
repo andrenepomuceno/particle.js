@@ -76,10 +76,15 @@ export interface FieldSettings {
   autoRefresh: boolean;
   /** Logarithmic color scale, for fields whose |F| spans many orders of magnitude (e.g. near 1/r^n cores). */
   logScale: boolean;
+  /**
+   * Keep the current color reference instead of re-normalizing to the field: the default scale
+   * makes a scaled test particle (charge ×5, mass ×10) look identical, so comparisons need a lock.
+   */
+  lockScale: boolean;
   probe: FieldProbe;
 }
 
-export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, logScale: false, probe: DEFAULT_PROBE };
+export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, logScale: false, lockScale: false, probe: DEFAULT_PROBE };
 
 export interface FieldInfo {
   columns: number;
@@ -600,7 +605,7 @@ export class SimulationController {
     this.arrows.setVisible(field.enabled);
     this.arrows.setLogScale(field.logScale);
     // The color scale is a draw-time uniform: no need to recompute the O(probes·N) field.
-    const onlyColors = JSON.stringify({ ...field, logScale: previous.logScale }) === JSON.stringify(previous);
+    const onlyColors = JSON.stringify({ ...field, logScale: previous.logScale, lockScale: previous.lockScale }) === JSON.stringify(previous);
     if (onlyColors) return;
     if (!field.enabled) {
       this.store.set({ fieldInfo: undefined });
@@ -673,7 +678,8 @@ export class SimulationController {
     if (!this.fieldDirty && !due) return;
     try {
       this.gpu.computeField(time, field.probe);
-      if (this.fieldDirty || now - this.fieldReferenceAt >= FIELD_REFERENCE_INTERVAL_MS) {
+      const refresh = this.fieldDirty || now - this.fieldReferenceAt >= FIELD_REFERENCE_INTERVAL_MS;
+      if (refresh && !(field.lockScale && fieldInfo.reference > 0)) {
         const reference = fieldReference(this.gpu.readFieldMagnitudes());
         this.arrows.setReference(reference);
         this.fieldReferenceAt = now;

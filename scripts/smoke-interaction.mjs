@@ -195,6 +195,27 @@ await withBrowser(async ({ browser, base }) => {
     && script.after.caption === 'G = 20, friction 0.5' && script.after.fired === 2 && script.after.G === 20 && script.after.friction === 0.5
     && script.reset.fired === 1 && script.reset.G === 2 && shown === 'G = 2', { ...script, shown });
 
+  // Test particle: with the color scale locked, a stronger probe charge shows a stronger field.
+  const locked = await page.evaluate(async () => {
+    const c = globalThis.particleController;
+    const wait = () => new Promise((resolve) => setTimeout(resolve, 400));
+    c.importFile(JSON.stringify({
+      format: 'particle.js-v2/scenario', version: 2, id: 'probe', name: 'Probe', forces: [{ preset: 'coulomb' }],
+      groups: [{ count: 6, shape: { type: 'disk', radius: 50 }, charge: { cycle: [1, -1] } }],
+    }), 'probe.json');
+    c.store.set({ paused: true });
+    c.setField({ enabled: true, lockScale: true, probe: { ...c.state.field.probe, charge: 1 } });
+    await wait();
+    const before = { reference: c.state.fieldInfo.reference, max: Math.max(...c.gpu.readFieldMagnitudes()) };
+    c.setField({ probe: { ...c.state.field.probe, charge: 5 } });
+    await wait();
+    const after = { reference: c.state.fieldInfo.reference, max: Math.max(...c.gpu.readFieldMagnitudes()) };
+    c.setField({ enabled: false, lockScale: false, probe: { ...c.state.field.probe, charge: 1 } });
+    return { before, after };
+  });
+  check('Locked color scale keeps its reference while the test particle changes the field',
+    locked.after.reference === locked.before.reference && Math.abs(locked.after.max / locked.before.max - 5) < 1e-3, locked);
+
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   await mkdir(path.dirname(out), { recursive: true });

@@ -259,6 +259,7 @@ export function FieldView() {
         <CheckField label="Show field" checked={field.enabled} onChange={(enabled) => set({ enabled })} />
         <CheckField label="Re-fit after camera moves" checked={field.autoRefresh} onChange={(autoRefresh) => set({ autoRefresh })} />
         <CheckField label="Logarithmic colors" checked={field.logScale} onChange={(logScale) => set({ logScale })} />
+        <CheckField label="Lock color scale" checked={field.lockScale} onChange={(lockScale) => set({ lockScale })} />
         <NumberField label="Grid columns" value={field.columns} validate={validateColumns} onCommit={(columns) => set({ columns })} />
       </div>
       <h3 className="section-title">Test particle</h3>
@@ -284,7 +285,9 @@ export function FieldView() {
       </button>
       <p className="muted" style={{ margin: 0 }}>
         Arrows show the net force the test particle would feel at each probe. Color runs red to magenta
-        up to the 90th percentile of |F| over the probes, white beyond.
+        up to the 90th percentile of |F| over the probes, white beyond. That scale follows the field, so
+        scaling the test particle (charge ×5, mass ×10) looks the same: lock the color scale to compare
+        strengths. Sign changes and which charges it carries change the directions.
       </p>
     </div>
   );

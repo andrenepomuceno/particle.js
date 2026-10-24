@@ -93,7 +93,9 @@ charge 1, parity 1, the rest 0; its clock is 0). <kbd>F</kbd> re-fits the grid t
 with *Re-fit after camera moves* on (default) that happens after every orbit, pan, zoom,
 camera reset or resize. The field is recomputed at most 10 times per second while time runs.
 Probes are not particles: they never move, count, get selected or saved. *Logarithmic colors* maps |F| with log10(1 + 9·|F|/reference) instead of a square root, which keeps
-fields spanning many decades (e.g. near Lennard-Jones cores) from saturating to white.
+fields spanning many decades (e.g. near Lennard-Jones cores) from saturating to white. The color
+scale follows the field, so scaling the test particle (charge ×5, mass ×10) changes nothing on
+screen; *Lock color scale* freezes it so such changes show as brighter or dimmer arrows.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
 total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,

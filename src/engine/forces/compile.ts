@@ -64,11 +64,11 @@ export function compileForce(def: ForceDefinition): CompiledForce {
 
   const inR = substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff')));
   const magnitude = def.mode === 'potential' ? simplify(neg(derivative(inR, 'r'))) : simplify(inR);
-  const nonFinite = nonFiniteConstants(magnitude);
+  const potential = def.mode === 'potential' ? simplify(inR) : undefined;
+  const nonFinite = [...nonFiniteConstants(magnitude), ...(potential ? nonFiniteConstants(potential) : [])];
   if (nonFinite.length > 0) {
     throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
   }
-  const potential = def.mode === 'potential' ? simplify(inR) : undefined;
   return {
     definition: def, magnitude, evaluate: compileJs(magnitude),
     potential, evaluatePotential: potential && compileJs(potential),

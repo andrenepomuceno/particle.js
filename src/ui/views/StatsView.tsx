@@ -9,6 +9,7 @@ export function StatsView() {
   const physics = useAppState((s) => s.physicsHistory);
   const performance = useAppState((s) => s.performanceHistory);
   const missing = useAppState((s) => s.energyMissing);
+  const energyError = useAppState((s) => s.energyError);
   const mode2D = useAppState((s) => s.settings.mode2D);
   const time = physics.map((p) => p.time);
   const wall = performance.map((p) => p.wall - (performance[0]?.wall ?? 0));
@@ -21,6 +22,7 @@ export function StatsView() {
 
   return (
     <div className="stack">
+      {energyError && <pre className="errors">{energyError}</pre>}
       <LineChart
         title="Energy"
         x={time}
@@ -59,10 +61,10 @@ export function StatsView() {
         zeroBased
         series={[
           { label: 'FPS', color: SERIES[0], values: performance.map((p) => p.fps) },
-          { label: 'Steps/s', color: SERIES[1], values: performance.map((p) => p.stepsPerSecond) },
+          { label: 'Frame CPU ms', color: SERIES[1], values: performance.map((p) => p.frameMs) },
         ]}
         note={last
-          ? `Frame CPU time ${last.frameMs.toFixed(2)} ms (GPU work runs asynchronously and is not included); sampling readback ${last.sampleMs.toFixed(1)} ms per second.`
+          ? `One simulation step per rendered frame, so steps/s = FPS while running. Frame CPU time excludes the asynchronous GPU work; sampling readback ${last.sampleMs.toFixed(1)} ms per second.`
           : undefined}
       />
       <button className="outlined" onClick={() => controller.clearHistory()}>Clear history</button>

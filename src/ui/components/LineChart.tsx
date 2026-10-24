@@ -52,8 +52,19 @@ export function LineChart({ title, x, xLabel, series, zeroBased = false, note }:
   const x1 = x[count - 1]!;
   const px = (k: number) => PAD.left + ((x[k]! - x0) / (x1 - x0 || 1)) * (WIDTH - PAD.left - PAD.right);
   const py = (v: number) => PAD.top + ((hi - v) / (hi - lo)) * (HEIGHT - PAD.top - PAD.bottom);
-  const path = (s: Series) =>
-    s.values.map((v, k) => (Number.isFinite(v) ? `${k === 0 ? 'M' : 'L'}${px(k).toFixed(1)},${py(v).toFixed(1)}` : '')).join('');
+  // Non-finite samples break the line: the next finite point starts a new subpath.
+  const path = (s: Series) => {
+    let pen = 'M';
+    return s.values.map((v, k) => {
+      if (!Number.isFinite(v)) {
+        pen = 'M';
+        return '';
+      }
+      const segment = `${pen}${px(k).toFixed(1)},${py(v).toFixed(1)}`;
+      pen = 'L';
+      return segment;
+    }).join('');
+  };
   const ticks = [hi - padding, (hi + lo) / 2, zeroBased && lo === 0 ? 0 : lo + padding];
 
   const onMove = (event: PointerEvent<SVGSVGElement>) => {
@@ -63,7 +74,8 @@ export function LineChart({ title, x, xLabel, series, zeroBased = false, note }:
     for (let k = 1; k < count; k++) if (Math.abs(px(k) - chartX) < Math.abs(px(nearest) - chartX)) nearest = k;
     setHover(nearest);
   };
-  const at = hover ?? count - 1;
+  const hovered = hover !== undefined && hover < count ? hover : undefined;
+  const at = hovered ?? count - 1;
 
   return (
     <figure className="chart">
@@ -89,11 +101,11 @@ export function LineChart({ title, x, xLabel, series, zeroBased = false, note }:
         {series.map((s) => (
           <path key={s.label} d={path(s)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" />
         ))}
-        {hover !== undefined && (
+        {hovered !== undefined && (
           <g>
-            <line x1={px(hover)} x2={px(hover)} y1={PAD.top} y2={HEIGHT - PAD.bottom} stroke="var(--ink-3)" strokeDasharray="2 2" />
-            {series.map((s) => Number.isFinite(s.values[hover]) && (
-              <circle key={s.label} cx={px(hover)} cy={py(s.values[hover]!)} r={4} fill={s.color} stroke="var(--surface-1)" strokeWidth={2} />
+            <line x1={px(hovered)} x2={px(hovered)} y1={PAD.top} y2={HEIGHT - PAD.bottom} stroke="var(--ink-3)" strokeDasharray="2 2" />
+            {series.map((s) => Number.isFinite(s.values[hovered]) && (
+              <circle key={s.label} cx={px(hovered)} cy={py(s.values[hovered]!)} r={4} fill={s.color} stroke="var(--surface-1)" strokeWidth={2} />
             ))}
           </g>
         )}

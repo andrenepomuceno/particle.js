@@ -50,7 +50,6 @@ export interface PerformanceSample {
   /** Seconds since page load. */
   wall: number;
   fps: number;
-  stepsPerSecond: number;
   /** CPU time spent issuing a frame; GPU execution is asynchronous and not included. */
   frameMs: number;
   /** Time of the once-per-second readback (velocity + potential pass) itself. */
@@ -84,6 +83,7 @@ export interface AppState {
   performanceHistory: PerformanceSample[];
   /** Enabled forces written as F(r): their energy is not in the potential total. */
   energyMissing: string[];
+  energyError: string | undefined;
   particleRadius: number;
   showAxes: boolean;
   inspected: { index: number; particle: Particle } | undefined;
@@ -126,7 +126,6 @@ export class SimulationController {
   private fpsFrames = 0;
   private fpsSince = 0;
   private noticeId = 0;
-  private stepsSinceSample = 0;
   private statsActive = false;
   private frameMsSinceSample = 0;
   private restart: () => void = () => {
@@ -145,7 +144,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
     });
   }
@@ -159,6 +158,9 @@ export class SimulationController {
     container.appendChild(this.renderer.domElement);
     this.resize(container.clientWidth, container.clientHeight);
     this.running = true;
+    this.fpsSince = performance.now();
+    this.fpsFrames = 0;
+    this.frameMsSinceSample = 0;
     this.scheduleFrame();
     return () => {
       this.running = false;
@@ -645,7 +647,6 @@ export class SimulationController {
     const { paused, settings, inspected, followInspected } = this.state;
     if (!paused || this.stepRequested) {
       this.stepRequested = false;
-      this.stepsSinceSample++;
       this.gpu.step(this.state.time);
       this.cpuStale = true;
       this.store.set({ time: this.state.time + settings.timeStep });
@@ -668,17 +669,15 @@ export class SimulationController {
     const seconds = (now - this.fpsSince) / 1000;
     const fps = this.fpsFrames / seconds;
     const frameMs = this.frameMsSinceSample / this.fpsFrames;
-    const stepsPerSecond = this.stepsSinceSample / seconds;
     this.fpsFrames = 0;
     this.frameMsSinceSample = 0;
-    this.stepsSinceSample = 0;
     this.fpsSince = now;
     const sampleStart = performance.now();
     this.sampleState();
     const sampleMs = performance.now() - sampleStart;
     this.store.set({
       fps,
-      performanceHistory: appendBounded(this.state.performanceHistory, { wall: now / 1000, fps, stepsPerSecond, frameMs, sampleMs }),
+      performanceHistory: appendBounded(this.state.performanceHistory, { wall: now / 1000, fps, frameMs, sampleMs }),
     });
     this.refreshInspected();
   }
@@ -701,8 +700,19 @@ export class SimulationController {
     const advanced = physicsHistory.length === 0 || physicsHistory[physicsHistory.length - 1]!.time !== time;
     const velocity = this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
     // The potential pass is a full O(N²) sweep plus a readback, so it only runs while someone is looking.
-    const potentials = advanced && this.statsActive && this.set.count > 0 ? this.gpu.readPotentials() : new Float32Array(this.set.count);
+    let potentials: Float32Array = new Float32Array(this.set.count);
+    let energyError: string | undefined;
+    if (advanced && this.statsActive && this.set.count > 0) {
+      try {
+        potentials = this.gpu.readPotentials(time);
+      } catch (error) {
+        if (!(error instanceof ShaderCompileError)) throw error;
+        energyError = `Potential-energy pass failed to compile; forces are unaffected.\n${error.log}`;
+        potentials.fill(NaN);
+      }
+    }
     const energy = summarizeEnergy(this.set, velocity, potentials, this.compiled, settings.mode2D);
+    if (energyError !== this.state.energyError) this.store.set({ energyError });
     this.points.setAverageSpeed(energy.meanSpeed);
     this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing });
     if (!advanced || !this.statsActive) return;

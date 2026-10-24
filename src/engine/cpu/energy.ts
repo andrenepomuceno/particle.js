@@ -1,5 +1,6 @@
-import { forceScope, type CompiledForce, type PairScope } from '../forces/compile';
+import type { CompiledForce } from '../forces/compile';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
+import { pairScope, pairTerm } from './pairs';
 
 export interface EnergySample {
   kinetic: number;
@@ -49,30 +50,16 @@ export function summarizeEnergy(
 
 /** Float64 mirror of the GPU potential pass: Σ_j V(r_ij) per particle. */
 export function referencePotentials(set: ParticleSet, forces: readonly CompiledForce[], time: number): Float32Array {
-  const { position: pos, velocity: vel, attributes: attr, color } = set;
+  const pos = set.position;
   const result = new Float32Array(set.count);
   for (let i = 0; i < set.count; i++) {
-    const oi = i * TEXEL;
     let sum = 0;
     for (let j = 0; j < set.count; j++) {
       if (j === i) continue;
-      const oj = j * TEXEL;
-      const r2 = (pos[oi]! - pos[oj]!) ** 2 + (pos[oi + 1]! - pos[oj + 1]!) ** 2 + (pos[oi + 2]! - pos[oj + 2]!) ** 2;
+      const r2 = [0, 1, 2].reduce((acc, k) => acc + (pos[i * TEXEL + k]! - pos[j * TEXEL + k]!) ** 2, 0);
       if (r2 === 0) continue;
-      const dist = Math.sqrt(r2);
-      const pair: Omit<PairScope, 'r'> = {
-        m_i: attr[oi]!, m_j: attr[oj]!, q_i: attr[oi + 1]!, q_j: attr[oj + 1]!,
-        s_i: attr[oi + 2]!, s_j: attr[oj + 2]!, p_i: attr[oi + 3]!, p_j: attr[oj + 3]!,
-        n_i: color[oi + 3]!, n_j: color[oj + 3]!,
-        cr_i: color[oi]!, cg_i: color[oi + 1]!, cb_i: color[oi + 2]!,
-        cr_j: color[oj]!, cg_j: color[oj + 1]!, cb_j: color[oj + 2]!,
-        t_i: vel[oi + 3]!, t_j: vel[oj + 3]!, time,
-      };
-      for (const f of forces) {
-        if (!f.evaluatePotential) continue;
-        if (f.definition.range === 'short' && !(dist < f.definition.cutoff)) continue;
-        sum += f.evaluatePotential(forceScope(f, { ...pair, r: Math.sqrt(r2 + f.definition.softening ** 2) }));
-      }
+      const pair = pairScope(set, i, j, time);
+      for (const f of forces) if (f.evaluatePotential) sum += pairTerm(f, f.evaluatePotential, pair, r2, Math.sqrt(r2));
     }
     result[i] = sum;
   }

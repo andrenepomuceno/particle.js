@@ -7,3 +7,6 @@ reports/
 *.local
 .env*
 .claude/
+
+# Local task notes (not versioned)
+tasks/

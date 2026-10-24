@@ -49,7 +49,8 @@ tells visitors when it is active. Local and CI builds never include it.
 ## Tasks
 
 One Markdown file per task in `tasks/inbox/`. When done, add a `## Result` section (or the
-reason it was dropped) and `git mv` it to `tasks/done/`.
+reason it was dropped) and move it to `tasks/done/`. The `tasks/` folder is a local work log and is
+not versioned (it is in `.gitignore`).
 
 ## What v2 deliberately does differently from v1
 

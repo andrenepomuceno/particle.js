@@ -47,7 +47,7 @@ ${forces.map(forceFunction).join('\n')}
 
 void main() {
   ivec2 coord1 = ivec2(gl_FragCoord.xy);
-  int width = int(resolution.x);
+  int width = TEXTURE_WIDTH;
   int index1 = coord1.y * width + coord1.x;
   vec4 velocityTexel = texelFetch(textureVelocity, coord1, 0);
   if (index1 >= uCount) {
@@ -112,7 +112,7 @@ void main() {
 export const POSITION_SHADER = `${COMMON_UNIFORMS}
 void main() {
   ivec2 coord = ivec2(gl_FragCoord.xy);
-  int index = coord.y * int(resolution.x) + coord.x;
+  int index = coord.y * TEXTURE_WIDTH + coord.x;
   vec4 positionTexel = texelFetch(texturePosition, coord, 0);
   if (index >= uCount || positionTexel.w == KIND_FIXED) {
     gl_FragColor = positionTexel;

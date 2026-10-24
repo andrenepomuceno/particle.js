@@ -1,5 +1,13 @@
-# Collisions
+# Elastic collisions (parameterized)
 
-v1 resolved contact with an elastic momentum exchange below a minimum distance.
-v2 relies on softening only. Decide whether contact should be a force expression
-(short-range stiff repulsion, already possible) or a dedicated elastic pass.
+User decision (2026-10-24): add v1's collision as a dedicated, parameterized elastic step.
+
+v1: below a minimum distance d_min the pair exchanged momentum along the line of centers
+(computeShader.glsl.js `collision`), with a per-scenario "Collision Distance" and a counter.
+v2 plan:
+- Settings: `collisionDistance` (0 = off) and `collisionRestitution` e ∈ [0, 1] (1 = elastic).
+- In the velocity pass, for pairs closer than d_min and approaching, apply the impulse
+  Δv_i = -(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n̂)·n̂; pairs inside d_min skip the force terms
+  (as v1 did) so 1/r² does not explode. Mirror it in referenceStep; parity + momentum/energy tests
+  (momentum conserved; KE conserved for e = 1, reduced otherwise).
+- Collision counter in Information/Statistics; scenario/snapshot settings keys; docs.

@@ -27,10 +27,10 @@
     }
   ],
   "groups": [
-    { "count": 1, "shape": { "type": "disk", "radius": 20 }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
-    { "count": 1, "shape": { "type": "disk", "radius": 20 }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20 }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20 }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
     {
-      "count": 1,
+      "count": 1, "scale": false,
       "shape": { "type": "disk", "radius": 120, "innerRadius": 60 },
       "mass": 0.01,
       "charge": -1,

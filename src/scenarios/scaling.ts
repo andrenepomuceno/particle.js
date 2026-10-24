@@ -48,6 +48,21 @@ function scaleShape(shape: Shape, factor: number, mode2D: boolean): { shape: Sha
  * marked `scale: false` keep their count, the others share the rest proportionally (rounded to
  * whole clusters) and their shapes grow by the matching root of the factor.
  */
+const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+
+/**
+ * Smallest count change that keeps a group's composition: its cluster size and the period of
+ * every `{ cycle }` value, so a scaled quark soup still ends on a whole set (e.g. stays neutral).
+ */
+function countStep(group: ParticleGroup): number {
+  let step = group.cluster?.size ?? 1;
+  for (const value of Object.values(group)) {
+    const cycle = (value as { cycle?: unknown } | undefined)?.cycle;
+    if (Array.isArray(cycle) && cycle.length > 0) step = (step * cycle.length) / gcd(step, cycle.length);
+  }
+  return step;
+}
+
 export function scaleGroups(groups: readonly ParticleGroup[], targetCount: number | undefined, mode2D: boolean): ScaledGroups {
   const total = defaultTotal(groups);
   if (targetCount === undefined || targetCount === total) return { groups: [...groups], linearScale: 1 };
@@ -63,7 +78,8 @@ export function scaleGroups(groups: readonly ParticleGroup[], targetCount: numbe
   const scaled = groups.map((group) => {
     if (!group.scale) return group;
     const size = group.cluster?.size ?? 1;
-    const count = Math.max(size, Math.round((group.count * factor) / size) * size);
+    const step = countStep(group);
+    const count = Math.max(step, Math.round((group.count * factor) / step) * step);
     const { shape, linear } = scaleShape(group.shape, count / group.count, mode2D);
     linearScale = Math.max(linearScale, linear);
     if (shape.type === 'grid' && shape.columns * shape.rows * shape.layers < count / size) {

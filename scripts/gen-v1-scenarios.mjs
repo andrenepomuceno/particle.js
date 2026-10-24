@@ -4,9 +4,9 @@
 // v1 sources: ../particle.js/src/simulation/scenarios_v1/{forceMap,quarkModel,epnModel,record}.js.
 // Every constant below is v1's value converted with that scenario's unit scale (M, KG, S, C).
 import { writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const LIBRARY = path.join(import.meta.dirname, '..', 'src', 'scenarios', 'library');
+const LIBRARY = fileURLToPath(new URL('../src/scenarios/library/', import.meta.url));
 
 /** Rounds to 5 significant digits so the JSON stays readable. */
 const sig = (x) => Number(x.toPrecision(5));
@@ -89,7 +89,7 @@ function typed(types) {
   return out;
 }
 
-const speed = (v) => (v > 0 ? { type: 'random', speed: { min: 0, max: v } } : undefined);
+const speed = (v) => (v > 0 ? { velocity: { type: 'random', speed: { min: 0, max: v } } } : {});
 
 /**
  * v1's createNucleiFromList: `copies` × nucleus types in a disk of radius r0 around the center,
@@ -97,12 +97,12 @@ const speed = (v) => (v > 0 ? { type: 'random', speed: { min: 0, max: v } } : un
  */
 function atom(center, nucleus, copies, electron, cloud, r0, r1, v) {
   const groups = [
-    { count: nucleus.length * copies, shape: { type: 'disk', radius: r0, center }, velocity: speed(v), ...typed(nucleus) },
+    { count: nucleus.length * copies, shape: { type: 'disk', radius: r0, center }, ...speed(v), ...typed(nucleus) },
   ];
   if (cloud > 0) {
-    groups.push({ count: cloud, shape: { type: 'disk', radius: r1, innerRadius: r0, center }, velocity: speed(v), ...typed([electron]) });
+    groups.push({ count: cloud, shape: { type: 'disk', radius: r1, innerRadius: r0, center }, ...speed(v), ...typed([electron]) });
   }
-  return groups.map((g) => JSON.parse(JSON.stringify(g)));
+  return groups;
 }
 
 /** v1's cubeGenerator in 2D: a centered columns × rows lattice, row-major, y downwards. */
@@ -275,10 +275,10 @@ function welcome() {
     description:
       `v1's opening scene: ${count} pixels of text, each a nucleus of six colored quarks (uud + udd) with two electrons, ` +
       "held by v1's force map 2 (Yukawa pull minus a linear push) and its constant color force inside 3 fm. " +
-      "v1's random force noise and the text font are not reproduced; gravity (G ≈ 9e-38) is negligible and omitted.",
+      "v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass. v1's random force noise and the text font are not reproduced; gravity (G ≈ 9e-38) is negligible and omitted.",
     seed: 1,
     view: { cameraDistance: 800000, particleRadius: 600, colorMode: 'charge' },
-    settings: { timeStep: 1, mode2D: true, maxSpeed: sig(299792458 * (M / S) * 100), friction: 0.00001 },
+    settings: { timeStep: 1, mode2D: true, maxSpeed: sig(299792458 * (M / S) * 100), friction: sig(1e-6 / ((u.up + u.down) / 2)) },
     forces: [
       nuclearForce('Nuclear (v1 force map 2)', FORCE_MAP_2, range, strong, { a: 1, b: 0.1, c: 1 }),
       { name: 'Color (v1)', mode: 'force', range: 'short', cutoff: range, expression: V1_COLOR, params: [{ name: 'k', value: strong }] },
@@ -343,7 +343,7 @@ function air() {
   const elements = [
     { r: 2 * 78.084, n: 7, name: 'N' },
     { r: 2 * 20.946, n: 8, name: 'O' },
-    { r: 0.934, n: 33, name: 'Ar' },
+    { r: 0.934, n: 18, name: 'Ar' },
     { r: 0.0417, n: 6, name: 'C (CO2)' },
     { r: 2 * 0.0417, n: 8, name: 'O (CO2)' },
     { r: 0.001818, n: 10, name: 'Ne' },
@@ -404,7 +404,7 @@ function water2() {
     folder: 'Quark Model',
     description:
       `v1's quark-model water: a ${g}×${g} lattice of H2O molecules, oxygen as 24 up + 24 down quarks with 8 electrons and ` +
-      "each hydrogen as a uud triplet with one electron 2.85 fm away at ±30°, bound by v1's powAXv3 nuclear force and Coulomb. " +
+      "each hydrogen as a uud triplet 2.85 fm away at ±30° with its electron around it, bound by v1's powAXv3 nuclear force and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
     seed: 1,
     view: { cameraDistance: 15000, particleRadius: 120, colorMode: 'charge' },
@@ -440,7 +440,8 @@ function essentialElements() {
   const groups = Array.from({ length: g * g }, () => {
     const s = random() <= 0.1 ? -1 : 1;
     if (s < 0) anti++;
-    const center = [sig((2 * random() - 1) * half), sig((2 * random() - 1) * half), 0];
+    // Inset by the electron cloud radius so no atom starts partly outside the reflecting box.
+    const center = [sig((2 * random() - 1) * (half - 0.5 * range)), sig((2 * random() - 1) * (half - 0.5 * range)), 0];
     const e = pickElement(elements, random);
     tally[e.name] = (tally[e.name] ?? 0) + 1;
     return quarkAtom(center, e.n, s, s, 0.05 * range, 0.5 * range, 1);
@@ -497,6 +498,8 @@ function format(json) {
 for (const { file, json } of [welcome(), air(), water2(), essentialElements(), periodicTable(), planetoidFormation()]) {
   const total = json.groups.reduce((s, g) => s + g.count, 0);
   if (total > 16384) throw new Error(`${file}: ${total} particles exceed the default capacity 16384`);
-  await writeFile(path.join(LIBRARY, file), format(json));
+  // Per-site groups: their counts are the atoms themselves, so the particle-count setting must not rescale them.
+  json.groups = json.groups.map(({ count, ...g }) => ({ count, scale: false, ...g }));
+  await writeFile(LIBRARY + file, format(json));
   console.log(`${file}: ${json.groups.length} groups, ${total} particles`);
 }

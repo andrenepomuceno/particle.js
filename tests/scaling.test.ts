@@ -15,6 +15,13 @@ describe('scaling scenarios to a particle total', () => {
     expect(s.build(createRng(1)).particles).toHaveLength(10);
   });
 
+  it('rounds a scaled count to whole cycles so the mix stays balanced', () => {
+    const soup = scenario([{ count: 21, shape: { type: 'disk', radius: 10 }, charge: { cycle: [1, 1, -1, 1, -1, -1, -1] }, mass: { cycle: [1, 2] } }]);
+    const { particles } = soup.build(createRng(1), 100);
+    expect(particles.length % 14).toBe(0);
+    expect(particles.reduce((sum, p) => sum + p.charge, 0)).toBe(-particles.length / 7);
+  });
+
   it('grows a disk by the square root to keep its density', () => {
     const { particles, linearScale } = scenario([{ count: 100, shape: { type: 'disk', radius: 10 } }]).build(createRng(1), 400);
     expect(particles).toHaveLength(400);

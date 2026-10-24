@@ -27,28 +27,28 @@
     }
   ],
   "groups": [
-    { "count": 1, "shape": { "type": "disk", "radius": 20, "center": [-300, -150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
-    { "count": 1, "shape": { "type": "disk", "radius": 20, "center": [-300, -150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [-300, -150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [-300, -150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
     {
-      "count": 1,
+      "count": 1, "scale": false,
       "shape": { "type": "disk", "radius": 120, "innerRadius": 60, "center": [-300, -150, 0] },
       "mass": 0.01,
       "charge": -1,
       "velocity": { "type": "orbit", "centralMass": 1, "G": 24320, "center": [-300, -150, 0] }
     },
-    { "count": 8, "shape": { "type": "disk", "radius": 20, "center": [0, 150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
-    { "count": 8, "shape": { "type": "disk", "radius": 20, "center": [0, 150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
+    { "count": 8, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [0, 150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
+    { "count": 8, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [0, 150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
     {
-      "count": 8,
+      "count": 8, "scale": false,
       "shape": { "type": "disk", "radius": 960, "innerRadius": 60, "center": [0, 150, 0] },
       "mass": 0.01,
       "charge": -1,
       "velocity": { "type": "orbit", "centralMass": 1, "G": 174100, "center": [0, 150, 0] }
     },
-    { "count": 1, "shape": { "type": "disk", "radius": 20, "center": [300, -150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
-    { "count": 1, "shape": { "type": "disk", "radius": 20, "center": [300, -150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [300, -150, 0] }, "mass": 18.36, "charge": 1, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "disk", "radius": 20, "center": [300, -150, 0] }, "mass": 18.39, "charge": 0, "nuclearCharge": 1 },
     {
-      "count": 1,
+      "count": 1, "scale": false,
       "shape": { "type": "disk", "radius": 120, "innerRadius": 60, "center": [300, -150, 0] },
       "mass": 0.01,
       "charge": -1,

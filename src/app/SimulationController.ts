@@ -221,12 +221,14 @@ export class SimulationController {
     return () => {
       this.running = false;
       cancelAnimationFrame(this.frameHandle);
+      if (this.recorder?.state === 'recording') this.recorder.stop();
       this.renderer.domElement.remove();
     };
   }
 
   dispose(): void {
     this.running = false;
+    if (this.recorder?.state === 'recording') this.recorder.stop();
     cancelAnimationFrame(this.frameHandle);
     this.controls.dispose();
     this.gpu.dispose();
@@ -498,6 +500,9 @@ export class SimulationController {
     this.store.set({ field, fieldError: undefined });
     this.arrows.setVisible(field.enabled);
     this.arrows.setLogScale(field.logScale);
+    // The color scale is a draw-time uniform: no need to recompute the O(probes·N) field.
+    const onlyColors = JSON.stringify({ ...field, logScale: previous.logScale }) === JSON.stringify(previous);
+    if (onlyColors) return;
     if (!field.enabled) {
       this.store.set({ fieldInfo: undefined });
       return;
@@ -508,6 +513,7 @@ export class SimulationController {
       } catch (error) {
         this.store.set({ field: previous });
         this.arrows.setVisible(previous.enabled);
+        this.arrows.setLogScale(previous.logScale);
         throw error;
       }
     }
@@ -702,12 +708,17 @@ export class SimulationController {
       return;
     }
     this.syncFromGpu();
-    const center = centroid(selection.map((k) => this.set.get(k).position));
-    const shift = new Vector3(...center).sub(this.controls.target);
+    this.centerOn(centroid(selection.map((k) => this.set.get(k).position)));
+    this.controls.update();
+    this.autoFitField();
+    this.store.set({ followInspected: false });
+  }
+
+  /** Moves the orbit target to `point`, translating the camera with it (keeps the view direction). */
+  private centerOn(point: Vec3): void {
+    const shift = new Vector3(...point).sub(this.controls.target);
     this.controls.target.add(shift);
     this.camera.position.add(shift);
-    this.controls.update();
-    this.store.set({ followInspected: false });
   }
 
   /** The UI decides how a finished recording is saved; undefined detaches it. */
@@ -718,7 +729,8 @@ export class SimulationController {
   /** Records the canvas to a WebM file (v1's [*]); calling it again stops and downloads. */
   toggleRecording(): void {
     if (this.recorder) {
-      this.recorder.stop();
+      // A second press while the recorder is still finishing is ignored rather than re-stopping it.
+      if (this.recorder.state === 'recording') this.recorder.stop();
       return;
     }
     if (typeof MediaRecorder === 'undefined') throw new Error('this browser has no MediaRecorder; recording is unavailable');
@@ -908,10 +920,7 @@ export class SimulationController {
       this.store.set({ time: this.state.time + settings.timeStep });
     }
     if (followInspected && inspected) {
-      const position = this.gpu.readPosition(inspected.index);
-      const shift = new Vector3(...position).sub(this.controls.target);
-      this.controls.target.add(shift);
-      this.camera.position.add(shift);
+      this.centerOn(this.gpu.readPosition(inspected.index));
       if (now - this.fieldFollowFitAt >= FIELD_FOLLOW_REFIT_MS) {
         this.fieldFollowFitAt = now;
         this.autoFitField();

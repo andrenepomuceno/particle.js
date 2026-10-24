@@ -161,14 +161,19 @@ vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 
     float r2 = dot(delta, delta);
     if (r2 == 0.0) continue;
     float dist = sqrt(r2);
-    // An approaching pair inside the collision distance exchanges momentum in collisionImpulse
-    // instead; overlapping pairs at rest or separating keep their force so they can push apart.
-    if (dist < collisionDistance && dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, delta) < 0.0) continue;
+    // collisionDistance is a contact radius: an approaching pair inside it exchanges momentum in
+    // collisionImpulse instead, and a resting or separating overlap feels the force evaluated at the
+    // contact distance, so repulsion separates it while attraction stays bounded (no 1/r^2 blow-up).
+    if (dist < collisionDistance) {
+      if (dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, delta) < 0.0) continue;
+      r2 = collisionDistance * collisionDistance;
+      dist = collisionDistance;
+    }
     vec4 attr2 = texelFetch(uAttributes, coord2, 0);
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
     vec4 spin2 = ${fetchSpin2};
-    vec3 dir = delta / dist;
+    vec3 dir = normalize(delta);
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * dir;

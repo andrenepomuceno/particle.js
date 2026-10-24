@@ -144,11 +144,11 @@ export class FieldArrows {
     (this.material.uniforms.uViewport!.value as Vector2).set(width, height);
   }
 
-  /** |F| drawn at the top of the palette. */
   setLogScale(enabled: boolean): void {
     this.material.uniforms.uLogScale!.value = enabled;
   }
 
+  /** |F| drawn at the top of the palette. */
   setReference(reference: number): void {
     this.material.uniforms.uReference!.value = reference;
   }

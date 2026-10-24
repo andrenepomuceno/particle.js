@@ -89,9 +89,10 @@ still approaching gets the impulse `Δv_i = −(1 + e)·m_j/(m_i + m_j)·((v_i �
 to i); a fixed partner acts as infinite mass (`Δv_i = −(1 + e)·((v_i − v_j)·n̂)·n̂`). All pairs use
 the same pre-step velocities: an isolated pair conserves momentum (and kinetic energy for e = 1)
 exactly, while simultaneous contacts among three or more particles are resolved pairwise and only
-approximately (as in v1). An approaching pair inside the distance contributes no force that step
-(the impulse replaces it, keeping 1/r² terms from exploding); overlapping pairs at rest or
-separating keep their force, so they can push apart. The energy chart's potential still counts
+approximately (as in v1). The distance acts as a contact radius: an approaching pair inside it
+contributes no force that step (the impulse replaces it), and an overlapping pair at rest or
+separating feels the force evaluated at the contact distance, so repulsion pushes it apart while
+attraction stays bounded instead of growing as 1/r². The energy chart's potential still counts
 pairs inside the distance, so with collisions on the total is not a conserved quantity. Both
 integrators apply the impulse (Verlet after its drift); field probes ignore collisions.
 

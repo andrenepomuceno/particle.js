@@ -41,6 +41,13 @@ describe.each(['euler', 'verlet'] as const)('collisions (%s)', (integrator) => {
     momentum(set).forEach((p, k) => expect(p).toBeCloseTo(p0[k]!, 6));
   });
 
+  it('bounds an attraction inside the contact radius to its value at the radius', () => {
+    const coulomb = compileForce(makeForce({ expression: 'k * q_i * q_j / r^2', params: [{ name: 'k', value: 1 }] }));
+    const set = setOf(defaultParticle({ position: [-0.0005, 0, 0], charge: 1 }), defaultParticle({ position: [0.0005, 0, 0], charge: -1 }));
+    referenceStep(set, [coulomb], settings({ integrator, timeStep: 0.01 }), 0);
+    expect(Math.abs(set.get(0).velocity[0])).toBeCloseTo(0.01, 6);
+  });
+
   it('bounces off a fixed particle as off an infinite mass', () => {
     const set = setOf(defaultParticle({ position: [-0.4, 0, 0], velocity: [1, 0, 0] }), defaultParticle({ position: [0.4, 0, 0], kind: ParticleKind.fixed }));
     referenceStep(set, [], settings({ integrator }), 0);

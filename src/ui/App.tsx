@@ -107,8 +107,8 @@ function Shell({ controller }: { controller: SimulationController }) {
   }), [controller, pointer]);
 
   useEffect(() => {
+    // Kept after unmount on purpose: a recording stopped by the unmount still finishes and downloads.
     controller.setRecordingSink((video) => download(video, `particle-js-${new Date().toISOString().replaceAll(/[:.]/g, '-')}.webm`));
-    return () => controller.setRecordingSink(undefined);
   }, [controller]);
 
   useEffect(() => {

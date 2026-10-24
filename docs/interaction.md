@@ -45,7 +45,7 @@ localStorage) and is never restored from the saved list of open dialogs.
 | Gesture | Effect |
 | --- | --- |
 | Click | inspect the particle under the cursor (opens the Particle dialog) |
-| Shift + drag | box-select particles; a ruler shows Δx, Δy and the distance in world units |
+| Shift + drag | box-select particles; a ruler shows the distance in world units (plus Δx, Δy in 2D) |
 | Hold Z + click | place the clipboard centered at the cursor |
 | Drag / wheel / right drag | orbit / zoom / pan (orbit is disabled in 2D) |
 

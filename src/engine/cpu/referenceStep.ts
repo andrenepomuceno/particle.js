@@ -80,18 +80,21 @@ function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[
     const dz = pos[oi + 2]! - pos[oj + 2]!;
     const r2 = dx * dx + dy * dy + dz * dz;
     if (r2 === 0 || forces.length === 0) continue;
-    const dist = Math.sqrt(r2);
+    const trueDist = Math.sqrt(r2);
     const v = set.velocity;
     const approaching = (v[oi]! - v[oj]!) * dx + (v[oi + 1]! - v[oj + 1]!) * dy + (v[oi + 2]! - v[oj + 2]!) * dz < 0;
-    if (dist < collisionDistance && approaching) continue;
+    // Contact radius, as in the shader: approaching overlaps skip the force (the impulse replaces it),
+    // other overlaps feel it evaluated at the contact distance.
+    if (trueDist < collisionDistance && approaching) continue;
+    const dist = Math.max(trueDist, collisionDistance);
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;
     let magnitude = 0;
-    for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, r2, dist);
-    fx += (magnitude * dx) / dist;
-    fy += (magnitude * dy) / dist;
-    fz += (magnitude * dz) / dist;
+    for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, dist * dist, dist);
+    fx += (magnitude * dx) / trueDist;
+    fy += (magnitude * dy) / trueDist;
+    fz += (magnitude * dz) / trueDist;
   }
   return [fx, fy, fz];
 }

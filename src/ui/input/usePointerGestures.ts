@@ -14,16 +14,25 @@ export function usePointerGestures(
   viewport: RefObject<HTMLDivElement | null>,
   pointer: { current: Point | undefined },
 ): { style: CSSProperties; label: string } | undefined {
-  const [box, setBox] = useState<{ from: Point; to: Point }>();
+  const [box, setBox] = useState<{ from: Point; to: Point; label: string }>();
 
   useEffect(() => {
     const element = viewport.current!;
     let down: Point | undefined;
     let dragBox: { from: Point; to: Point } | undefined;
+    // v1's ruler, computed once per pointer move: the drag's extent on the placement plane. In 3D
+    // that plane faces the camera, so only the distance is meaningful, not world Δx/Δy.
+    const measure = (from: Point, to: Point) => {
+      const a = controller.worldAt(from.x, from.y);
+      const b = controller.worldAt(to.x, to.y);
+      const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]] as const;
+      const distance = Math.hypot(...d).toPrecision(3);
+      return controller.state.settings.mode2D ? `Δx ${d[0].toPrecision(3)}  Δy ${d[1].toPrecision(3)}  |Δ| ${distance}` : `|Δ| ${distance}`;
+    };
     let zHeld = false;
     const updateBox = (next: typeof dragBox) => {
       dragBox = next;
-      setBox(next);
+      setBox(next && { ...next, label: measure(next.from, next.to) });
     };
 
     const run = (label: string, action: () => void) => {
@@ -86,11 +95,6 @@ export function usePointerGestures(
   }, [controller, viewport, pointer]);
 
   if (!box) return undefined;
-  // v1's ruler: the drag's extent in world units on the placement plane.
-  const a = controller.worldAt(box.from.x, box.from.y);
-  const b = controller.worldAt(box.to.x, box.to.y);
-  const delta = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-  const label = `Δx ${delta[0]!.toPrecision(3)}  Δy ${delta[1]!.toPrecision(3)}  |Δ| ${Math.hypot(...delta).toPrecision(3)}`;
   return {
     style: {
       left: Math.min(box.from.x, box.to.x),
@@ -98,6 +102,6 @@ export function usePointerGestures(
       width: Math.abs(box.to.x - box.from.x),
       height: Math.abs(box.to.y - box.from.y),
     },
-    label,
+    label: box.label,
   };
 }

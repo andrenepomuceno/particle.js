@@ -13,6 +13,13 @@ describe('snapshots', () => {
     expect(parseSnapshot(JSON.stringify(original))).toEqual(original);
   });
 
+  it('migrates version 2 settings to the Euler integrator they ran with', () => {
+    const v2 = JSON.parse(JSON.stringify(snapshot()));
+    v2.version = 2;
+    delete v2.settings.integrator;
+    expect(parseSnapshot(JSON.stringify(v2)).settings.integrator).toBe('euler');
+  });
+
   it('migrates version 1, which had no nuclear charge', () => {
     const v1 = JSON.parse(JSON.stringify(snapshot()));
     v1.version = 1;
@@ -21,7 +28,7 @@ describe('snapshots', () => {
   });
 
   it.each([
-    [(s: Record<string, unknown>) => (s.version = 3), /at 'version': expected one of 1, 2, got 3/],
+    [(s: Record<string, unknown>) => (s.version = 4), /at 'version': expected one of 1, 2, 3, got 4/],
     [(s: Record<string, unknown>) => delete (s.particles as Record<string, unknown>[])[0]!.nuclearCharge, /particles\[0\].nuclearCharge': expected a finite number/],
     [(s: Record<string, unknown>) => ((s.forces as Record<string, unknown>[])[0]!.expression = 'zz'), /forces\[0\]'.*unknown variable 'zz'/],
     [(s: Record<string, unknown>) => ((s.settings as Record<string, unknown>).timeStep = 0), /timeStep must be > 0/],

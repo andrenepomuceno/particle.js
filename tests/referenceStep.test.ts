@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { referenceStep } from '../src/engine/cpu/referenceStep';
+import { referenceStep, type ReferenceState } from '../src/engine/cpu/referenceStep';
+import { referencePotentials, summarizeEnergy } from '../src/engine/cpu/energy';
 import { compileForce } from '../src/engine/forces/compile';
 import { defaultParticle, ParticleKind, ParticleSet, type Particle } from '../src/engine/particles';
 import { DEFAULT_SETTINGS, type SimulationSettings } from '../src/engine/settings';
@@ -13,11 +14,12 @@ function setOf(...particles: Particle[]): ParticleSet {
   return set;
 }
 
+// These cases pin down the semi-implicit Euler formulas; Verlet has its own block below.
 const settings = (overrides: Partial<SimulationSettings> = {}): SimulationSettings => ({
-  ...DEFAULT_SETTINGS, timeStep: 0.1, ...overrides,
+  ...DEFAULT_SETTINGS, timeStep: 0.1, integrator: 'euler', ...overrides,
 });
 
-describe('referenceStep', () => {
+describe('referenceStep (Euler)', () => {
   it('applies symplectic Euler: v += a dt, then x += v dt', () => {
     const set = setOf(defaultParticle({ position: [-1, 0, 0] }), defaultParticle({ position: [1, 0, 0], mass: 2 }));
     referenceStep(set, [gravity], settings(), 0);
@@ -96,5 +98,64 @@ describe('referenceStep', () => {
     const box = setOf(defaultParticle({ position: [30, -30, 0], velocity: [-1, 1, 0] }));
     referenceStep(box, [], settings({ boundary: 'box', boundarySize: 10, timeStep: 1 }), 0);
     expect(box.get(0).position).toEqual([10, -10, 0]);
+  });
+});
+
+describe('referenceStep (velocity Verlet)', () => {
+  const verlet = (overrides: Partial<SimulationSettings> = {}) => settings({ integrator: 'verlet', ...overrides });
+
+  it('drifts with x + v dt + a dt^2 / 2 and kicks with the average acceleration', () => {
+    const spring = compileForce(makeForce({ mode: 'potential', expression: '0.5 * k * r^2', params: [{ name: 'k', value: 1 }] }));
+    const set = setOf(defaultParticle({ position: [-1, 0, 0] }), defaultParticle({ kind: ParticleKind.fixed, position: [1, 0, 0] }));
+    referenceStep(set, [spring], verlet({ timeStep: 0.1 }), 0);
+    const x1 = -1 + 0.5 * 0.01 * 2;
+    expect(set.get(0).position[0]).toBeCloseTo(x1, 6);
+    expect(set.get(0).velocity[0]).toBeCloseTo(0.5 * 0.1 * (2 + (1 - x1)), 6);
+  });
+
+  it('reuses the stored acceleration instead of recomputing it', () => {
+    const set = setOf(defaultParticle({ position: [-1, 0, 0] }), defaultParticle({ position: [1, 0, 0] }));
+    const state: ReferenceState = { acceleration: new Float64Array([5, 0, 0, -5, 0, 0]) };
+    referenceStep(set, [], verlet({ timeStep: 1 }), 0, state);
+    expect(set.get(0).position[0]).toBeCloseTo(-1 + 2.5, 6);
+    expect(state.acceleration).toEqual(new Float64Array(6));
+  });
+
+  it('conserves energy far better than Euler at the same step', () => {
+    const gravity = compileForce(makeForce({ mode: 'potential', expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 1 }] }));
+    const drift = (integrator: SimulationSettings['integrator']) => {
+      const set = setOf(defaultParticle({ position: [-5, 0, 0], velocity: [0, -0.2, 0] }), defaultParticle({ position: [5, 0, 0], velocity: [0, 0.2, 0] }));
+      const s = settings({ integrator, timeStep: 0.5 });
+      const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [gravity], 0), [gravity], false);
+      const start = energy();
+      const state: ReferenceState = {};
+      let worst = 0;
+      for (let k = 0; k < 400; k++) {
+        referenceStep(set, [gravity], s, k * 0.5, state);
+        const e = energy();
+        worst = Math.max(worst, Math.abs(e.kinetic + e.potential - start.kinetic - start.potential));
+      }
+      return worst;
+    };
+    expect(drift('verlet')).toBeLessThan(drift('euler') / 5);
+  });
+
+  it('is time-reversible: flipping velocities retraces the path', () => {
+    const gravity = compileForce(makeForce({ mode: 'potential', expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 1 }] }));
+    const set = setOf(defaultParticle({ position: [-5, 0, 0], velocity: [0, -0.2, 0] }), defaultParticle({ position: [5, 1, 0], velocity: [0.1, 0.2, 0] }));
+    const s = verlet({ timeStep: 0.1 });
+    for (let k = 0; k < 100; k++) referenceStep(set, [gravity], s, 0);
+    set.toArray().forEach((p, k) => set.set(k, { ...p, velocity: p.velocity.map((c) => -c) as typeof p.velocity }));
+    for (let k = 0; k < 100; k++) referenceStep(set, [gravity], s, 0);
+    expect(set.get(0).position[0]).toBeCloseTo(-5, 3);
+    expect(set.get(1).position[1]).toBeCloseTo(1, 3);
+  });
+
+  it('keeps fixed particles still and advances every clock', () => {
+    const set = setOf(defaultParticle({ kind: ParticleKind.fixed }), defaultParticle({ position: [3, 0, 0] }));
+    referenceStep(set, [gravity], verlet(), 0);
+    expect(set.get(0).position).toEqual([0, 0, 0]);
+    expect(set.get(0).time).toBeCloseTo(0.1, 6);
+    expect(set.get(1).time).toBeCloseTo(0.1, 6);
   });
 });

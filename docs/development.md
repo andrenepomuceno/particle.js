@@ -9,7 +9,8 @@
 | `npm test` | unit tests only (Vitest, Node, no GPU) |
 | `npm run snap -- --scenario a,b --wait ms` | headless Chromium screenshots to `reports/screenshots/`; fails on console/shader errors or non-finite state |
 | `npm run smoke` | drives keyboard and mouse gestures headlessly, prints PASS/FAIL per gesture |
-| `npm run smoke:all` | every scenario through `snap`, then `smoke` |
+| `npm run parity` | runs the same steps on the GPU and on the float64 `referenceStep` inside the page; fails above a float32 tolerance |
+| `npm run smoke:all` | `parity`, every scenario through `snap`, then `smoke` |
 | `node scripts/cluster-stats.mjs --scenario id --link 5,30 --at 10,60` | runs a scenario headless and reports cluster sizes and color neutrality at each time; used to tune bound-state scenarios |
 | `npm run build` | typecheck + production bundle in `dist/` |
 

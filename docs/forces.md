@@ -13,10 +13,18 @@ contributes a signed scalar `F` along `(x_i − x_j) / d`:
   real `d`. Use it to keep `1/r²`-type forces finite at close range.
 - Coincident particles (`d = 0`) do not interact.
 
-Per step, for each dynamic particle: `v += (ΣF / m)·dt`, then friction `v *= e^(−friction·dt)`,
-then the optional speed clamp, then boundary reflection; afterwards `x += v·dt`. Fixed
-particles never move. Every particle's clock `t` advances by `dt`.
-`src/engine/cpu/referenceStep.ts` is the executable specification of this order.
+Two integrators (Parameters → Integrator), both one force evaluation per step:
+
+- **Velocity Verlet** (default, 2nd order, time-reversible): `x += v·dt + ½·a·dt²`, then
+  `a' = ΣF(x')/m` (at time t + dt, clocks already advanced), then `v += ½(a + a')·dt`.
+  The previous acceleration is kept on the GPU and recomputed after any edit.
+- **Semi-implicit Euler** (1st order, v1's scheme): `v += (ΣF / m)·dt`, then `x += v·dt`.
+
+After the velocity update both apply friction `v *= e^(−friction·dt)`, the optional speed clamp,
+then boundary reflection. Fixed particles never move; every clock `t` advances by `dt`.
+Measured on a gravitational binary over t = 200 (relative energy error): Euler 7.3e-3 / 1.4e-3,
+Verlet 2.3e-4 / 9.0e-6 at dt = 0.5 / 0.1. `src/engine/cpu/referenceStep.ts` is the executable
+specification of both, and `npm run parity` checks the GPU against it.
 
 ## Writing an expression
 

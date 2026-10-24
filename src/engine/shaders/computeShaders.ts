@@ -17,6 +17,9 @@ uniform int uBoundary;
 uniform float uBoundarySize;
 uniform float uRestitution;
 uniform bool uMode2D;
+uniform sampler2D uAcceleration;
+uniform sampler2D uAccelerationNext;
+uniform float uClockShift;
 
 #define KIND_FIXED 2.0
 `;
@@ -45,35 +48,54 @@ function forceAccumulation(force: CompiledForce, index: number): string {
   return `magnitude += ${call};`;
 }
 
-export function generateVelocityShader(forces: readonly CompiledForce[]): string {
+const BOUNDARY_HELPERS = /* glsl */ `
+// Friction, 2D projection, speed clamp, then reflection if the coming drift would leave the boundary.
+vec3 finishVelocity(vec3 vel, vec3 pos) {
+  if (uFriction > 0.0) vel *= exp(-uFriction * uTimeStep);
+  if (uMode2D) vel.z = 0.0;
+  float speed = length(vel);
+  if (uMaxSpeed > 0.0 && speed > uMaxSpeed) vel *= uMaxSpeed / speed;
+  vec3 next = pos + uTimeStep * vel;
+  if (uBoundary == ${BOUNDARY_CODE.sphere}) {
+    float len = length(next);
+    if (len > uBoundarySize) {
+      vec3 normal = next / len;
+      float outward = dot(vel, normal);
+      if (outward > 0.0) vel -= (1.0 + uRestitution) * outward * normal;
+    }
+  } else if (uBoundary == ${BOUNDARY_CODE.box}) {
+    for (int axis = 0; axis < 3; axis++) {
+      if (abs(next[axis]) > uBoundarySize && next[axis] * vel[axis] > 0.0) vel[axis] = -uRestitution * vel[axis];
+    }
+  }
+  return vel;
+}
+
+vec3 confinePosition(vec3 pos) {
+  if (uMode2D) pos.z = 0.0;
+  if (uBoundary == ${BOUNDARY_CODE.sphere}) {
+    float len = length(pos);
+    if (len > uBoundarySize) pos *= uBoundarySize / len;
+  } else if (uBoundary == ${BOUNDARY_CODE.box}) {
+    pos = clamp(pos, vec3(-uBoundarySize), vec3(uBoundarySize));
+  }
+  return pos;
+}
+`;
+
+/**
+ * Σ_j F_ij on particle index1. Clocks are read from textureVelocity and shifted by uClockShift,
+ * because Verlet evaluates forces after positions advanced but before clocks are written.
+ */
+function totalForceFunction(forces: readonly CompiledForce[]): string {
   const needsTau2 = forces.some((f) => collectVariables(f.magnitude).has('t_j'));
-  const fetchTau2 = needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0';
-  return `${COMMON_UNIFORMS}
-${GLSL_POWER_HELPERS}
+  const fetchTau2 = needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
+  return `${GLSL_POWER_HELPERS}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
-void main() {
-  ivec2 coord1 = ivec2(gl_FragCoord.xy);
+vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, float tau1) {
   int width = TEXTURE_WIDTH;
-  int index1 = coord1.y * width + coord1.x;
-  vec4 velocityTexel = texelFetch(textureVelocity, coord1, 0);
-  if (index1 >= uCount) {
-    gl_FragColor = velocityTexel;
-    return;
-  }
-  vec4 positionTexel = texelFetch(texturePosition, coord1, 0);
-  vec3 pos1 = positionTexel.xyz;
-  vec3 vel1 = velocityTexel.xyz;
-  float tau1 = velocityTexel.w;
-  vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec4 color1 = texelFetch(uColor, coord1, 0);
-
-  if (positionTexel.w == KIND_FIXED) {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, tau1 + uTimeStep);
-    return;
-  }
-
   vec3 force = vec3(0.0);
   for (int index2 = 0; index2 < uCount; index2++) {
     if (index2 == index1) continue;
@@ -89,33 +111,98 @@ void main() {
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * (delta / dist);
   }
+  return force;
+}`;
+}
 
-  vel1 += uTimeStep * force / attr1.x;
-  if (uFriction > 0.0) vel1 *= exp(-uFriction * uTimeStep);
-  if (uMode2D) vel1.z = 0.0;
-  float speed = length(vel1);
-  if (uMaxSpeed > 0.0 && speed > uMaxSpeed) vel1 *= uMaxSpeed / speed;
+const PARTICLE_HEADER = /* glsl */ `
+  ivec2 coord1 = ivec2(gl_FragCoord.xy);
+  int index1 = coord1.y * TEXTURE_WIDTH + coord1.x;
+  vec4 positionTexel = texelFetch(texturePosition, coord1, 0);
+  vec4 velocityTexel = texelFetch(textureVelocity, coord1, 0);
+  bool inactive = index1 >= uCount;
+  bool fixedParticle = positionTexel.w == KIND_FIXED;
+`;
 
-  vec3 next = pos1 + uTimeStep * vel1;
-  if (uBoundary == ${BOUNDARY_CODE.sphere}) {
-    float len = length(next);
-    if (len > uBoundarySize) {
-      vec3 normal = next / len;
-      float outward = dot(vel1, normal);
-      if (outward > 0.0) vel1 -= (1.0 + uRestitution) * outward * normal;
-    }
-  } else if (uBoundary == ${BOUNDARY_CODE.box}) {
-    for (int axis = 0; axis < 3; axis++) {
-      if (abs(next[axis]) > uBoundarySize && next[axis] * vel1[axis] > 0.0) {
-        vel1[axis] = -uRestitution * vel1[axis];
-      }
-    }
+/** Semi-implicit Euler, velocity half: v += F/m·dt, using positions x_n. */
+export function generateVelocityShader(forces: readonly CompiledForce[]): string {
+  return `${COMMON_UNIFORMS}
+${BOUNDARY_HELPERS}
+${totalForceFunction(forces)}
+
+void main() {
+${PARTICLE_HEADER}
+  if (inactive) {
+    gl_FragColor = velocityTexel;
+    return;
   }
-
-  gl_FragColor = vec4(vel1, tau1 + uTimeStep);
+  float tau1 = velocityTexel.w;
+  if (fixedParticle) {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, tau1 + uTimeStep);
+    return;
+  }
+  vec4 attr1 = texelFetch(uAttributes, coord1, 0);
+  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), tau1);
+  vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x;
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz), tau1 + uTimeStep);
 }
 `;
 }
+
+/** Velocity Verlet, force half: a(x) = F(x)/m at the current positions, clocks shifted by uClockShift. */
+export function generateAccelerationShader(forces: readonly CompiledForce[]): string {
+  return `${COMMON_UNIFORMS}
+${totalForceFunction(forces)}
+
+void main() {
+${PARTICLE_HEADER}
+  if (inactive || fixedParticle) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  vec4 attr1 = texelFetch(uAttributes, coord1, 0);
+  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), velocityTexel.w + uClockShift);
+  vec3 acceleration = force / attr1.x;
+  if (uMode2D) acceleration.z = 0.0;
+  gl_FragColor = vec4(acceleration, 0.0);
+}
+`;
+}
+
+/** Velocity Verlet, drift: x' = x + v·dt + ½·a·dt². */
+export const VERLET_POSITION_SHADER = `${COMMON_UNIFORMS}
+${BOUNDARY_HELPERS}
+void main() {
+${PARTICLE_HEADER}
+  if (inactive || fixedParticle) {
+    gl_FragColor = positionTexel;
+    return;
+  }
+  vec3 acceleration = texelFetch(uAcceleration, coord1, 0).xyz;
+  vec3 pos = positionTexel.xyz + uTimeStep * velocityTexel.xyz + 0.5 * uTimeStep * uTimeStep * acceleration;
+  gl_FragColor = vec4(confinePosition(pos), positionTexel.w);
+}
+`;
+
+/** Velocity Verlet, kick: v' = v + ½(a + a')·dt, with texturePosition already at x'. */
+export const VERLET_VELOCITY_SHADER = `${COMMON_UNIFORMS}
+${BOUNDARY_HELPERS}
+void main() {
+${PARTICLE_HEADER}
+  if (inactive) {
+    gl_FragColor = velocityTexel;
+    return;
+  }
+  float tau1 = velocityTexel.w;
+  if (fixedParticle) {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, tau1 + uTimeStep);
+    return;
+  }
+  vec3 average = 0.5 * (texelFetch(uAcceleration, coord1, 0).xyz + texelFetch(uAccelerationNext, coord1, 0).xyz);
+  vec3 vel = velocityTexel.xyz + uTimeStep * average;
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz), tau1 + uTimeStep);
+}
+`;
 
 function potentialTerm(force: CompiledForce, index: number): string {
   if (!force.potential) return '';
@@ -169,23 +256,15 @@ void main() {
 `;
 }
 
+/** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity. */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}
+${BOUNDARY_HELPERS}
 void main() {
-  ivec2 coord = ivec2(gl_FragCoord.xy);
-  int index = coord.y * TEXTURE_WIDTH + coord.x;
-  vec4 positionTexel = texelFetch(texturePosition, coord, 0);
-  if (index >= uCount || positionTexel.w == KIND_FIXED) {
+${PARTICLE_HEADER}
+  if (inactive || fixedParticle) {
     gl_FragColor = positionTexel;
     return;
   }
-  vec3 pos = positionTexel.xyz + uTimeStep * texelFetch(textureVelocity, coord, 0).xyz;
-  if (uMode2D) pos.z = 0.0;
-  if (uBoundary == ${BOUNDARY_CODE.sphere}) {
-    float len = length(pos);
-    if (len > uBoundarySize) pos *= uBoundarySize / len;
-  } else if (uBoundary == ${BOUNDARY_CODE.box}) {
-    pos = clamp(pos, vec3(-uBoundarySize), vec3(uBoundarySize));
-  }
-  gl_FragColor = vec4(pos, positionTexel.w);
+  gl_FragColor = vec4(confinePosition(positionTexel.xyz + uTimeStep * velocityTexel.xyz), positionTexel.w);
 }
 `;

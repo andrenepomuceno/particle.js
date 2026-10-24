@@ -17,7 +17,8 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
   `F = -dV/dr` (derivada simbólica).
 - Curto alcance: corte rígido em `cutoff` (`x = r/cutoff` disponível). Longo alcance: sem corte.
 - `softening` ε: a expressão recebe `r = sqrt(r² + ε²)`; a direção usa a distância real.
-- Integrador: Euler semi-implícito (`v += a·dt`, depois `x += v·dt`).
+- Integradores: Velocity Verlet (padrão, 2ª ordem) e Euler semi-implícito; ambos espelhados em
+  `referenceStep.ts`. `npm run parity` compara GPU × CPU.
 
 ## Arquitetura
 

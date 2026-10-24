@@ -20,7 +20,7 @@ An invalid bundled file stops the app at startup.
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
 | `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`) |
-| `settings` | no | any subset of `timeStep`, `friction`, `maxSpeed`, `boundary`, `boundarySize`, `restitution`, `mode2D`; the rest keeps the defaults |
+| `settings` | no | any subset of `timeStep`, `friction`, `maxSpeed`, `boundary`, `boundarySize`, `restitution`, `mode2D`, `integrator` (`verlet` default, `euler`); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
 | `groups` | no | list of particle groups (below) |
 

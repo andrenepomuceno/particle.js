@@ -47,8 +47,7 @@ limit (default 16384).
 Classical mechanics. For every pair, each enabled force contributes a signed magnitude
 `F(r)` along the line joining the particles; **positive pushes them apart**. Short-range
 forces are zero beyond their cutoff; softening ε replaces `r` with `√(r² + ε²)` inside the
-expression. Velocities and positions advance with semi-implicit Euler
-(`v += F/m·dt`, then `x += v·dt`). Details: [docs/forces.md](docs/forces.md).
+expression. Particles advance with velocity Verlet (default) or semi-implicit Euler. Details: [docs/forces.md](docs/forces.md).
 
 ## Scenarios
 

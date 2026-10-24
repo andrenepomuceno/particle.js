@@ -1,6 +1,8 @@
 import type { JsonReader } from './json';
 
 export type BoundaryShape = 'none' | 'sphere' | 'box';
+export const INTEGRATORS = ['verlet', 'euler'] as const;
+export type Integrator = (typeof INTEGRATORS)[number];
 
 export interface SimulationSettings {
   timeStep: number;
@@ -14,6 +16,8 @@ export interface SimulationSettings {
   /** Fraction of the normal velocity kept after bouncing off the boundary. */
   restitution: number;
   mode2D: boolean;
+  /** Velocity Verlet (2nd order, time-reversible) or semi-implicit Euler (1st order). */
+  integrator: Integrator;
 }
 
 export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
@@ -24,6 +28,7 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   boundarySize: 1000,
   restitution: 1,
   mode2D: false,
+  integrator: 'verlet',
 };
 
 export function validateSettings(settings: SimulationSettings): string[] {
@@ -33,6 +38,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   check(Number.isFinite(settings.friction) && settings.friction >= 0, `friction must be >= 0, got ${settings.friction}`);
   check(Number.isFinite(settings.maxSpeed) && settings.maxSpeed >= 0, `maxSpeed must be >= 0, got ${settings.maxSpeed}`);
   check(['none', 'sphere', 'box'].includes(settings.boundary), `unknown boundary '${settings.boundary}'`);
+  check(INTEGRATORS.includes(settings.integrator), `unknown integrator '${settings.integrator}'`);
   check(
     Number.isFinite(settings.boundarySize) && settings.boundarySize > 0,
     `boundarySize must be > 0, got ${settings.boundarySize}`,
@@ -44,7 +50,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'mode2D'] as const;
+const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'mode2D', 'integrator'] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -65,6 +71,7 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
     restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
     mode2D: read('mode2D', (v, p) => json.boolean(v, p), base?.mode2D),
+    integrator: read('integrator', (v, p) => json.oneOf(v, INTEGRATORS, p), base?.integrator),
   };
   const problems = validateSettings(settings);
   if (problems.length > 0) json.fail(path, problems.join('; '));

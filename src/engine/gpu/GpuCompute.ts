@@ -6,7 +6,10 @@ import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import type { ParticleSet } from '../particles';
 import type { SimulationSettings } from '../settings';
-import { BOUNDARY_CODE, generatePotentialShader, generateVelocityShader, POSITION_SHADER } from '../shaders/computeShaders';
+import {
+  BOUNDARY_CODE, generateAccelerationShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
+  VERLET_POSITION_SHADER, VERLET_VELOCITY_SHADER,
+} from '../shaders/computeShaders';
 
 const VERTEX_SHADER = /* glsl */ `
 in vec3 position;
@@ -50,6 +53,10 @@ export class GpuCompute {
   readonly width: number;
   private readonly position: PingPong;
   private readonly velocity: PingPong;
+  /** Velocity Verlet keeps a(x_n) between steps; index follows `current` like position/velocity. */
+  private readonly acceleration: PingPong;
+  private accelerationValid = false;
+  private integrator: SimulationSettings['integrator'] = 'verlet';
   private current = 0;
   private readonly attributes: DataTexture;
   private readonly color: DataTexture;
@@ -60,7 +67,10 @@ export class GpuCompute {
   private readonly potentialTarget: WebGLRenderTarget;
   private potentialStale = false;
   private forceUniforms: Record<string, IUniform>;
+  private accelerationMaterial: RawShaderMaterial;
   private readonly positionMaterial: RawShaderMaterial;
+  private readonly verletPositionMaterial: RawShaderMaterial;
+  private readonly verletVelocityMaterial: RawShaderMaterial;
   private readonly copyMaterial: RawShaderMaterial;
   private forces: readonly CompiledForce[] = [];
   private readonly prelude: string;
@@ -73,6 +83,7 @@ export class GpuCompute {
     }
     this.position = [this.target(), this.target()];
     this.velocity = [this.target(), this.target()];
+    this.acceleration = [this.target(), this.target()];
     this.attributes = this.dataTexture(set.attributes);
     this.color = this.dataTexture(set.color);
     this.sharedUniforms = {
@@ -89,14 +100,20 @@ export class GpuCompute {
       uBoundarySize: { value: 1 },
       uRestitution: { value: 1 },
       uMode2D: { value: false },
+      uAcceleration: { value: null },
+      uAccelerationNext: { value: null },
+      uClockShift: { value: 0 },
     };
     this.positionMaterial = this.material(POSITION_SHADER, this.sharedUniforms);
     this.velocityMaterial = this.material(generateVelocityShader([]), this.sharedUniforms);
+    this.accelerationMaterial = this.material(generateAccelerationShader([]), this.sharedUniforms);
+    this.verletPositionMaterial = this.material(VERLET_POSITION_SHADER, this.sharedUniforms);
+    this.verletVelocityMaterial = this.material(VERLET_VELOCITY_SHADER, this.sharedUniforms);
     this.potentialMaterial = this.material(generatePotentialShader([]), this.sharedUniforms);
     this.potentialTarget = this.target();
     this.forceUniforms = this.sharedUniforms;
     this.copyMaterial = this.material(COPY_SHADER, { uSource: { value: null } });
-    for (const material of [this.positionMaterial, this.velocityMaterial, this.potentialMaterial, this.copyMaterial]) {
+    for (const material of this.programs()) {
       this.validate(material.fragmentShader);
     }
   }
@@ -117,10 +134,12 @@ export class GpuCompute {
     return this.color;
   }
 
-  /** Recompiles the velocity pass. On failure the previous forces stay active. */
+  /** Recompiles the force passes (Euler velocity, Verlet acceleration). On failure the previous forces stay active. */
   setForces(forces: readonly CompiledForce[]): void {
     const source = generateVelocityShader(forces);
+    const accelerationSource = generateAccelerationShader(forces);
     this.validate(this.prelude + source);
+    this.validate(this.prelude + accelerationSource);
     const uniforms: Record<string, IUniform> = { ...this.sharedUniforms };
     forces.forEach((_, index) => {
       for (const name of ['cutoff', 'soft2', ...forces[index]!.definition.params.map((p) => p.name)]) {
@@ -130,6 +149,8 @@ export class GpuCompute {
     const material = this.material(source, uniforms);
     this.velocityMaterial.dispose();
     this.velocityMaterial = material;
+    this.accelerationMaterial.dispose();
+    this.accelerationMaterial = this.material(accelerationSource, uniforms);
     this.forceUniforms = uniforms;
     this.potentialStale = true;
     this.forces = forces;
@@ -152,6 +173,7 @@ export class GpuCompute {
       set('soft2', definition.softening ** 2);
       definition.params.forEach((p) => set(p.name, p.value));
     });
+    this.accelerationValid = false;
   }
 
   setSettings(settings: SimulationSettings): void {
@@ -163,6 +185,8 @@ export class GpuCompute {
     u.uBoundarySize!.value = settings.boundarySize;
     u.uRestitution!.value = settings.restitution;
     u.uMode2D!.value = settings.mode2D;
+    this.integrator = settings.integrator;
+    this.accelerationValid = false;
   }
 
   upload(): void {
@@ -175,17 +199,53 @@ export class GpuCompute {
       this.renderTo(this.copyMaterial, targets[this.current]!);
       source.dispose();
     }
+    this.accelerationValid = false;
   }
 
   step(time: number): void {
+    if (this.integrator === 'verlet') this.stepVerlet(time);
+    else this.stepEuler(time);
+  }
+
+  private stepEuler(time: number): void {
     const next = 1 - this.current;
     const u = this.sharedUniforms;
     u.uTime!.value = time;
+    u.uClockShift!.value = 0;
     u.texturePosition!.value = this.position[this.current]!.texture;
     u.textureVelocity!.value = this.velocity[this.current]!.texture;
     this.renderTo(this.velocityMaterial, this.velocity[next]!);
     u.textureVelocity!.value = this.velocity[next]!.texture;
     this.renderTo(this.positionMaterial, this.position[next]!);
+    this.current = next;
+  }
+
+  /** Drift with a(x_n), evaluate a(x_{n+1}) at time t + dt, then kick with their average. */
+  private stepVerlet(time: number): void {
+    const u = this.sharedUniforms;
+    const dt = u.uTimeStep!.value as number;
+    const now = this.current;
+    const next = 1 - now;
+    if (!this.accelerationValid) {
+      u.uTime!.value = time;
+      u.uClockShift!.value = 0;
+      u.texturePosition!.value = this.position[now]!.texture;
+      u.textureVelocity!.value = this.velocity[now]!.texture;
+      this.renderTo(this.accelerationMaterial, this.acceleration[now]!);
+      this.accelerationValid = true;
+    }
+    u.texturePosition!.value = this.position[now]!.texture;
+    u.textureVelocity!.value = this.velocity[now]!.texture;
+    u.uAcceleration!.value = this.acceleration[now]!.texture;
+    this.renderTo(this.verletPositionMaterial, this.position[next]!);
+
+    u.uTime!.value = time + dt;
+    u.uClockShift!.value = dt;
+    u.texturePosition!.value = this.position[next]!.texture;
+    this.renderTo(this.accelerationMaterial, this.acceleration[next]!);
+
+    u.uAccelerationNext!.value = this.acceleration[next]!.texture;
+    this.renderTo(this.verletVelocityMaterial, this.velocity[next]!);
     this.current = next;
   }
 
@@ -245,11 +305,18 @@ export class GpuCompute {
   }
 
   dispose(): void {
-    [...this.position, ...this.velocity, this.potentialTarget].forEach((target) => target.dispose());
-    [this.velocityMaterial, this.potentialMaterial, this.positionMaterial, this.copyMaterial].forEach((m) => m.dispose());
+    [...this.position, ...this.velocity, ...this.acceleration, this.potentialTarget].forEach((target) => target.dispose());
+    this.programs().forEach((m) => m.dispose());
     this.attributes.dispose();
     this.color.dispose();
     this.quad.dispose();
+  }
+
+  private programs(): RawShaderMaterial[] {
+    return [
+      this.positionMaterial, this.velocityMaterial, this.accelerationMaterial, this.verletPositionMaterial,
+      this.verletVelocityMaterial, this.potentialMaterial, this.copyMaterial,
+    ];
   }
 
   private renderTo(material: RawShaderMaterial, target: WebGLRenderTarget): void {

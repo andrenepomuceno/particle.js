@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
-import type { BoundaryShape } from '../../engine/settings';
+import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
 import { FPS_LIMITS } from '../../app/SimulationController';
 import { SCENARIOS } from '../../scenarios';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
@@ -87,6 +87,7 @@ export function ParametersView() {
   const set = (patch: Parameters<typeof controller.setSettings>[0]) => controller.setSettings(patch);
   return (
     <div className="grid">
+      <SelectField label="Integrator" value={settings.integrator} options={INTEGRATORS} onChange={(integrator) => set({ integrator })} />
       <NumberField label="Time step" value={settings.timeStep} validate={positive} onCommit={(timeStep) => set({ timeStep })} />
       <NumberField label="Friction" value={settings.friction} validate={nonNegative} onCommit={(friction) => set({ friction })} />
       <NumberField label="Max speed (0 = off)" value={settings.maxSpeed} validate={nonNegative} onCommit={(maxSpeed) => set({ maxSpeed })} />

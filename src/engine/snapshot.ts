@@ -5,7 +5,7 @@ import type { Particle, ParticleKind } from './particles';
 import { readSettings, type SimulationSettings } from './settings';
 
 export const SNAPSHOT_FORMAT = 'particle.js-v2/snapshot';
-export const SNAPSHOT_VERSION = 2;
+export const SNAPSHOT_VERSION = 3;
 
 export interface Snapshot {
   format: typeof SNAPSHOT_FORMAT;
@@ -43,6 +43,12 @@ function parseParticle(value: unknown, index: number, version: number): Particle
   };
 }
 
+// Versions 1 and 2 predate the integrator choice and always ran semi-implicit Euler.
+function migrateSettings(settings: unknown, version: number): unknown {
+  if (version >= 3 || typeof settings !== 'object' || settings === null) return settings;
+  return { integrator: 'euler', ...settings };
+}
+
 export function parseSnapshot(text: string): Snapshot {
   return readSnapshot(json.parse(text));
 }
@@ -51,11 +57,11 @@ export function parseSnapshot(text: string): Snapshot {
 export function readSnapshot(value: unknown): Snapshot {
   const o = json.object(value, '$');
   if (o.format !== SNAPSHOT_FORMAT) json.fail('format', `expected '${SNAPSHOT_FORMAT}', got ${JSON.stringify(o.format)}`);
-  const version = json.oneOf(o.version, [1, SNAPSHOT_VERSION] as const, 'version');
+  const version = json.oneOf(o.version, [1, 2, SNAPSHOT_VERSION] as const, 'version');
   return createSnapshot(
     json.string(o.name, 'name'),
     json.finite(o.time, 'time'),
-    readSettings(json, o.settings, 'settings'),
+    readSettings(json, migrateSettings(o.settings, version), 'settings'),
     json.array(o.forces, 'forces').map((f, k) => readForce(json, f, `forces[${k}]`, true)),
     json.array(o.particles, 'particles').map((p, k) => parseParticle(p, k, version)),
   );

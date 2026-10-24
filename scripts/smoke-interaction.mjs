@@ -76,6 +76,11 @@ await withBrowser(async ({ browser, base }) => {
   s = await state();
   check('A toggles axes, Q cycles color', s.axes === false && s.color !== 'charge', s);
 
+  // Force cards start collapsed; an expanded one is remembered for the session.
+  const startsCollapsed = await page.locator('[data-force="Gravity"] textarea').count() === 0;
+  await page.getByRole('button', { name: 'Expand Gravity' }).click();
+  const remembered = await page.evaluate(() => globalThis.sessionStorage.getItem('forces-expanded'));
+  check('Force cards start collapsed and remember expansion', startsCollapsed && remembered === '["Gravity"]', { startsCollapsed, remembered });
   const expr = page.locator('[data-force="Gravity"] textarea');
   await expr.fill('-G * m_i * m_j / r^2 + bogus');
   await expr.press('Control+Enter');

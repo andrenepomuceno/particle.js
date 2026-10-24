@@ -98,6 +98,26 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
   );
 }
 
+const EXPANDED_KEY = 'forces-expanded';
+const RESULTANT = '\u0000resultant';
+
+function readExpanded(): ReadonlySet<string> {
+  try {
+    const saved: unknown = JSON.parse(sessionStorage.getItem(EXPANDED_KEY) ?? '[]');
+    return new Set(Array.isArray(saved) ? saved.filter((n): n is string => typeof n === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeExpanded(names: ReadonlySet<string>): void {
+  try {
+    sessionStorage.setItem(EXPANDED_KEY, JSON.stringify([...names]));
+  } catch {
+    // Storage blocked (private mode, sandbox): the state still works for this view.
+  }
+}
+
 export function ForcesView({ onReference }: { onReference: () => void }) {
   const controller = useController();
   const forces = useAppState((s) => s.forces);
@@ -105,7 +125,13 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
   const forceWarnings = useAppState((s) => s.forceWarnings);
   const shaderError = useAppState((s) => s.shaderError);
   const [preset, setPreset] = useState<ForcePresetId>('gravity');
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  // Collapsed by default; what the user expands is remembered for the session, by force name
+  // (ids are regenerated whenever a scenario loads). RESULTANT is the potential plots' section.
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(readExpanded);
+  const update = (next: ReadonlySet<string>) => {
+    setExpanded(next);
+    writeExpanded(next);
+  };
   // Enabled forces that compile; the ones with errors are reported on their cards instead.
   const active = useMemo(() => forces.filter((f) => f.enabled).flatMap((f): CompiledForce[] => {
     try {
@@ -114,12 +140,12 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
       return [];
     }
   }), [forces]);
-  const toggle = (id: string) => setCollapsed((ids) => {
-    const next = new Set(ids);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return next;
-  });
+  const toggle = (name: string) => {
+    const next = new Set(expanded);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    update(next);
+  };
 
   return (
     <div className="stack">
@@ -127,12 +153,15 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
       {forces.length === 0 && <p className="muted">No forces: particles move freely.</p>}
       {forces.length > 1 && (
         <div className="row">
-          <button className="outlined" onClick={() => setCollapsed(new Set(forces.map((f) => f.id)))}>Collapse all</button>
-          <button className="outlined" onClick={() => setCollapsed(new Set())}>Expand all</button>
+          <button className="outlined" onClick={() => update(new Set([...expanded].filter((n) => n === RESULTANT)))}>Collapse all</button>
+          <button className="outlined" onClick={() => update(new Set([...expanded, ...forces.map((f) => f.name)]))}>Expand all</button>
         </div>
       )}
       {active.length > 0 && (
-        <details className="resultant" open>
+        <details className="resultant" open={expanded.has(RESULTANT)}
+          onToggle={(e) => {
+            if (e.currentTarget.open !== expanded.has(RESULTANT)) toggle(RESULTANT);
+          }}>
           <summary className="section-title">Resultant potential</summary>
           <ResultantPotentialPlot forces={active} range="short" />
           <ResultantPotentialPlot forces={active} range="long" />
@@ -140,7 +169,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
       )}
       {forces.map((force) => (
         <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]}
-          collapsed={collapsed.has(force.id)} onToggle={() => toggle(force.id)} />
+          collapsed={!expanded.has(force.name)} onToggle={() => toggle(force.name)} />
       ))}
       <div className="row">
         <select aria-label="Force preset" value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>

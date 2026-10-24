@@ -6,3 +6,4 @@ playwright-report/
 reports/
 *.local
 .env*
+.claude/

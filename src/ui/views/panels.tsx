@@ -102,7 +102,7 @@ export function ParticleView() {
   const following = useAppState((s) => s.followInspected);
   if (!inspected) return <p className="muted">Click a particle to inspect it.</p>;
   const { index, particle } = inspected;
-  const edit = (patch: Partial<typeof particle>) => controller.updateInspected({ ...particle, ...patch });
+  const edit = (patch: Partial<typeof particle>) => controller.updateInspected(patch);
   const vector = (label: string, value: readonly number[]) => (
     <><dt>{label}</dt><dd>{value.map((v) => format(v, 4)).join(', ')}</dd></>
   );
@@ -129,10 +129,7 @@ export function ParticleView() {
       <div className="row">
         <button className="outlined" onClick={() => controller.toggleFollow()}>{following ? 'Stop following' : 'Follow'} <kbd>F</kbd></button>
         <button className="outlined" onClick={() => edit({ velocity: [0, 0, 0] })}>Stop</button>
-        <button className="danger outlined" onClick={() => {
-          controller.inspect(undefined);
-          controller.editParticles((set) => set.remove([index]));
-        }}>Delete</button>
+        <button className="danger outlined" onClick={() => controller.removeParticles([index])}>Delete</button>
       </div>
     </div>
   );

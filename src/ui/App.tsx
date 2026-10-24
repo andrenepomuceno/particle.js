@@ -30,8 +30,12 @@ const DIALOGS: readonly DialogSpec[] = [
 
 const OPEN_KEY = 'dialogs-open';
 
+const NON_TEXT_INPUTS = new Set(['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file']);
+
 function isTyping(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  if (!(target instanceof HTMLElement)) return false;
+  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.has(target.type);
+  return target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
 }
 
 async function importSnapshotFile(controller: SimulationController, file: File | undefined): Promise<void> {
@@ -103,6 +107,8 @@ function Shell({ controller }: { controller: SimulationController }) {
       const action = ACTIONS.find((a) => a.key === event.key.toLowerCase());
       if (!action) return;
       event.preventDefault();
+      // A focused checkbox or button would also react to Space/Enter; shortcuts win.
+      if (event.target instanceof HTMLElement && event.target !== document.body) event.target.blur();
       try {
         action.run(ctx);
       } catch (error) {

@@ -104,6 +104,13 @@ await page.mouse.move(700, 600);
 await page.keyboard.press('p');
 check('P exports snapshot', (await download).suggestedFilename().endsWith('.json'));
 
+const enable = page.getByLabel('Enable Gravity');
+await enable.click();
+await enable.click();
+const pausedBefore = (await state()).paused;
+await page.keyboard.press(' ');
+check('Space after clicking a checkbox pauses, checkbox untouched', (await state()).paused !== pausedBefore && await enable.isChecked());
+
 await page.keyboard.press('?');
 check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
 await mkdir(path.dirname(out), { recursive: true });

@@ -4,7 +4,7 @@ import { compileForce, ForceValidationError, type CompiledForce } from '../engin
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
-import { ParticleSet, type Particle, type Vec3 } from '../engine/particles';
+import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk, uniform } from '../engine/random';
 import { ParticlePoints, type ColorMode } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
@@ -171,9 +171,6 @@ export class SimulationController {
 
   importSnapshot(text: string): void {
     const snapshot = parseSnapshot(text);
-    if (snapshot.particles.length > this.set.capacity) {
-      throw new Error(`snapshot has ${snapshot.particles.length} particles, capacity is ${this.set.capacity}`);
-    }
     this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
     this.store.set({ scenarioId: '' });
   }
@@ -182,12 +179,13 @@ export class SimulationController {
     if (particles.length > this.set.capacity) {
       throw new Error(`'${name}' needs ${particles.length} particles, capacity is ${this.set.capacity}`);
     }
+    this.setSettings(settings);
+    this.setForces(forces);
+    this.points.setHighlight(undefined);
     this.set.clear();
     this.set.addAll(particles);
     this.cpuStale = false;
     this.store.set({ name, time, inspected: undefined, selection: [], followInspected: false });
-    this.setSettings(settings);
-    this.setForces(forces);
     this.uploadParticles();
   }
 
@@ -341,10 +339,11 @@ export class SimulationController {
     this.store.set({ inspected: { index: inspected.index, particle: this.set.get(inspected.index) } });
   }
 
-  updateInspected(particle: Particle): void {
+  /** Patches the live particle, so fields the GPU keeps changing are never overwritten by a stale copy. */
+  updateInspected(patch: Partial<Particle>): void {
     const inspected = this.state.inspected;
     if (!inspected) throw new Error('no particle is being inspected');
-    this.editParticles((set) => set.set(inspected.index, particle));
+    this.editParticles((set) => set.set(inspected.index, { ...set.get(inspected.index), ...patch }));
   }
 
   toggleFollow(): void {
@@ -352,40 +351,38 @@ export class SimulationController {
   }
 
   /** Returns the particle drawn closest to a canvas pixel, within a pick radius. */
-  pickAt(clientX: number, clientY: number, radiusPx = 12): number | undefined {
+  /** Visits every particle in front of the camera with its client-space pixel position. */
+  private forEachOnScreen(visit: (index: number, x: number, y: number) => void): void {
     this.syncFromGpu();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const point = new Vector3();
-    let best: number | undefined;
-    let bestDistance = radiusPx;
     for (let k = 0; k < this.set.count; k++) {
       point.fromArray(this.set.position, k * 4).project(this.camera);
       if (point.z > 1) continue;
-      const x = rect.left + ((point.x + 1) / 2) * rect.width;
-      const y = rect.top + ((1 - point.y) / 2) * rect.height;
+      visit(k, rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
+    }
+  }
+
+  pickAt(clientX: number, clientY: number, radiusPx = 12): number | undefined {
+    let best: number | undefined;
+    let bestDistance = radiusPx;
+    this.forEachOnScreen((k, x, y) => {
       const distance = Math.hypot(x - clientX, y - clientY);
       if (distance < bestDistance) {
         bestDistance = distance;
         best = k;
       }
-    }
+    });
     return best;
   }
 
   selectInRect(x0: number, y0: number, x1: number, y1: number): void {
-    this.syncFromGpu();
-    const rect = this.renderer.domElement.getBoundingClientRect();
     const [left, right] = [Math.min(x0, x1), Math.max(x0, x1)];
     const [top, bottom] = [Math.min(y0, y1), Math.max(y0, y1)];
-    const point = new Vector3();
     const selection: number[] = [];
-    for (let k = 0; k < this.set.count; k++) {
-      point.fromArray(this.set.position, k * 4).project(this.camera);
-      if (point.z > 1) continue;
-      const x = rect.left + ((point.x + 1) / 2) * rect.width;
-      const y = rect.top + ((1 - point.y) / 2) * rect.height;
+    this.forEachOnScreen((k, x, y) => {
       if (x >= left && x <= right && y >= top && y <= bottom) selection.push(k);
-    }
+    });
     this.store.set({ selection });
     this.notify(`Selected ${selection.length} particle(s)`);
   }
@@ -408,22 +405,25 @@ export class SimulationController {
     this.notify(`Copied ${clipboard.length} particle(s); hold Z and click to place`);
   }
 
+  /** Removal shifts indices, so the index-based selection and inspection are dropped with it. */
+  removeParticles(indices: readonly number[]): void {
+    this.inspect(undefined);
+    this.store.set({ selection: [] });
+    this.editParticles((set) => set.remove(indices));
+  }
+
   deleteSelection(): void {
     const { selection } = this.state;
     if (selection.length === 0) {
       this.notify('Nothing selected: shift+drag to select particles first', 'error');
       return;
     }
-    this.inspect(undefined);
-    this.editParticles((set) => set.remove(selection));
-    this.store.set({ selection: [] });
+    this.removeParticles(selection);
     this.notify(`Deleted ${selection.length} particle(s)`);
   }
 
   deleteAll(): void {
-    this.inspect(undefined);
-    this.editParticles((set) => set.clear());
-    this.store.set({ selection: [] });
+    this.removeParticles(Array.from({ length: this.set.count }, (_, k) => k));
   }
 
   placeClipboard(clientX: number, clientY: number): void {
@@ -478,6 +478,7 @@ export class SimulationController {
     this.editParticles((set) => {
       for (let k = 0; k < set.count; k++) {
         const p = set.get(k);
+        if (p.kind === ParticleKind.fixed) continue;
         const noise = this.state.settings.mode2D ? inDisk(rng, kick) : inSphere(rng, kick);
         set.set(k, { ...p, velocity: p.velocity.map((v, axis) => v * factor + noise[axis]!) as Vec3 });
       }
@@ -531,8 +532,7 @@ export class SimulationController {
       this.store.set({ time: this.state.time + settings.timeStep });
     }
     if (followInspected && inspected) {
-      this.syncFromGpu();
-      const position = this.set.get(inspected.index).position;
+      const position = this.gpu.readPosition(inspected.index);
       const shift = new Vector3(...position).sub(this.controls.target);
       this.controls.target.add(shift);
       this.camera.position.add(shift);

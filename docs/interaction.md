@@ -20,6 +20,7 @@ field; click the canvas to give focus back.
 | V | look down the z axis |
 | L | follow (lock the camera on) the inspected particle |
 | A | show / hide axes |
+| E | show / hide the boundary (sphere or box lines; also in Parameters) |
 | J | show / hide the force field |
 | F | re-fit the field grid to the current view |
 | Q | cycle color mode (charge, color, speed, mass, spin direction (each axis −1…1 → 0…1), parity, nuclear, isospin) |

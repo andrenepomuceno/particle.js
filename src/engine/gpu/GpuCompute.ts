@@ -105,6 +105,7 @@ export class GpuCompute {
       uTimeStep: { value: 1 },
       uTime: { value: 0 },
       uFriction: { value: 0 },
+      uBoundaryDepth: { value: 0 },
       uQuadraticDrag: { value: 0 },
       uMaxSpeed: { value: 0 },
       uBoundary: { value: 0 },
@@ -212,6 +213,7 @@ export class GpuCompute {
     u.uMaxSpeed!.value = settings.maxSpeed;
     u.uBoundary!.value = BOUNDARY_CODE[settings.boundary];
     u.uBoundarySize!.value = settings.boundarySize;
+    u.uBoundaryDepth!.value = settings.boundaryDepth;
     u.uRestitution!.value = settings.restitution;
     // Collisions change which pairs exert forces, so a stored Verlet acceleration goes stale.
     if (u.uCollisionDistance!.value !== settings.collisionDistance) this.accelerationValid = false;

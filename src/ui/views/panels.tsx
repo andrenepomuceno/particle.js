@@ -131,6 +131,7 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
 export function ParametersView() {
   const controller = useController();
   const settings = useAppState((s) => s.settings);
+  const showBoundary = useAppState((s) => s.showBoundary);
   const set = (patch: Parameters<typeof controller.setSettings>[0]) => controller.setSettings(patch);
   return (
     <div className="grid">
@@ -141,8 +142,14 @@ export function ParametersView() {
       <NumberField label="Max speed (0 = off)" value={settings.maxSpeed} validate={nonNegative} onCommit={(maxSpeed) => set({ maxSpeed })} />
       <SelectField<BoundaryShape> label="Boundary" value={settings.boundary} options={['none', 'sphere', 'box']} onChange={(boundary) => set({ boundary })} />
       {settings.boundary !== 'none' && (
+        <CheckField label="Show boundary (E)" checked={showBoundary} onChange={() => controller.toggleBoundary()} />
+      )}
+      {settings.boundary !== 'none' && (
         <>
           <NumberField label="Boundary size" value={settings.boundarySize} validate={positive} onCommit={(boundarySize) => set({ boundarySize })} />
+          {settings.boundary === 'box' && !settings.mode2D && (
+            <NumberField label="Box depth (z, 0 = same)" value={settings.boundaryDepth} validate={nonNegative} onCommit={(boundaryDepth) => set({ boundaryDepth })} />
+          )}
           <NumberField label="Restitution" value={settings.restitution}
             validate={unitInterval} onCommit={(restitution) => set({ restitution })} />
         </>

@@ -15,6 +15,8 @@ export interface SimulationSettings {
   boundary: BoundaryShape;
   /** Sphere radius or box half-size. */
   boundarySize: number;
+  /** Box half-size along z (a slab when smaller than boundarySize); 0 = boundarySize. */
+  boundaryDepth: number;
   /** Fraction of the normal velocity kept after bouncing off the boundary. */
   restitution: number;
   /** Pairs closer than this collide (v1's minimum distance); 0 disables collisions. */
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   maxSpeed: 0,
   boundary: 'none',
   boundarySize: 1000,
+  boundaryDepth: 0,
   restitution: 1,
   collisionDistance: 0,
   collisionRestitution: 1,
@@ -53,6 +56,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
     Number.isFinite(settings.boundarySize) && settings.boundarySize > 0,
     `boundarySize must be > 0, got ${settings.boundarySize}`,
   );
+  check(Number.isFinite(settings.boundaryDepth) && settings.boundaryDepth >= 0, `boundaryDepth must be >= 0 (0 = boundarySize), got ${settings.boundaryDepth}`);
   check(
     Number.isFinite(settings.restitution) && settings.restitution >= 0 && settings.restitution <= 1,
     `restitution must be within [0, 1], got ${settings.restitution}`,
@@ -68,7 +72,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
+const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -89,6 +93,8 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
     maxSpeed: read('maxSpeed', (v, p) => json.finite(v, p), base?.maxSpeed),
     boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
+    // Added after snapshots v4 shipped: an absent key means a cubic box (0).
+    boundaryDepth: read('boundaryDepth', (v, p) => json.finite(v, p), base?.boundaryDepth ?? 0),
     restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
     collisionDistance: read('collisionDistance', (v, p) => json.finite(v, p), base?.collisionDistance),
     collisionRestitution: read('collisionRestitution', (v, p) => json.finite(v, p), base?.collisionRestitution),
@@ -98,4 +104,10 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
   const problems = validateSettings(settings);
   if (problems.length > 0) json.fail(path, problems.join('; '));
   return settings;
+}
+
+/** Box half-sizes per axis: boundarySize in x and y, boundaryDepth (or boundarySize when 0) in z. */
+export function boxHalfSize(settings: Pick<SimulationSettings, 'boundarySize' | 'boundaryDepth'>): [number, number, number] {
+  const { boundarySize: size, boundaryDepth: depth } = settings;
+  return [size, size, depth > 0 ? depth : size];
 }

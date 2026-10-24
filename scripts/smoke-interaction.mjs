@@ -75,6 +75,11 @@ await withBrowser(async ({ browser, base, glMode }) => {
   await page.keyboard.press('q');
   s = await state();
   check('A toggles axes, Q cycles color', s.axes === false && s.color !== 'charge', s);
+  const before = await page.evaluate(() => globalThis.particleController.state.showBoundary);
+  await page.keyboard.press('e');
+  const after = await page.evaluate(() => globalThis.particleController.state.showBoundary);
+  await page.keyboard.press('e');
+  check('E toggles the boundary lines', before === true && after === false, { before, after });
 
   // Force cards start collapsed; an expanded one is remembered for the session.
   const startsCollapsed = await page.locator('[data-force="Gravity"] textarea').count() === 0;

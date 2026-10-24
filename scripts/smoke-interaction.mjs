@@ -22,7 +22,7 @@ await withBrowser(async ({ browser, base }) => {
   await page.goto(`${base}?scenario=sandbox`);
   await page.waitForTimeout(800);
   check('About shows on first visit', await page.locator('[data-dialog="about"]').count() === 1);
-  await page.locator('[data-dialog="about"] button').click();
+  await page.getByRole('button', { name: 'Close About' }).click();
   await page.mouse.move(700, 600);
   await page.keyboard.press('g');
   await page.waitForTimeout(300);

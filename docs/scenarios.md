@@ -75,8 +75,8 @@ multiple of `size`; with a `grid` shape each cluster takes one site.
 every group with `scale: true` grows or shrinks proportionally (whole clusters only) at **constant
 density** — disks, shells and flat boxes grow by √factor, spheres and 3D boxes by ∛factor, grids
 gain columns/rows/layers — and the boundary size and camera distance follow the largest length
-factor, rounded to whole cycles of the group's `{ "cycle" }` values (and its cluster size) so the mix stays
-balanced. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
+factor. Scaled counts are rounded to whole cycles of the group's `{ "cycle" }` values (and its
+cluster size) so the mix stays balanced. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
 or the particles of one atom.
 
 `count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `charge2`,

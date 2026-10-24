@@ -267,6 +267,33 @@ void main() {
 `;
 }
 
+/**
+ * Field probes: the net force on a test particle (uniform attributes, clock 0) at each probe
+ * position, written as (F, |F|). Calls the same generated totalForce with index1 = -1, so it
+ * matches no real particle; probes never enter the particle textures.
+ */
+export function generateFieldShader(forces: readonly CompiledForce[]): string {
+  return `${COMMON_UNIFORMS}
+uniform sampler2D uProbePositions;
+uniform int uProbeWidth;
+uniform int uProbeCount;
+uniform vec4 uProbeAttributes;
+uniform vec4 uProbeColor;
+${totalForceFunction(forces)}
+
+void main() {
+  ivec2 coord = ivec2(gl_FragCoord.xy);
+  if (coord.y * uProbeWidth + coord.x >= uProbeCount) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  vec3 pos = texelFetch(uProbePositions, coord, 0).xyz;
+  vec3 force = totalForce(-1, pos, uProbeAttributes, uProbeColor, 0.0);
+  gl_FragColor = vec4(force, length(force));
+}
+`;
+}
+
 /** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity. */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}
 ${POSITION_HELPERS}

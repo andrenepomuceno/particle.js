@@ -64,6 +64,36 @@ const failures = await withBrowser(async ({ browser, base }) => {
       console.log(`${ok ? 'PASS' : 'FAIL'} ${testCase.name} / ${integrator}: max |Δx| = ${deviation.toExponential(2)} (tolerance ${testCase.tolerance})`);
     }
   }
+  const field = await page.evaluate(async ({ scenario }) => {
+    const { referenceField } = await import('/src/engine/cpu/field.ts');
+    const { ParticleSet } = await import('/src/engine/particles.ts');
+    const c = globalThis.particleController;
+    c.importFile(scenario, 'field.json');
+    c.store.set({ paused: true });
+    const particles = c.readParticles();
+    const cpu = new ParticleSet(particles.length);
+    cpu.addAll(particles);
+    const positions = new Float32Array(Array.from({ length: 300 * 3 }, (_, k) => (k % 3 === 2 ? 0.5 : ((k * 7919) % 97) - 48)));
+    const probe = { mass: 1.5, charge: -2, spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
+    // GpuCompute is private to the controller; the probe pass is driven directly, bypassing the view.
+    c.gpu.setProbes(positions);
+    const gpu = c.gpu.computeField(c.state.time, probe);
+    const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time);
+    let worst = 0;
+    let largest = 0;
+    gpu.forEach((m, p) => {
+      const exact = Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]);
+      largest = Math.max(largest, exact);
+      worst = Math.max(worst, Math.abs(m - exact));
+    });
+    return { relative: worst / largest, largest };
+  }, { scenario: JSON.stringify({
+    format: 'particle.js-v2/scenario', version: 1, id: 'field', name: 'field', seed: 1,
+    forces: CASES[1].forces, groups: GROUPS['short-range LJ + Coulomb, box'],
+  }) });
+  const fieldOk = field.relative <= 1e-4 && field.largest > 0;
+  if (!fieldOk) failed++;
+  console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes vs referenceField: max |Δ|F|| / max |F| = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
   if (problems.length) console.log(JSON.stringify({ problems }));
   return failed + problems.length;
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { compileForce, forceScope, forceToGlsl, ForceValidationError, type PairScope } from '../src/engine/forces/compile';
 import { makeForce } from './helpers';
-import { generateVelocityShader, POSITION_SHADER } from '../src/engine/shaders/computeShaders';
+import { generateFieldShader, generateVelocityShader, POSITION_SHADER } from '../src/engine/shaders/computeShaders';
 
 
 const pair: PairScope = {
@@ -80,6 +80,13 @@ describe('GLSL generation', () => {
     expect(shader).toContain('uniform float uF0_k;');
     expect(shader).toContain('if (dist < uF1_cutoff) magnitude += force1(');
     expect(shader).toContain('texelFetch(textureVelocity, coord2, 0).w');
+  });
+
+  it('evaluates the field with the shared totalForce for a test particle that matches no index', () => {
+    const shader = generateFieldShader([compileForce(makeForce())]);
+    expect(shader).toContain('float force0(');
+    expect(shader.match(/vec3 totalForce\(/g)).toHaveLength(1);
+    expect(shader).toContain('totalForce(-1, pos, uProbeAttributes, uProbeColor, 0.0)');
   });
 
   it('skips the clock fetch when no force reads t_j', () => {

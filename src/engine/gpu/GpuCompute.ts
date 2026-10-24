@@ -1,13 +1,14 @@
 import {
   ClampToEdgeWrapping, DataTexture, FloatType, GLSL3, NearestFilter, RawShaderMaterial, RGBAFormat,
-  WebGLRenderTarget, type IUniform, type Texture, type WebGLRenderer,
+  Vector4, WebGLRenderTarget, type IUniform, type Texture, type WebGLRenderer,
 } from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
+import type { FieldProbe } from '../field';
 import type { ParticleSet } from '../particles';
 import type { SimulationSettings } from '../settings';
 import {
-  BOUNDARY_CODE, generateAccelerationShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
+  BOUNDARY_CODE, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
   VERLET_POSITION_SHADER, VERLET_VELOCITY_SHADER,
 } from '../shaders/computeShaders';
 
@@ -66,6 +67,10 @@ export class GpuCompute {
   private potentialMaterial: RawShaderMaterial;
   private readonly potentialTarget: WebGLRenderTarget;
   private potentialStale = false;
+  private fieldMaterial: RawShaderMaterial;
+  private fieldStale = false;
+  private readonly probeUniforms: Record<string, IUniform>;
+  private probes: { width: number; count: number; positions: DataTexture; target: WebGLRenderTarget } | undefined;
   private forceUniforms: Record<string, IUniform>;
   private accelerationMaterial: RawShaderMaterial;
   private readonly positionMaterial: RawShaderMaterial;
@@ -111,6 +116,14 @@ export class GpuCompute {
     this.verletVelocityMaterial = this.material(VERLET_VELOCITY_SHADER, this.sharedUniforms);
     this.potentialMaterial = this.material(generatePotentialShader([]), this.sharedUniforms);
     this.potentialTarget = this.target();
+    this.probeUniforms = {
+      uProbePositions: { value: null },
+      uProbeWidth: { value: 1 },
+      uProbeCount: { value: 0 },
+      uProbeAttributes: { value: new Vector4() },
+      uProbeColor: { value: new Vector4() },
+    };
+    this.fieldMaterial = this.material(generateFieldShader([]), { ...this.sharedUniforms, ...this.probeUniforms });
     this.forceUniforms = this.sharedUniforms;
     this.copyMaterial = this.material(COPY_SHADER, { uSource: { value: null } });
     for (const material of this.programs()) {
@@ -153,6 +166,7 @@ export class GpuCompute {
     this.accelerationMaterial = this.material(accelerationSource, uniforms);
     this.forceUniforms = uniforms;
     this.potentialStale = true;
+    this.fieldStale = true;
     this.forces = forces;
     this.setForceValues(forces);
   }
@@ -289,6 +303,80 @@ export class GpuCompute {
     this.potentialStale = false;
   }
 
+  /** Replaces the probe grid (xyz per probe). Probes live in their own textures, never in the particle set. */
+  setProbes(positions: Float32Array): void {
+    const count = positions.length / 3;
+    if (!Number.isInteger(count) || count === 0) throw new Error(`probe positions must hold xyz for at least one probe, got ${positions.length} values`);
+    const width = textureWidthFor(count);
+    if (this.probes?.width !== width) {
+      this.disposeProbes();
+      const data = new Float32Array(width * width * 4);
+      this.probes = { width, count, positions: this.dataTexture(data, width), target: this.target(width) };
+    }
+    const probes = this.probes!;
+    probes.count = count;
+    const data = probes.positions.image.data as Float32Array;
+    data.fill(0);
+    for (let k = 0; k < count; k++) data.set(positions.subarray(k * 3, k * 3 + 3), k * 4);
+    probes.positions.needsUpdate = true;
+  }
+
+  get probeTexture(): Texture {
+    if (!this.probes) throw new Error('no probe grid; call setProbes first');
+    return this.probes.positions;
+  }
+
+  /** (F, |F|) per probe after computeField. */
+  get fieldTexture(): Texture {
+    if (!this.probes) throw new Error('no probe grid; call setProbes first');
+    return this.probes.target.texture;
+  }
+
+  get probeWidth(): number {
+    return this.probes?.width ?? 1;
+  }
+
+  /** Runs the probe pass for the test particle and returns |F| per probe (the field stays on the GPU for drawing). */
+  computeField(time: number, probe: FieldProbe): Float32Array {
+    if (!this.probes) throw new Error('no probe grid; call setProbes first');
+    this.buildFieldPass();
+    const { width, count, positions, target } = this.probes;
+    const p = this.probeUniforms;
+    p.uProbePositions!.value = positions;
+    p.uProbeWidth!.value = width;
+    p.uProbeCount!.value = count;
+    (p.uProbeAttributes!.value as Vector4).set(probe.mass, probe.charge, probe.spin, probe.parity);
+    (p.uProbeColor!.value as Vector4).set(...probe.color, probe.nuclearCharge);
+    const u = this.sharedUniforms;
+    u.uTime!.value = time;
+    u.uClockShift!.value = 0;
+    u.texturePosition!.value = this.position[this.current]!.texture;
+    u.textureVelocity!.value = this.velocity[this.current]!.texture;
+    this.renderTo(this.fieldMaterial, target);
+    const rows = Math.ceil(count / width);
+    const buffer = new Float32Array(rows * width * 4);
+    this.renderer.readRenderTargetPixels(target, 0, 0, width, rows, buffer);
+    const magnitudes = new Float32Array(count);
+    for (let k = 0; k < count; k++) magnitudes[k] = buffer[k * 4 + 3]!;
+    return magnitudes;
+  }
+
+  // Lazy for the same reasons as the potential pass: only the field view reads it.
+  private buildFieldPass(): void {
+    if (!this.fieldStale) return;
+    const source = generateFieldShader(this.forces);
+    this.validate(this.prelude + source);
+    this.fieldMaterial.dispose();
+    this.fieldMaterial = this.material(source, { ...this.forceUniforms, ...this.probeUniforms });
+    this.fieldStale = false;
+  }
+
+  private disposeProbes(): void {
+    this.probes?.positions.dispose();
+    this.probes?.target.dispose();
+    this.probes = undefined;
+  }
+
   /** Reads the current velocities (vx, vy, vz, clock per particle) without touching the ParticleSet. */
   readVelocities(): Float32Array {
     const rows = Math.ceil(this.set.count / this.width);
@@ -308,6 +396,7 @@ export class GpuCompute {
   dispose(): void {
     [...this.position, ...this.velocity, ...this.acceleration, this.potentialTarget].forEach((target) => target.dispose());
     this.programs().forEach((m) => m.dispose());
+    this.disposeProbes();
     this.attributes.dispose();
     this.color.dispose();
     this.quad.dispose();
@@ -316,7 +405,7 @@ export class GpuCompute {
   private programs(): RawShaderMaterial[] {
     return [
       this.positionMaterial, this.velocityMaterial, this.accelerationMaterial, this.verletPositionMaterial,
-      this.verletVelocityMaterial, this.potentialMaterial, this.copyMaterial,
+      this.verletVelocityMaterial, this.potentialMaterial, this.fieldMaterial, this.copyMaterial,
     ];
   }
 
@@ -354,8 +443,8 @@ export class GpuCompute {
     });
   }
 
-  private target(): WebGLRenderTarget {
-    return new WebGLRenderTarget(this.width, this.width, {
+  private target(width = this.width): WebGLRenderTarget {
+    return new WebGLRenderTarget(width, width, {
       type: FloatType,
       format: RGBAFormat,
       minFilter: NearestFilter,
@@ -366,8 +455,8 @@ export class GpuCompute {
     });
   }
 
-  private dataTexture(data: Float32Array): DataTexture {
-    const texture = new DataTexture(data, this.width, this.width, RGBAFormat, FloatType);
+  private dataTexture(data: Float32Array, width = this.width): DataTexture {
+    const texture = new DataTexture(data, width, width, RGBAFormat, FloatType);
     texture.needsUpdate = true;
     return texture;
   }

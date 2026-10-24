@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileForce } from '../src/engine/forces/compile';
-import { DEFAULT_PLOT_PARTICLES, plotPair, resultantPotential } from '../src/engine/forces/resultant';
+import { appliedForce, DEFAULT_PLOT_PARTICLES, plotPair, resultantPotential } from '../src/engine/forces/resultant';
 import { makeForce } from './helpers';
 
 const at = (curve: ReturnType<typeof resultantPotential>, d: number) => {
@@ -32,15 +32,15 @@ describe('resultantPotential', () => {
     expect(resultantPotential([gravity], 'short')).toBeUndefined();
   });
 
-  it('integrates softened potentials from the applied force, matching the same law in force mode', () => {
-    const potential = compileForce(makeForce({ id: 'p', name: 'P', mode: 'potential', softening: 5, expression: 'k * q_i * q_j / r', params: [{ name: 'k', value: 2 }] }));
-    const force = compileForce(makeForce({ id: 'f', name: 'F', softening: 5, expression: 'k * q_i * q_j / r^2', params: [{ name: 'k', value: 2 }] }));
-    const a = resultantPotential([potential], 'long', { samples: 2000 })!;
-    const b = resultantPotential([force], 'long', { samples: 2000 })!;
-    expect(a.integrated).toEqual(['P']);
-    // Same applied force, so the same shape; P is anchored to its exact V at the right edge, F to 0.
-    const offset = 2 / Math.hypot(100, 5);
-    for (const d of [1, 10, 60]) expect(at(a, d) - offset).toBeCloseTo(at(b, d), 6);
+  it('plots a softened potential exactly: its slope is the applied force', () => {
+    const potential = compileForce(makeForce({ mode: 'potential', softening: 5, expression: 'k * q_i * q_j / r', params: [{ name: 'k', value: 2 }] }));
+    const curve = resultantPotential([potential], 'long', { samples: 2000 })!;
+    expect(curve.integrated).toEqual([]);
+    const h = curve.points[1]!.d - curve.points[0]!.d;
+    for (const k of [20, 200, 1500]) {
+      const slope = -(curve.points[k + 1]!.v - curve.points[k - 1]!.v) / (2 * h);
+      expect(slope).toBeCloseTo(appliedForce(potential, curve.points[k]!.d), 5);
+    }
   });
 
   it('uses the given pair and distance range', () => {

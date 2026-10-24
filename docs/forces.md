@@ -10,7 +10,9 @@ contributes a signed scalar `F` along `(x_i − x_j) / d`:
 - **Short range**: applied only when `d < cutoff`. The cut is hard (no smoothing), so a
   potential that is not zero at the cutoff produces a force step there.
 - **Softening** ε: the expression receives `r = √(d² + ε²)`; the direction still uses the
-  real `d`. Use it to keep `1/r²`-type forces finite at close range.
+  real `d`. Use it to keep `1/r²`-type forces finite at close range. In force mode `F(r)` is
+  applied as written. In potential mode the force is the exact gradient of the softened V:
+  `F = −dV/dd = −V'(r)·d/r` (Plummer softening), so energy is conserved even inside ε.
 - Coincident particles (`d = 0`) do not interact.
 
 Two integrators (Parameters → Integrator), both one force evaluation per step:
@@ -36,8 +38,7 @@ short-range potential `x` is expanded to `r / cutoff` before differentiating.
 (Δx = x_i − x_j) or the spin projections `si_r`, `sj_r` is a function of Δx, and its force is the
 full gradient `F_i = −∇_Δx V`, not a magnitude along r̂: non-central forces such as the magnetic
 dipole–dipole interaction. `r` inside it is `√(Δx² + ε²)`, so softening gives the exact gradient
-of the softened V (Plummer); a central force instead applies `−V'(r_soft)` along r̂, which equals
-it only without softening. With fixed spins V depends on positions alone, so energy is conserved;
+of the softened V (Plummer), as for central potentials. With fixed spins V depends on positions alone, so energy is conserved;
 momentum is conserved when V is symmetric under swapping the particles (Δx → −Δx with i ↔ j),
 as the dipole is. Orbital angular momentum is not (the torque on the spins is not modelled).
 `dx`, `dy`, `dz` are rejected in force mode.

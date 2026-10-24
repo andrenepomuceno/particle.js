@@ -178,13 +178,21 @@ function withProgram<T>(def: ForceDefinition, build: () => T): T {
   }
 }
 
+/**
+ * A potential is a function of the softened r = √(d² + ε²), so its exact force along r̂ is
+ * −dV/dd = −V'(r)·d/r (Plummer softening; energy is conserved). d/r = √(r² − ε²)/r is 1 without
+ * softening; it is built from soft2 so the factor follows softening changes without a recompile.
+ */
 function buildCentral(def: ForceDefinition, inR: Expr, names: string[]): Built {
+  const parameters = def.mode === 'potential' ? [...new Set([...names, 'soft2'])] : names;
   return withProgram(def, () => {
-    const program = createProgram({ variables: ['r'], parameters: names, limits: LIMITS });
+    const program = createProgram({ variables: ['r'], parameters, limits: LIMITS });
     const source = program.expression(librarySource(inR));
     const potential = def.mode === 'potential' ? source : undefined;
-    const magnitude = potential === undefined ? source : program.neg(program.derivative(potential, 'r'));
-    return { program, variables: ['r'], parameters: names, force: [magnitude], radial: magnitude, potential };
+    const magnitude = potential === undefined
+      ? source
+      : program.mul(program.neg(program.derivative(potential, 'r')), program.expression('sqrt(max(r*r - soft2, 0)) / r'));
+    return { program, variables: ['r'], parameters, force: [magnitude], radial: magnitude, potential };
   });
 }
 

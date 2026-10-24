@@ -139,7 +139,7 @@ describe('GLSL generation', () => {
 
   it('reads only what the differentiated force uses', () => {
     const force = compileForce(makeForce({ mode: 'potential', expression: 'q_i * q_j * t_j + k / r', params: [{ name: 'k', value: 1 }] }));
-    expect([...force.reads].sort()).toEqual(['k']);
+    expect([...force.reads].sort()).toEqual(['k', 'soft2']);
     expect([...force.potentialReads].sort()).toEqual(['k', 'q_i', 'q_j', 't_j']);
   });
 

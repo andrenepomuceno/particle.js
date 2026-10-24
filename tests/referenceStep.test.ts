@@ -55,6 +55,19 @@ describe('referenceStep (Euler)', () => {
     expect(set.get(0).velocity[0]).toBeCloseTo(-5, 6);
   });
 
+  it('conserves energy for a softened potential through a close encounter (Plummer gradient)', () => {
+    const soft = compileForce(makeForce({ mode: 'potential', softening: 1, expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 1 }] }));
+    // A near head-on pass at impact parameter 0.2, well inside the softening length.
+    const set = setOf(defaultParticle({ position: [-5, 0.1, 0], velocity: [0.5, 0, 0] }), defaultParticle({ position: [5, -0.1, 0], velocity: [-0.5, 0, 0] }));
+    const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [soft], 0), [soft], false);
+    const start = energy();
+    const state = {};
+    for (let k = 0; k < 4000; k++) referenceStep(set, [soft], settings({ integrator: 'verlet', timeStep: 0.005 }), k * 0.005, state);
+    const end = energy();
+    expect(Math.abs(end.kinetic + end.potential - (start.kinetic + start.potential))).toBeLessThan(1e-4);
+    expect(set.get(0).position[0]).toBeGreaterThan(0);
+  });
+
   it('keeps fixed particles still while advancing their clock', () => {
     const set = setOf(defaultParticle({ kind: ParticleKind.fixed, velocity: [1, 1, 1] }), defaultParticle({ position: [1, 0, 0] }));
     referenceStep(set, [gravity], settings(), 0);

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Softened potentials: the force is now the exact gradient of the softened V, `−V'(r)·d/r`
+  (Plummer), so potential-mode forces conserve energy even inside ε. Force mode is unchanged;
+  scenarios with softened potentials move slightly differently at close range.
 - Forces dialog: resultant potential of the enabled forces, short and long range plotted apart, with
   an editable sample pair and range; cards start collapsed and remember what was expanded.
 - About: *Quick guide* tab.

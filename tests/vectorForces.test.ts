@@ -50,11 +50,10 @@ describe('vector forces from V(Δx)', () => {
     expect(Math.abs(force[0]! * pair.uy - force[1]! * pair.ux)).toBeGreaterThan(1e-3);
   });
 
-  // Without softening; with it, a vector force is the exact gradient of the softened V (Plummer),
-  // while a central one applies −V'(r_soft) along r̂ (documented in docs/forces.md).
+  // Both are exact gradients of the softened V (Plummer), so they agree with softening too.
   it('reduces to the central force for an isotropic V written in dx, dy, dz', () => {
-    const central = compileForce(makeForce({ mode: 'potential', expression: 'k * q_i * q_j / r' }));
-    const vector = compileForce(makeForce({ mode: 'potential', expression: 'k * q_i * q_j / sqrt(dx^2 + dy^2 + dz^2)' }));
+    const central = compileForce(makeForce({ mode: 'potential', softening: 0.5, expression: 'k * q_i * q_j / r' }));
+    const vector = compileForce(makeForce({ mode: 'potential', softening: 0.5, expression: 'k * q_i * q_j / sqrt(dx^2 + dy^2 + dz^2 + 0.25)' }));
     expect([central.vector, vector.vector]).toEqual([false, true]);
     const set = setOf(A, B);
     const pair = pairScope(set, 0, 1, 0);
@@ -64,7 +63,7 @@ describe('vector forces from V(Δx)', () => {
       addPairForce([central], pair, dist, c);
       addPairForce([vector], pair, dist, v);
       v.forEach((value, k) => expect(value).toBeCloseTo(c[k]!, 10));
-      expect(vector.evaluate(forceScope(vector, pair, dist))).toBeCloseTo(c[0]! / pair.ux, 10);
+      expect(vector.evaluate(forceScope(vector, pair, dist))).toBeCloseTo(central.evaluate(forceScope(central, pair, dist)), 10);
     }
   });
 

@@ -15,3 +15,10 @@ Why it matters here:
 Plan: spike behind the existing interface (compileForce → magnitude GLSL + JS evaluate), keep our
 variable catalogue/validation messages, run unit tests + `npm run parity`; then decide on the
 vector-force extension. After the v1 scenarios + timeline work.
+
+## Decision (2026-10-24)
+
+The user agreed a general Lagrangian adds nothing over force + potential modes (for pair forces
+Euler–Lagrange gives F = −dV/dr). Go ahead with: (1) this adoption, then (2) potentials of the full
+relative position V(Δx) with the vector force F = −∇V (non-central: spin dipole angular part,
+si_r/sj_r in potential mode). Velocity-dependent forces: see `velocity-dependent-forces.md`.

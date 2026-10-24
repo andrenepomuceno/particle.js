@@ -63,9 +63,11 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
 - Tarefas: um `.md` por tarefa em `tasks/inbox/`; ao concluir, escreva a seção `## Result`
   e mova com `git mv` para `tasks/done/`. Pedidos no meio de uma tarefa viram tarefa na hora.
 - Commits pequenos, conventional commits em inglês, mensagem via `git commit -F`, stage explícito,
-  sem trailers de coautoria. Suíte verde antes de cada commit. Push só sob pedido.
+  sem trailers de coautoria. Suíte verde antes de cada commit.
+- **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/main` sempre que
+  um lote estiver commitado, verde e revisado. Nunca force push nem reescreva histórico publicado.
 - **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados.
-- Subagentes: no máximo 3, preferencialmente 1 por vez (WSL); os que escrevem usam worktree.
+- Subagentes: no máximo 3, sem filhos; os que escrevem usam worktree. Escolha o modelo mais adequado para a tarefa.
 - Documentação (`README.md`, `docs/`, este arquivo) muda no mesmo commit do comportamento.
 - Automação repetitiva de CLI vai para `scripts/`.
 - Fase atual: **MVP**. Testes completos/gate de cobertura/e2e estão em `tasks/inbox/`.

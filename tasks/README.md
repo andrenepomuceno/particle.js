@@ -8,8 +8,9 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 2. ~~`color-charge-su3-plane.md`~~ (done)
 3. ~~`particle-style-spherow.md`~~ (done)
 4. ~~`nuclear-charge-and-hadron-scenario.md`~~ (done)
-5. `stats-dialog.md`
-6. `field-visualization.md`
-7. `short-range-neighbor-grid.md` + `benchmark-script.md`
-8. `test-suite-and-coverage-gate.md`
-9. Later: `collisions.md`, `integrator-options.md`, `velocity-dependent-forces.md`, `recording-and-ruler.md`
+5. ~~`stats-dialog.md`~~ (done)
+6. `integrator-options.md` (raised by the user on 2026-10-24)
+7. `field-visualization.md`
+8. `short-range-neighbor-grid.md` + `benchmark-script.md`
+9. `test-suite-and-coverage-gate.md`
+10. Later: `collisions.md`, `velocity-dependent-forces.md`, `recording-and-ruler.md`

@@ -165,6 +165,10 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
 .chart-legend b { color: var(--ink-1); font-weight: 500; }
 .chart-note { margin: 2px 0 0; color: var(--ink-3); font-size: 11px; }
 
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.tabs .tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 4px 10px; color: var(--ink-2); }
+.tabs .tab.active { color: var(--ink-1); border-bottom-color: var(--plot-line); }
+
 .reference { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 0; }
 .reference dt { color: var(--ink-1); }
 .reference dd { margin: 0; color: var(--ink-2); }

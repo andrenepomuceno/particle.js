@@ -39,6 +39,8 @@ field; click the canvas to give focus back.
 The About entry in the top menu describes the project, how to start, the version and the
 repository link. It opens by itself on the first visit only (flag `about-seen` in
 localStorage) and is never restored from the saved list of open dialogs.
+Its *Quick guide* tab walks through the main tasks (watch, touch the particles, write the physics,
+see the field, keep and share) with their keys.
 
 ## Mouse
 

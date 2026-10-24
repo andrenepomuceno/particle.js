@@ -1,7 +1,7 @@
 {
   "name": "particle.js",
   "short_name": "particle.js",
-  "description": "Classical n-body particle simulator with user-defined forces compiled to GPU shaders.",
+  "description": "Classical, non-relativistic n-body particle physics simulator with user-defined forces compiled to GPU shaders.",
   "icons": [
     { "src": "android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }
   ],

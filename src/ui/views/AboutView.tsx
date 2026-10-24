@@ -61,7 +61,7 @@ function AboutTab() {
   return (
     <div className="about">
       <p>
-        <b>particle.js</b> is a classical n-body simulator that runs in your browser. The forces and
+        <b>particle.js</b> is a classical, non-relativistic n-body particle physics simulator that runs in your browser. The forces and
         potentials between particles are expressions you write yourself; they are compiled to GLSL and
         evaluated for every pair in parallel on the GPU.
       </p>

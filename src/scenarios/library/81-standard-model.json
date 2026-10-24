@@ -1,0 +1,31 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "standard-model",
+  "name": "Standard Model",
+  "folder": "Experiments",
+  "description": "v1's Standard Model 3: 10000 particles of four kinds (neutrino-like m = 0.01, electron, up and down quark) with random ±1 nuclear charge in a 2e4 disk, under v1's powAX nuclear force (pull below 0.25 of the 1e4 range, push beyond) and Coulomb, inside a reflecting circle. Gravity (G = 1e-3) is negligible and omitted.",
+  "seed": 1,
+  "view": { "cameraDistance": 100000, "particleRadius": 100, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "mode2D": true, "boundary": "sphere", "boundarySize": 250000, "restitution": 0.9 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 powAX)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "-k * n_i * n_j * sin(A * (1 - B^x))",
+      "params": [{ "name": "k", "value": 1 }, { "name": "A", "value": 7.22423 }, { "name": "B", "value": 0.13026 }]
+    },
+    { "preset": "coulomb", "softening": 1, "params": { "k": 1 } }
+  ],
+  "groups": [
+    {
+      "count": 10000,
+      "shape": { "type": "disk", "radius": 20000 },
+      "mass": { "cycle": [0.01, 0.511, 3, 6] },
+      "charge": { "cycle": [0, -1, 0.66667, -0.33333] },
+      "nuclearCharge": { "choice": [-1, 1] }
+    }
+  ]
+}

@@ -42,7 +42,12 @@ function units({ M, KG, S, C }) {
 // attraction; v2 counts positive as repulsion, hence the leading minus sign.
 const POW_AX_V2 = '-k * n_i * n_j * sin(A * (1 - B^x))';
 const POW_AX_V3 = '-k * n_i * n_j * sin(A * (1 - B^x)) * a * exp(-a * x)';
+const FORCE_MAP_2 = '-k * n_i * n_j * (a * exp(-x / b) - c * x)';
 const FORCE_MAP_1 = '-k * n_i * n_j * (1 - 2 * step(0.5, x))';
+// v1 color charge: a constant pull of 2/3 between different colors and a push of 1 between
+// equal colors inside the nuclear range, scaled by both nuclear charges; uncolored particles
+// do not take part. same = 1 for equal colors, both = 1 when both particles carry a color.
+const V1_COLOR = 'k * n_i * n_j * (5 * (cr_i * cr_j + cg_i * cg_j + cb_i * cb_j) - 2 * (cr_i + cg_i + cb_i) * (cr_j + cg_j + cb_j)) / 3';
 
 function nuclearForce(name, expression, cutoff, k, extra) {
   return {
@@ -250,6 +255,39 @@ function scenario(file, meta) {
   return { file, json: { format: 'particle.js-v2/scenario', version: 1, ...meta } };
 }
 
+function welcome() {
+  // forceMap.js welcome(): the nuclear range of 3 fm is 1e4 length units.
+  const M = (10 / 3) * 1e18;
+  const S = 5e26;
+  const KG = (10 / 9.1093837015) * 1e29;
+  const C = (1 / 1.602176634) * 1e21;
+  const u = units({ M, KG, S, C });
+  const strong = sig(10e3 * KG * M * S ** -2);
+  const nq = 10;
+  const quarks = nucleonQuarks(u, nq);
+  const electron = type(u.electron, -u.e, sig(-nq / 6));
+  const range = u.range;
+  const { rects, count } = textRectangles(['Welcome', 'to', 'particle.js !'], 2, 20);
+  return scenario('60-welcome.json', {
+    id: 'welcome',
+    name: 'Welcome',
+    folder: 'Force Map',
+    description:
+      `v1's opening scene: ${count} pixels of text, each a nucleus of six colored quarks (uud + udd) with two electrons, ` +
+      "held by v1's force map 2 (Yukawa pull minus a linear push) and its constant color force inside 3 fm. " +
+      "v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass. v1's random force noise and the text font are not reproduced; gravity (G ≈ 9e-38) is negligible and omitted.",
+    seed: 1,
+    view: { cameraDistance: 800000, particleRadius: 600, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true, maxSpeed: sig(299792458 * (M / S) * 100), friction: sig(1e-6 / ((u.up + u.down) / 2)) },
+    forces: [
+      nuclearForce('Nuclear (v1 force map 2)', FORCE_MAP_2, range, strong, { a: 1, b: 0.1, c: 1 }),
+      { name: 'Color (v1)', mode: 'force', range: 'short', cutoff: range, expression: V1_COLOR, params: [{ name: 'k', value: strong }] },
+      coulomb(u.coulomb, 1),
+    ],
+    groups: textGroups(rects, range, 2, quarks, 1, electron, 2, 0.05 * range, (2 / 3) * range),
+  });
+}
+
 function planetoidFormation() {
   // record.js planetoidFormation(): v1 replaced the SI constants by G = 0.1, k = 1e-4, nuclear 3.
   const M = 1e18;
@@ -425,6 +463,31 @@ function essentialElements() {
   });
 }
 
+function periodicTable() {
+  const u = QUARK_UNITS;
+  const range = u.range;
+  const r2 = 0.493 * range;
+  const nucleus = [type(u.proton, u.e, 1), type(u.neutron, 0, 1)];
+  const electron = type(u.electron, -u.e, sig(-1 / 3));
+  const v = 1e3 * (1e18 / 1e26);
+  const groups = lattice(8, 8, 6 * r2).flatMap((center, k) => atom(center, nucleus, k + 1, electron, k + 1, 0.05 * range, 0.5 * range, v));
+  return scenario('70-periodic-table.json', {
+    id: 'periodic-table',
+    name: 'Periodic Table',
+    folder: 'EPN Model',
+    description:
+      "v1's electron-proton-neutron model: elements Z = 1 to 64 on an 8×8 grid, each Z protons + Z neutrons with Z electrons, " +
+      "bound by v1's powAXv3 nuclear force (nuclear charge 1 for nucleons, -1/3 for electrons) and Coulomb. " +
+      'Gravity (G ≈ 7e-39) is negligible and omitted.',
+    seed: 1,
+    view: { cameraDistance: 60000, particleRadius: 120, colorMode: 'charge' },
+    settings: { timeStep: sig(1 / 3), mode2D: true, boundary: 'box', boundarySize: 40 * range, restitution: 0.9 },
+    forces: [powAXv3(range, u.nuclear), coulomb(u.coulomb, 6)],
+    groups,
+  });
+}
+
+/** Top level pretty-printed, one particle group per line. */
 function format(json) {
   const { groups, ...rest } = json;
   const head = JSON.stringify(rest, null, 2).replace(/\n}$/, '');
@@ -432,7 +495,7 @@ function format(json) {
   return `${head},\n  "groups": [\n${body}\n  ]\n}\n`;
 }
 
-for (const { file, json } of [air(), water2(), essentialElements(), planetoidFormation()]) {
+for (const { file, json } of [welcome(), air(), water2(), essentialElements(), periodicTable(), planetoidFormation()]) {
   const total = json.groups.reduce((s, g) => s + g.count, 0);
   if (total > 16384) throw new Error(`${file}: ${total} particles exceed the default capacity 16384`);
   // Per-site groups: their counts are the atoms themselves, so the particle-count setting must not rescale them.

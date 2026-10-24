@@ -21,12 +21,18 @@ uniform bool uMode2D;
 #define KIND_FIXED 2.0
 `;
 
-function forceFunction(force: CompiledForce, index: number): string {
-  const uniforms = ['cutoff', 'soft2', ...force.definition.params.map((p) => p.name)]
+function forceUniforms(force: CompiledForce, index: number): string {
+  return ['cutoff', 'soft2', ...force.definition.params.map((p) => p.name)]
     .map((name) => `uniform float ${forceUniformName(index, name)};`)
     .join('\n');
-  return `${uniforms}
-float force${index}(float r, vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, float tau1, float tau2) {
+}
+
+const PAIR_ARGS = 'float r, vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, float tau1, float tau2';
+const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, tau1, tau2';
+
+function forceFunction(force: CompiledForce, index: number): string {
+  return `${forceUniforms(force, index)}
+float force${index}(${PAIR_ARGS}) {
   return ${forceToGlsl(force, index)};
 }`;
 }
@@ -107,6 +113,58 @@ void main() {
   }
 
   gl_FragColor = vec4(vel1, tau1 + uTimeStep);
+}
+`;
+}
+
+function potentialTerm(force: CompiledForce, index: number): string {
+  if (!force.potential) return '';
+  const call = `potential${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
+  return force.definition.range === 'short'
+    ? `if (dist < ${forceUniformName(index, 'cutoff')}) energy += ${call};`
+    : `energy += ${call};`;
+}
+
+/**
+ * Per-particle potential energy Σ_j V(r_ij) for the potential-mode forces, written to .x.
+ * Run on demand for the stats dialog; the total energy is half the sum over particles.
+ */
+export function generatePotentialShader(forces: readonly CompiledForce[]): string {
+  const needsTau2 = forces.some((f) => f.potential && collectVariables(f.potential).has('t_j'));
+  return `${COMMON_UNIFORMS}
+${GLSL_POWER_HELPERS}
+${GLSL_COLOR_HELPERS}
+${forces.map((force, index) => `${forceUniforms(force, index)}${force.potential ? `
+float potential${index}(${PAIR_ARGS}) {
+  return ${forceToGlsl(force, index, force.potential)};
+}` : ''}`).join('\n')}
+
+void main() {
+  ivec2 coord1 = ivec2(gl_FragCoord.xy);
+  int width = TEXTURE_WIDTH;
+  int index1 = coord1.y * width + coord1.x;
+  if (index1 >= uCount) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  vec3 pos1 = texelFetch(texturePosition, coord1, 0).xyz;
+  float tau1 = texelFetch(textureVelocity, coord1, 0).w;
+  vec4 attr1 = texelFetch(uAttributes, coord1, 0);
+  vec4 color1 = texelFetch(uColor, coord1, 0);
+  float energy = 0.0;
+  for (int index2 = 0; index2 < uCount; index2++) {
+    if (index2 == index1) continue;
+    ivec2 coord2 = ivec2(index2 % width, index2 / width);
+    vec3 delta = pos1 - texelFetch(texturePosition, coord2, 0).xyz;
+    float r2 = dot(delta, delta);
+    if (r2 == 0.0) continue;
+    float dist = sqrt(r2);
+    vec4 attr2 = texelFetch(uAttributes, coord2, 0);
+    vec4 color2 = texelFetch(uColor, coord2, 0);
+    float tau2 = ${needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0'};
+    ${forces.map(potentialTerm).filter(Boolean).join('\n    ')}
+  }
+  gl_FragColor = vec4(energy, 0.0, 0.0, 0.0);
 }
 `;
 }

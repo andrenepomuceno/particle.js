@@ -18,6 +18,9 @@ export interface CompiledForce {
   /** Signed force magnitude as a function of r; positive pushes the pair apart. */
   magnitude: Expr;
   evaluate: CompiledFn;
+  /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
+  potential: Expr | undefined;
+  evaluatePotential: CompiledFn | undefined;
 }
 
 export class ForceValidationError extends Error {
@@ -65,7 +68,11 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   if (nonFinite.length > 0) {
     throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
   }
-  return { definition: def, magnitude, evaluate: compileJs(magnitude) };
+  const potential = def.mode === 'potential' ? simplify(inR) : undefined;
+  return {
+    definition: def, magnitude, evaluate: compileJs(magnitude),
+    potential, evaluatePotential: potential && compileJs(potential),
+  };
 }
 
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
@@ -117,11 +124,11 @@ export function forceUniformName(forceIndex: number, name: string): string {
   return `uF${forceIndex}_${name}`;
 }
 
-export function forceToGlsl(force: CompiledForce, forceIndex: number): string {
+export function forceToGlsl(force: CompiledForce, forceIndex: number, expr: Expr = force.magnitude): string {
   const params = new Set(force.definition.params.map((p) => p.name));
   const byName = new Map(PAIR_VARIABLES.map((v) => [v.name, v.glsl]));
   const cutoff = forceUniformName(forceIndex, 'cutoff');
-  return toGlsl(force.magnitude, (name) => {
+  return toGlsl(expr, (name) => {
     if (params.has(name)) return forceUniformName(forceIndex, name);
     const glsl = byName.get(name);
     if (glsl === undefined) throw new Error(`no GLSL binding for variable '${name}'`);

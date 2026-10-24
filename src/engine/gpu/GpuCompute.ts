@@ -6,7 +6,7 @@ import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import type { ParticleSet } from '../particles';
 import type { SimulationSettings } from '../settings';
-import { BOUNDARY_CODE, generateVelocityShader, POSITION_SHADER } from '../shaders/computeShaders';
+import { BOUNDARY_CODE, generatePotentialShader, generateVelocityShader, POSITION_SHADER } from '../shaders/computeShaders';
 
 const VERTEX_SHADER = /* glsl */ `
 in vec3 position;
@@ -56,6 +56,8 @@ export class GpuCompute {
   private readonly quad = new FullScreenQuad();
   private readonly sharedUniforms: Record<string, IUniform>;
   private velocityMaterial: RawShaderMaterial;
+  private potentialMaterial: RawShaderMaterial;
+  private readonly potentialTarget: WebGLRenderTarget;
   private readonly positionMaterial: RawShaderMaterial;
   private readonly copyMaterial: RawShaderMaterial;
   private forces: readonly CompiledForce[] = [];
@@ -88,8 +90,10 @@ export class GpuCompute {
     };
     this.positionMaterial = this.material(POSITION_SHADER, this.sharedUniforms);
     this.velocityMaterial = this.material(generateVelocityShader([]), this.sharedUniforms);
+    this.potentialMaterial = this.material(generatePotentialShader([]), this.sharedUniforms);
+    this.potentialTarget = this.target();
     this.copyMaterial = this.material(COPY_SHADER, { uSource: { value: null } });
-    for (const material of [this.positionMaterial, this.velocityMaterial, this.copyMaterial]) {
+    for (const material of [this.positionMaterial, this.velocityMaterial, this.potentialMaterial, this.copyMaterial]) {
       this.validate(material.fragmentShader);
     }
   }
@@ -113,7 +117,9 @@ export class GpuCompute {
   /** Recompiles the velocity pass. On failure the previous forces stay active. */
   setForces(forces: readonly CompiledForce[]): void {
     const source = generateVelocityShader(forces);
+    const potentialSource = generatePotentialShader(forces);
     this.validate(this.prelude + source);
+    this.validate(this.prelude + potentialSource);
     const uniforms: Record<string, IUniform> = { ...this.sharedUniforms };
     forces.forEach((_, index) => {
       for (const name of ['cutoff', 'soft2', ...forces[index]!.definition.params.map((p) => p.name)]) {
@@ -123,6 +129,8 @@ export class GpuCompute {
     const material = this.material(source, uniforms);
     this.velocityMaterial.dispose();
     this.velocityMaterial = material;
+    this.potentialMaterial.dispose();
+    this.potentialMaterial = this.material(potentialSource, uniforms);
     this.forces = forces;
     this.setForceValues(forces);
   }
@@ -191,6 +199,21 @@ export class GpuCompute {
     }
   }
 
+  /** Per-particle Σ_j V(r_ij) over the potential-mode forces (one float per particle). */
+  readPotentials(): Float32Array {
+    const rows = Math.ceil(this.set.count / this.width);
+    const result = new Float32Array(this.set.count);
+    if (rows === 0) return result;
+    const u = this.sharedUniforms;
+    u.texturePosition!.value = this.position[this.current]!.texture;
+    u.textureVelocity!.value = this.velocity[this.current]!.texture;
+    this.renderTo(this.potentialMaterial, this.potentialTarget);
+    const buffer = new Float32Array(rows * this.width * 4);
+    this.renderer.readRenderTargetPixels(this.potentialTarget, 0, 0, this.width, rows, buffer);
+    for (let k = 0; k < this.set.count; k++) result[k] = buffer[k * 4]!;
+    return result;
+  }
+
   /** Reads the current velocities (vx, vy, vz, clock per particle) without touching the ParticleSet. */
   readVelocities(): Float32Array {
     const rows = Math.ceil(this.set.count / this.width);
@@ -208,8 +231,8 @@ export class GpuCompute {
   }
 
   dispose(): void {
-    [...this.position, ...this.velocity].forEach((target) => target.dispose());
-    [this.velocityMaterial, this.positionMaterial, this.copyMaterial].forEach((m) => m.dispose());
+    [...this.position, ...this.velocity, this.potentialTarget].forEach((target) => target.dispose());
+    [this.velocityMaterial, this.potentialMaterial, this.positionMaterial, this.copyMaterial].forEach((m) => m.dispose());
     this.attributes.dispose();
     this.color.dispose();
     this.quad.dispose();

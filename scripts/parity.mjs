@@ -36,7 +36,8 @@ const CASES = [
       { name: 'biot-savart', mode: 'force', range: 'long', softening: 0.5, expression: 'k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))', params: [{ name: 'k', value: 2 }] },
       { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
     ] },
-  { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
+  // A slab box (boundaryDepth): the per-axis half-sizes of the GPU reflection and clamping.
+  { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, boundaryDepth: 1.5, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
     forces: [
       { preset: 'gravity', softening: 1, params: { G: 5 } },
       // A softened central potential: its force carries the Plummer factor d/r (d = |Δx| on the GPU).

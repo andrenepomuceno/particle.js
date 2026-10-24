@@ -57,6 +57,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
     `boundarySize must be > 0, got ${settings.boundarySize}`,
   );
   check(Number.isFinite(settings.boundaryDepth) && settings.boundaryDepth >= 0, `boundaryDepth must be >= 0 (0 = boundarySize), got ${settings.boundaryDepth}`);
+  check(settings.boundary === 'box' || settings.boundaryDepth === 0, `boundaryDepth applies to box boundaries only (boundary is '${settings.boundary}'), got ${settings.boundaryDepth}`);
   check(
     Number.isFinite(settings.restitution) && settings.restitution >= 0 && settings.restitution <= 1,
     `restitution must be within [0, 1], got ${settings.restitution}`,
@@ -88,13 +89,11 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
   const settings: SimulationSettings = {
     timeStep: read('timeStep', (v, p) => json.finite(v, p), base?.timeStep),
     friction: read('friction', (v, p) => json.finite(v, p), base?.friction),
-    // Added after snapshots v4 shipped: an absent key means the drag did not exist (0).
-    quadraticDrag: read('quadraticDrag', (v, p) => json.finite(v, p), base?.quadraticDrag ?? 0),
+    quadraticDrag: read('quadraticDrag', (v, p) => json.finite(v, p), base?.quadraticDrag),
     maxSpeed: read('maxSpeed', (v, p) => json.finite(v, p), base?.maxSpeed),
     boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
-    // Added after snapshots v4 shipped: an absent key means a cubic box (0).
-    boundaryDepth: read('boundaryDepth', (v, p) => json.finite(v, p), base?.boundaryDepth ?? 0),
+    boundaryDepth: read('boundaryDepth', (v, p) => json.finite(v, p), base?.boundaryDepth),
     restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
     collisionDistance: read('collisionDistance', (v, p) => json.finite(v, p), base?.collisionDistance),
     collisionRestitution: read('collisionRestitution', (v, p) => json.finite(v, p), base?.collisionRestitution),
@@ -110,4 +109,12 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
 export function boxHalfSize(settings: Pick<SimulationSettings, 'boundarySize' | 'boundaryDepth'>): [number, number, number] {
   const { boundarySize: size, boundaryDepth: depth } = settings;
   return [size, size, depth > 0 ? depth : size];
+}
+
+/**
+ * Scenes that only extend in a plane: 2D mode, or a slab box (boundaryDepth set). Their particle
+ * count scales in x and y only; a slab's thickness belongs to the physics (a few diameters), not to N.
+ */
+export function isPlanar(settings: Pick<SimulationSettings, 'mode2D' | 'boundary' | 'boundaryDepth'>): boolean {
+  return settings.mode2D || (settings.boundary === 'box' && settings.boundaryDepth > 0);
 }

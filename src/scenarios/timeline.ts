@@ -124,7 +124,7 @@ export function scaleTimeline(events: readonly TimelineEvent[], linearScale: num
   const scale = (v: Vec3): Vec3 => [v[0] * linearScale, v[1] * linearScale, v[2] * linearScale];
   return events.map((event) => ({
     ...event,
-    changes: event.changes.map((c) => (c.target.kind === 'setting' && (c.target.key === 'boundarySize' || c.target.key === 'boundaryDepth') && c.op === 'set' ? { ...c, value: c.value * linearScale } : c)),
+    changes: event.changes.map((c) => (c.target.kind === 'setting' && c.target.key === 'boundarySize' && c.op === 'set' ? { ...c, value: c.value * linearScale } : c)),
     camera: event.camera && { ...event.camera, position: scale(event.camera.position), target: scale(event.camera.target) },
   }));
 }

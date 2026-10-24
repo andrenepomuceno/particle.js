@@ -129,7 +129,7 @@ export interface AppState {
   energyError: string | undefined;
   particleRadius: number;
   showAxes: boolean;
-  /** Draw the boundary sphere or box (E). */
+  /** The user's choice to draw the boundary (E); nothing is drawn while the boundary is 'none'. */
   showBoundary: boolean;
   inspected: { index: number; particle: Particle } | undefined;
   followInspected: boolean;
@@ -182,6 +182,7 @@ export class SimulationController {
   private points: ParticlePoints;
   private readonly arrows = new FieldArrows();
   private readonly boundaryLines = new BoundaryLines();
+  private boundaryDrawn = false;
   private fieldDirty = false;
   private fieldTime = NaN;
   private fieldComputedAt = 0;
@@ -293,7 +294,8 @@ export class SimulationController {
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
     const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
     const base = { ...DEFAULT_SETTINGS, ...scenario.settings };
-    const settings = { ...base, boundarySize: base.boundarySize * linearScale, boundaryDepth: base.boundaryDepth * linearScale };
+    // A slab's depth is physical (a few diameters) and stays; planar scenes scale in x and y only.
+    const settings = { ...base, boundarySize: base.boundarySize * linearScale };
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
     this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
@@ -412,8 +414,12 @@ export class SimulationController {
     if (problems.length > 0) throw new Error(problems.join('; '));
     const planeChanged = settings.mode2D !== this.state.settings.mode2D;
     this.gpu.setSettings(settings);
+    const previous = this.state.settings;
     this.store.set({ settings });
-    this.boundaryLines.update(settings);
+    if (['boundary', 'boundarySize', 'boundaryDepth', 'mode2D'].some((key) => settings[key as keyof SimulationSettings] !== previous[key as keyof SimulationSettings]) || !this.boundaryDrawn) {
+      this.boundaryLines.update(settings);
+      this.boundaryDrawn = true;
+    }
     this.refreshCaption();
     this.refreshForceWarnings();
     this.fieldDirty = true;

@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { referenceStep } from '../src/engine/cpu/referenceStep';
 import { defaultParticle, ParticleSet } from '../src/engine/particles';
 import { BoundaryLines } from '../src/engine/render/BoundaryLines';
-import { boxHalfSize, DEFAULT_SETTINGS, validateSettings } from '../src/engine/settings';
+import { boxHalfSize, DEFAULT_SETTINGS, isPlanar, validateSettings } from '../src/engine/settings';
+import { createRng } from '../src/engine/random';
+import { findScenario } from '../src/scenarios';
 
 describe('slab boxes (boundaryDepth)', () => {
   it('uses boundaryDepth along z, or boundarySize when it is 0', () => {
     expect(boxHalfSize({ boundarySize: 50, boundaryDepth: 4 })).toEqual([50, 50, 4]);
     expect(boxHalfSize({ boundarySize: 50, boundaryDepth: 0 })).toEqual([50, 50, 50]);
-    expect(validateSettings({ ...DEFAULT_SETTINGS, boundaryDepth: -1 })).toEqual(['boundaryDepth must be >= 0 (0 = boundarySize), got -1']);
+    expect(validateSettings({ ...DEFAULT_SETTINGS, boundary: 'box', boundaryDepth: -1 })).toEqual(['boundaryDepth must be >= 0 (0 = boundarySize), got -1']);
+    expect(validateSettings({ ...DEFAULT_SETTINGS, boundary: 'sphere', boundaryDepth: 5 })).toEqual(["boundaryDepth applies to box boundaries only (boundary is 'sphere'), got 5"]);
   });
 
   it('reflects off the thin z faces and confines to them, while x and y stay wide', () => {
@@ -49,5 +52,17 @@ describe('BoundaryLines', () => {
     const z = Array.from(lines.object.geometry.getAttribute('position')!.array).filter((_, k) => k % 3 === 2);
     expect(Math.max(...z)).toBe(2);
     expect(Math.min(...z)).toBe(-2);
+  });
+});
+
+describe('scaling a slab scene', () => {
+  it('counts slabs as planar and keeps their thickness when the particle count grows', () => {
+    expect(isPlanar({ mode2D: false, boundary: 'box', boundaryDepth: 10 })).toBe(true);
+    expect(isPlanar({ mode2D: false, boundary: 'box', boundaryDepth: 0 })).toBe(false);
+    const slab = findScenario('crystal-slab');
+    const { particles } = slab.build(createRng(slab.seed), 4 * slab.defaultCount);
+    expect(particles.length).toBe(4 * slab.defaultCount);
+    expect(new Set(particles.map((p) => p.position[2])).size).toBe(2);
+    expect(Math.max(...particles.map((p) => Math.abs(p.position[2])))).toBeLessThanOrEqual(10);
   });
 });

@@ -105,6 +105,7 @@ export class GpuCompute {
       uTimeStep: { value: 1 },
       uTime: { value: 0 },
       uFriction: { value: 0 },
+      uQuadraticDrag: { value: 0 },
       uMaxSpeed: { value: 0 },
       uBoundary: { value: 0 },
       uBoundarySize: { value: 1 },
@@ -207,6 +208,7 @@ export class GpuCompute {
     const u = this.sharedUniforms;
     u.uTimeStep!.value = settings.timeStep;
     u.uFriction!.value = settings.friction;
+    u.uQuadraticDrag!.value = settings.quadraticDrag;
     u.uMaxSpeed!.value = settings.maxSpeed;
     u.uBoundary!.value = BOUNDARY_CODE[settings.boundary];
     u.uBoundarySize!.value = settings.boundarySize;

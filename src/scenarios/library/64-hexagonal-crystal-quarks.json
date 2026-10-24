@@ -4,7 +4,7 @@
   "id": "hexagonal-crystal-quarks",
   "name": "Hexagonal Crystal",
   "folder": "Force Map",
-  "description": "v1's force-map Hexagonal Crystal: 96 carbon-like atoms (36 colored quarks and 48 electrons each) on the vertices of a honeycomb of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, in a box of half-size 1e5. v1's quadratic drag (deceleration c·|v|·v/m, c = 1e-3, lowered to 1e-4 at t = 33) is the force 'Drag (v1)' exerted by one fixed, otherwise inert marker particle (q2 = 1). Gravity (G ≈ 1e-39) is negligible and omitted.",
+  "description": "v1's force-map Hexagonal Crystal: 96 carbon-like atoms (36 colored quarks and 48 electrons each) on the vertices of a honeycomb of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, in a box of half-size 1e5. v1's quadratic drag (v /= 1 + c·dt·|v|/m) is the quadraticDrag setting, c = 1e-3 lowered to 1e-4 at t = 33. Gravity (G ≈ 1e-39) is negligible and omitted.",
   "seed": 1,
   "view": {
     "cameraDistance": 25000,
@@ -15,7 +15,7 @@
     {
       "at": 33,
       "set": {
-        "Drag (v1).c": 0.0001
+        "settings.quadraticDrag": 0.0001
       }
     }
   ],
@@ -25,6 +25,7 @@
     "boundary": "box",
     "boundarySize": 100000,
     "restitution": 0.9,
+    "quadraticDrag": 0.001,
     "integrator": "euler"
   },
   "forces": [
@@ -79,18 +80,6 @@
       "params": {
         "k": 0.36915
       }
-    },
-    {
-      "name": "Drag (v1)",
-      "mode": "force",
-      "range": "long",
-      "expression": "-c * q2_j * length(v_i) * v_i",
-      "params": [
-        {
-          "name": "c",
-          "value": 0.001
-        }
-      ]
     }
   ],
   "groups": [
@@ -285,7 +274,6 @@
     {"count":36,"scale":false,"shape":{"type":"disk","radius":150,"center":[11258,8500,0]},"mass":{"cycle":[5.348,5.348,10.696,5.348,10.696,10.696]},"charge":{"cycle":[66.667,66.667,-33.333,66.667,-33.333,-33.333]},"nuclearCharge":1,"color":{"cycle":[[1,0,0],[0,1,0],[0,0,1],[0,0,1],[0,1,0],[1,0,0]]}},
     {"count":48,"scale":false,"shape":{"type":"disk","radius":1000,"innerRadius":150,"center":[11258,8500,0]},"mass":0.91094,"charge":-100,"nuclearCharge":-1},
     {"count":36,"scale":false,"shape":{"type":"disk","radius":150,"center":[9526.3,9500,0]},"mass":{"cycle":[5.348,5.348,10.696,5.348,10.696,10.696]},"charge":{"cycle":[66.667,66.667,-33.333,66.667,-33.333,-33.333]},"nuclearCharge":1,"color":{"cycle":[[1,0,0],[0,1,0],[0,0,1],[0,0,1],[0,1,0],[1,0,0]]}},
-    {"count":48,"scale":false,"shape":{"type":"disk","radius":1000,"innerRadius":150,"center":[9526.3,9500,0]},"mass":0.91094,"charge":-100,"nuclearCharge":-1},
-    {"count":1,"scale":false,"kind":"fixed","shape":{"type":"point"},"mass":1e-20,"charge2":1}
+    {"count":48,"scale":false,"shape":{"type":"disk","radius":1000,"innerRadius":150,"center":[9526.3,9500,0]},"mass":0.91094,"charge":-100,"nuclearCharge":-1}
   ]
 }

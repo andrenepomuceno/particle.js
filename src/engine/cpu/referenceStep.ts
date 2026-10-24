@@ -37,7 +37,6 @@ export function referenceStep(
  */
 export function implicitKick(force: Vec, jacobian: ArrayLike<number>, mass: number, dt: number): Vec {
   const explicit = force.map((c) => (dt * c) / mass) as Vec;
-  // A non-finite Jacobian (e.g. ∂|v|/∂v at v = 0) falls back to the explicit kick, as on the GPU.
   if (!Array.from(jacobian).every(Number.isFinite)) return explicit;
   const h = dt / (2 * mass);
   const a = [0, 1, 2].map((k) => [0, 1, 2].map((l) => (k === l ? 1 : 0) - h * jacobian[k * 3 + l]!));
@@ -46,9 +45,10 @@ export function implicitKick(force: Vec, jacobian: ArrayLike<number>, mass: numb
     - m[0]![1]! * (m[1]![0]! * m[2]![2]! - m[1]![2]! * m[2]![0]!)
     + m[0]![2]! * (m[1]![0]! * m[2]![1]! - m[1]![1]! * m[2]![0]!);
   const d = det(a);
-  if (!(Math.abs(d) > 1e-12)) throw new Error(`implicit velocity step is singular (det ${d}); lower the time step`);
-  // Cramer's rule: 3×3, so cheaper and clearer than a general solver.
-  return [0, 1, 2].map((col) => det(a.map((row, k) => row.map((c, l) => (l === col ? b[k]! : c)))) / d) as Vec;
+  // Cramer's rule: 3×3, so cheaper and clearer than a general solver. A singular system (dt/2m·J
+  // with an eigenvalue 1: the step is too large for that force) uses the explicit kick, as the GPU does.
+  const kick = [0, 1, 2].map((col) => det(a.map((row, k) => row.map((c, l) => (l === col ? b[k]! : c)))) / d) as Vec;
+  return kick.every(Number.isFinite) && d !== 0 ? kick : explicit;
 }
 
 const isFixed = (set: ParticleSet, i: number) => set.position[i * TEXEL + 3] === ParticleKind.fixed;
@@ -129,9 +129,13 @@ function accelerations(set: ParticleSet, forces: readonly CompiledForce[], setti
 }
 
 /** Friction, 2D projection, speed clamp, then reflection if the coming drift (with `a`) would leave. */
-function finishVelocity(v: Vec, pos: Vec, a: Vec, settings: SimulationSettings): Vec {
+function finishVelocity(v: Vec, pos: Vec, a: Vec, mass: number, settings: SimulationSettings): Vec {
   const dt = settings.timeStep;
   if (settings.friction > 0) v.forEach((c, k) => (v[k] = c * Math.exp(-settings.friction * dt)));
+  if (settings.quadraticDrag > 0) {
+    const damping = 1 + (settings.quadraticDrag * dt * Math.hypot(...v)) / mass;
+    v.forEach((c, k) => (v[k] = c / damping));
+  }
   if (settings.mode2D) v[2] = 0;
   const speed = Math.hypot(...v);
   if (settings.maxSpeed > 0 && speed > settings.maxSpeed) v.forEach((c, k) => (v[k] = (c * settings.maxSpeed) / speed));
@@ -178,7 +182,7 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
     const force = totalForce(set, i, forces, time, 0, settings.collisionDistance, jacobian);
     const kick = jacobian ? implicitKick(force, jacobian, mass, dt) : force.map((c) => (dt * c) / mass) as Vec;
     const v = read(set.velocity, i).map((c, k) => c + kick[k]! + impulses[i * 3 + k]!) as Vec;
-    nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], settings), tau + dt], i * TEXEL);
+    nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], mass, settings), tau + dt], i * TEXEL);
   }
   set.velocity.set(nextVelocity);
   for (let i = 0; i < set.count; i++) {
@@ -214,7 +218,7 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
     }
     const v = read(set.velocity, i).map((c, k) => c + 0.5 * dt * (before[i * 3 + k]! + after[i * 3 + k]!) + impulses[i * 3 + k]!) as Vec;
     const aNext: Vec = [after[i * 3]!, after[i * 3 + 1]!, after[i * 3 + 2]!];
-    set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, settings), tau + dt], i * TEXEL);
+    set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, set.attributes[i * TEXEL]!, settings), tau + dt], i * TEXEL);
   }
   state.acceleration = after;
 }

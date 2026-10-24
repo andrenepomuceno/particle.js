@@ -137,6 +137,7 @@ export function ParametersView() {
       <SelectField label="Integrator" value={settings.integrator} options={INTEGRATORS} onChange={(integrator) => set({ integrator })} />
       <NumberField label="Time step" value={settings.timeStep} validate={positive} onCommit={(timeStep) => set({ timeStep })} />
       <NumberField label="Friction" value={settings.friction} validate={nonNegative} onCommit={(friction) => set({ friction })} />
+      <NumberField label="Quadratic drag (v1)" value={settings.quadraticDrag} validate={nonNegative} onCommit={(quadraticDrag) => set({ quadraticDrag })} />
       <NumberField label="Max speed (0 = off)" value={settings.maxSpeed} validate={nonNegative} onCommit={(maxSpeed) => set({ maxSpeed })} />
       <SelectField<BoundaryShape> label="Boundary" value={settings.boundary} options={['none', 'sphere', 'box']} onChange={(boundary) => set({ boundary })} />
       {settings.boundary !== 'none' && (

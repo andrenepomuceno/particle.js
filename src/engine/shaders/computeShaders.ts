@@ -12,6 +12,7 @@ uniform int uCount;
 uniform float uTimeStep;
 uniform float uTime;
 uniform float uFriction;
+uniform float uQuadraticDrag;
 uniform float uMaxSpeed;
 uniform int uBoundary;
 uniform float uBoundarySize;
@@ -49,6 +50,10 @@ function readsPotential(forces: readonly CompiledForce[], names: readonly string
   return forces.some((f) => names.some((name) => f.potentialReads.has(name)));
 }
 
+const FINITE3 = `bool finite3(vec3 v) {
+  return !any(isnan(v)) && !any(isinf(v));
+}`;
+
 // GLSL pow() is undefined for negative bases; the emitted code calls spow, which matches Math.pow.
 const SIGNED_POW = `float spow(float b, float e) {
   if (b >= 0.0 || fract(e) != 0.0) return pow(b, e);
@@ -68,7 +73,8 @@ function forceAccumulation(force: CompiledForce, index: number): string {
   // the softened r, and the ones that read v_i also add their Jacobian ∂F/∂v_i.
   const term = force.kind === 'gradient' ? `force += force${index}(contact, ${PAIR_CALL_ARGS});`
     : force.kind === 'vector' && force.jacobian
-      ? `{ vec3 f; mat3 j; force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS}, f, j); force += f; jacobian += j; }`
+      // A non-finite ∂F/∂v (e.g. of |v| at v = 0) is dropped for this pair only: its force is then stepped explicitly.
+      ? `{ vec3 f; mat3 j; force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS}, f, j); force += f; if (finite3(j[0]) && finite3(j[1]) && finite3(j[2])) jacobian += j; }`
       : force.kind === 'vector' ? `force += force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS});`
         : `magnitude += force${index}(${soft}, ${PAIR_CALL_ARGS});`;
   return force.definition.range === 'short' ? `if (dist < ${forceUniformName(index, 'cutoff')}) ${term}` : term;
@@ -77,8 +83,9 @@ function forceAccumulation(force: CompiledForce, index: number): string {
 const VELOCITY_HELPERS = /* glsl */ `
 // Friction, 2D projection, speed clamp, then reflection if the coming drift would leave the
 // boundary. The drift is predicted with the acceleration it will use (zero for Euler).
-vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration) {
+vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration, float mass) {
   if (uFriction > 0.0) vel *= exp(-uFriction * uTimeStep);
+  if (uQuadraticDrag > 0.0) vel /= 1.0 + uQuadraticDrag * uTimeStep * length(vel) / mass;
   if (uMode2D) vel.z = 0.0;
   float speed = length(vel);
   if (uMaxSpeed > 0.0 && speed > uMaxSpeed) vel *= uMaxSpeed / speed;
@@ -159,6 +166,7 @@ function totalForceFunction(forces: readonly CompiledForce[]): string {
   const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).xyz' : 'vec3(0.0)';
   return `${SIGNED_POW}
+${FINITE3}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
@@ -229,11 +237,12 @@ ${PARTICLE_HEADER}
   vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance, jacobian);
   vec3 kick = uTimeStep * force / attr1.x;${forces.some((f) => f.jacobian) ? `
   // Implicit midpoint for velocity-dependent forces: (I − dt/2m·J)·Δv = dt/m·F (Boris for v × B).
-  // A non-finite Jacobian (e.g. ∂|v|/∂v at v = 0) falls back to the explicit kick for this step.
+  // A singular solve (dt/2m·J with an eigenvalue 1: the time step is too large for that force)
+  // falls back to the explicit kick for this step, as the CPU reference does.
   vec3 implicitKick = inverse(mat3(1.0) - (0.5 * uTimeStep / attr1.x) * jacobian) * kick;
-  if (!any(isnan(implicitKick)) && !any(isinf(implicitKick))) kick = implicitKick;` : ''}
+  if (finite3(implicitKick)) kick = implicitKick;` : ''}
   vec3 vel = velocityTexel.xyz + kick + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0), attr1.x), tau1 + uTimeStep);
 }
 `;
 }
@@ -292,7 +301,7 @@ ${PARTICLE_HEADER}
   vec3 accelerationNext = texelFetch(uAccelerationNext, coord1, 0).xyz;
   vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (texelFetch(uAcceleration, coord1, 0).xyz + accelerationNext)
     + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, texelFetch(uAttributes, coord1, 0).x);
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext), tau1 + uTimeStep);
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext, texelFetch(uAttributes, coord1, 0).x), tau1 + uTimeStep);
 }
 `;
 

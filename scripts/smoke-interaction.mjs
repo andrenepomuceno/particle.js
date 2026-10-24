@@ -250,9 +250,15 @@ await withBrowser(async ({ browser, base }) => {
   const classic = await browser.newPage();
   const classicErrors = [];
   classic.on('pageerror', (e) => classicErrors.push(e.message));
+  // Resource failures are judged by URL (requestfailed): the console line for the analytics request
+  // aborted below carries no URL, so console errors about failed loads are left to that listener.
+  classic.on('console', (m) => m.type() === 'error' && !m.text().startsWith('Failed to load resource') && classicErrors.push(m.text()));
+  classic.on('requestfailed', (r) => !r.url().includes('googletagmanager.com') && classicErrors.push(`failed ${r.url()}`));
+  classic.on('response', (r) => r.status() >= 400 && classicErrors.push(`${r.status()} ${r.url()}`));
   await classic.route('**/*googletagmanager.com/**', (route) => route.abort());
   await classic.goto(`${base}v1/index.html`, { waitUntil: 'domcontentloaded' });
-  await classic.waitForFunction(() => globalThis.document.querySelectorAll('canvas').length > 0, null, { timeout: 15000 }).catch(() => {});
+  await classic.waitForFunction(() => globalThis.document.querySelectorAll('canvas').length > 0, null, { timeout: 15000 })
+    .catch((error) => classicErrors.push(`no canvas: ${error.message.split('\n')[0]}`));
   check('Frozen v1 starts at /v1/', (await classic.locator('canvas').count()) > 0 && classicErrors.length === 0, { classicErrors });
   await classic.close();
   check('No page errors', errors.length === 0, errors);

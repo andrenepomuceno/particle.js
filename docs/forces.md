@@ -22,7 +22,8 @@ Two integrators (Parameters → Integrator), both one force evaluation per step:
   The previous acceleration is kept on the GPU and recomputed after any edit.
 - **Semi-implicit Euler** (1st order, v1's scheme): `v += (ΣF / m)·dt`, then `x += v·dt`.
 
-After the velocity update both apply friction `v *= e^(−friction·dt)`, the optional speed clamp,
+After the velocity update both apply friction `v *= e^(−friction·dt)`, v1's quadratic drag
+`v /= 1 + quadraticDrag·dt·|v|/m` (mass-scaled, 0 = off), the optional speed clamp,
 then boundary reflection. Fixed particles never move; every clock `t` advances by `dt`.
 Measured on a gravitational binary over t = 200 (relative energy error): Euler 7.3e-3 / 1.4e-3,
 Verlet 2.3e-4 / 9.0e-6 at dt = 0.5 / 0.1. `src/engine/cpu/referenceStep.ts` is the executable
@@ -96,7 +97,6 @@ velocity-dependent laws can be written directly:
 | Field of a magnetic dipole s_j on a moving charge | `q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)` |
 | Biot–Savart between moving charges (parallel currents attract) | `k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))` |
 | Pair drag (damps the closing speed) | `-c * v_dot` (a number: central) |
-| Quadratic drag −c·\|v\|·v (v1's friction), from one marker particle with q2 = 1; the 1e-30 keeps the derivative of \|v\| finite at rest | `-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i` |
 
 Velocity is refused in potential mode (F = −∇V needs a V of positions). A force that reads `v_i`
 is integrated with an implicit-midpoint velocity update: shader-autodiff also yields ∂F/∂v_i, and

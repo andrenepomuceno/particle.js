@@ -67,7 +67,8 @@ export function addPairForce(
       if (jacobian && f.evaluateWithJacobian) {
         // `jacobian` (row-major ∂F_k/∂v_i,l) collects the velocity forces' Jacobians.
         const { F, J } = f.evaluateWithJacobian(scope);
-        J.forEach((row, k) => row.forEach((c, l) => (jacobian[k * 3 + l] = jacobian[k * 3 + l]! + c)));
+        // As on the GPU, a non-finite ∂F/∂v (e.g. of |v| at v = 0) is dropped for this pair only.
+        if (J.every((row) => row.every(Number.isFinite))) J.forEach((row, k) => row.forEach((c, l) => (jacobian[k * 3 + l] = jacobian[k * 3 + l]! + c)));
         vector = F;
       } else {
         vector = f.evaluateVector(scope);

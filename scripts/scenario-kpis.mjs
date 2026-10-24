@@ -35,7 +35,7 @@ function measure() {
     const q = new V(...p.position).project(c.camera);
     return Math.abs(q.x) <= 1 && Math.abs(q.y) <= 1 && q.z < 1;
   }).length / Math.max(n, 1);
-  return { n, finite, center, radii, rms, kinetic, meanSpeed, visible, mode2D: c.state.settings.mode2D };
+  return { n, finite, center, radii, rms, kinetic, meanSpeed, visible, mode2D: c.state.settings.mode2D, time: c.state.time, positions: particles.map((p) => p.position) };
 }
 
 /** Connected clusters of particles closer than `link`, by a hash grid of cell size `link` (O(N)). */
@@ -48,7 +48,14 @@ function clusters(positions, link) {
     cells.get(k).push(i);
   });
   const parent = positions.map((_, i) => i);
-  const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  // Iterative with path halving: index-ordered chains (lattices, text) would overflow a recursive find.
+  const find = (i) => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
   const offsets = [-1, 0, 1].flatMap((a) => [-1, 0, 1].flatMap((b) => [-1, 0, 1].map((c) => [a, b, c])));
   positions.forEach((p, i) => {
     const base = p.map((x) => Math.floor(x / link));
@@ -82,9 +89,9 @@ const results = await withBrowser(async ({ browser, base }) => {
       for (; done < target; done += Math.min(BATCH, target - done)) {
         await page.evaluate((n) => globalThis.particleController.advance(n), Math.min(BATCH, target - done));
       }
-      const sample = await page.evaluate(measure);
-      positions.push(await page.evaluate(() => globalThis.particleController.readParticles().filter((p) => p.kind !== 2).map((p) => p.position)));
-      samples.push({ ...sample, time: await page.evaluate(() => globalThis.particleController.state.time) });
+      const { positions: at, ...sample } = await page.evaluate(measure);
+      positions.push(at);
+      samples.push(sample);
     }
     const [start, , end] = samples;
     const dims = start.mode2D ? 2 : 3;

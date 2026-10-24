@@ -68,6 +68,14 @@ describe('referenceStep (Euler)', () => {
     expect(set.get(0).position[0]).toBeGreaterThan(0);
   });
 
+  it('applies v1\'s quadratic, mass-scaled drag: v /= 1 + c·dt·|v|/m', () => {
+    const set = setOf(defaultParticle({ velocity: [3, 4, 0], mass: 2 }));
+    referenceStep(set, [], settings({ integrator: 'euler', timeStep: 0.5, quadraticDrag: 0.4 }), 0);
+    const damping = 1 + (0.4 * 0.5 * 5) / 2;
+    expect(set.get(0).velocity[0]).toBeCloseTo(3 / damping, 6);
+    expect(set.get(0).velocity[1]).toBeCloseTo(4 / damping, 6);
+  });
+
   it('keeps fixed particles still while advancing their clock', () => {
     const set = setOf(defaultParticle({ kind: ParticleKind.fixed, velocity: [1, 1, 1] }), defaultParticle({ position: [1, 0, 0] }));
     referenceStep(set, [gravity], settings(), 0);

@@ -555,13 +555,6 @@ function v0Nucleus(center, s, up, down, electrons, r0, r1, velocity) {
   return groups;
 }
 
-/**
- * v1's quadratic friction (FrictionModel.square: v /= 1 + c·dt·|v|/m) as the velocity-dependent force −c·|v|·v,
- * exerted by DRAG_MARKER, the only particle with q2 = 1 (q = 0 and n = 0, so no other force sees it). At rest,
- * where ∂|v|/∂v is 0/0, the engine falls back to the explicit kick for that step.
- */
-const v1Drag = (c) => ({ name: 'Drag (v1)', mode: 'force', range: 'long', expression: '-c * q2_j * length(v_i) * v_i', params: [{ name: 'c', value: c }] });
-const DRAG_MARKER = { count: 1, kind: 'fixed', shape: { type: 'point' }, mass: 1e-20, charge2: 1 };
 
 /** v1's default nuclear potential (scenarios_v0): sin(2πx), positive (attractive in v1) inside half the range. */
 const v1Sine = (cutoff) => nuclearForce('Nuclear (v1 sine)', '-k * n_i * n_j * sin(2 * pi * x)', cutoff, 1, {});
@@ -731,12 +724,12 @@ function hexagonalCrystalQuarks() {
     description:
       `v1's force-map Hexagonal Crystal: ${vertices.length} carbon-like atoms (36 colored quarks and 48 electrons each) on the vertices of a honeycomb ` +
       "of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, " +
-      "in a box of half-size 1e5. v1's quadratic drag (deceleration c·|v|·v/m, c = 1e-3, lowered to 1e-4 at t = 33) is the force " +
-      "'Drag (v1)' exerted by one fixed, otherwise inert marker particle (q2 = 1). Gravity (G ≈ 1e-39) is negligible and omitted.",
+      "in a box of half-size 1e5. v1's quadratic drag (v /= 1 + c·dt·|v|/m) is the quadraticDrag setting, c = 1e-3 lowered to " +
+      '1e-4 at t = 33. Gravity (G ≈ 1e-39) is negligible and omitted.',
     seed: 1,
     view: { cameraDistance: 25000, particleRadius: 90, colorMode: 'charge' },
-    timeline: [{ at: 33, set: { 'Drag (v1).c': 1e-4 } }],
-    settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9, integrator: 'euler' },
+    timeline: [{ at: 33, set: { 'settings.quadraticDrag': 1e-4 } }],
+    settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9, quadraticDrag: 1e-3, integrator: 'euler' },
     forces: [
       {
         name: 'Nuclear (v1 force map 1)',
@@ -747,9 +740,8 @@ function hexagonalCrystalQuarks() {
         params: [{ name: 'k', value: u.nuclear }, ...map.map((value, k) => ({ name: `f${k}`, value }))],
       },
       coulomb(u.coulomb, 6),
-      v1Drag(1e-3),
     ],
-    groups: [...groups, DRAG_MARKER],
+    groups,
   });
 }
 

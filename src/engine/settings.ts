@@ -8,6 +8,8 @@ export interface SimulationSettings {
   timeStep: number;
   /** Linear drag coefficient: v *= exp(-friction * dt). */
   friction: number;
+  /** v1's quadratic, mass-scaled drag: v /= 1 + quadraticDrag·dt·|v|/m; 0 disables it. */
+  quadraticDrag: number;
   /** Numerical speed clamp; 0 disables it. Not a relativistic limit. */
   maxSpeed: number;
   boundary: BoundaryShape;
@@ -27,6 +29,7 @@ export interface SimulationSettings {
 export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   timeStep: 1,
   friction: 0,
+  quadraticDrag: 0,
   maxSpeed: 0,
   boundary: 'none',
   boundarySize: 1000,
@@ -42,6 +45,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   const check = (ok: boolean, message: string) => ok || problems.push(message);
   check(Number.isFinite(settings.timeStep) && settings.timeStep > 0, `timeStep must be > 0, got ${settings.timeStep}`);
   check(Number.isFinite(settings.friction) && settings.friction >= 0, `friction must be >= 0, got ${settings.friction}`);
+  check(Number.isFinite(settings.quadraticDrag) && settings.quadraticDrag >= 0, `quadraticDrag must be >= 0, got ${settings.quadraticDrag}`);
   check(Number.isFinite(settings.maxSpeed) && settings.maxSpeed >= 0, `maxSpeed must be >= 0, got ${settings.maxSpeed}`);
   check(['none', 'sphere', 'box'].includes(settings.boundary), `unknown boundary '${settings.boundary}'`);
   check(INTEGRATORS.includes(settings.integrator), `unknown integrator '${settings.integrator}'`);
@@ -64,7 +68,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
+const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -80,6 +84,8 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
   const settings: SimulationSettings = {
     timeStep: read('timeStep', (v, p) => json.finite(v, p), base?.timeStep),
     friction: read('friction', (v, p) => json.finite(v, p), base?.friction),
+    // Added after snapshots v4 shipped: an absent key means the drag did not exist (0).
+    quadraticDrag: read('quadraticDrag', (v, p) => json.finite(v, p), base?.quadraticDrag ?? 0),
     maxSpeed: read('maxSpeed', (v, p) => json.finite(v, p), base?.maxSpeed),
     boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),

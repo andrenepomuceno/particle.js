@@ -288,6 +288,8 @@ function welcome() {
   });
 }
 
+const PLANETOID_CAMERA = 140000;
+
 /** record.js planetoidFormation's actions: v1 cycles at 60 per second, v1 drag c → c / 8. */
 function planetoidScript() {
   const caption = 'Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction}';
@@ -301,7 +303,7 @@ function planetoidScript() {
     drag(84, 1e-1),
     ...[90, 96, 108, 114].map((s) => gravity(s, 2)),
     ...[126, 132, 138, 144].map((s) => gravity(s, 0.5)),
-    { ...drag(150, 1e-3), camera: { position: [0, 0, 280000], target: [0, 0, 0], duration: 5 } },
+    { ...drag(150, 1e-3), camera: { position: [0, 0, 2 * PLANETOID_CAMERA], target: [0, 0, 0], duration: 5 } },
   ];
 }
 
@@ -327,7 +329,7 @@ function planetoidFormation() {
       "Scripted like v1 (times are v1's seconds × 60, drags its c / 8): the drag drops at t = 180, rises again from t = 4320, " +
       'gravity doubles four times from t = 5400 and halves back from t = 7560, then the camera pulls back at t = 9000.',
     seed: 1,
-    view: { cameraDistance: 140000, particleRadius: 300, colorMode: 'charge' },
+    view: { cameraDistance: PLANETOID_CAMERA, particleRadius: 300, colorMode: 'charge' },
     timeline: planetoidScript(),
     settings: { timeStep: 1, mode2D: true, friction: 0.125 },
     forces: [

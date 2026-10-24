@@ -17,7 +17,7 @@ import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/re
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
-import { applyEvent, formatCaption, type TimelineEvent } from '../scenarios/timeline';
+import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import type { Scenario } from '../scenarios/types';
@@ -188,6 +188,8 @@ export class SimulationController {
   private statsActive = false;
   private frameMsSinceSample = 0;
   private timelineEvents: readonly TimelineEvent[] = [];
+  /** Caption text with its `{path}` placeholders, re-formatted whenever forces or settings change. */
+  private captionTemplate: string | undefined;
   private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
   private restart: () => void = () => {
     throw new Error('no scenario loaded yet');
@@ -202,6 +204,7 @@ export class SimulationController {
     this.gpu = new GpuCompute(this.renderer, this.set);
     this.points = new ParticlePoints(width);
     this.scene.add(this.points.object, this.arrows.object, this.axes);
+    this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
@@ -278,7 +281,7 @@ export class SimulationController {
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
-    this.timelineEvents = scenario.timeline;
+    this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
     this.runTimeline();
     this.restart = () => this.startScenario(scenario, scenarioId);
   }
@@ -370,6 +373,7 @@ export class SimulationController {
     this.cpuStale = false;
     this.timelineEvents = [];
     this.cameraMove = undefined;
+    this.captionTemplate = undefined;
     this.store.set({
       name, time, inspected: undefined, selection: [], followInspected: false, physicsHistory: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -389,6 +393,7 @@ export class SimulationController {
     const planeChanged = settings.mode2D !== this.state.settings.mode2D;
     this.gpu.setSettings(settings);
     this.store.set({ settings });
+    this.refreshCaption();
     this.fieldDirty = true;
     if (planeChanged) this.refitFieldIfEnabled();
   }
@@ -423,6 +428,7 @@ export class SimulationController {
     }
     this.store.set({ forces, forceErrors, shaderError });
     this.refreshForceWarnings();
+    this.refreshCaption();
   }
 
   get compiledForces(): readonly CompiledForce[] {
@@ -455,7 +461,7 @@ export class SimulationController {
       this.gpu.step(time);
       time += this.state.settings.timeStep;
       const { nextAt } = this.state.timeline;
-      if (nextAt !== undefined && time >= nextAt) {
+      if (nextAt !== undefined && reached(time, nextAt, this.state.settings.timeStep)) {
         this.store.set({ time });
         this.runTimeline();
       }
@@ -473,9 +479,10 @@ export class SimulationController {
   /** Fires every pending event whose time has come, in order; a reset rewinds by reloading the scenario. */
   private runTimeline(): void {
     const events = this.timelineEvents;
-    let { fired } = this.state.timeline;
-    if (fired === events.length && this.state.timeline.total === events.length) return;
-    while (fired < events.length && events[fired]!.at <= this.state.time) this.fireEvent(events[fired++]!);
+    const before = this.state.timeline;
+    let { fired } = before;
+    while (fired < events.length && reached(this.state.time, events[fired]!.at, this.state.settings.timeStep)) this.fireEvent(events[fired++]!);
+    if (fired === before.fired && before.total === events.length) return;
     this.store.set({ timeline: { fired, total: events.length, nextAt: events[fired]?.at } });
   }
 
@@ -483,18 +490,21 @@ export class SimulationController {
     if (event.changes.length > 0) {
       const { forces, settings, missing } = applyEvent(event, this.state.forces, this.state.settings);
       if (missing.length > 0) this.notify(`Timeline at t = ${event.at}: ${missing.join(', ')} no longer exist (renamed or removed); skipped`, 'error');
+      // Separately, so an invalid setting (e.g. a multiply past a limit) does not drop the force changes.
       try {
         this.setSettings(settings);
-        this.setForces(forces);
       } catch (error) {
-        this.notify(`Timeline at t = ${event.at} failed: ${(error as Error).message}`, 'error');
+        this.notify(`Timeline at t = ${event.at}: settings not applied: ${(error as Error).message}`, 'error');
       }
+      this.setForces(forces);
     }
     if (event.caption !== undefined) {
-      this.store.set({ caption: event.caption === '' ? undefined : formatCaption(event.caption, this.state.forces, this.state.settings) });
+      this.captionTemplate = event.caption === '' ? undefined : event.caption;
+      this.refreshCaption();
     }
     if (event.camera) {
       const { position, target, duration } = event.camera;
+      this.store.set({ followInspected: false });
       this.cameraMove = {
         from: [this.camera.position.clone(), this.controls.target.clone()],
         to: [new Vector3(...position), new Vector3(...target)],
@@ -505,11 +515,23 @@ export class SimulationController {
     }
   }
 
+  private refreshCaption(): void {
+    const template = this.captionTemplate;
+    const caption = template === undefined ? undefined : formatCaption(template, this.state.forces, this.state.settings);
+    if (caption !== this.state.caption) this.store.set({ caption });
+  }
+
+  /** The user takes the camera (orbit, reset, front view, follow): a scripted move stops where it is. */
+  private cancelCameraMove(): void {
+    this.cameraMove = undefined;
+  }
+
   /** v1's cameraTransition: eases the camera and orbit target over wall-clock time. */
   private updateCameraMove(now: number): void {
     const move = this.cameraMove;
     if (!move) return;
-    const t = move.duration > 0 ? Math.min(1, (now - move.start) / move.duration) : 1;
+    // rAF timestamps can precede the performance.now() that started the move.
+    const t = move.duration > 0 ? Math.min(1, Math.max(0, (now - move.start) / move.duration)) : 1;
     const s = t * t * (3 - 2 * t);
     this.camera.position.lerpVectors(move.from[0], move.to[0], s);
     this.controls.target.lerpVectors(move.from[1], move.to[1], s);
@@ -544,6 +566,7 @@ export class SimulationController {
   }
 
   resetCamera(distance = this.camera.position.length() || 1000): void {
+    this.cancelCameraMove();
     this.controls.target.set(0, 0, 0);
     this.camera.position.set(0, 0, distance);
     this.camera.up.set(0, 1, 0);
@@ -555,6 +578,7 @@ export class SimulationController {
 
   /** Looks straight down the z axis at the current target, as v1's [V] key. */
   frontCamera(): void {
+    this.cancelCameraMove();
     const target = this.controls.target;
     this.camera.position.set(target.x, target.y, target.z + this.controls.getDistance());
     this.camera.up.set(0, 1, 0);
@@ -732,6 +756,7 @@ export class SimulationController {
   }
 
   toggleFollow(): void {
+    this.cancelCameraMove();
     this.store.set({ followInspected: !this.state.followInspected && this.state.inspected !== undefined });
   }
 
@@ -780,6 +805,7 @@ export class SimulationController {
       return;
     }
     this.syncFromGpu();
+    this.cancelCameraMove();
     this.centerOn(centroid(selection.map((k) => this.set.get(k).position)));
     this.controls.update();
     this.autoFitField();

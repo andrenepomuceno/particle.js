@@ -187,7 +187,9 @@ await withBrowser(async ({ browser, base }) => {
     c.reset();
     return { before, after, reset: { caption: c.state.caption, ...c.state.timeline, G: c.state.forces[0].params[0].value } };
   });
-  const shown = await page.locator('.caption').textContent();
+  // React commits the store update asynchronously; wait for the overlay instead of reading it once.
+  const shown = await page.waitForFunction(() => globalThis.document.querySelector('.caption')?.textContent === 'G = 2', null, { timeout: 5000 })
+    .then(() => 'G = 2', () => page.locator('.caption').textContent());
   check('Timeline fires events in time and resets rewind them',
     script.before.caption === 'G = 2' && script.before.fired === 1
     && script.after.caption === 'G = 20, friction 0.5' && script.after.fired === 2 && script.after.G === 20 && script.after.friction === 0.5

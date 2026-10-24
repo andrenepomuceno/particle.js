@@ -51,7 +51,10 @@ function parseTarget(path: string): TimelineTarget | undefined {
 /** Validates a path against the scenario's forces: unknown forces or parameters fail at load time. */
 function resolveTarget(json: JsonReader, path: string, at: string, forces: readonly ForceDefinition[]): TimelineTarget {
   const target = parseTarget(path);
-  if (!target) json.fail(at, `expected '<force name>.<param>' or 'settings.<${TIMELINE_SETTINGS.join('|')}>', got '${path}'`);
+  if (!target) {
+    const reserved = path.startsWith('settings.') ? ` ('settings' is reserved for simulation settings, so a force cannot be named 'settings')` : '';
+    json.fail(at, `expected '<force name>.<param>' or 'settings.<${TIMELINE_SETTINGS.join('|')}>', got '${path}'${reserved}`);
+  }
   if (target.kind === 'param') {
     const force = forces.find((f) => f.name === target.force);
     if (!force) json.fail(at, `no force named '${target.force}' (have: ${forces.map((f) => f.name).join(', ') || 'none'})`);
@@ -101,6 +104,29 @@ export function readTimeline(json: JsonReader, value: unknown, forces: readonly 
     if (changes.length === 0 && caption === undefined && camera === undefined) json.fail(path, 'event does nothing: give set, caption or camera');
     return { at, changes, caption, camera };
   });
+}
+
+/**
+ * True once `time` has reached `at`. Time is a running sum of time steps, so allow a rounding error
+ * far below one step (ten 0.1 steps sum to 0.9999999999999999, which must count as t = 1).
+ */
+export function reached(time: number, at: number, timeStep: number): boolean {
+  return time >= at - 1e-6 * timeStep;
+}
+
+/**
+ * Lengths written in the file are for the scenario as authored; when the particle count rescales the
+ * world by `linearScale` (constant density), camera poses and absolute boundary sizes follow it, as the
+ * initial camera distance and boundary do.
+ */
+export function scaleTimeline(events: readonly TimelineEvent[], linearScale: number): TimelineEvent[] {
+  if (linearScale === 1) return [...events];
+  const scale = (v: Vec3): Vec3 => [v[0] * linearScale, v[1] * linearScale, v[2] * linearScale];
+  return events.map((event) => ({
+    ...event,
+    changes: event.changes.map((c) => (c.target.kind === 'setting' && c.target.key === 'boundarySize' && c.op === 'set' ? { ...c, value: c.value * linearScale } : c)),
+    camera: event.camera && { ...event.camera, position: scale(event.camera.position), target: scale(event.camera.target) },
+  }));
 }
 
 /** Current value at a path, or undefined when the force or parameter is gone (renamed or removed by the user). */

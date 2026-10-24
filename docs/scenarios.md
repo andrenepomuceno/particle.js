@@ -139,9 +139,11 @@ when the simulation time first reaches `at`; pausing pauses the script and a res
 | --- | --- |
 | `at` | simulation time, ≥ 0; events must be in non-decreasing order |
 | `set` | `"<force name>.<param>"` or `"settings.<key>"` → a number (replace) or `{ "multiply": f }` (scale the value current at that moment). Settings: `timeStep`, `friction`, `maxSpeed`, `boundarySize`, `restitution`, `collisionDistance`, `collisionRestitution` |
-| `caption` | overlay text (`\n` for new lines; `""` clears it); `{<path>}` shows that value after the event's changes |
-| `camera` | `position`, `target` (default origin) and `duration` in wall-clock seconds (0 jumps); eased like v1's camera transitions |
+| `caption` | overlay text (`\n` for new lines; `""` clears it); `{<path>}` shows that value live (it follows later edits too). Braces are reserved for paths |
+| `camera` | `position`, `target` (default origin) and `duration` in wall-clock seconds (0 jumps); eased like v1's camera transitions. Orbiting, resetting or following stops it |
 
+Camera poses and `settings.boundarySize` values scale with the world when the particle count rescales
+it, like the initial camera distance. A force cannot be named `settings`.
 Every path is checked against the scenario's forces when the file loads. If the user renames or
 removes a force while the script runs, its changes are skipped with an error notice and the rest of
 the event still applies. Snapshots store the world, not the script.

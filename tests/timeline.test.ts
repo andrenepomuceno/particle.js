@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseScenario } from '../src/scenarios/scenarioFile';
-import { applyEvent, formatCaption, formatValue } from '../src/scenarios/timeline';
+import { applyEvent, formatCaption, formatValue, reached, scaleTimeline } from '../src/scenarios/timeline';
 import { DEFAULT_SETTINGS } from '../src/engine/settings';
 
 const FORCES = [
@@ -65,6 +65,24 @@ describe('scenario timeline', () => {
     const text = formatCaption('Gravity: {Gravity (v1 1/d).G}\nFriction: {settings.friction} {unknown}', s.forces(), { ...DEFAULT_SETTINGS, friction: 1e-6 });
     expect(text).toBe('Gravity: 2\nFriction: 1.00e-6 {unknown}');
     expect([formatValue(9007.2), formatValue(0), formatValue(123456), formatValue(0.0125)]).toEqual(['9010', '0', '1.23e+5', '0.0125']);
+  });
+
+  it('counts a time reached despite float drift from summing steps', () => {
+    let time = 0;
+    for (let k = 0; k < 10; k++) time += 0.1;
+    expect(time).toBeLessThan(1);
+    expect(reached(time, 1, 0.1)).toBe(true);
+    expect(reached(0.9, 1, 0.1)).toBe(false);
+  });
+
+  it('scales camera poses and absolute boundary sizes with the world, not factors or other values', () => {
+    const s = scenario([{ at: 1, set: { 'settings.boundarySize': 100, 'settings.friction': 0.2, 'Coulomb.k': 3 }, camera: { position: [0, 0, 10], target: [1, 2, 0] } },
+      { at: 2, set: { 'settings.boundarySize': { multiply: 2 } } }]);
+    const [first, second] = scaleTimeline(s.timeline, 2);
+    expect(first!.changes.map((c) => c.value)).toEqual([200, 0.2, 3]);
+    expect(first!.camera).toMatchObject({ position: [0, 0, 20], target: [2, 4, 0] });
+    expect(second!.changes[0]!.value).toBe(2);
+    expect(s.timeline[0]!.changes[0]!.value).toBe(100);
   });
 
   it('is empty for unscripted scenarios', () => {

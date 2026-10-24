@@ -1,0 +1,13 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "sandbox",
+  "name": "Sandbox",
+  "folder": "Sandbox",
+  "description": "Empty space with gravity and Coulomb. Press G to generate particles.",
+  "seed": 6,
+  "view": { "cameraDistance": 800, "particleRadius": 3, "colorMode": "charge" },
+  "settings": { "timeStep": 0.5 },
+  "forces": [{ "preset": "gravity" }, { "preset": "coulomb" }],
+  "groups": []
+}

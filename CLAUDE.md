@@ -28,6 +28,8 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
   position=(xyz, kind), velocity=(xyz, time), attributes=(mass, charge, spin, parity), color=(rgb, 0).
 - `src/engine/shaders/` — geração dos compute shaders. Parâmetros de força, cutoff e
   softening são **uniforms** (mudar valor não recompila); mudar expressão/alcance/ativação recompila.
+- `src/scenarios/library/*.json` — cenários declarativos (formato em `docs/scenarios.md`);
+  `scenarioFile.ts` valida (chaves desconhecidas rejeitadas) e constrói as partículas.
 - `src/engine/cpu/referenceStep.ts` — mesmo algoritmo em float64; é a especificação executável.
   Toda mudança de semântica no shader muda a referência no mesmo commit.
 

@@ -12,7 +12,8 @@ src/
     particles.ts     ParticleSet, struct-of-arrays mirroring the textures
     settings.ts      SimulationSettings + validation
     snapshot.ts      JSON export/import with path-precise validation
-  scenarios/         seeded scenario definitions
+    json.ts          JsonReader: typed readers that fail with the JSON path
+  scenarios/         scenario JSON library + parser/builder (scenarioFile.ts)
   app/               SimulationController (owns everything at runtime) + Store
   ui/                React: dialogs, force editor, actions table, pointer gestures
 ```

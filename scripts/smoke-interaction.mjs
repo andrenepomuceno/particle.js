@@ -111,6 +111,16 @@ const pausedBefore = (await state()).paused;
 await page.keyboard.press(' ');
 check('Space after clicking a checkbox pauses, checkbox untouched', (await state()).paused !== pausedBefore && await enable.isChecked());
 
+const chooser = page.waitForEvent('filechooser');
+await page.keyboard.press('i');
+await (await chooser).setFiles('src/scenarios/library/40-crystal.json');
+await page.waitForTimeout(300);
+const imported = await page.evaluate(() => globalThis.particleController.state.name);
+await page.keyboard.press('r');
+await page.waitForTimeout(200);
+const afterReset = await page.evaluate(() => ({ name: globalThis.particleController.state.name, count: globalThis.particleController.state.particleCount }));
+check('I imports a scenario file and R resets it', imported === 'Lennard-Jones crystal' && afterReset.name === imported && afterReset.count === 1200, afterReset);
+
 await page.keyboard.press('?');
 check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
 await mkdir(path.dirname(out), { recursive: true });

@@ -22,6 +22,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
 - **Live plot** of each force as the integrator applies it (softening and cutoff included).
 - **v1-style interaction**: keyboard shortcuts, draggable dialogs, click to inspect and
   edit a particle, shift+drag to select, copy and place groups, particle generator.
+- **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file.
 - **Snapshots**: export the full state (forces, settings, particles) to JSON plus a PNG,
   and import it back with field-by-field validation.
 - 2D and 3D modes, sphere or box boundaries, friction, optional speed clamp.
@@ -48,6 +49,9 @@ expression. Velocities and positions advance with semi-implicit Euler
 (`v += F/m·dt`, then `x += v·dt`). Details: [docs/forces.md](docs/forces.md).
 
 ## Scenarios
+
+Scenarios are JSON files in `src/scenarios/library/` (format: [docs/scenarios.md](docs/scenarios.md));
+you can also load your own with <kbd>I</kbd>.
 
 | Scenario | Forces | What to look for |
 | --- | --- | --- |

@@ -8,8 +8,10 @@ import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/p
 import { createRng, inSphere, inDisk, uniform } from '../engine/random';
 import { ParticlePoints, type ColorMode } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
-import { createSnapshot, parseSnapshot, type Snapshot } from '../engine/snapshot';
+import { createSnapshot, parseSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { findScenario, SCENARIOS } from '../scenarios';
+import { parseScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
+import type { Scenario } from '../scenarios/types';
 import { Store } from './store';
 
 export interface GeneratorTemplate {
@@ -84,6 +86,9 @@ export class SimulationController {
   private fpsFrames = 0;
   private fpsSince = 0;
   private noticeId = 0;
+  private restart: () => void = () => {
+    throw new Error('no scenario loaded yet');
+  };
 
   constructor(capacity = DEFAULT_CAPACITY) {
     const width = textureWidthFor(capacity);
@@ -143,18 +148,23 @@ export class SimulationController {
   /* Scenarios and snapshots */
 
   loadScenario(id: string): void {
-    const scenario = findScenario(id);
+    this.startScenario(findScenario(id), id);
+  }
+
+  private startScenario(scenario: Scenario, scenarioId: string): void {
     const settings = { ...DEFAULT_SETTINGS, ...scenario.settings };
     const particles = scenario.particles(createRng(scenario.seed));
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId: id, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance);
     this.applyRadius();
+    this.restart = () => this.startScenario(scenario, scenarioId);
   }
 
+  /** Recreates the current world from its source: bundled scenario, imported scenario or snapshot. */
   reset(): void {
-    this.loadScenario(this.state.scenarioId);
+    this.restart();
   }
 
   cycleScenario(offset: number): void {
@@ -169,10 +179,23 @@ export class SimulationController {
     return createSnapshot(name, time, settings, forces, this.set.toArray());
   }
 
-  importSnapshot(text: string): void {
+  /** Accepts either a snapshot or a scenario file, dispatching on its `format` field. */
+  importFile(text: string, fileName: string): void {
+    const format = peekFormat(text);
+    if (format === SCENARIO_FORMAT) {
+      this.startScenario(parseScenario(text, fileName), '');
+      return;
+    }
+    if (format !== SNAPSHOT_FORMAT) {
+      throw new Error(`${fileName}: unknown format ${JSON.stringify(format)}; expected '${SNAPSHOT_FORMAT}' or '${SCENARIO_FORMAT}'`);
+    }
     const snapshot = parseSnapshot(text);
-    this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-    this.store.set({ scenarioId: '' });
+    const load = () => {
+      this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
+      this.store.set({ scenarioId: '' });
+    };
+    load();
+    this.restart = load;
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
@@ -550,6 +573,15 @@ export class SimulationController {
     this.fpsSince = now;
     this.store.set({ fps });
     this.refreshInspected();
+  }
+}
+
+function peekFormat(text: string): unknown {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return typeof parsed === 'object' && parsed !== null ? (parsed as { format?: unknown }).format : undefined;
+  } catch (error) {
+    throw new Error(`file is not valid JSON (${(error as Error).message})`, { cause: error });
   }
 }
 

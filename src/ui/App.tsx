@@ -38,10 +38,10 @@ function isTyping(target: EventTarget | null): boolean {
   return target.isContentEditable || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
 }
 
-async function importSnapshotFile(controller: SimulationController, file: File | undefined): Promise<void> {
+async function importFromFile(controller: SimulationController, file: File | undefined): Promise<void> {
   if (!file) return;
   try {
-    controller.importSnapshot(await file.text());
+    controller.importFile(await file.text(), file.name);
     controller.notify(`Imported ${file.name}`);
   } catch (error) {
     controller.notify(`Import of ${file.name} failed: ${(error as Error).message}`, 'error');
@@ -85,7 +85,14 @@ function Shell({ controller }: { controller: SimulationController }) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onchange = () => void importSnapshotFile(controller, input.files?.[0]);
+      input.hidden = true;
+      // Some browsers only fire change/open the picker for inputs attached to the document.
+      document.body.appendChild(input);
+      input.onchange = () => {
+        input.remove();
+        void importFromFile(controller, input.files?.[0]);
+      };
+      input.oncancel = () => input.remove();
       input.click();
     },
   }), [controller, pointer]);

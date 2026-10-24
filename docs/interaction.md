@@ -10,11 +10,11 @@ field; click the canvas to give focus back.
 | --- | --- |
 | Space | pause / resume |
 | N | one step (when paused) |
-| R | reset scenario |
+| R | reset (rebuild the current scenario or re-import the snapshot) |
 | PageDown / PageUp / Home | next / previous / first scenario |
 | S | sandbox |
 | P | export snapshot (JSON + PNG) |
-| I | import snapshot |
+| I | import a snapshot or a scenario file |
 | Delete | delete all particles (asks first) |
 | C | reset camera |
 | V | look down the z axis |

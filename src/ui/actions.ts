@@ -46,7 +46,7 @@ export const ACTIONS: readonly Action[] = [
   { id: 'home', label: 'First scenario', key: 'home', group: 'Simulation', run: ({ controller }) => controller.loadScenario(SCENARIOS[0]!.id) },
   { id: 'sandbox', label: 'Sandbox', key: 's', group: 'Simulation', run: ({ controller }) => controller.loadScenario('sandbox') },
   { id: 'export', label: 'Export snapshot (JSON + PNG)', key: 'p', group: 'Simulation', run: exportSnapshot },
-  { id: 'import', label: 'Import snapshot', key: 'i', group: 'Simulation', run: (ctx) => ctx.importFile() },
+  { id: 'import', label: 'Import snapshot or scenario', key: 'i', group: 'Simulation', run: (ctx) => ctx.importFile() },
   {
     id: 'deleteAll', label: 'Delete all particles', key: 'delete', group: 'Simulation',
     run: ({ controller }) => window.confirm('Delete all particles?') && controller.deleteAll(),

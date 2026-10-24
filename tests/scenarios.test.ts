@@ -12,7 +12,7 @@ const build = (extra: object, seed = 1) => {
 
 describe('bundled scenario library', () => {
   it('parses every file with unique ids in file-name order', () => {
-    expect(SCENARIOS.map((s) => s.id)).toEqual(['galaxy', 'plasma', 'nuclei', 'crystal', 'quarks', 'sandbox']);
+    expect(SCENARIOS.map((s) => s.id)).toEqual(['galaxy', 'plasma', 'nuclei', 'crystal', 'quarks', 'hadrons', 'sandbox']);
   });
 
   it.each(SCENARIOS.map((s) => [s.id, s] as const))('%s builds deterministically with valid forces', (_, scenario) => {
@@ -62,7 +62,7 @@ describe('parseScenario', () => {
     [{ groups: null }, /at 'groups': expected an array/],
     [{ seed: 1.5 }, /at 'seed': must be an integer >= 0, got 1.5/],
     [{ forces: [{ name: 'x', mode: 'force', range: 'short', expression: 'x' }] }, /at 'forces\[0\].cutoff': expected a finite number/],
-    [{ groups: [{ count: 5, shape: { type: 'grid', spacing: 1, columns: 2, rows: 2 } }] }, /5 particles do not fit a 2×2×1 grid \(4 sites\)/],
+    [{ groups: [{ count: 5, shape: { type: 'grid', spacing: 1, columns: 2, rows: 2 } }] }, /5 grid sites needed, a 2×2×1 grid has 4/],
   ])('rejects %j with its path', (extra, message) => {
     expect(() => parse(extra)).toThrow(message);
   });
@@ -85,6 +85,24 @@ describe('particle groups', () => {
   it('places every particle on z = 0 in 2D mode', () => {
     const particles = build({ settings: { mode2D: true }, groups: [{ count: 50, shape: { type: 'sphere', radius: 10 } }] });
     expect(particles.every((p) => p.position[2] === 0)).toBe(true);
+  });
+
+  it('places cluster members on an equilateral ring around a shared center', () => {
+    const particles = build({ groups: [{ count: 6, cluster: { size: 3, radius: 2 }, shape: { type: 'grid', spacing: 100, columns: 2, rows: 1 } }] });
+    for (const triplet of [particles.slice(0, 3), particles.slice(3)]) {
+      const sides = ([[0, 1], [1, 2], [2, 0]] as const).map(([a, b]) => Math.hypot(...triplet[a]!.position.map((c, k) => c - triplet[b]!.position[k]!)));
+      sides.forEach((side) => expect(side).toBeCloseTo(2 * Math.sqrt(3), 9));
+      const center = [0, 1, 2].map((k) => triplet.reduce((s, p) => s + p.position[k]!, 0) / 3);
+      expect(Math.abs(center[0]!)).toBeCloseTo(50, 9);
+    }
+  });
+
+  it.each([
+    [{ count: 4, cluster: { size: 3, radius: 1 }, shape: { type: 'point' } }, /4 is not a multiple of cluster.size 3/],
+    [{ count: 9, cluster: { size: 3, radius: 1 }, shape: { type: 'grid', spacing: 1, columns: 2, rows: 1 } }, /3 grid sites needed, a 2×1×1 grid has 2/],
+    [{ count: 3, cluster: { size: 3, radius: 0 }, shape: { type: 'point' } }, /cluster.radius': must be > 0/],
+  ])('rejects bad clusters %#', (group, message) => {
+    expect(() => parse({ groups: [group] })).toThrow(message);
   });
 
   it('lays out grids centered on their center', () => {

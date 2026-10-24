@@ -7,7 +7,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 1. ~~`scenarios-from-json.md`~~ (done)
 2. ~~`color-charge-su3-plane.md`~~ (done)
 3. ~~`particle-style-spherow.md`~~ (done)
-4. `nuclear-charge-and-hadron-scenario.md`
+4. ~~`nuclear-charge-and-hadron-scenario.md`~~ (done)
 5. `stats-dialog.md`
 6. `field-visualization.md`
 7. `short-range-neighbor-grid.md` + `benchmark-script.md`

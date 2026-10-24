@@ -30,6 +30,12 @@ export type VelocitySpec =
 
 export interface ParticleGroup {
   count: number;
+  /**
+   * Every `size` consecutive particles share one center drawn from the shape and sit evenly
+   * spaced on a circle of `radius` around it, randomly rotated (a triplet is an equilateral
+   * triangle), so bound groups start near equilibrium instead of overlapping.
+   */
+  cluster: { size: number; radius: number } | undefined;
   kind: 'dynamic' | 'fixed';
   shape: Shape;
   velocity: VelocitySpec;
@@ -43,7 +49,7 @@ export interface ParticleGroup {
 
 const ORIGIN: Vec3 = [0, 0, 0];
 const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups'] as const;
-const GROUP_KEYS = ['count', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
+const GROUP_KEYS = ['count', 'cluster', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
   sampledNumber(value: unknown, path: string): Sampled<number> {
@@ -124,6 +130,12 @@ class ScenarioReader extends JsonReader {
     }
   }
 
+  cluster(value: unknown, path: string): { size: number; radius: number } {
+    const o = this.object(value, path);
+    this.onlyKeys(o, ['size', 'radius'], path);
+    return { size: this.count(o.size, `${path}.size`), radius: this.positive(o.radius, `${path}.radius`) };
+  }
+
   velocity(value: unknown, path: string): VelocitySpec {
     if (value === undefined) return { type: 'still' };
     const o = this.object(value, path);
@@ -156,6 +168,7 @@ class ScenarioReader extends JsonReader {
       o[key] === undefined ? fallback : this.sampledNumber(o[key], `${path}.${key}`);
     const group: ParticleGroup = {
       count: this.count(o.count, `${path}.count`),
+      cluster: o.cluster === undefined ? undefined : this.cluster(o.cluster, `${path}.cluster`),
       kind: o.kind === undefined ? 'dynamic' : this.oneOf(o.kind, ['dynamic', 'fixed'] as const, `${path}.kind`),
       shape: this.shape(o.shape, `${path}.shape`),
       velocity: this.velocity(o.velocity, `${path}.velocity`),
@@ -166,10 +179,15 @@ class ScenarioReader extends JsonReader {
       nuclearCharge: optionalNumber('nuclearCharge', 0),
       color: o.color === undefined ? ORIGIN : this.sampledVec3(o.color, `${path}.color`),
     };
+    const clusterSize = group.cluster?.size ?? 1;
+    if (group.count % clusterSize !== 0) {
+      this.fail(`${path}.count`, `${group.count} is not a multiple of cluster.size ${clusterSize}`);
+    }
     if (group.shape.type === 'grid') {
       const { columns, rows, layers } = group.shape;
-      if (group.count > columns * rows * layers) {
-        this.fail(`${path}.count`, `${group.count} particles do not fit a ${columns}×${rows}×${layers} grid (${columns * rows * layers} sites)`);
+      const centers = group.count / clusterSize;
+      if (centers > columns * rows * layers) {
+        this.fail(`${path}.count`, `${centers} grid sites needed, a ${columns}×${rows}×${layers} grid has ${columns * rows * layers}`);
       }
     }
     const masses = typeof group.mass === 'number' ? [group.mass]
@@ -237,10 +255,38 @@ function sampleVelocity(spec: VelocitySpec, position: Vec3, rng: Rng, mode2D: bo
   }
 }
 
+/** Two orthonormal vectors spanning a uniformly random plane through the origin. */
+function randomPlane(rng: Rng): [Vec3, Vec3] {
+  const normal = onSphere(rng);
+  const helper: Vec3 = Math.abs(normal[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const u = cross(normal, helper);
+  const length = Math.hypot(...u);
+  const first = u.map((c) => c / length) as Vec3;
+  return [first, cross(normal, first)];
+}
+
 export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2D: boolean): Particle[] {
-  return groups.flatMap((group) =>
-    Array.from({ length: group.count }, (_, index): Particle => {
-      const sampled = samplePosition(group.shape, rng, index);
+  return groups.flatMap((group) => {
+    let center: Vec3 = [0, 0, 0];
+    let axes: [Vec3, Vec3] = [[1, 0, 0], [0, 1, 0]];
+    let phase = 0;
+    return Array.from({ length: group.count }, (_, index): Particle => {
+      let sampled: Vec3;
+      if (group.cluster) {
+        const { size, radius } = group.cluster;
+        const member = index % size;
+        if (member === 0) {
+          center = samplePosition(group.shape, rng, index / size);
+          axes = mode2D ? [[1, 0, 0], [0, 1, 0]] : randomPlane(rng);
+          phase = uniform(rng, 0, 2 * Math.PI);
+        }
+        const angle = phase + (2 * Math.PI * member) / size;
+        const ring = size === 1 ? 0 : radius;
+        sampled = add(center, [0, 1, 2].map((k) => ring * (Math.cos(angle) * axes[0][k]! + Math.sin(angle) * axes[1][k]!)) as Vec3);
+      } else {
+        sampled = samplePosition(group.shape, rng, index);
+      }
       const position: Vec3 = mode2D ? [sampled[0], sampled[1], 0] : sampled;
       return {
         kind: group.kind === 'fixed' ? ParticleKind.fixed : ParticleKind.dynamic,
@@ -254,8 +300,8 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
         nuclearCharge: sample(group.nuclearCharge, rng, index),
         color: [...sample(group.color, rng, index)],
       };
-    }),
-  );
+    });
+  });
 }
 
 /** Parses a scenario file into the runtime Scenario; `source` names the file in error messages. */

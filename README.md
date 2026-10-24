@@ -61,6 +61,7 @@ you can also load your own with <kbd>I</kbd>.
 | Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
 | Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
+| Quarks to nuclei | color + v1 nuclear force + Coulomb + quark core | quark triplets bound into molecules and ring-shaped nuclei |
 | Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
 
 ## Development

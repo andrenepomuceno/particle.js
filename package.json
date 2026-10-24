@@ -16,7 +16,7 @@
     "check": "node scripts/check.mjs",
     "snap": "node scripts/snap.mjs",
     "smoke": "node scripts/smoke-interaction.mjs",
-    "smoke:all": "node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,quarks,sandbox && node scripts/smoke-interaction.mjs"
+    "smoke:all": "node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,quarks,hadrons,sandbox && node scripts/smoke-interaction.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

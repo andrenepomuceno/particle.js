@@ -1,0 +1,102 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "hadrons",
+  "name": "Quarks to nuclei",
+  "folder": "Color charge",
+  "description": "Quark triplets (color-neutral, held by the color force with a short cutoff) bind into nuclei and crystals through v1's nuclear force, whose attractive shell lies beyond the color cutoff; nuclear charge is the baryon number (1/3 per quark) and Coulomb keeps protons apart.",
+  "seed": 7,
+  "view": {
+    "cameraDistance": 500,
+    "particleRadius": 1.2,
+    "colorMode": "color"
+  },
+  "settings": {
+    "timeStep": 0.05,
+    "mode2D": true,
+    "friction": 0.1,
+    "boundary": "box",
+    "boundarySize": 300
+  },
+  "forces": [
+    {
+      "name": "Quark core",
+      "mode": "potential",
+      "range": "short",
+      "cutoff": 3,
+      "expression": "k * (1 - x)^2",
+      "params": [
+        {
+          "name": "k",
+          "value": 500
+        }
+      ]
+    },
+    {
+      "preset": "color",
+      "cutoff": 5,
+      "softening": 0.5,
+      "params": {
+        "alpha": 200,
+        "sigma": 1
+      }
+    },
+    {
+      "preset": "nuclear",
+      "cutoff": 40,
+      "params": {
+        "k": 3
+      }
+    },
+    {
+      "preset": "coulomb",
+      "softening": 1,
+      "params": {
+        "k": 60
+      }
+    }
+  ],
+  "groups": [
+    {
+      "count": 600,
+      "cluster": {
+        "size": 3,
+        "radius": 1.7
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 250
+      },
+      "color": {
+        "cycle": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "charge": {
+        "cycle": [
+          0.6667,
+          0.6667,
+          -0.3333,
+          0.6667,
+          -0.3333,
+          -0.3333
+        ]
+      },
+      "nuclearCharge": 0.3333
+    }
+  ]
+}

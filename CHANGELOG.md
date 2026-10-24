@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Forces dialog: resultant potential of the enabled forces, short and long range plotted apart.
+- Field dialog: *Lock color scale*, so a scaled test particle shows as a stronger or weaker field.
 - Vector forces: a potential reading `dx`, `dy`, `dz`, `si_r` or `sj_r` yields the full force
   −∇V (non-central). The Spin dipole preset is now the true dipole–dipole potential. New scenarios
   *Dipole Chains* (2D ferrofluid chains) and *Dipole Crystal* (triangular lattice with defects).

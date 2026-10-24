@@ -1,9 +1,10 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent } from 'react';
 import { FORCE_PRESETS, newForceId, type ForcePresetId } from '../../engine/forces/presets';
 import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
 import { NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
-import { ForcePlot } from './ForcePlot';
+import { compileForce, type CompiledForce } from '../../engine/forces/compile';
+import { ForcePlot, ResultantPotentialPlot } from './ForcePlot';
 
 function TextCommit({ value, onCommit, label, multiline = false }: {
   value: string; onCommit: (value: string) => void; label: string; multiline?: boolean;
@@ -105,6 +106,14 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
   const shaderError = useAppState((s) => s.shaderError);
   const [preset, setPreset] = useState<ForcePresetId>('gravity');
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  // Enabled forces that compile; the ones with errors are reported on their cards instead.
+  const active = useMemo(() => forces.filter((f) => f.enabled).flatMap((f): CompiledForce[] => {
+    try {
+      return [compileForce(f)];
+    } catch {
+      return [];
+    }
+  }), [forces]);
   const toggle = (id: string) => setCollapsed((ids) => {
     const next = new Set(ids);
     if (next.has(id)) next.delete(id);
@@ -121,6 +130,13 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
           <button className="outlined" onClick={() => setCollapsed(new Set(forces.map((f) => f.id)))}>Collapse all</button>
           <button className="outlined" onClick={() => setCollapsed(new Set())}>Expand all</button>
         </div>
+      )}
+      {active.length > 0 && (
+        <details className="resultant" open>
+          <summary className="section-title">Resultant potential</summary>
+          <ResultantPotentialPlot forces={active} range="short" />
+          <ResultantPotentialPlot forces={active} range="long" />
+        </details>
       )}
       {forces.map((force) => (
         <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]}

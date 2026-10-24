@@ -182,4 +182,4 @@ complementary color (anti-red is cyan). Code: `src/engine/colorCharge.ts`.
 - Parameter names may not clash with GLSL/WGSL/JS keywords or the library's built-ins (`input`,
   `mix`, `E`, …); the editor reports the clash.
 - The pair loop is O(N²) for all forces today; short-range forces only skip the
-  evaluation, not the visit. See `tasks/inbox/short-range-neighbor-grid.md`.
+  evaluation, not the visit; a neighbor grid is planned.

@@ -67,7 +67,8 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
 ## Fluxo de trabalho
 
 - Tarefas: um `.md` por tarefa em `tasks/inbox/`; ao concluir, escreva a seção `## Result`
-  e mova com `git mv` para `tasks/done/`. Pedidos no meio de uma tarefa viram tarefa na hora.
+  e mova para `tasks/done/`. Pedidos no meio de uma tarefa viram tarefa na hora. `tasks/` é local
+  e não versionado (pedido do usuário, `.gitignore`).
 - Commits pequenos, conventional commits em inglês, mensagem via `git commit -F`, stage explícito,
   sem trailers de coautoria. Suíte verde antes de cada commit.
 - **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/main` sempre que
@@ -82,5 +83,5 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
 - Toda feature nova ganha um cenário que a demonstra (pedido do usuário); ideias de cenários
   interessantes também entram na biblioteca.
 - Automação repetitiva de CLI vai para `scripts/`.
-- Fase atual: **MVP**. Testes completos/gate de cobertura/e2e estão em `tasks/inbox/`.
+- Fase atual: 2.x publicada. Próximos itens (reações, testes completos, grade de vizinhos) em `tasks/inbox/`.
 - Docs: `docs/README.md` é o índice; `docs/forces.md` descreve o modelo e a linguagem de expressões.

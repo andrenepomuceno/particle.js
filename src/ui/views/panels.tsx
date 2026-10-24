@@ -9,6 +9,8 @@ import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } 
 import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
 
+const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
+
 const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(limit));
 
 const format = (value: number, digits = 3) => (Number.isInteger(value) ? String(value) : value.toPrecision(digits));
@@ -167,7 +169,7 @@ export function ParticleView() {
         ))}
       </div>
       <div className="row">
-        <button className="outlined" onClick={() => controller.toggleFollow()}>{following ? 'Stop following' : 'Follow'} <kbd>F</kbd></button>
+        <button className="outlined" onClick={() => controller.toggleFollow()}>{following ? 'Stop following' : 'Follow'} <kbd>{keyLabel(FOLLOW_KEY)}</kbd></button>
         <button className="outlined" onClick={() => edit({ velocity: [0, 0, 0] })}>Stop</button>
         <button className="danger outlined" onClick={() => controller.removeParticles([index])}>Delete</button>
       </div>

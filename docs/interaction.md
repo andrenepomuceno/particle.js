@@ -18,7 +18,7 @@ field; click the canvas to give focus back.
 | Delete | delete all particles (asks first) |
 | C | reset camera |
 | V | look down the z axis |
-| F | follow the inspected particle |
+| L | follow (lock the camera on) the inspected particle |
 | A | show / hide axes |
 | Q | cycle color mode (charge, color, speed, mass, spin, parity, nuclear) |
 | H | hide all overlays |

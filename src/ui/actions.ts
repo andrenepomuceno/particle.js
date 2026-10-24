@@ -53,7 +53,7 @@ export const ACTIONS: readonly Action[] = [
   },
   { id: 'resetCamera', label: 'Reset camera', key: 'c', group: 'Camera', run: ({ controller }) => controller.resetCamera() },
   { id: 'frontCamera', label: 'Look down the z axis', key: 'v', group: 'Camera', run: ({ controller }) => controller.frontCamera() },
-  { id: 'follow', label: 'Follow inspected particle', key: 'f', group: 'Camera', run: ({ controller }) => controller.toggleFollow() },
+  { id: 'follow', label: 'Follow inspected particle', key: 'l', group: 'Camera', run: ({ controller }) => controller.toggleFollow() },
   { id: 'axes', label: 'Show / hide axes', key: 'a', group: 'View', run: ({ controller }) => controller.toggleAxes() },
   {
     id: 'colorMode', label: 'Cycle color mode', key: 'q', group: 'View',

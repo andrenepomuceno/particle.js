@@ -77,7 +77,7 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |
 | Spring | potential | short | `0.5 * k * (r - r0)^2` |
 | Cornell (color) | potential | short | `c_dot * (alpha / r - sigma * r)` |
-| Spin dipole | potential | short | `k * (s_dot - 3 * si_r * sj_r) / r^3` |
+| Spin dipole | force | short | `3 * k * (s_dot - 3 * si_r * sj_r) / r^4` |
 
 All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 
@@ -85,9 +85,10 @@ All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 
 - **Spin** is a fixed 3D vector per particle. Expressions can depend on its orientation
   (`s_dot`, `si_r`, `sj_r`), but forces stay central (along r̂) and spins never rotate: there is
-  no torque or precession. The *Spin dipole* preset is the magnetic dipole-dipole energy with
-  only its central part acting. In potential mode the angular terms are treated as constants
-  when differentiating by r.
+  no torque or precession. The *Spin dipole* preset is the central part of the magnetic
+  dipole-dipole force, written in force mode: with direction-dependent terms V(r) is not a true
+  potential (the missing torque would do work), so potential mode rejects `si_r`/`sj_r`, and the
+  energy chart lists such forces as missing instead of reporting a drifting total.
 - **Charge** is a generic 2D vector (`q`, `q2`; user decision). Electromagnetism only needs the
   first component (U(1) has rank 1, so its charges are real); `q_dot` lets a force couple through
   both, and the Coulomb preset uses it (identical to `q_i·q_j` while every `q2` is 0).

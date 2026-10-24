@@ -14,7 +14,7 @@ const COUPLINGS: readonly Coupling[] = [
   { label: 'charge', variables: ['q_i', 'q_j'], isZero: (s, k) => at(s.attributes, k, 1) === 0 },
   { label: 'second charge component', variables: ['q2_i', 'q2_j'], isZero: (s, k) => at(s.attributes, k, 2) === 0 },
   {
-    label: 'charge', variables: ['q_dot'],
+    label: '2D charge', variables: ['q_dot'],
     isZero: (s, k) => at(s.attributes, k, 1) === 0 && at(s.attributes, k, 2) === 0,
   },
   {

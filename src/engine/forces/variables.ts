@@ -3,6 +3,8 @@ export interface PairVariable {
   description: string;
   glsl: string;
   shortRangeOnly?: boolean;
+  /** Depends on the pair's direction, so it has no place in a V(r) differentiated along r only. */
+  directional?: boolean;
 }
 
 const perParticle = (
@@ -27,8 +29,8 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   ...perParticle('sz', 'spin vector, z', (k) => `spin${k}.z`),
   ...perParticle('i3', 'isospin projection I3', (k) => `spin${k}.w`),
   { name: 's_dot', description: 'spin alignment s_i·s_j', glsl: 'dot(spin1.xyz, spin2.xyz)' },
-  { name: 'si_r', description: 's_i·r̂, r̂ pointing from j to i', glsl: 'dot(spin1.xyz, dir)' },
-  { name: 'sj_r', description: 's_j·r̂, r̂ pointing from j to i', glsl: 'dot(spin2.xyz, dir)' },
+  { name: 'si_r', description: 's_i·r̂, r̂ pointing from j to i (force mode only)', glsl: 'dot(spin1.xyz, dir)', directional: true },
+  { name: 'sj_r', description: 's_j·r̂, r̂ pointing from j to i (force mode only)', glsl: 'dot(spin2.xyz, dir)', directional: true },
   ...perParticle('p', 'parity', (k) => `attr${k}.w`),
   ...perParticle('n', 'nuclear charge', (k) => `color${k}.w`),
   ...perParticle('cr', 'red color charge', (k) => `color${k}.x`),

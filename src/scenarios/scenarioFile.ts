@@ -1,4 +1,5 @@
 import { newForceId } from '../engine/forces/presets';
+import { migrateScalarSpin } from '../engine/forces/migrate';
 import { readForce } from '../engine/forces/readForce';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../engine/species';
 import { add, cross } from '../engine/vec3';
@@ -12,7 +13,7 @@ import { DEFAULT_SETTINGS, readSettings } from '../engine/settings';
 import type { Scenario } from './types';
 
 export const SCENARIO_FORMAT = 'particle.js-v2/scenario';
-export const SCENARIO_VERSION = 1;
+export const SCENARIO_VERSION = 2;
 
 /** A number or vector that is either fixed or drawn per particle. */
 export type Sampled<T> = T | { min: number; max: number } | { choice: T[] } | { cycle: T[] };
@@ -85,7 +86,7 @@ class ScenarioReader extends JsonReader {
 
   sampledSpecies(value: unknown, path: string): Sampled<SpeciesId> {
     if (typeof value === 'string') return this.oneOf(value, SPECIES_IDS, path);
-    return this.listSpec(this.object(value, path), path, (v, p) => this.oneOf(v, SPECIES_IDS, p));
+    return this.listSpec(this.object(value, path), path, (v, p) => this.oneOf(v, SPECIES_IDS, p), 'a species id, {choice: [...]} or {cycle: [...]}');
   }
 
   sampledVec3(value: unknown, path: string): Sampled<Vec3> {
@@ -93,9 +94,12 @@ class ScenarioReader extends JsonReader {
     return this.listSpec(this.object(value, path), path, (v, p) => this.vec3(v, p));
   }
 
-  listSpec<T>(o: Record<string, unknown>, path: string, item: (v: unknown, p: string) => T): { choice: T[] } | { cycle: T[] } {
+  listSpec<T>(
+    o: Record<string, unknown>, path: string, item: (v: unknown, p: string) => T,
+    forms = 'a value, {min, max}, {choice: [...]} or {cycle: [...]}',
+  ): { choice: T[] } | { cycle: T[] } {
     const key = 'choice' in o ? 'choice' : 'cycle' in o ? 'cycle' : undefined;
-    if (!key) this.fail(path, 'expected a value, {min, max}, {choice: [...]} or {cycle: [...]}');
+    if (!key) this.fail(path, `expected ${forms}`);
     this.onlyKeys(o, [key], path);
     const items = this.array(o[key], `${path}.${key}`).map((v, k) => item(v, `${path}.${key}[${k}]`));
     if (items.length === 0) this.fail(`${path}.${key}`, 'must not be empty');
@@ -356,13 +360,14 @@ export function readScenario(value: unknown, source: string): Scenario {
   const o = json.object(value, '$');
   json.onlyKeys(o, TOP_KEYS, '$');
   if (o.format !== SCENARIO_FORMAT) json.fail('format', `expected '${SCENARIO_FORMAT}', got ${JSON.stringify(o.format)}`);
-  if (o.version !== SCENARIO_VERSION) json.fail('version', `unsupported version ${JSON.stringify(o.version)}, expected ${SCENARIO_VERSION}`);
+  // Version 1 had scalar spin variables in expressions; they are migrated like snapshot forces.
+  const version = json.oneOf(o.version, [1, SCENARIO_VERSION] as const, 'version');
 
   const view = o.view === undefined ? {} : json.object(o.view, 'view');
   json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode'], 'view');
   const settings = o.settings === undefined ? { ...DEFAULT_SETTINGS } : readSettings(json, o.settings, 'settings', { ...DEFAULT_SETTINGS });
   const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
-  const forces = forceSpecs.map((f, k) => readForce(json, f, `forces[${k}]`, false));
+  const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
   const groups = (o.groups === undefined ? [] : json.array(o.groups, 'groups')).map((g, k) => json.group(g, `groups[${k}]`));
   const seed = o.seed === undefined ? 1 : json.finite(o.seed, 'seed');
   if (!Number.isInteger(seed) || seed < 0) json.fail('seed', `must be an integer >= 0, got ${seed}`);

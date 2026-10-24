@@ -1,3 +1,4 @@
+import { migrateScalarSpin } from './forces/migrate';
 import { readForce } from './forces/readForce';
 import type { ForceDefinition } from './forces/types';
 import { JsonReader } from './json';
@@ -46,13 +47,7 @@ function parseParticle(value: unknown, index: number, version: number): Particle
   };
 }
 
-// Scalar spin became a vector in version 4: the old s_i/s_j are its z components.
-function migrateForce(force: unknown, version: number): unknown {
-  if (version >= 4 || typeof force !== 'object' || force === null) return force;
-  const expression = (force as { expression?: unknown }).expression;
-  if (typeof expression !== 'string') return force;
-  return { ...force, expression: expression.replace(/\bs_i\b/g, 'sz_i').replace(/\bs_j\b/g, 'sz_j') };
-}
+const migrateForce = (force: unknown, version: number) => (version >= 4 ? force : migrateScalarSpin(force));
 
 // Versions 1 and 2 predate the integrator choice and always ran semi-implicit Euler.
 function migrateSettings(settings: unknown, version: number): unknown {

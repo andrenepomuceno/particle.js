@@ -60,6 +60,12 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     problems.push(error.message);
   }
   if (parsed) problems.push(...unknownVariables(def, parsed));
+  if (parsed && def.mode === 'potential') {
+    const directional = [...collectVariables(parsed)].filter((name) => PAIR_VARIABLES.find((v) => v.name === name)?.directional);
+    if (directional.length > 0) {
+      problems.push(`${directional.join(', ')} depend on the pair's direction, which F = -dV/dr cannot account for (it would need a torque); write the force in force mode instead`);
+    }
+  }
   if (problems.length > 0 || !parsed) throw new ForceValidationError(def.name, problems);
 
   const inR = substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff')));

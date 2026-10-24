@@ -3,40 +3,48 @@ import type { FieldProbe } from '../field';
 import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
 
 type Pair = Omit<PairScope, 'r'>;
-interface Side { m: number; q: number; q2: number; i3: number; spin: Vec3; p: number; n: number; color: Vec3; t: number; position: Vec3 }
+type Probe = FieldProbe & { position: Vec3 };
 
-function particleSide(set: ParticleSet, k: number): Side {
-  const o = k * TEXEL;
-  const { position: pos, velocity: vel, attributes: attr, color, spin } = set;
-  return {
-    m: attr[o]!, q: attr[o + 1]!, q2: attr[o + 2]!, i3: spin[o + 3]!, p: attr[o + 3]!, n: color[o + 3]!, t: vel[o + 3]!,
-    spin: [spin[o]!, spin[o + 1]!, spin[o + 2]!],
-    color: [color[o]!, color[o + 1]!, color[o + 2]!],
-    position: [pos[o]!, pos[o + 1]!, pos[o + 2]!],
-  };
-}
-
-function combine(i: Side, j: Side, time: number): Pair {
-  const d = [i.position[0] - j.position[0], i.position[1] - j.position[1], i.position[2] - j.position[2]];
-  const length = Math.hypot(d[0]!, d[1]!, d[2]!) || 1;
-  return {
-    m_i: i.m, m_j: j.m, q_i: i.q, q_j: j.q, q2_i: i.q2, q2_j: j.q2, i3_i: i.i3, i3_j: j.i3, p_i: i.p, p_j: j.p, n_i: i.n, n_j: j.n,
-    sx_i: i.spin[0], sy_i: i.spin[1], sz_i: i.spin[2], sx_j: j.spin[0], sy_j: j.spin[1], sz_j: j.spin[2],
-    ux: d[0]! / length, uy: d[1]! / length, uz: d[2]! / length,
-    cr_i: i.color[0], cg_i: i.color[1], cb_i: i.color[2], cr_j: j.color[0], cg_j: j.color[1], cb_j: j.color[2],
-    t_i: i.t, t_j: j.t, time,
-  };
-}
+// These run N² times per step in the CPU references, so they read the typed arrays directly
+// instead of building intermediate objects.
 
 /** Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. */
 export function pairScope(set: ParticleSet, i: number, j: number, time: number): Pair {
-  return combine(particleSide(set, i), particleSide(set, j), time);
+  const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
+  const oi = i * TEXEL;
+  const oj = j * TEXEL;
+  const dx = x[oi]! - x[oj]!;
+  const dy = x[oi + 1]! - x[oj + 1]!;
+  const dz = x[oi + 2]! - x[oj + 2]!;
+  const length = Math.hypot(dx, dy, dz) || 1;
+  return {
+    m_i: a[oi]!, m_j: a[oj]!, q_i: a[oi + 1]!, q_j: a[oj + 1]!, q2_i: a[oi + 2]!, q2_j: a[oj + 2]!,
+    p_i: a[oi + 3]!, p_j: a[oj + 3]!, n_i: c[oi + 3]!, n_j: c[oj + 3]!,
+    sx_i: s[oi]!, sy_i: s[oi + 1]!, sz_i: s[oi + 2]!, sx_j: s[oj]!, sy_j: s[oj + 1]!, sz_j: s[oj + 2]!,
+    i3_i: s[oi + 3]!, i3_j: s[oj + 3]!,
+    ux: dx / length, uy: dy / length, uz: dz / length,
+    cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
+    t_i: v[oi + 3]!, t_j: v[oj + 3]!, time,
+  };
 }
 
-/** Same as pairScope with the field's test particle (clock 0) at `position` receiving the force from j. */
-export function probeScope(probe: FieldProbe, position: Vec3, set: ParticleSet, j: number, time: number): Pair {
-  const { mass, charge, charge2, spin, isospin, parity, nuclearCharge, color } = probe;
-  return combine({ m: mass, q: charge, q2: charge2, i3: isospin, spin, p: parity, n: nuclearCharge, color, t: 0, position }, particleSide(set, j), time);
+/** Same as pairScope with the field's test particle (clock 0) at `probe.position` receiving the force from j. */
+export function probeScope(probe: Probe, set: ParticleSet, j: number, time: number): Pair {
+  const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
+  const oj = j * TEXEL;
+  const dx = probe.position[0] - x[oj]!;
+  const dy = probe.position[1] - x[oj + 1]!;
+  const dz = probe.position[2] - x[oj + 2]!;
+  const length = Math.hypot(dx, dy, dz) || 1;
+  return {
+    m_i: probe.mass, m_j: a[oj]!, q_i: probe.charge, q_j: a[oj + 1]!, q2_i: probe.charge2, q2_j: a[oj + 2]!,
+    p_i: probe.parity, p_j: a[oj + 3]!, n_i: probe.nuclearCharge, n_j: c[oj + 3]!,
+    sx_i: probe.spin[0], sy_i: probe.spin[1], sz_i: probe.spin[2], sx_j: s[oj]!, sy_j: s[oj + 1]!, sz_j: s[oj + 2]!,
+    i3_i: probe.isospin, i3_j: s[oj + 3]!,
+    ux: dx / length, uy: dy / length, uz: dz / length,
+    cr_i: probe.color[0], cg_i: probe.color[1], cb_i: probe.color[2], cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
+    t_i: 0, t_j: v[oj + 3]!, time,
+  };
 }
 
 /**

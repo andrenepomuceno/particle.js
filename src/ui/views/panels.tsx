@@ -17,8 +17,11 @@ const FIT_FIELD_KEY = ACTIONS.find((a) => a.id === 'fitField')!.key!;
 /** Applying a species fills the generator template; the user can still edit each field afterwards. */
 const speciesTemplate = (id: SpeciesId) => {
   const { mass, charge, isospin, nuclearCharge } = SPECIES[id];
-  return { mass, charge, charge2: 0, isospin, nuclearCharge, chargeSpread: 'fixed' as const };
+  return { species: id, mass, charge, charge2: 0, isospin, nuclearCharge, chargeSpread: 'fixed' as const };
 };
+
+/** Fields a species preset fills; editing one of them by hand leaves the preset. */
+const SPECIES_FIELDS = ['mass', 'charge', 'charge2', 'isospin', 'nuclearCharge'] as const;
 
 const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(limit));
 
@@ -203,12 +206,15 @@ export function SelectionView({ ctx }: { ctx: ActionContext }) {
 export function GeneratorView() {
   const controller = useController();
   const g = useAppState((s) => s.generator);
-  const set = (patch: Partial<typeof g>) => controller.setGenerator(patch);
+  const set = (patch: Partial<typeof g>) => {
+    const editsAttributes = SPECIES_FIELDS.some((key) => key in patch);
+    controller.setGenerator(editsAttributes ? { ...patch, species: 'custom' } : patch);
+  };
   return (
     <div className="stack">
       <div className="grid">
-        <SelectField label="Species" value={'custom' as string} options={['custom', ...SPECIES_IDS]}
-          onChange={(id) => id !== 'custom' && set(speciesTemplate(id as SpeciesId))} />
+        <SelectField<SpeciesId | 'custom'> label="Species" value={g.species} options={['custom', ...SPECIES_IDS]}
+          onChange={(id) => controller.setGenerator(id === 'custom' ? { species: id } : speciesTemplate(id))} />
         <NumberField label="Count" value={g.count} validate={(v) => (Number.isInteger(v) && v >= 1 ? undefined : 'must be an integer >= 1')} onCommit={(count) => set({ count })} />
         <NumberField label="Cloud radius" value={g.cloudRadius} validate={nonNegative} onCommit={(cloudRadius) => set({ cloudRadius })} />
         <NumberField label="Mass" value={g.mass} validate={positive} onCommit={(mass) => set({ mass })} />

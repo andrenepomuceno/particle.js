@@ -54,6 +54,11 @@ describe('compileForce', () => {
     expect(forceToGlsl(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })), 0)).toBe('(dot(attr1.yz, attr2.yz) * spin2.w)');
   });
 
+  it('rejects direction-dependent spin terms in potential mode', () => {
+    expect(() => compileForce(makeForce({ mode: 'potential', expression: 'si_r * sj_r / r^3', params: [] })))
+      .toThrow(/si_r, sj_r depend on the pair's direction.*force mode/);
+  });
+
   it('rejects the old scalar spin variables with the list of new ones', () => {
     expect(() => compileForce(makeForce({ expression: 's_i * s_j', params: [] }))).toThrow(/unknown variable 's_i'.*s_dot/);
   });

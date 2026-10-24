@@ -9,6 +9,7 @@ import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
+import type { SpeciesId } from '../engine/species';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk } from '../engine/random';
 import { FieldArrows } from '../engine/render/FieldArrows';
@@ -23,6 +24,8 @@ import { limitFrame } from './frameLimiter';
 import { Store } from './store';
 
 export interface GeneratorTemplate {
+  /** Species last applied to the template; any manual attribute edit makes it 'custom'. */
+  species: SpeciesId | 'custom';
   count: number;
   cloudRadius: number;
   mass: number;
@@ -39,6 +42,7 @@ export interface GeneratorTemplate {
 }
 
 export const DEFAULT_GENERATOR: GeneratorTemplate = {
+  species: 'custom',
   count: 100, cloudRadius: 50, mass: 1, charge: 1, chargeSpread: 'random sign',
   charge2: 0, spin: [0, 0, 0], isospin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
 };

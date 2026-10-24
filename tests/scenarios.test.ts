@@ -45,7 +45,7 @@ describe('parseScenario', () => {
 
   it.each([
     [{ format: 'nope' }, /at 'format': expected 'particle.js-v2\/scenario'/],
-    [{ version: 2 }, /at 'version': unsupported version 2/],
+    [{ version: 3 }, /at 'version': expected one of 1, 2, got 3/],
     [{ colour: 1 }, /at '\$': unknown key\(s\) colour/],
     [{ settings: { timestep: 1 } }, /at 'settings': unknown key\(s\) timestep/],
     [{ settings: { timeStep: -1 } }, /timeStep must be > 0/],
@@ -118,6 +118,11 @@ describe('particle groups', () => {
     expect(particles.map((p) => [p.charge, p.isospin, p.nuclearCharge, p.mass])).toEqual([
       [2 / 3, 0.5, 1 / 3, 2], [2 / 3, 0.5, 1 / 3, 2], [-1 / 3, -0.5, 1 / 3, 2],
     ]);
+  });
+
+  it('migrates scalar spin variables in version 1 scenario forces', () => {
+    const forces = parse({ version: 1, forces: [{ name: 's', mode: 'force', range: 'long', expression: 's_i * s_j / r^4' }] }).forces();
+    expect(forces[0]!.expression).toBe('sz_i * sz_j / r^4');
   });
 
   it('accepts vector spin and the second charge', () => {

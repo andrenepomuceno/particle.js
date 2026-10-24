@@ -59,7 +59,9 @@ vec3 signedColor(float value) {
 // v1 generateParticleColor: charge picks blue/red/gray; color charge, negative nuclear charge (v1)
 // and negative parity (v2) tint it.
 vec3 meaningfulColor(vec4 attr, vec4 color) {
-  vec3 rgb = attr.y > 0.0 ? vec3(0.0, 0.0, 6.0) : attr.y < 0.0 ? vec3(6.0, 0.0, 0.0) : vec3(2.0);
+  // The sign comes from the electric charge, or from q2 for particles charged only along it.
+  float q = attr.y != 0.0 ? attr.y : attr.z;
+  vec3 rgb = q > 0.0 ? vec3(0.0, 0.0, 6.0) : q < 0.0 ? vec3(6.0, 0.0, 0.0) : vec3(2.0);
   if (any(notEqual(color.rgb, vec3(0.0)))) rgb += 2.0 * (displayColor(color.rgb) - 0.15) / 0.85;
   if (color.w < 0.0) rgb.g += 1.0;
   if (attr.w < 0.0) rgb.g += 1.0;
@@ -80,8 +82,8 @@ void main() {
   else if (uColorMode == 1) vColor = displayColor(color.rgb);
   else if (uColorMode == 2) vColor = speedColor(length(vVelocity), uAverageSpeed);
   else if (uColorMode == 3) vColor = mix(vec3(0.5), vec3(1.0), clamp(log(attr.x + 1.0) * 0.3, 0.0, 1.0));
-  // Spin direction as a color (x→red, y→green, z→blue, both signs), gray when spinless.
-  else if (uColorMode == 4) vColor = length(spin.xyz) > 0.0 ? 0.25 + 0.75 * abs(normalize(spin.xyz)) : vec3(0.5);
+  // Spin direction as a color: each axis maps -1..1 to 0..1, so opposite spins get complementary colors.
+  else if (uColorMode == 4) vColor = length(spin.xyz) > 0.0 ? 0.5 + 0.5 * normalize(spin.xyz) : vec3(0.5);
   else if (uColorMode == 5) vColor = signedColor(attr.w);
   else if (uColorMode == 6) vColor = signedColor(color.w);
   else vColor = signedColor(spin.w);

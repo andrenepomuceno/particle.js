@@ -15,7 +15,7 @@ An invalid bundled file stops the app at startup.
 | Key | Required | Meaning |
 | --- | --- | --- |
 | `format` | yes | `"particle.js-v2/scenario"` |
-| `version` | yes | `1` |
+| `version` | yes | `2` (`1` still loads: its scalar `s_i`/`s_j` are rewritten to `sz_i`/`sz_j`) |
 | `id`, `name` | yes | unique id (used in `?scenario=`) and display name |
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
 | `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |

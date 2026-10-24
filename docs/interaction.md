@@ -22,7 +22,7 @@ field; click the canvas to give focus back.
 | A | show / hide axes |
 | J | show / hide the force field |
 | F | re-fit the field grid to the current view |
-| Q | cycle color mode (charge, color, speed, mass, spin direction, parity, nuclear, isospin) |
+| Q | cycle color mode (charge, color, speed, mass, spin direction (each axis −1…1 → 0…1), parity, nuclear, isospin) |
 | H | hide all overlays |
 | M | close all dialogs |
 | G | generate particles at the cursor (Generator dialog sets the template) |

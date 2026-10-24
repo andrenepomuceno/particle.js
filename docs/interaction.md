@@ -30,6 +30,12 @@ field; click the canvas to give focus back.
 | Escape | clear selection and inspection |
 | ? | shortcuts dialog |
 
+## About dialog
+
+The About entry in the top menu describes the project, how to start, the version and the
+repository link. It opens by itself on the first visit only (flag `about-seen` in
+localStorage) and is never restored from the saved list of open dialogs.
+
 ## Mouse
 
 | Gesture | Effect |

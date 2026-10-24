@@ -39,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Open the printed URL. Press <kbd>?</kbd> for the shortcut list. URL options:
+Open the printed URL. An About dialog (also in the top menu) explains the basics on the first visit. Press <kbd>?</kbd> for the shortcut list. URL options:
 `?scenario=quarks` picks the starting scenario, `?capacity=65536` raises the particle
 limit (default 16384).
 

@@ -5,6 +5,7 @@ import { Dialog } from './components/Dialog';
 import { ControllerContext, useAppState } from './context';
 import { usePointerGestures } from './input/usePointerGestures';
 import { loadJson, saveJson } from './persist';
+import { AboutView } from './views/AboutView';
 import { ForcesView } from './views/ForcesView';
 import { StatsView } from './views/StatsView';
 import { ControlsView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
@@ -27,10 +28,12 @@ const DIALOGS: readonly DialogSpec[] = [
   { id: 'selection', title: 'Selection', position: { x: 290, y: 320 }, render: (ctx) => <SelectionView ctx={ctx} /> },
   { id: 'generator', title: 'Generator', position: { x: 290, y: 420 }, render: () => <GeneratorView /> },
   { id: 'stats', title: 'Statistics', position: right(900), render: () => <StatsView /> },
+  { id: 'about', title: 'About', position: { x: Math.max((window.innerWidth - 460) / 2, 8), y: 120 }, render: () => <AboutView /> },
   { id: 'help', title: 'Shortcuts', position: { x: 560, y: 56 }, render: () => <HelpView /> },
 ];
 
 const OPEN_KEY = 'dialogs-open';
+const ABOUT_SEEN_KEY = 'about-seen';
 
 const NON_TEXT_INPUTS = new Set(['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file']);
 
@@ -62,10 +65,16 @@ function Notices() {
 function Shell({ controller }: { controller: SimulationController }) {
   const viewport = useRef<HTMLDivElement>(null);
   const [pointer] = useState<{ current: { x: number; y: number } | undefined }>(() => ({ current: undefined }));
-  const [open, setOpen] = useState<string[]>(() => loadJson(OPEN_KEY, ['info', 'forces']));
+  const [firstVisit] = useState(() => !loadJson(ABOUT_SEEN_KEY, false));
+  const [open, setOpen] = useState<string[]>(() => {
+    const ids = loadJson<string[]>(OPEN_KEY, ['info', 'forces']);
+    return firstVisit ? [...ids, 'about'] : ids;
+  });
   const [overlayHidden, setOverlayHidden] = useState(false);
 
-  useEffect(() => saveJson(OPEN_KEY, open), [open]);
+  // About is not restored on later visits; the seen flag alone decides when it appears.
+  useEffect(() => saveJson(OPEN_KEY, open.filter((id) => id !== 'about')), [open]);
+  useEffect(() => saveJson(ABOUT_SEEN_KEY, true), []);
   useEffect(() => {
     let wasInspecting = controller.state.inspected !== undefined;
     return controller.store.subscribe(() => {

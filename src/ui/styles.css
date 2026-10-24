@@ -227,3 +227,8 @@ kbd {
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; }
 
 .hidden-overlay .dialog, .hidden-overlay .menu { display: none; }
+
+.about { width: 420px; max-width: 100%; }
+.about p { margin: 0 0 8px; line-height: 1.5; }
+.about ul { margin: 0 0 12px; padding-left: 18px; line-height: 1.5; }
+.about a { color: var(--ink-1); }

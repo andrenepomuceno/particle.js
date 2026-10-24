@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.0 — 2026-10-24
 
 - The boundary is drawn (sphere or box lines; E or Parameters toggles it).
 - Slab boxes: `boundaryDepth` sets the box half-size in z (semi-2D worlds); new scenario

@@ -24,3 +24,4 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 14. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`
 15. `v1-parity-and-publish.md` (final step: move to the particle.js repo and publish)
 16. Later: ~~`recording-and-ruler.md`~~ (done)
+17. 2.1: `particle-reactions.md` (creation/annihilation; user request, scheduled for 2.1)

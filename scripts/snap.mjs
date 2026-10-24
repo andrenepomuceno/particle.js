@@ -3,8 +3,7 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { chromium } from '@playwright/test';
-import { createServer } from 'vite';
+import { collectProblems, withBrowser } from './lib/browser.mjs';
 
 const { values } = parseArgs({
   options: {
@@ -20,25 +19,12 @@ const { values } = parseArgs({
 const wait = Number(values.wait);
 if (!Number.isFinite(wait) || wait < 0) throw new Error(`--wait must be a number of ms >= 0, got '${values.wait}'`);
 
-const server = await createServer({ server: { port: 0, strictPort: false }, logLevel: 'error' });
-await server.listen();
-const base = server.resolvedUrls.local[0];
-const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let failures = 0;
-
-try {
+await withBrowser(async ({ browser, base }) => {
   await mkdir(values.out, { recursive: true });
   for (const scenario of values.scenario.split(',')) {
     const page = await browser.newPage({ viewport: { width: Number(values.width), height: Number(values.height) } });
-    const problems = [];
-    page.on('console', (message) => {
-      if (!['error', 'warning'].includes(message.type())) return;
-      // The script's own readParticles() call forces this driver warning; it is not an app defect.
-      if (message.text().includes('GPU stall due to ReadPixels')) return;
-      const text = `${message.type()}: ${message.text()}`;
-      if (!problems.includes(text)) problems.push(text);
-    });
-    page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
+    const problems = collectProblems(page);
     const query = new URLSearchParams({ scenario, ...(values.capacity ? { capacity: values.capacity } : {}) });
     await page.goto(`${base}?${query}`);
     await page.waitForTimeout(wait);
@@ -57,8 +43,5 @@ try {
     console.log(JSON.stringify({ scenario, ok, file, state, problems }, null, 2));
     await page.close();
   }
-} finally {
-  await browser.close();
-  await server.close();
-}
+});
 process.exit(failures === 0 ? 0 : 1);

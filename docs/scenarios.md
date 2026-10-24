@@ -62,7 +62,8 @@ compiled while loading, so an invalid one fails with its path. The language is i
 
 `cluster` (optional) groups particles: `{ "size": 3, "radius": 1.7 }` draws one center from the
 shape per 3 consecutive particles and puts them evenly spaced on a circle of that radius, randomly
-rotated (an equilateral triplet), so bound groups start near equilibrium. `count` must be a
+rotated (an equilateral triplet), so bound groups start near equilibrium; the velocity is drawn once per cluster (at its center) and
+shared by its members. `count` must be a
 multiple of `size`; with a `grid` shape each cluster takes one site.
 
 `count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `spin` and

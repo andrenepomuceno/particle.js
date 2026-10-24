@@ -9,7 +9,7 @@ export const SNAPSHOT_VERSION = 2;
 
 export interface Snapshot {
   format: typeof SNAPSHOT_FORMAT;
-  version: number;
+  version: typeof SNAPSHOT_VERSION;
   name: string;
   time: number;
   settings: SimulationSettings;

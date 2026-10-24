@@ -12,6 +12,8 @@
   --accent-ink: #04111f;
   --danger: #ff6b6b;
   --danger-surface: #3a1518;
+  --warning: #f2c14e;
+  --warning-surface: #332a12;
   --plot-line: #5aa9ff;
   --plot-grid: #222a35;
   --radius: 6px;
@@ -138,6 +140,16 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
   font-family: var(--mono);
   font-size: 12px;
   white-space: pre-wrap;
+}
+
+.warnings {
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  list-style: none;
+  color: var(--warning);
+  background: var(--warning-surface);
+  border-radius: 4px;
+  font-size: 12px;
 }
 
 .force-card {

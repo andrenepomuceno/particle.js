@@ -105,6 +105,14 @@ describe('particle groups', () => {
     expect(() => parse({ groups: [group] })).toThrow(message);
   });
 
+  it('gives every member of a cluster the same velocity', () => {
+    const particles = build({ groups: [{ count: 30, cluster: { size: 3, radius: 1 }, shape: { type: 'disk', radius: 50 }, velocity: { type: 'random', speed: 4 } }] });
+    for (let k = 0; k < 30; k += 3) {
+      expect(particles[k + 1]!.velocity).toEqual(particles[k]!.velocity);
+      expect(particles[k + 2]!.velocity).toEqual(particles[k]!.velocity);
+    }
+  });
+
   it('lays out grids centered on their center', () => {
     const particles = build({ groups: [{ count: 4, shape: { type: 'grid', spacing: 2, columns: 2, rows: 2 } }] });
     expect(particles.map((p) => p.position)).toEqual([[-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0]]);

@@ -65,11 +65,13 @@ vec3 signedColor(float value) {
   return vec3(0.75);
 }
 
-// v1 generateParticleColor: charge picks blue/red/gray, color charge and negative nuclear charge tint it.
+// v1 generateParticleColor: charge picks blue/red/gray; color charge, negative nuclear charge (v1)
+// and negative parity (v2) tint it.
 vec3 meaningfulColor(vec4 attr, vec4 color) {
   vec3 rgb = attr.y > 0.0 ? vec3(0.0, 0.0, 6.0) : attr.y < 0.0 ? vec3(6.0, 0.0, 0.0) : vec3(2.0);
   if (any(notEqual(color.rgb, vec3(0.0)))) rgb += 2.0 * (displayColor(color.rgb) - 0.15) / 0.85;
   if (color.w < 0.0) rgb.g += 1.0;
+  if (attr.w < 0.0) rgb.g += 1.0;
   return normalize(rgb);
 }
 

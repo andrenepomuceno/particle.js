@@ -1,6 +1,7 @@
 import { AxesHelper, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
+import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
@@ -47,6 +48,7 @@ export interface AppState {
   settings: SimulationSettings;
   forces: ForceDefinition[];
   forceErrors: Record<string, string[]>;
+  forceWarnings: Record<string, string[]>;
   shaderError: string | undefined;
   paused: boolean;
   time: number;
@@ -112,7 +114,7 @@ export class SimulationController {
     this.points = new ParticlePoints(width);
     this.scene.add(this.points.object, this.axes);
     this.store = new Store<AppState>({
-      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {},
+      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
@@ -271,6 +273,7 @@ export class SimulationController {
       this.notify(`Shader compile failed; previous forces stay active.\n${error.log}`, 'error');
     }
     this.store.set({ forces, forceErrors, shaderError });
+    this.refreshForceWarnings();
   }
 
   get compiledForces(): readonly CompiledForce[] {
@@ -351,7 +354,18 @@ export class SimulationController {
     this.gpu.upload();
     this.points.setCount(this.set.count);
     this.store.set({ particleCount: this.set.count });
+    this.refreshForceWarnings();
     this.refreshInspected();
+  }
+
+  /** Attribute columns never change on the GPU, so the CPU copy is current even when positions are stale. */
+  private refreshForceWarnings(): void {
+    const forceWarnings: Record<string, string[]> = {};
+    for (const force of this.compiled) {
+      const warnings = inactiveCouplings(force, this.set);
+      if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;
+    }
+    this.store.set({ forceWarnings });
   }
 
   /** Every CPU-side edit goes through here: read back, mutate, upload. */

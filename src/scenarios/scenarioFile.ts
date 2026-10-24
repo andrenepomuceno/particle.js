@@ -271,6 +271,7 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
     let center: Vec3 = [0, 0, 0];
     let axes: [Vec3, Vec3] = [[1, 0, 0], [0, 1, 0]];
     let phase = 0;
+    let clusterVelocity: Vec3 = [0, 0, 0];
     return Array.from({ length: group.count }, (_, index): Particle => {
       let sampled: Vec3;
       if (group.cluster) {
@@ -280,6 +281,8 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
           center = samplePosition(group.shape, rng, index / size);
           axes = mode2D ? [[1, 0, 0], [0, 1, 0]] : randomPlane(rng);
           phase = uniform(rng, 0, 2 * Math.PI);
+          // The whole cluster moves together; per-member velocities would tear it apart.
+          clusterVelocity = sampleVelocity(group.velocity, mode2D ? [center[0], center[1], 0] : center, rng, mode2D);
         }
         const angle = phase + (2 * Math.PI * member) / size;
         const ring = size === 1 ? 0 : radius;
@@ -291,7 +294,7 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
       return {
         kind: group.kind === 'fixed' ? ParticleKind.fixed : ParticleKind.dynamic,
         position,
-        velocity: group.kind === 'fixed' ? [0, 0, 0] : sampleVelocity(group.velocity, position, rng, mode2D),
+        velocity: group.kind === 'fixed' ? [0, 0, 0] : group.cluster ? [...clusterVelocity] : sampleVelocity(group.velocity, position, rng, mode2D),
         time: 0,
         mass: sample(group.mass, rng, index),
         charge: sample(group.charge, rng, index),

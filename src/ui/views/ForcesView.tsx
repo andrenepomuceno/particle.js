@@ -41,7 +41,7 @@ function ParamRow({ param, onChange, onRemove }: {
   );
 }
 
-function ForceCard({ force, errors }: { force: ForceDefinition; errors: string[] | undefined }) {
+function ForceCard({ force, errors, warnings }: { force: ForceDefinition; errors: string[] | undefined; warnings: string[] | undefined }) {
   const controller = useController();
   const update = (patch: Partial<ForceDefinition>) => controller.updateForce(force.id, patch);
   const setParam = (index: number, param: ForceParam) =>
@@ -76,6 +76,7 @@ function ForceCard({ force, errors }: { force: ForceDefinition; errors: string[]
       </div>
       <button className="outlined" style={{ marginTop: 4 }} onClick={addParam}>+ parameter</button>
       {errors && <ul className="errors">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
+      {warnings && <ul className="warnings">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
       {!errors && <ForcePlot definition={force} />}
     </article>
   );
@@ -85,6 +86,7 @@ export function ForcesView() {
   const controller = useController();
   const forces = useAppState((s) => s.forces);
   const forceErrors = useAppState((s) => s.forceErrors);
+  const forceWarnings = useAppState((s) => s.forceWarnings);
   const shaderError = useAppState((s) => s.shaderError);
   const [preset, setPreset] = useState<ForcePresetId>('gravity');
 
@@ -92,7 +94,7 @@ export function ForcesView() {
     <div className="stack">
       {shaderError && <pre className="errors">{shaderError}</pre>}
       {forces.length === 0 && <p className="muted">No forces: particles move freely.</p>}
-      {forces.map((force) => <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} />)}
+      {forces.map((force) => <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]} />)}
       <div className="row">
         <select aria-label="Force preset" value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>
           {Object.entries(FORCE_PRESETS).map(([id, p]) => <option key={id} value={id}>{p.name}</option>)}

@@ -6,7 +6,7 @@ import { collectProblems, withBrowser } from './lib/browser.mjs';
 
 const out = process.argv[2] ?? 'reports/screenshots/interaction.png';
 let failures = 0;
-await withBrowser(async ({ browser, base }) => {
+await withBrowser(async ({ browser, base, glMode }) => {
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
   const errors = collectProblems(page);
   const state = () => page.evaluate(() => {
@@ -257,8 +257,14 @@ await withBrowser(async ({ browser, base }) => {
   classic.on('response', (r) => r.status() >= 400 && classicErrors.push(`${r.status()} ${r.url()}`));
   await classic.route('**/*googletagmanager.com/**', (route) => route.abort());
   await classic.goto(`${base}v1/index.html`, { waitUntil: 'domcontentloaded' });
-  await classic.waitForFunction(() => globalThis.document.querySelectorAll('canvas').length > 0, null, { timeout: 15000 })
-    .catch((error) => classicErrors.push(`no canvas: ${error.message.split('\n')[0]}`));
+  // On the GPU the frozen v1 must start; on CI's software renderer (no GPU) it is too slow to,
+  // so there only its page and resources must load without errors.
+  if (glMode === 'hardware') {
+    await classic.waitForFunction(() => globalThis.document.querySelectorAll('canvas').length > 0, null, { timeout: 15000 })
+      .catch((error) => classicErrors.push(`no canvas: ${error.message.split('\n')[0]}`));
+  } else {
+    await classic.waitForTimeout(3000);
+  }
   check('Frozen v1 starts at /v1/', (await classic.locator('canvas').count()) > 0 && classicErrors.length === 0, { classicErrors });
   await classic.close();
   check('No page errors', errors.length === 0, errors);

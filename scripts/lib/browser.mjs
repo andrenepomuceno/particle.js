@@ -41,7 +41,7 @@ export async function withBrowser(body) {
     await server.listen();
     browser = await chromium.launch(LAUNCH);
     await checkRenderer(browser);
-    return await body({ browser, base: server.resolvedUrls.local[0] });
+    return await body({ browser, base: server.resolvedUrls.local[0], glMode });
   } finally {
     await browser?.close();
     await server.close();

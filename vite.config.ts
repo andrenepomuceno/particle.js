@@ -11,6 +11,9 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // The persistent cache is keyed by file content, so import.meta.glob in src/scenarios kept
+    // returning the old file list after a scenario JSON was added.
+    fsModuleCache: false,
     coverage: {
       provider: 'v8',
       include: ['src/engine/**/*.ts'],

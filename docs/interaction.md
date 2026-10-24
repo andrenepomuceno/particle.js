@@ -47,7 +47,7 @@ see the field, keep and share) with their keys.
 | Gesture | Effect |
 | --- | --- |
 | Click | inspect the particle under the cursor (opens the Particle dialog) |
-| Shift + drag | box-select particles; a ruler shows the distance in world units (plus Δx, Δy in 2D) |
+| Shift + drag | box-select particles; a ruler shows Δx, Δy (and Δz in 3D) and the distance in world units |
 | Hold Z + click | place the clipboard centered at the cursor |
 | Drag / wheel / right drag | orbit / zoom / pan (orbit is disabled in 2D) |
 

@@ -20,14 +20,15 @@ export function usePointerGestures(
     const element = viewport.current!;
     let down: Point | undefined;
     let dragBox: { from: Point; to: Point } | undefined;
-    // v1's ruler, computed once per pointer move: the drag's extent on the placement plane. In 3D
-    // that plane faces the camera, so only the distance is meaningful, not world Δx/Δy.
+    // v1's ruler, computed once per pointer move: the drag's extent in world units on the placement
+    // plane (in 3D that plane faces the camera, so world Δx, Δy, Δz all change as you drag).
     const measure = (from: Point, to: Point) => {
       const a = controller.worldAt(from.x, from.y);
       const b = controller.worldAt(to.x, to.y);
       const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]] as const;
-      const distance = Math.hypot(...d).toPrecision(3);
-      return controller.state.settings.mode2D ? `Δx ${d[0].toPrecision(3)}  Δy ${d[1].toPrecision(3)}  |Δ| ${distance}` : `|Δ| ${distance}`;
+      const parts = [`Δx ${d[0].toPrecision(3)}`, `Δy ${d[1].toPrecision(3)}`];
+      if (!controller.state.settings.mode2D) parts.push(`Δz ${d[2].toPrecision(3)}`);
+      return `${parts.join('  ')}  |Δ| ${Math.hypot(...d).toPrecision(3)}`;
     };
     let zHeld = false;
     const updateBox = (next: typeof dragBox) => {

@@ -17,7 +17,8 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
     ~~`v1-branding-and-about.md`~~ (done), ~~`v1-scenarios-port.md`~~ (13 ported; scripted parts pending the timeline), analytics (decided: keep, with notice; done)
 11. Vector spin (in progress), ~~collisions~~ (done), then
     `scenario-timeline.md` (user request: v1 scripted animations)
-11b. `scenario-quality-kpis.md` (user request: cheap automated scenario KPIs)
-12. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`
-13. `v1-parity-and-publish.md` (final step: move to the particle.js repo and publish)
-14. Later: `velocity-dependent-forces.md`, `recording-and-ruler.md`
+12. `scenario-quality-kpis.md` (user request: cheap automated scenario KPIs), then
+    `v1-favorite-scenarios.md` (the v1 scenarios the user likes; checked with the KPIs)
+13. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`
+14. `v1-parity-and-publish.md` (final step: move to the particle.js repo and publish)
+15. Later: `velocity-dependent-forces.md`, `recording-and-ruler.md`

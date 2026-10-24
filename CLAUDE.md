@@ -71,7 +71,7 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
 - **CPU: testes pesados com no máximo 70% dos núcleos** (pedido do usuário em 2026-10-24). Rode os
   testes de navegador e benchmarks via `npm run snap|smoke|parity|smoke:all|cluster-stats` ou
   `scripts/cpu-limit.sh <comando>` (taskset); o restante (edição, check, git) não é limitado.
-  Os testes de navegador usam a GPU (RTX via D3D12 do WSL); SwiftShader (CPU) só no CI.
+  Os testes de navegador usam a GPU (falham se caírem em renderer de software); SwiftShader (CPU) só no CI.
 - Subagentes: no máximo 3, sem filhos; os que escrevem usam worktree. Escolha o modelo mais adequado para a tarefa.
 - Documentação (`README.md`, `docs/`, este arquivo) muda no mesmo commit do comportamento.
 - Automação repetitiva de CLI vai para `scripts/`.

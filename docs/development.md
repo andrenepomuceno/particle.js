@@ -15,11 +15,12 @@
 | `node scripts/cluster-stats.mjs --scenario id --link 5,30 --at 10,60` | runs a scenario headless and reports cluster sizes and color neutrality at each time; used to tune bound-state scenarios |
 | `npm run build` | typecheck + production bundle in `dist/` |
 
-The browser scripts use Playwright's Chromium on the real GPU when one is reachable (WSL2:
-`/dev/dxg`, ANGLE on OpenGL over D3D12, NVIDIA adapter by default) and fall back to SwiftShader
-(software WebGL2, CPU-bound and orders of magnitude slower) elsewhere, as on CI. Each run prints the
-renderer it got. `PARTICLE_GL=hardware|software` forces a backend and `PARTICLE_GPU_ADAPTER=<name>`
-picks another D3D12 adapter (e.g. `Intel`). Frame rates are only meaningful on hardware.
+The browser scripts use Playwright's Chromium on the real GPU (ANGLE on the system OpenGL; on
+WSL2 that is Mesa over D3D12, preferring the NVIDIA adapter) and fail if they get a software
+renderer instead. CI has no GPU and uses SwiftShader (software WebGL2, CPU-bound and orders of
+magnitude slower). Each run prints its renderer. `PARTICLE_GL=hardware|software` forces a backend
+and `PARTICLE_GPU_ADAPTER=<name>` picks another D3D12 adapter (e.g. `Intel`). Frame rates are only
+meaningful on hardware.
 
 ## CI and release
 

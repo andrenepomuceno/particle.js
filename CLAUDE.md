@@ -72,7 +72,8 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
   sem trailers de coautoria. Suíte verde antes de cada commit.
 - **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/main` sempre que
   um lote estiver commitado, verde e revisado. Nunca force push nem reescreva histórico publicado.
-- **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados.
+- **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados. **Um passe por lote**
+  (pedido do usuário): as correções vão para o push sem novo review; nada de review de commits pequenos isolados.
 - **Testes de navegador na GPU** (`npm run snap|smoke|parity|smoke:all|cluster-stats`): falham se
   caírem em renderer de software; SwiftShader (CPU, lento) só no CI. O limite de CPU antigo foi
   removido a pedido do usuário (a carga vinha do Chromium sem GPU).

@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — 2026-10-24
+
+First stable release of particle.js v2. Changes since 2.0.0-rc.1:
+
 
 - The classic v1 stays available, frozen, at `/v1/` (linked from About).
 - Vectors and velocity in expressions: `d`, `rhat`, `s_i`, `v_i`, `vec`, `cross`, `dot`, `length`,

@@ -35,7 +35,7 @@ Four RGBA float textures of `width × width` texels, one particle per texel, ind
 | position (ping-pong) | x | y | z | kind (1 dynamic, 2 fixed) |
 | velocity (ping-pong) | vx | vy | vz | particle clock |
 | attributes (static) | mass | charge | spin | parity |
-| color (static) | red | green | blue | 0 |
+| color (static) | red | green | blue | nuclear charge |
 
 `ParticleSet` uses exactly this layout, so upload and readback are plain copies.
 Only `[0, count)` is simulated; the pair loop runs to `uCount`, not over the full texture.

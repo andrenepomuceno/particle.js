@@ -20,7 +20,7 @@ field; click the canvas to give focus back.
 | V | look down the z axis |
 | F | follow the inspected particle |
 | A | show / hide axes |
-| Q | cycle color mode (charge, color, speed, mass, spin, parity) |
+| Q | cycle color mode (charge, color, speed, mass, spin, parity, nuclear) |
 | H | hide all overlays |
 | M | close all dialogs |
 | G | generate particles at the cursor (Generator dialog sets the template) |
@@ -47,7 +47,7 @@ Placement and generation use the plane through the orbit target facing the camer
 Particles are drawn in v1's **spherow** style: a raymarched sphere with an arrow through it
 along the velocity (no arrow when the particle is still). The sphere color follows the
 color mode; in `charge` mode it is v1's meaningful color (positive blue, negative red,
-neutral gray, tinted by color charge, green tint for negative parity). The arrow uses v1's
+neutral gray, tinted by color charge, green tint for negative nuclear charge). The arrow uses v1's
 speed palette: hue from red to magenta up to 16× the mean speed, white beyond. The mean
 speed is sampled once per second. Controls → Particle style switches to flat discs, which
 are cheaper. Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate

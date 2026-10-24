@@ -60,10 +60,10 @@ compiled while loading, so an invalid one fails with its path. The language is i
 }
 ```
 
-`count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge` and `spin`
-to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
+`count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `spin` and
+`nuclearCharge` to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
 
-**Sampled values** (`mass`, `charge`, `spin`, `parity`, `color`, random `speed`):
+**Sampled values** (`mass`, `charge`, `spin`, `parity`, `nuclearCharge`, `color`, random `speed`):
 
 | Form | Per particle |
 | --- | --- |

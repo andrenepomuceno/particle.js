@@ -38,6 +38,7 @@ Variables:
 | `q_i`, `q_j` | electric charge |
 | `s_i`, `s_j` | spin (scalar) |
 | `p_i`, `p_j` | parity |
+| `n_i`, `n_j` | nuclear charge (v1's coupling for the nuclear force) |
 | `cr_*`, `cg_*`, `cb_*` | color charge amounts (r, g, b) as stored |
 | `cx_*`, `cy_*` | color vector in the 120° weight plane |
 | `c_dot` | color factor `C_i · C_j` (see below) |
@@ -58,7 +59,7 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 | --- | --- | --- | --- |
 | Gravity | force | long | `-G * m_i * m_j / r^2` |
 | Coulomb | force | long | `k * q_i * q_j / r^2` |
-| v1 nuclear | force | short | `k * sin(2 * pi * x)` |
+| v1 nuclear | force | short | `k * n_i * n_j * sin(2 * pi * x)` |
 | Lennard-Jones | potential | short | `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)` |
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |
 | Spring | potential | short | `0.5 * k * (r - r0)^2` |

@@ -10,10 +10,10 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 4. ~~`nuclear-charge-and-hadron-scenario.md`~~ (done)
 5. ~~`stats-dialog.md`~~ (done)
 6. ~~`integrator-options.md`~~ (done)
-7. `field-visualization.md`
+7. ~~`field-visualization.md`~~ (done)
 8. `short-range-neighbor-grid.md` + `benchmark-script.md`
 9. `test-suite-and-coverage-gate.md`
-10. Release 2.0 blockers: ~~`particle-budget.md`~~ (done), `field-visualization.md` (in progress),
+10. Release 2.0 blockers: ~~`particle-budget.md`~~ (done), ~~`field-visualization.md`~~ (done),
     ~~`v1-branding-and-about.md`~~ (done), `v1-scenarios-port.md`, analytics (decided: keep, with notice; done)
 11. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`
 12. `v1-parity-and-publish.md` (final step: move to the particle.js repo and publish)

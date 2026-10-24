@@ -107,6 +107,8 @@ export interface AppState {
   name: string;
   settings: SimulationSettings;
   forces: ForceDefinition[];
+  /** The enabled forces that compiled, in order: what the GPU runs (the plots reuse them). */
+  compiledForces: readonly CompiledForce[];
   forceErrors: Record<string, string[]>;
   forceWarnings: Record<string, string[]>;
   shaderError: string | undefined;
@@ -218,7 +220,7 @@ export class SimulationController {
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
-      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
+      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
@@ -439,21 +441,33 @@ export class SimulationController {
       shaderError = error.log;
       this.notify(`Shader compile failed; previous forces stay active.\n${error.log}`, 'error');
     }
-    this.store.set({ forces, forceErrors, shaderError });
+    this.store.set({ forces, compiledForces: this.compiled, forceErrors, shaderError });
     this.refreshForceWarnings();
     this.refreshCaption();
   }
 
-  /** Back to the settings the world was loaded with (particles untouched). */
+  /**
+   * The loaded settings and forces with the timeline events fired so far re-applied: what the
+   * world would have now without the user's edits (a script's later multiply events stay consistent).
+   */
+  private scriptedState(): { settings: SimulationSettings; forces: ForceDefinition[] } {
+    let forces = this.loadedForces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) }));
+    let settings = { ...this.loadedSettings };
+    for (const event of this.timelineEvents.slice(0, this.state.timeline.fired)) ({ forces, settings } = applyEvent(event, forces, settings));
+    return { settings, forces };
+  }
+
+  /** Back to the scenario's settings, as its script has them now (particles untouched). */
   restoreSettings(): void {
-    const planeChanged = this.loadedSettings.mode2D !== this.state.settings.mode2D;
-    this.setSettings(this.loadedSettings);
+    const { settings } = this.scriptedState();
+    const planeChanged = settings.mode2D !== this.state.settings.mode2D;
+    this.setSettings(settings);
     if (planeChanged) this.resetCamera();
   }
 
-  /** Back to the forces the world was loaded with, undoing edits and timeline changes. */
+  /** Back to the scenario's forces, as its script has them now, undoing the user's edits. */
   restoreForces(): void {
-    this.setForces(this.loadedForces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) })));
+    this.setForces(this.scriptedState().forces);
   }
 
   get compiledForces(): readonly CompiledForce[] {

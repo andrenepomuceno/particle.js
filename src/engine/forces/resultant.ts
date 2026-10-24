@@ -43,7 +43,7 @@ export interface PotentialCurve {
   /** Sample distances, increasing, ending at `maxDistance`. */
   points: { d: number; v: number }[];
   maxDistance: number;
-  /** Names of force-mode forces whose V was integrated from F (zero at maxDistance). */
+  /** Forces whose V was integrated from the applied F: force mode, and softened potentials. */
   integrated: string[];
 }
 
@@ -55,10 +55,12 @@ export interface ResultantOptions {
 }
 
 /**
- * Σ V(d) of the forces of one range for the pair (default PLOT_PAIR), as the integrator sees them (hard cutoff, so a
- * short-range V jumps to 0 at its cutoff). Potential-mode forces contribute V exactly; force-mode
- * ones contribute ∫_d^D F with V(D) = 0 at the right edge D, since they have no closed-form V.
- * Undefined when no force of that range is given.
+ * Σ V(d) of the forces of one range for the pair (default PLOT_PAIR), as the integrator sees them:
+ * the potential whose −dV/dd is the applied force. Unsoftened potential-mode forces contribute V
+ * exactly (a short-range one jumps to 0 at its cutoff). The rest are integrated from the applied F:
+ * force mode, which has no closed-form V (V = 0 at the right edge D), and softened potentials,
+ * whose applied force −V'(r_soft) along r̂ is not the d-derivative of V(r_soft) (anchored to the
+ * exact V at D). Undefined when no force of that range is given.
  */
 export function resultantPotential(forces: readonly CompiledForce[], range: ForceRange, options: ResultantOptions = {}): PotentialCurve | undefined {
   const { pair = PLOT_PAIR, samples = 240 } = options;
@@ -68,8 +70,9 @@ export function resultantPotential(forces: readonly CompiledForce[], range: Forc
   if (!(maxDistance > 0)) throw new Error(`plot distance must be > 0, got ${maxDistance}`);
   const ds = Array.from({ length: samples }, (_, k) => (maxDistance * (k + 1)) / samples);
   const v = new Float64Array(samples);
+  const exact = (force: CompiledForce) => force.evaluatePotential !== undefined && force.definition.softening === 0;
   for (const force of own) {
-    if (force.evaluatePotential) {
+    if (exact(force)) {
       ds.forEach((d, k) => {
         if (acts(force, d)) v[k] = v[k]! + force.evaluatePotential!(forceScope(force, pair, d));
       });
@@ -77,7 +80,9 @@ export function resultantPotential(forces: readonly CompiledForce[], range: Forc
     }
     // Trapezoids from the right edge inwards: V(d_k) = V(d_{k+1}) + ∫_{d_k}^{d_{k+1}} F.
     const f = ds.map((d) => appliedForce(force, d, pair));
-    let integral = 0;
+    const anchor = force.evaluatePotential && acts(force, maxDistance) ? force.evaluatePotential(forceScope(force, pair, maxDistance)) : 0;
+    let integral = anchor;
+    v[samples - 1] = v[samples - 1]! + anchor;
     for (let k = samples - 2; k >= 0; k--) {
       integral += 0.5 * (f[k]! + f[k + 1]!) * (ds[k + 1]! - ds[k]!);
       v[k] = v[k]! + integral;
@@ -86,6 +91,6 @@ export function resultantPotential(forces: readonly CompiledForce[], range: Forc
   return {
     points: ds.map((d, k) => ({ d, v: v[k]! })),
     maxDistance,
-    integrated: own.filter((f) => !f.evaluatePotential).map((f) => f.definition.name),
+    integrated: own.filter((f) => !exact(f)).map((f) => f.definition.name),
   };
 }

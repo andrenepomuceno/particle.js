@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import type { FieldProbe } from '../../engine/field';
+import { useEffect, useState } from 'react';
+import { validateProbe } from '../../engine/field';
 import type { CompiledForce } from '../../engine/forces/compile';
 import { DEFAULT_PLOT_PARTICLES, type PlotParticles } from '../../engine/forces/resultant';
-import { NumberField, Vec3Field, nonNegative, positive } from '../components/fields';
+import { NumberField, nonNegative } from '../components/fields';
+import { ProbeFields } from '../components/ProbeFields';
+import { useController } from '../context';
+import { loadJson, saveJson } from '../persist';
+import { RESULTANT_PLOT_KEY } from '../storageKeys';
 import { ResultantPotentialPlot } from './ForcePlot';
 
 interface ResultantSettings {
@@ -13,49 +17,35 @@ interface ResultantSettings {
 }
 
 const DEFAULTS: ResultantSettings = { particles: DEFAULT_PLOT_PARTICLES, shortDistance: 0, longDistance: 0 };
-const STORAGE_KEY = 'resultant-plot';
 
-// Remembered for the browser session like the cards' expansion; a malformed entry falls back to defaults.
-function read(): ResultantSettings {
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null') as ResultantSettings | null;
-    return saved && saved.particles?.i && saved.particles?.j ? { ...DEFAULTS, ...saved } : DEFAULTS;
-  } catch {
-    return DEFAULTS;
+/** Problems with a stored entry (it may come from an older version); empty when usable. */
+function problemsOf(saved: ResultantSettings): string[] {
+  const { particles, shortDistance, longDistance } = saved;
+  if (!particles?.i || !particles?.j) return ['missing particles i and j'];
+  const problems = [...validateProbe(particles.i).map((p) => `i: ${p}`), ...validateProbe(particles.j).map((p) => `j: ${p}`)];
+  for (const [name, value] of [['shortDistance', shortDistance], ['longDistance', longDistance]] as const) {
+    if (!(Number.isFinite(value) && value >= 0)) problems.push(`${name} must be >= 0, got ${value}`);
   }
+  return problems;
 }
 
-function write(settings: ResultantSettings): void {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch {
-    // Storage blocked (private mode, sandbox): the settings still apply to this view.
-  }
-}
-
-function ParticleFields({ side, particle, onChange }: { side: 'i' | 'j'; particle: FieldProbe; onChange: (p: FieldProbe) => void }) {
-  const set = (patch: Partial<FieldProbe>) => onChange({ ...particle, ...patch });
-  return (
-    <div className="grid">
-      <NumberField label={`Mass ${side}`} value={particle.mass} validate={positive} onCommit={(mass) => set({ mass })} />
-      <NumberField label={`Charge ${side}`} value={particle.charge} onCommit={(charge) => set({ charge })} />
-      <NumberField label={`Charge 2 ${side}`} value={particle.charge2} onCommit={(charge2) => set({ charge2 })} />
-      <Vec3Field label={`Spin ${side}`} value={particle.spin} onCommit={(spin) => set({ spin })} />
-      <NumberField label={`Isospin ${side}`} value={particle.isospin} onCommit={(isospin) => set({ isospin })} />
-      <NumberField label={`Parity ${side}`} value={particle.parity} onCommit={(parity) => set({ parity })} />
-      <NumberField label={`Nuclear ${side}`} value={particle.nuclearCharge} onCommit={(nuclearCharge) => set({ nuclearCharge })} />
-      <Vec3Field label={`Color ${side}`} axes={['r', 'g', 'b']} value={particle.color} onCommit={(color) => set({ color })} />
-    </div>
-  );
-}
-
-/** Resultant potential plots with their own sample pair and distance range. */
+/** Resultant potential plots with their own sample pair and distance range, remembered for the session. */
 export function ResultantView({ forces }: { forces: readonly CompiledForce[] }) {
-  const [settings, setSettings] = useState(read);
+  const controller = useController();
+  const [loaded] = useState(() => {
+    const saved = loadJson<ResultantSettings>(RESULTANT_PLOT_KEY, DEFAULTS, 'session');
+    return { saved, problems: problemsOf(saved) };
+  });
+  const [settings, setSettings] = useState<ResultantSettings>(loaded.problems.length === 0 ? loaded.saved : DEFAULTS);
+  useEffect(() => {
+    if (loaded.problems.length > 0) {
+      controller.notify(`Saved resultant plot settings were invalid and were reset (${loaded.problems.join('; ')})`, 'error');
+    }
+  }, [controller, loaded]);
   const update = (patch: Partial<ResultantSettings>) => {
     const next = { ...settings, ...patch };
     setSettings(next);
-    write(next);
+    saveJson(RESULTANT_PLOT_KEY, next, 'session');
   };
   const auto = (d: number) => (d > 0 ? d : undefined);
   return (
@@ -69,9 +59,9 @@ export function ResultantView({ forces }: { forces: readonly CompiledForce[] }) 
           <NumberField label="Long-range plot to (0 = auto)" value={settings.longDistance} validate={nonNegative} onCommit={(longDistance) => update({ longDistance })} />
         </div>
         <h4 className="section-title">Particle i (feels the force)</h4>
-        <ParticleFields side="i" particle={settings.particles.i} onChange={(i) => update({ particles: { ...settings.particles, i } })} />
+        <ProbeFields suffix="i" probe={settings.particles.i} onChange={(i) => update({ particles: { ...settings.particles, i } })} />
         <h4 className="section-title">Particle j (exerts it)</h4>
-        <ParticleFields side="j" particle={settings.particles.j} onChange={(j) => update({ particles: { ...settings.particles, j } })} />
+        <ProbeFields suffix="j" probe={settings.particles.j} onChange={(j) => update({ particles: { ...settings.particles, j } })} />
         <button className="outlined" onClick={() => update(DEFAULTS)}>Restore defaults</button>
       </details>
     </div>

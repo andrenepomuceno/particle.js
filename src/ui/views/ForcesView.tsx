@@ -1,9 +1,10 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { FORCE_PRESETS, newForceId, type ForcePresetId } from '../../engine/forces/presets';
 import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
 import { NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
-import { compileForce, type CompiledForce } from '../../engine/forces/compile';
+import { loadJson, saveJson } from '../persist';
+import { FORCES_EXPANDED_KEY } from '../storageKeys';
 import { ForcePlot } from './ForcePlot';
 import { ResultantView } from './ResultantView';
 
@@ -99,25 +100,8 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
   );
 }
 
-const EXPANDED_KEY = 'forces-expanded';
-const RESULTANT = '\u0000resultant';
-
-function readExpanded(): ReadonlySet<string> {
-  try {
-    const saved: unknown = JSON.parse(sessionStorage.getItem(EXPANDED_KEY) ?? '[]');
-    return new Set(Array.isArray(saved) ? saved.filter((n): n is string => typeof n === 'string') : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function writeExpanded(names: ReadonlySet<string>): void {
-  try {
-    sessionStorage.setItem(EXPANDED_KEY, JSON.stringify([...names]));
-  } catch {
-    // Storage blocked (private mode, sandbox): the state still works for this view.
-  }
-}
+/** Key of the resultant section in the expanded set (force ids never take this form). */
+const RESULTANT = 'resultant';
 
 export function ForcesView({ onReference }: { onReference: () => void }) {
   const controller = useController();
@@ -126,25 +110,18 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
   const forceWarnings = useAppState((s) => s.forceWarnings);
   const shaderError = useAppState((s) => s.shaderError);
   const [preset, setPreset] = useState<ForcePresetId>('gravity');
-  // Collapsed by default; what the user expands is remembered for the session, by force name
-  // (ids are regenerated whenever a scenario loads). RESULTANT is the potential plots' section.
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(readExpanded);
+  // Collapsed by default; what the user expands is remembered for the session by force id, so a
+  // rename keeps a card open and same-named forces stay independent (a reloaded scenario has new ids).
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set(loadJson<string[]>(FORCES_EXPANDED_KEY, [], 'session')));
   const update = (next: ReadonlySet<string>) => {
     setExpanded(next);
-    writeExpanded(next);
+    saveJson(FORCES_EXPANDED_KEY, [...next], 'session');
   };
-  // Enabled forces that compile; the ones with errors are reported on their cards instead.
-  const active = useMemo(() => forces.filter((f) => f.enabled).flatMap((f): CompiledForce[] => {
-    try {
-      return [compileForce(f)];
-    } catch {
-      return [];
-    }
-  }), [forces]);
-  const toggle = (name: string) => {
+  const active = useAppState((s) => s.compiledForces);
+  const toggle = (key: string) => {
     const next = new Set(expanded);
-    if (next.has(name)) next.delete(name);
-    else next.add(name);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
     update(next);
   };
 
@@ -155,7 +132,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
       {forces.length > 1 && (
         <div className="row">
           <button className="outlined" onClick={() => update(new Set([...expanded].filter((n) => n === RESULTANT)))}>Collapse all</button>
-          <button className="outlined" onClick={() => update(new Set([...expanded, ...forces.map((f) => f.name)]))}>Expand all</button>
+          <button className="outlined" onClick={() => update(new Set([...expanded, ...forces.map((f) => f.id)]))}>Expand all</button>
         </div>
       )}
       {active.length > 0 && (
@@ -169,7 +146,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
       )}
       {forces.map((force) => (
         <ForceCard key={force.id} force={force} errors={forceErrors[force.id]} warnings={forceWarnings[force.id]}
-          collapsed={!expanded.has(force.name)} onToggle={() => toggle(force.name)} />
+          collapsed={!expanded.has(force.id)} onToggle={() => toggle(force.id)} />
       ))}
       <div className="row">
         <select aria-label="Force preset" value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>

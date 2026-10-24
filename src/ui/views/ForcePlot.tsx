@@ -106,17 +106,17 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
 export function ResultantPotentialPlot({ forces, range, particles, maxDistance }: {
   forces: readonly CompiledForce[]; range: ForceRange; particles: PlotParticles; maxDistance: number | undefined;
 }) {
-  const curve = useMemo(
-    () => resultantPotential(forces, range, { pair: plotPair(particles), maxDistance, samples: SAMPLES }),
-    [forces, range, particles, maxDistance],
-  );
+  const curve = useMemo(() => {
+    const result = resultantPotential(forces, range, { pair: plotPair(particles), maxDistance, samples: SAMPLES });
+    return result && { ...result, points: result.points.map((p) => ({ d: p.d, y: p.v })) };
+  }, [forces, range, particles, maxDistance]);
   if (!curve) return null;
   const title = range === 'short' ? 'Short range' : 'Long range';
   return (
-    <CurvePlot points={curve.points.map((p) => ({ d: p.d, y: p.v }))} maxDistance={curve.maxDistance} symbol="V"
+    <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="V"
       label={`${title} resultant potential`} caption={<>
         <b>{title}</b>: Σ V(d) of the enabled {range}-range forces for the pair below (r̂ along x, from j to i).
-        {curve.integrated.length > 0 && ` Force-mode terms (${curve.integrated.join(', ')}) are integrated from F, with V = 0 at the right edge.`}
+        {curve.integrated.length > 0 && ` Integrated from the applied F (force mode, or softened): ${curve.integrated.join(', ')}.`}
       </>} />
   );
 }

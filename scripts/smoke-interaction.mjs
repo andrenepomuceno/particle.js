@@ -79,8 +79,12 @@ await withBrowser(async ({ browser, base }) => {
   // Force cards start collapsed; an expanded one is remembered for the session.
   const startsCollapsed = await page.locator('[data-force="Gravity"] textarea').count() === 0;
   await page.getByRole('button', { name: 'Expand Gravity' }).click();
-  const remembered = await page.evaluate(() => globalThis.sessionStorage.getItem('forces-expanded'));
-  check('Force cards start collapsed and remember expansion', startsCollapsed && remembered === '["Gravity"]', { startsCollapsed, remembered });
+  const remembered = await page.evaluate(() => {
+    const c = globalThis.particleController;
+    const id = c.state.forces.find((f) => f.name === 'Gravity').id;
+    return { stored: JSON.parse(globalThis.sessionStorage.getItem('forces-expanded')), id };
+  });
+  check('Force cards start collapsed and remember expansion', startsCollapsed && remembered.stored.includes(remembered.id), { startsCollapsed, remembered });
   const expr = page.locator('[data-force="Gravity"] textarea');
   await expr.fill('-G * m_i * m_j / r^2 + bogus');
   await expr.press('Control+Enter');
@@ -189,6 +193,10 @@ await withBrowser(async ({ browser, base }) => {
     const before = { caption: c.state.caption, ...c.state.timeline };
     c.advance(6);
     const after = { caption: c.state.caption, ...c.state.timeline, G: c.state.forces[0].params[0].value, friction: c.state.settings.friction };
+    // Restoring forces mid-script gives the scripted value (G×10 already fired), not the file's.
+    c.updateForce(c.state.forces[0].id, { params: [{ name: 'G', value: 99 }] });
+    c.restoreForces();
+    after.restoredG = c.state.forces[0].params[0].value;
     c.reset();
     return { before, after, reset: { caption: c.state.caption, ...c.state.timeline, G: c.state.forces[0].params[0].value } };
   });
@@ -197,7 +205,7 @@ await withBrowser(async ({ browser, base }) => {
     .then(() => 'G = 2', () => page.locator('.caption').textContent());
   check('Timeline fires events in time and resets rewind them',
     script.before.caption === 'G = 2' && script.before.fired === 1
-    && script.after.caption === 'G = 20, friction 0.5' && script.after.fired === 2 && script.after.G === 20 && script.after.friction === 0.5
+    && script.after.caption === 'G = 20, friction 0.5' && script.after.fired === 2 && script.after.G === 20 && script.after.friction === 0.5 && script.after.restoredG === 20
     && script.reset.fired === 1 && script.reset.G === 2 && shown === 'G = 2', { ...script, shown });
 
   // Test particle: with the color scale locked, a stronger probe charge shows a stronger field.

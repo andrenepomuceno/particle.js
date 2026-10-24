@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
 import { DEFAULT_PROBE, validateColumns } from '../../engine/field';
+import { ProbeFields } from '../components/ProbeFields';
 import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
 import { DEFAULT_GENERATOR, FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
 import { saveJson } from '../persist';
@@ -256,7 +257,6 @@ export function FieldView() {
   const error = useAppState((s) => s.fieldError);
   const set = (patch: Partial<typeof field>) => controller.setField(patch);
   const probe = field.probe;
-  const setProbe = (patch: Partial<typeof probe>) => set({ probe: { ...probe, ...patch } });
   return (
     <div className="stack">
       {error && <pre className="errors">{error}</pre>}
@@ -268,16 +268,7 @@ export function FieldView() {
         <NumberField label="Grid columns" value={field.columns} validate={validateColumns} onCommit={(columns) => set({ columns })} />
       </div>
       <h3 className="section-title">Test particle</h3>
-      <div className="grid">
-        <NumberField label="Mass" value={probe.mass} validate={positive} onCommit={(mass) => setProbe({ mass })} />
-        <NumberField label="Charge" value={probe.charge} onCommit={(charge) => setProbe({ charge })} />
-        <NumberField label="Charge 2" value={probe.charge2} onCommit={(charge2) => setProbe({ charge2 })} />
-        <Vec3Field label="Spin" value={probe.spin} onCommit={(spin) => setProbe({ spin })} />
-        <NumberField label="Isospin I3" value={probe.isospin} onCommit={(isospin) => setProbe({ isospin })} />
-        <NumberField label="Parity" value={probe.parity} onCommit={(parity) => setProbe({ parity })} />
-        <NumberField label="Nuclear charge" value={probe.nuclearCharge} onCommit={(nuclearCharge) => setProbe({ nuclearCharge })} />
-        <Vec3Field label="Color charge" axes={['r', 'g', 'b']} value={probe.color} onCommit={(color) => setProbe({ color })} />
-      </div>
+      <ProbeFields probe={probe} onChange={(next) => set({ probe: next })} />
       <button className="outlined" onClick={() => set({ probe: DEFAULT_PROBE })}>Default test particle</button>
       {info && (
         <dl className="stats">

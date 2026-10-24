@@ -1,0 +1,55 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "the-egg",
+  "name": "The Egg",
+  "folder": "Force Map",
+  "description": "v1's quark soup: 10000 colored quarks (uud + udd) and electrons in a 2e5 disk under v1's force map 2, color force and 1/d Coulomb, plus 1/d gravity at v1's starting G ≈ 9e-38. Initial state of v1's script, which raises G by 1e41 at t = 106 and lowers it tenfold at t = 265, 424, 6360 and 6466, collapsing the soup into an egg. v1's random force noise and its rising quadratic drag are replaced by a constant linear drag.",
+  "seed": 1,
+  "view": { "cameraDistance": 900000, "particleRadius": 800, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "mode2D": true, "friction": 0.005 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 force map 2)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "-k * n_i * n_j * (a * exp(-x / b) - c * x)",
+      "params": [{ "name": "k", "value": 0.014637 }, { "name": "a", "value": 1 }, { "name": "b", "value": 0.1 }, { "name": "c", "value": 1 }]
+    },
+    {
+      "name": "Color (v1)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "k * n_i * n_j * (5 * (cr_i * cr_j + cg_i * cg_j + cb_i * cb_j) - 2 * (cr_i + cg_i + cb_i) * (cr_j + cg_j + cb_j)) / 3",
+      "params": [{ "name": "k", "value": 0.014637 }]
+    },
+    {
+      "name": "Coulomb (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 1,
+      "expression": "k * q_i * q_j / r",
+      "params": [{ "name": "k", "value": 0.37522 }]
+    },
+    {
+      "name": "Gravity (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 50,
+      "expression": "-G * m_i * m_j / r",
+      "params": [{ "name": "G", "value": 9.0072e-38 }]
+    }
+  ],
+  "groups": [
+    {
+      "count": 10000,
+      "shape": { "type": "disk", "radius": 200000 },
+      "mass": { "cycle": [0.58709, 0.58709, 1.1742, 0.58709, 1.1742, 1.1742, 0.1] },
+      "charge": { "cycle": [66.667, 66.667, -33.333, 66.667, -33.333, -33.333, -100] },
+      "nuclearCharge": { "cycle": [10, 10, 10, 10, 10, 10, -1.6667] },
+      "color": { "cycle": [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0]] }
+    }
+  ]
+}

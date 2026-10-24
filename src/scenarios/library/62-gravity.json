@@ -1,0 +1,29 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 1,
+  "id": "gravity",
+  "name": "Gravity",
+  "folder": "Force Map",
+  "description": "v1's 2D gravity: 10000 bodies (mass 20·U^(1/3)) in a rotating annulus under 1/d gravity (the 2D law, G = 66.7) collapse into clumps. v1's rigid rotation with random speeds is replaced by orbits of the same mean speed; its tiny charges, out-of-reach nuclear force and post-Newtonian/Lorentz corrections are negligible here and omitted.",
+  "seed": 1,
+  "view": { "cameraDistance": 200000, "particleRadius": 300, "colorMode": "mass" },
+  "settings": { "timeStep": 0.25, "mode2D": true },
+  "forces": [
+    {
+      "name": "Gravity (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 100,
+      "expression": "-G * m_i * m_j / r",
+      "params": [{ "name": "G", "value": 66.743 }]
+    }
+  ],
+  "groups": [
+    {
+      "count": 10000,
+      "shape": { "type": "disk", "radius": 129130, "innerRadius": 64566 },
+      "mass": { "cycle": [5.848, 8.434, 10, 11.19, 12.16, 13.01, 13.75, 14.42, 15.04, 15.6, 16.13, 16.63, 17.1, 17.54, 17.97, 18.37, 18.76, 19.13, 19.49, 19.83] },
+      "velocity": { "type": "orbit", "centralMass": 1, "G": 38302000000, "center": [0, 0, 0] }
+    }
+  ]
+}

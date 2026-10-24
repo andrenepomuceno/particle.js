@@ -17,8 +17,9 @@
     "snap": "scripts/cpu-limit.sh node scripts/snap.mjs",
     "smoke": "scripts/cpu-limit.sh node scripts/smoke-interaction.mjs",
     "parity": "scripts/cpu-limit.sh node scripts/parity.mjs",
-    "smoke:all": "scripts/cpu-limit.sh sh -c \"node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,quarks,hadrons,sandbox && node scripts/smoke-interaction.mjs\"",
-    "cluster-stats": "scripts/cpu-limit.sh node scripts/cluster-stats.mjs"
+    "smoke:all": "scripts/cpu-limit.sh sh -c \"node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs\"",
+    "cluster-stats": "scripts/cpu-limit.sh node scripts/cluster-stats.mjs",
+    "snap:library": "scripts/cpu-limit.sh node scripts/snap.mjs --wait 2500 --scenario galaxy,plasma,nuclei,crystal,quarks,hadrons,welcome,the-egg,gravity,air,water-2,essential-elements,periodic-table,hydrogen,helium,water,strong-blob,standard-model,planetoid-formation,sandbox"
   },
   "dependencies": {
     "react": "^19.3.1",

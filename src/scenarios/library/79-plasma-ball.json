@@ -1,0 +1,32 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "plasma-ball",
+  "name": "Plasma Ball",
+  "folder": "Experiments",
+  "description": "v1's Plasma Ball: 9999 electrons (m 0.5) and up and down quarks (m 3 and 6) with random ±1 nuclear charge start in a ball of radius 1, burst out under weak Coulomb (k = 1/60) and fill a reflecting sphere of radius 1e5 where v1's powAX nuclear force (range 1e4) and gravity (G = 1e-3) shape them into a 3D plasma.",
+  "seed": 1,
+  "view": { "cameraDistance": 200000, "particleRadius": 100, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "boundary": "sphere", "boundarySize": 100000, "restitution": 0.9 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 powAX)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "-k * n_i * n_j * sin(A * (1 - B^x))",
+      "params": [{ "name": "k", "value": 1 }, { "name": "A", "value": 7.22423 }, { "name": "B", "value": 0.13026 }]
+    },
+    { "preset": "coulomb", "softening": 1, "params": { "k": 0.016667 } },
+    { "preset": "gravity", "softening": 1, "params": { "G": 0.001 } }
+  ],
+  "groups": [
+    {
+      "count": 9999,
+      "shape": { "type": "sphere", "radius": 1 },
+      "mass": { "cycle": [0.5, 3, 6] },
+      "charge": { "cycle": [-1, 0.66667, -0.33333] },
+      "nuclearCharge": { "choice": [-1, 1] }
+    }
+  ]
+}

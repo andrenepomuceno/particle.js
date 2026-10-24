@@ -77,14 +77,23 @@ you can also load your own with <kbd>I</kbd>.
 | Welcome *(v1)* | v1 force map 2 + v1 color + Coulomb | "Welcome to particle.js !" written in quark nuclei |
 | The Egg *(v1)* | v1 force map 2 + v1 color + 1/d Coulomb + 1/d gravity | a quark soup scripted like v1: G jumps 1e41-fold, the soup collapses, rebounds and settles into an egg |
 | Gravity *(v1)* | 1/d gravity | a rotating annulus of 10000 bodies collapsing into clumps |
+| Experiments 4 *(v1)* | v1 force map 2 + v1 color + 1/d Coulomb + 1/d gravity + v1 drag | The Egg's sibling, scripted: G jumps 1e41-fold, the soup collapses into a lattice of nuclei whose rim later evaporates |
+| Hexagonal Crystal, force map *(v1)* | v1 eight-step force map + Coulomb + v1 drag | a honeycomb of 96 carbon-like quark atoms settling in place |
 | Air *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of N, O and Ar atoms made of quarks and electrons |
 | Water 2 *(v1)* | v1 powAXv3 nuclear + Coulomb | a lattice of H2O molecules made of quarks and electrons |
 | Essential Elements *(v1)* | v1 powAXv2 nuclear + Coulomb | H, C, N, O and traces of metals, 10% antimatter |
 | Periodic Table *(v1)* | v1 powAXv3 nuclear + Coulomb | elements Z = 1…64 of protons, neutrons and electrons |
+| Hexagonal Crystal, Tetragonal Crystal *(v1)* | v1 powAX nuclear + Coulomb | neutral quark atoms on a honeycomb or square lattice, nuclear charge alternating |
 | Hydrogen, Helium, Water *(v1)* | v1 force map 2 + 1/d Coulomb | single atoms and a molecule with orbiting electrons |
+| Super Nucleus 3D *(v1)* | v1 powAX nuclear + Coulomb + gravity | 10000 particles burst from a point and gather into giant 3D nuclei |
+| Plasma Ball *(v1)* | v1 powAX nuclear + weak Coulomb + gravity | a burst from a point filling a reflecting sphere with 3D plasma |
 | Strong Blob *(v1)* | v1 nuclear sine + 1/d Coulomb | a 3D ball of ± nuclear charges clumping into blobs |
 | Standard Model *(v1)* | v1 powAX nuclear + Coulomb | 10000 neutrinos, electrons and quarks with ± nuclear charge |
+| Standard Model 1 *(v1)* | v1 powAX nuclear + Coulomb | electrons and quarks bursting from a point across the 1e6 nuclear range |
+| Wild Particles *(v1)* | v1 sine nuclear + Coulomb + gravity | five particle kinds flung around a reflecting circle |
 | Planetoid Formation *(v1)* | v1 force map 1 + 1/d Coulomb + 1/d gravity | text of deuterons collapsing into a planetoid; v1's script squeezes it with 16× gravity, then pulls the camera back |
+| Hexagon 1, 2, 3 *(v1)* | v1 sine nuclear + Coulomb | electron beams shot through tilted honeycombs of tiny nuclei (1, 3); two honeycombs colliding (2) |
+| Terrarium *(v1)* | v1 sine nuclear spanning the arena + Coulomb | light neutral particles swirling around clumps of heavy charges |
 | Sandbox | gravity + Coulomb | empty; press <kbd>G</kbd> to generate particles |
 
 ## Development

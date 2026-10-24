@@ -96,6 +96,7 @@ velocity-dependent laws can be written directly:
 | Field of a magnetic dipole s_j on a moving charge | `q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)` |
 | Biot–Savart between moving charges (parallel currents attract) | `k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))` |
 | Pair drag (damps the closing speed) | `-c * v_dot` (a number: central) |
+| Quadratic drag −c·\|v\|·v (v1's friction), from one marker particle with q2 = 1; the 1e-30 keeps the derivative of \|v\| finite at rest | `-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i` |
 
 Velocity is refused in potential mode (F = −∇V needs a V of positions). A force that reads `v_i`
 is integrated with an implicit-midpoint velocity update: shader-autodiff also yields ∂F/∂v_i, and

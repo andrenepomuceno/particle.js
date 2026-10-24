@@ -1,0 +1,31 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "standard-model-1",
+  "name": "Standard Model 1",
+  "folder": "Experiments",
+  "description": "v1's Standard Model 1: 9999 electrons and up and down quarks (m 0.511, 3, 6) with random ±1 nuclear charge start in a disk of radius 1, burst out under Coulomb (k = 1) and spread over v1's powAX nuclear range of 1e6, inside a reflecting circle of radius 1e7. Gravity (G = 1e-3) is negligible and omitted.",
+  "seed": 1,
+  "view": { "cameraDistance": 5000000, "particleRadius": 10000, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "mode2D": true, "boundary": "sphere", "boundarySize": 10000000, "restitution": 0.9 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 powAX)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 1000000,
+      "expression": "-k * n_i * n_j * sin(A * (1 - B^x))",
+      "params": [{ "name": "k", "value": 1 }, { "name": "A", "value": 7.22423 }, { "name": "B", "value": 0.13026 }]
+    },
+    { "preset": "coulomb", "softening": 1, "params": { "k": 1 } }
+  ],
+  "groups": [
+    {
+      "count": 9999,
+      "shape": { "type": "disk", "radius": 1 },
+      "mass": { "cycle": [0.511, 3, 6] },
+      "charge": { "cycle": [-1, 0.66667, -0.33333] },
+      "nuclearCharge": { "choice": [-1, 1] }
+    }
+  ]
+}

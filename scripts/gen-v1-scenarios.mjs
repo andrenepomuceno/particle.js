@@ -508,6 +508,251 @@ function periodicTable() {
   });
 }
 
+/**
+ * v1's hexagonGenerator (helpers.js, 'offset' mode): the vertices of a grid of hexagons of circumradius
+ * `cellRadius`, deduplicated in v1's order; `i` is the vertex index in the first hexagon that made it.
+ * v1 also accepted fractional grid sizes (rows then start at -height/2), so do we. `width` is v1's totalLen[0].
+ */
+function hexagonVertices(cellRadius, [width, height]) {
+  const toPixel = (row, col) => [cellRadius * Math.sqrt(3) * (col + 0.5 * (row % 2)), ((cellRadius * 3) / 2) * row];
+  const vertices = new Map();
+  for (let row = -height / 2; row <= height / 2; ++row) {
+    for (let col = -width / 2; col <= width / 2; ++col) {
+      const [cx, cy] = toPixel(row, col);
+      for (let i = 0; i < 6; ++i) {
+        const theta = ((30 + 60 * i) * Math.PI) / 180;
+        const x = cellRadius * Math.cos(theta) + cx;
+        const y = cellRadius * Math.sin(theta) + cy;
+        const tag = `${Number(x.toFixed(2)) / 2},${Number(y.toFixed(2)) / 2}`;
+        if (!vertices.has(tag)) vertices.set(tag, { x, y, i });
+      }
+    }
+  }
+  return { vertices: [...vertices.values()], width: toPixel(height, width)[0] + 2 * cellRadius * Math.cos(Math.PI / 6) };
+}
+
+/** v1's hexagon scenes rotate the lattice by 20° and lift it by width/2·sin 20°. */
+function rotated20({ x, y }, width) {
+  const t = (20 * Math.PI) / 180;
+  return [sig(x * Math.cos(t) - y * Math.sin(t)), sig(x * Math.sin(t) + y * Math.cos(t) + (width / 2) * Math.sin(t)), 0];
+}
+
+const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+
+/**
+ * v1's createNuclei (scenariosHelpers.js, the scenarios_v0 particle kinds: up m 3 q 2/3, down m 6 q −1/3,
+ * electron m 0.511 q −1 with the opposite nuclear charge): quarks in a disk of radius r0 and electrons in the
+ * annulus [r0, r1], all moving with `velocity`.
+ */
+function v0Nucleus(center, s, up, down, electrons, r0, r1, velocity) {
+  const motion = velocity ? { velocity: { type: 'constant', value: velocity } } : {};
+  const g = gcd(up, down);
+  const quarks = [...Array(up / g).fill(type(3, sig(2 / 3), s)), ...Array(down / g).fill(type(6, sig(-1 / 3), s))];
+  const groups = [{ count: up + down, shape: { type: 'disk', radius: r0, center }, ...motion, ...typed(quarks) }];
+  if (electrons > 0) {
+    groups.push({ count: electrons, shape: { type: 'disk', radius: r1, innerRadius: r0, center }, ...motion, ...typed([type(0.511, -1, -s)]) });
+  }
+  return groups;
+}
+
+/**
+ * v1's quadratic friction (FrictionModel.square: v /= 1 + c·dt·|v|/m) as the velocity-dependent force −c·|v|·v,
+ * exerted by DRAG_MARKER, the only particle with q2 = 1 (q = 0 and n = 0, so no other force sees it). The 1e-30
+ * keeps the derivative of |v| finite at rest, where the implicit velocity solve evaluates it.
+ */
+const v1Drag = (c) => ({ name: 'Drag (v1)', mode: 'force', range: 'long', expression: '-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i', params: [{ name: 'c', value: c }] });
+const DRAG_MARKER = { count: 1, kind: 'fixed', shape: { type: 'point' }, mass: 1e-20, charge2: 1 };
+
+/** v1's default nuclear potential (scenarios_v0): sin(2πx), positive (attractive in v1) inside half the range. */
+const v1Sine = (cutoff) => nuclearForce('Nuclear (v1 sine)', '-k * n_i * n_j * sin(2 * pi * x)', cutoff, 1, {});
+const powAX = (cutoff) => nuclearForce('Nuclear (v1 powAX)', '-k * n_i * n_j * sin(A * (1 - B^x))', cutoff, 1, { A: 7.22423, B: 0.13026 });
+const v0Coulomb = (k, softening) => coulomb(sig(k), softening);
+
+/** The electron beam of Hexagon 1: three rows of 500, nuclear charges alternating along each row. */
+function hexagon1Beam() {
+  // v1: particle i of each row at x = −2e4 − 1000·i; the grid lists x ascending, so column k is i = 499 − k.
+  const row = (y, oddSign) => ({
+    count: 500,
+    shape: { type: 'grid', spacing: 1000, columns: 500, rows: 1, center: [-269500, y, 0] },
+    velocity: { type: 'constant', value: [200, 0, 0] },
+    mass: 0.5,
+    charge: -1,
+    nuclearCharge: { cycle: [oddSign, -oddSign] },
+  });
+  return [row(1000, 1), row(0, -1), row(-1000, 1)];
+}
+
+function hexagon1() {
+  // experiments0.js hexagon1(): nuclear range 500, k = 1/60, gravity 1e-6 (negligible, omitted).
+  const range = 500;
+  const w = Math.round(Math.sqrt(10000 / (7 * 2 * 4)));
+  const { vertices, width } = hexagonVertices(0.57 * range, [(5 / 3) * w, (3 / 5) * w]);
+  const groups = vertices.flatMap((v) => v0Nucleus(rotated20(v, width), v.i % 2 === 0 ? 1 : -1, 4, 2, 0, 0.05 * range, 0.618 * range));
+  return scenario('86-hexagon-1.json', {
+    id: 'hexagon-1',
+    name: 'Hexagon 1',
+    folder: 'Experiments 0',
+    description:
+      `v1's Hexagon 1: a honeycomb of ${vertices.length} tiny nuclei (4 up + 2 down quarks, nuclear charge alternating ±1 around each hexagon), ` +
+      "tilted 20°, bound by v1's sine nuclear force (range 500) against Coulomb (k = 1/60). Three rows of 500 electrons " +
+      'with alternating nuclear charge fly in from the left at speed 200 and hit the lattice from t ≈ 75. Gravity (G = 1e-6) is negligible and omitted.',
+    seed: 1,
+    view: { cameraDistance: 13000, particleRadius: 50, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true },
+    forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
+    groups: [...groups, ...hexagon1Beam()],
+  });
+}
+
+function hexagon2() {
+  // experiments0.js hexagon2(): two honeycombs 1e4 apart closing at speed 2 each.
+  const range = 500;
+  const w = Math.round(Math.sqrt(10000 / (7 * 2 * 8)));
+  const { vertices } = hexagonVertices(0.57 * range, [w, w]);
+  const groups = vertices.flatMap((v) => {
+    const s = v.i % 2 === 0 ? 1 : -1;
+    return [
+      ...v0Nucleus([sig(v.x - 5000), sig(v.y), 0], s, 6, 6, 2, 0.01 * range, 0.618 * range, [2, 0, 0]),
+      ...v0Nucleus([sig(v.x + 5000), sig(v.y), 0], s, 6, 6, 2, 0.01 * range, 0.618 * range, [-2, 0, 0]),
+    ];
+  });
+  return scenario('87-hexagon-2.json', {
+    id: 'hexagon-2',
+    name: 'Hexagon 2',
+    folder: 'Experiments 0',
+    description:
+      `v1's Hexagon 2: two honeycomb crystals of ${vertices.length} atoms each (6 up + 6 down quarks and 2 electrons, nuclear charge alternating ±1 ` +
+      "around each hexagon) collide head-on at a closing speed of 4, under v1's sine nuclear force (range 500) and Coulomb (k = 1/60), " +
+      'inside a sphere of radius 1e5 that keeps half the normal speed on a bounce. Gravity (G = 1e-3) is negligible here and omitted.',
+    seed: 1,
+    view: { cameraDistance: 10000, particleRadius: 50, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 100000, restitution: 0.5 },
+    forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
+    groups,
+  });
+}
+
+function hexagon3() {
+  // experiments0.js hexagon3(): like Hexagon 1 with 12-quark nuclei and a bunched beam.
+  const range = 500;
+  const random = rng(31);
+  const w = Math.round(Math.sqrt(10000 / (6 * 2 * 4)));
+  const { vertices, width } = hexagonVertices(0.57 * range, [1.2 * w, 0.8 * w]);
+  const groups = vertices.flatMap((v) => v0Nucleus(rotated20(v, width), v.i % 2 === 0 ? 1 : -1, 6, 6, 0, 0.05 * range, 0.618 * range));
+  let electrons = 0;
+  // v1: 500 bunches of 1 to 4 electrons (random(1, 4, true)) 1500 apart, each within 5 of the axis.
+  const beam = Array.from({ length: 500 }, (_, i) => {
+    const count = Math.round(1 + 3 * random());
+    electrons += count;
+    return {
+      count,
+      shape: { type: 'disk', radius: 0.01 * range, center: [-20000 - 3 * i * range, 0, 0] },
+      velocity: { type: 'constant', value: [250, 0, 0] },
+      mass: 0.5,
+      charge: -1,
+      nuclearCharge: i % 2 ? -1 : 1,
+    };
+  });
+  return scenario('88-hexagon-3.json', {
+    id: 'hexagon-3',
+    name: 'Hexagon 3',
+    folder: 'Experiments 0',
+    description:
+      `v1's Hexagon 3: a tilted honeycomb of ${vertices.length} nuclei (6 up + 6 down quarks, nuclear charge alternating ±1 around each hexagon) ` +
+      `under v1's sine nuclear force (range 500) and Coulomb (k = 1/60), shot by a beam of ${electrons} electrons in 500 bunches ` +
+      'flying in from the left at speed 250 (they arrive from t ≈ 60). Gravity (G = 1e-6) is negligible and omitted.',
+    seed: 1,
+    view: { cameraDistance: 13000, particleRadius: 50, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true },
+    forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
+    groups: [...groups, ...beam],
+  });
+}
+
+function hexagonalCrystal() {
+  // experiments1.js hexagonalCrystal(): nuclear range 1000, Coulomb k = 1, gravity 1e-3 (negligible, omitted).
+  const range = 1000;
+  let size = Math.round(Math.sqrt(10000 / (28 * 2)));
+  if (size % 2 === 0) size -= 1;
+  const { vertices } = hexagonVertices(0.493 * range, [size, size]);
+  const groups = vertices.flatMap((v) => v0Nucleus([sig(v.x), sig(v.y), 0], v.i % 2 === 0 ? 1 : -1, 6, 6, 2, 0.05 * range, 0.5 * range));
+  return scenario('71-hexagonal-crystal.json', {
+    id: 'hexagonal-crystal',
+    name: 'Hexagonal Crystal',
+    folder: 'Experiments',
+    description:
+      `v1's Hexagonal Crystal (Experiments 1): ${vertices.length} neutral atoms (6 up + 6 down quarks, 2 electrons) on the vertices of a honeycomb, ` +
+      "nuclear charge alternating ±1 around each hexagon, under v1's powAX nuclear force (pull below 0.25 of the 1000 range, push beyond) " +
+      'and Coulomb, inside a reflecting circle of radius 5e4. Gravity (G = 1e-3) is negligible and omitted.',
+    seed: 1,
+    view: { cameraDistance: 14000, particleRadius: 50, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 50000, restitution: 0.9 },
+    forces: [powAX(range), v0Coulomb(1, 1)],
+    groups,
+  });
+}
+
+function tetragonalCrystal() {
+  // experiments1.js tetragonalCrystal(): a square lattice of the same atoms, nuclear charge in a checkerboard.
+  const range = 1000;
+  let size = Math.round(Math.sqrt(10000 / (8 * 2)));
+  if (size % 2 === 0) size -= 1;
+  const groups = lattice(size, size, 0.5 * range).flatMap((center, k) => v0Nucleus(center, k % 2 === 0 ? 1 : -1, 6, 6, 2, 0.01 * range, 0.5 * range));
+  return scenario('72-tetragonal-crystal.json', {
+    id: 'tetragonal-crystal',
+    name: 'Tetragonal Crystal',
+    folder: 'Experiments',
+    description:
+      `v1's Tetragonal Crystal: a ${size}×${size} square lattice (spacing 500) of neutral atoms (6 up + 6 down quarks, 2 electrons), ` +
+      "nuclear charge ±1 in a checkerboard, under v1's powAX nuclear force (range 1000) and Coulomb, inside a reflecting circle of radius 5e4. " +
+      'Gravity (G = 1e-3) is negligible and omitted.',
+    seed: 1,
+    view: { cameraDistance: 15000, particleRadius: 50, colorMode: 'charge' },
+    settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 50000, restitution: 0.9 },
+    forces: [powAX(range), v0Coulomb(1, 1)],
+    groups,
+  });
+}
+
+function hexagonalCrystalQuarks() {
+  // forceMap.js hexagonalCrystal(): units M = 1e18, KG = 1e30, S = 2.5e26, so the 3 fm range is 3000.
+  const u = units({ M: 1e18, KG: 1e30, S: 0.25e27, C: (1 / 1.602176634) * 1e21 });
+  const range = u.range;
+  const quarks = nucleonQuarks(u, 1);
+  const electron = type(u.electron, -u.e, -1);
+  const { vertices } = hexagonVertices((2 / 3) * range, [gridSize(4 * 6 * 14), gridSize(4 * 6 * 14)]);
+  const groups = vertices.flatMap((v) => atom([sig(v.x), sig(v.y), 0], quarks, 6, electron, 48, 0.05 * range, range / 3, 0));
+  const map = [1, 2, 0, -2, 0, 0.5, 0, -1];
+  const steps = map.slice(1).map((_, k) => `(f${k + 1} - f${k}) * step(${(k + 1) / 8}, x)`).join(' + ');
+  return scenario('64-hexagonal-crystal-quarks.json', {
+    id: 'hexagonal-crystal-quarks',
+    name: 'Hexagonal Crystal',
+    folder: 'Force Map',
+    description:
+      `v1's force-map Hexagonal Crystal: ${vertices.length} carbon-like atoms (36 colored quarks and 48 electrons each) on the vertices of a honeycomb ` +
+      "of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, " +
+      "in a box of half-size 1e5. v1's quadratic drag (deceleration c·|v|·v/m, c = 1e-3, lowered to 1e-4 at t = 33) is the force " +
+      "'Drag (v1)' exerted by one fixed, otherwise inert marker particle (q2 = 1). Gravity (G ≈ 1e-39) is negligible and omitted.",
+    seed: 1,
+    view: { cameraDistance: 25000, particleRadius: 90, colorMode: 'charge' },
+    timeline: [{ at: 33, set: { 'Drag (v1).c': 1e-4 } }],
+    settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9 },
+    forces: [
+      {
+        name: 'Nuclear (v1 force map 1)',
+        mode: 'force',
+        range: 'short',
+        cutoff: range,
+        expression: `-k * n_i * n_j * (f0 + ${steps})`,
+        params: [{ name: 'k', value: u.nuclear }, ...map.map((value, k) => ({ name: `f${k}`, value }))],
+      },
+      coulomb(u.coulomb, 6),
+      v1Drag(1e-3),
+    ],
+    groups: [...groups, DRAG_MARKER],
+  });
+}
+
 /** Top level pretty-printed, one particle group per line. */
 function format(json) {
   const { groups, ...rest } = json;
@@ -516,7 +761,21 @@ function format(json) {
   return `${head},\n  "groups": [\n${body}\n  ]\n}\n`;
 }
 
-for (const { file, json } of [welcome(), air(), water2(), essentialElements(), periodicTable(), planetoidFormation()]) {
+const SCENES = [
+  welcome(),
+  hexagonalCrystalQuarks(),
+  air(),
+  water2(),
+  essentialElements(),
+  periodicTable(),
+  hexagonalCrystal(),
+  tetragonalCrystal(),
+  planetoidFormation(),
+  hexagon1(),
+  hexagon2(),
+  hexagon3(),
+];
+for (const { file, json } of SCENES) {
   const total = json.groups.reduce((s, g) => s + g.count, 0);
   if (total > 16384) throw new Error(`${file}: ${total} particles exceed the default capacity 16384`);
   // Per-site groups: their counts are the atoms themselves, so the particle-count setting must not rescale them.

@@ -18,7 +18,7 @@ One Markdown file per task in `inbox/`; when finished, add `## Result` and `git 
 11. Vector spin (in progress), ~~collisions~~ (done), then
     ~~`scenario-timeline.md`~~ (done)
 12. ~~`scenario-quality-kpis.md`~~ (done: `npm run kpis`), then
-    `v1-favorite-scenarios.md` (the v1 scenarios the user likes; checked with the KPIs)
+    ~~`v1-favorite-scenarios.md`~~ (done: the v1 scenarios the user likes, checked with the KPIs)
 13. ~~`adopt-shader-autodiff.md`~~ (done) → ~~`vector-forces-from-potential.md`~~ (done), then ~~`velocity-dependent-forces.md`~~ (done)
     (user decision 2026-10-24: force + potential suffice, no general Lagrangian)
 14. Nice for 2.0: `v1-small-controls.md`, `selection-and-generator-tools.md`

@@ -1,0 +1,70 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "experiments-4",
+  "name": "Experiments 4",
+  "folder": "Force Map",
+  "description": "v1's Experiments 4, The Egg's sibling: 9996 colored quarks (uud + udd, nuclear charge 10) and electrons (nuclear charge -10/3) in a 2e5 disk under v1's force map 2 with a wider Yukawa core (b = 0.2), its color force (three times stronger than The Egg's), 1/d Coulomb and 1/d gravity, in a box of half-size 1e6. Scripted like v1 (times are v1's seconds × 60): G jumps by 1e41 at t = 120 and the soup collapses, G drops 100-fold at t = 300, again with a tenfold drag at t = 3600, and the drag eases tenfold at t = 4200. v1's quadratic drag (deceleration c·|v|·v/m) is the force 'Drag (v1)', exerted by one fixed, otherwise inert marker particle (q2 = 1) at the origin (the 1e-30 under its square root keeps the velocity derivative finite at rest), so the scene runs with the Euler step like v1; v1's random force noise is not reproduced.",
+  "seed": 1,
+  "view": { "cameraDistance": 400000, "particleRadius": 500, "colorMode": "charge" },
+  "settings": { "timeStep": 1, "mode2D": true, "boundary": "box", "boundarySize": 1000000, "restitution": 0.9 },
+  "forces": [
+    {
+      "name": "Nuclear (v1 force map 2)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "-k * n_i * n_j * (a * exp(-x / b) - c * x)",
+      "params": [{ "name": "k", "value": 0.04 }, { "name": "a", "value": 1 }, { "name": "b", "value": 0.2 }, { "name": "c", "value": 1 }]
+    },
+    {
+      "name": "Color (v1)",
+      "mode": "force",
+      "range": "short",
+      "cutoff": 10000,
+      "expression": "k * n_i * n_j * (5 * (cr_i * cr_j + cg_i * cg_j + cb_i * cb_j) - 2 * (cr_i + cg_i + cb_i) * (cr_j + cg_j + cb_j)) / 3",
+      "params": [{ "name": "k", "value": 0.04 }]
+    },
+    {
+      "name": "Coulomb (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 1,
+      "expression": "k * q_i * q_j / r",
+      "params": [{ "name": "k", "value": 0.34181 }]
+    },
+    {
+      "name": "Drag (v1)",
+      "mode": "force",
+      "range": "long",
+      "expression": "-c * q2_j * sqrt(dot(v_i, v_i) + 1e-30) * v_i",
+      "params": [{ "name": "c", "value": 1e-5 }]
+    },
+    {
+      "name": "Gravity (v1 1/d)",
+      "mode": "force",
+      "range": "long",
+      "softening": 50,
+      "expression": "-G * m_i * m_j / r",
+      "params": [{ "name": "G", "value": 9.8879e-38 }]
+    }
+  ],
+  "groups": [
+    {
+      "count": 9996,
+      "shape": { "type": "disk", "radius": 200000 },
+      "mass": { "cycle": [0.5348, 0.5348, 1.0696, 0.5348, 1.0696, 1.0696, 0.091094] },
+      "charge": { "cycle": [66.667, 66.667, -33.333, 66.667, -33.333, -33.333, -100] },
+      "nuclearCharge": { "cycle": [10, 10, 10, 10, 10, 10, -3.3333] },
+      "color": { "cycle": [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 0, 0]] }
+    },
+    { "count": 1, "kind": "fixed", "scale": false, "shape": { "type": "point" }, "mass": 1e-20, "charge2": 1 }
+  ],
+  "timeline": [
+    {"at": 6, "caption": "Gravity: {Gravity (v1 1/d).G}"},
+    {"at": 120, "set": {"Gravity (v1 1/d).G": {"multiply": 1e+41}}, "caption": "Gravity: {Gravity (v1 1/d).G}"},
+    {"at": 300, "set": {"Gravity (v1 1/d).G": {"multiply": 0.01}}, "caption": "Gravity: {Gravity (v1 1/d).G}"},
+    {"at": 3600, "set": {"Gravity (v1 1/d).G": {"multiply": 0.01}, "Drag (v1).c": {"multiply": 10}}, "caption": "Gravity: {Gravity (v1 1/d).G}\nFriction: {Drag (v1).c}"},
+    {"at": 4200, "set": {"Drag (v1).c": {"multiply": 0.1}}, "caption": "Friction: {Drag (v1).c}"}
+  ]
+}

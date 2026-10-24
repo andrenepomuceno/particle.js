@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The classic v1 stays available, frozen, at `/v1/` (linked from About).
 - Vectors and velocity in expressions: `d`, `rhat`, `s_i`, `v_i`, `vec`, `cross`, `dot`, `length`,
   `normalize`, `v_dot`, `v_rel`, `vv_dot`. A vector force-mode expression is applied as the force
   (Lorentz, dipole fields, Biot–Savart); forces reading v_i use an implicit-midpoint velocity step

@@ -75,6 +75,7 @@ function AboutTab() {
         <span>Version</span><span>{__APP_VERSION__}</span>
         <span>License</span><span>GPL-3.0</span>
         <span>Source</span><a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer">{REPOSITORY_URL.replace('https://', '')}</a>
+        <span>Classic</span><a href="v1/index.html" target="_blank" rel="noopener">particle.js v1 (frozen)</a>
       </div>
       {ANALYTICS_ENABLED && (
         <p className="muted">

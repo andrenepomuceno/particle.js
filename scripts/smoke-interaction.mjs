@@ -245,6 +245,16 @@ await withBrowser(async ({ browser, base }) => {
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   await mkdir(path.dirname(out), { recursive: true });
   await page.screenshot({ path: out });
+  // The frozen v1 build served next to v2 (public/v1) must still start; its analytics are blocked
+  // here because the sandboxed browser may not reach them.
+  const classic = await browser.newPage();
+  const classicErrors = [];
+  classic.on('pageerror', (e) => classicErrors.push(e.message));
+  await classic.route('**/*googletagmanager.com/**', (route) => route.abort());
+  await classic.goto(`${base}v1/index.html`, { waitUntil: 'domcontentloaded' });
+  await classic.waitForFunction(() => globalThis.document.querySelectorAll('canvas').length > 0, null, { timeout: 15000 }).catch(() => {});
+  check('Frozen v1 starts at /v1/', (await classic.locator('canvas').count()) > 0 && classicErrors.length === 0, { classicErrors });
+  await classic.close();
   check('No page errors', errors.length === 0, errors);
 });
 process.exit(failures === 0 ? 0 : 1);

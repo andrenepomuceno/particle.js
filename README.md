@@ -2,7 +2,7 @@
 
 ![Color confinement scenario](docs/img/quarks.png)
 
-A classical n-body particle simulator that runs in the browser. You write the forces:
+A classical, non-relativistic n-body particle physics simulator that runs in the browser. You write the forces:
 each one is an expression such as `k * q_i * q_j / r^2` or a potential such as
 `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)`, short or long range. The expression is
 compiled to GLSL and every particle pair is evaluated in parallel on the GPU.

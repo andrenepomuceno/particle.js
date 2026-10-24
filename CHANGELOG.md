@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1 — 2026-10-24
+
+- Describes particle.js as a classical, non-relativistic n-body particle physics simulator.
+
 ## 2.1.0 — 2026-10-24
 
 - The boundary is drawn (sphere or box lines; E or Parameters toggles it).

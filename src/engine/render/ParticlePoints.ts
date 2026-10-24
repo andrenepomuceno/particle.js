@@ -2,6 +2,7 @@ import {
   BufferGeometry, Float32BufferAttribute, GLSL3, Points, ShaderMaterial,
   type Texture,
 } from 'three';
+import { perspectiveScale, V1_PALETTE_GLSL } from './shared';
 
 export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear'] as const;
 export type ColorMode = (typeof COLOR_MODES)[number];
@@ -13,21 +14,10 @@ export type ParticleStyle = (typeof PARTICLE_STYLES)[number];
 const SPHERE_FRACTION = 0.6;
 
 const COMMON = /* glsl */ `
-vec3 hsv2rgb(vec3 c) {
-  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
+${V1_PALETTE_GLSL}
 // v1 speed palette: hue sweeps 0..300° up to 16x the average speed, white once saturated.
 vec3 speedColor(float speed, float averageSpeed) {
-  float velocity = speed / max(16.0 * averageSpeed, 1e-6);
-  float saturation = 1.0;
-  if (velocity > 1.0) {
-    velocity = 1.0;
-    saturation = 0.0;
-  }
-  return hsv2rgb(vec3(0.8333 * velocity, saturation, max(sqrt(velocity), 0.2)));
+  return v1Palette(speed / max(16.0 * averageSpeed, 1e-6), 0.2);
 }
 `;
 
@@ -289,7 +279,7 @@ export class ParticlePoints {
   /** Sizes particles as spheres of the given world-space radius under a perspective camera. */
   setRadius(radius: number, viewportHeight: number, fovDegrees: number): void {
     this.material.uniforms.uRadius!.value = radius;
-    this.material.uniforms.uScale!.value = viewportHeight / (2 * Math.tan((fovDegrees * Math.PI) / 360));
+    this.material.uniforms.uScale!.value = perspectiveScale(viewportHeight, fovDegrees);
   }
 
   /** Reference for the speed palette, which saturates at 16x this value. */

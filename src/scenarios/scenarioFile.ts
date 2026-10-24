@@ -1,5 +1,6 @@
 import { newForceId } from '../engine/forces/presets';
 import { readForce } from '../engine/forces/readForce';
+import { add, cross } from '../engine/vec3';
 import { scaleGroups } from './scaling';
 import type { ForceDefinition } from '../engine/forces/types';
 import { JsonReader } from '../engine/json';
@@ -209,7 +210,6 @@ function sample<T extends number | Vec3>(spec: Sampled<T>, rng: Rng, index: numb
   return drawn.cycle[index % drawn.cycle.length]!;
 }
 
-const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 
 function samplePosition(shape: Shape, rng: Rng, index: number): Vec3 {
   switch (shape.type) {
@@ -263,7 +263,6 @@ function sampleVelocity(spec: VelocitySpec, position: Vec3, rng: Rng, mode2D: bo
 function randomPlane(rng: Rng): [Vec3, Vec3] {
   const normal = onSphere(rng);
   const helper: Vec3 = Math.abs(normal[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
-  const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
   const u = cross(normal, helper);
   const length = Math.hypot(...u);
   const first = u.map((c) => c / length) as Vec3;

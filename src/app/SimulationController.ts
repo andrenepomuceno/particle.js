@@ -133,6 +133,10 @@ export const MAX_CAPACITY = 256 * 256;
 const NOTICE_LIFETIME_MS = 6000;
 /** The probe pass is O(probes × N) plus a readback, so it is not repeated every frame. */
 const FIELD_INTERVAL_MS = 100;
+/** The color scale needs a readback (pipeline stall), so it is refreshed far less often than the field. */
+const FIELD_REFERENCE_INTERVAL_MS = 1000;
+/** While following a particle the camera moves without OrbitControls events; re-fit at this pace. */
+const FIELD_FOLLOW_REFIT_MS = 250;
 
 function structureKey(forces: readonly CompiledForce[]): string {
   return JSON.stringify(forces.map(({ definition: d }) => [d.expression, d.mode, d.range, d.params.map((p) => p.name)]));
@@ -152,6 +156,8 @@ export class SimulationController {
   private fieldDirty = false;
   private fieldTime = NaN;
   private fieldComputedAt = 0;
+  private fieldReferenceAt = 0;
+  private fieldFollowFitAt = 0;
   private compiled: CompiledForce[] = [];
   private compiledKey = '';
   private cpuStale = false;
@@ -328,8 +334,6 @@ export class SimulationController {
     this.cpuStale = false;
     this.applyRadius();
     this.store.set({ capacity: this.set.capacity });
-    // Probes live in the GpuCompute that was just replaced.
-    if (this.state.field.enabled) this.fitField();
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
@@ -342,6 +346,9 @@ export class SimulationController {
     this.cpuStale = false;
     this.store.set({ name, time, inspected: undefined, selection: [], followInspected: false, physicsHistory: [] });
     this.uploadParticles();
+    // Probes may belong to a replaced GpuCompute and the plane depends on mode2D: re-fit now
+    // that settings, forces and particles are in place.
+    this.refitFieldIfEnabled();
   }
 
   /* Physics configuration */
@@ -350,9 +357,11 @@ export class SimulationController {
     const settings = { ...this.state.settings, ...patch };
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
+    const planeChanged = settings.mode2D !== this.state.settings.mode2D;
     this.gpu.setSettings(settings);
     this.store.set({ settings });
     this.fieldDirty = true;
+    if (planeChanged) this.refitFieldIfEnabled();
   }
 
   setForces(forces: ForceDefinition[]): void {
@@ -517,6 +526,16 @@ export class SimulationController {
     this.fieldDirty = true;
   }
 
+  private refitFieldIfEnabled(): void {
+    if (!this.state.field.enabled) return;
+    try {
+      this.fitField();
+    } catch (error) {
+      this.setField({ enabled: false });
+      this.notify(`The field was turned off: its grid could not be fitted (${(error as Error).message})`, 'error');
+    }
+  }
+
   private autoFitField(): void {
     const { enabled, autoRefresh } = this.state.field;
     if (!enabled || !autoRefresh) return;
@@ -535,9 +554,13 @@ export class SimulationController {
     const due = time !== this.fieldTime && now - this.fieldComputedAt >= FIELD_INTERVAL_MS;
     if (!this.fieldDirty && !due) return;
     try {
-      const reference = fieldReference(this.gpu.computeField(time, field.probe));
-      this.arrows.setReference(reference);
-      if (reference !== fieldInfo.reference) this.store.set({ fieldInfo: { ...fieldInfo, reference } });
+      this.gpu.computeField(time, field.probe);
+      if (this.fieldDirty || now - this.fieldReferenceAt >= FIELD_REFERENCE_INTERVAL_MS) {
+        const reference = fieldReference(this.gpu.readFieldMagnitudes());
+        this.arrows.setReference(reference);
+        this.fieldReferenceAt = now;
+        if (reference !== fieldInfo.reference) this.store.set({ fieldInfo: { ...fieldInfo, reference } });
+      }
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       this.setField({ enabled: false });
@@ -835,6 +858,10 @@ export class SimulationController {
       const shift = new Vector3(...position).sub(this.controls.target);
       this.controls.target.add(shift);
       this.camera.position.add(shift);
+      if (now - this.fieldFollowFitAt >= FIELD_FOLLOW_REFIT_MS) {
+        this.fieldFollowFitAt = now;
+        this.autoFitField();
+      }
     }
     this.controls.update();
     this.updateField(now);

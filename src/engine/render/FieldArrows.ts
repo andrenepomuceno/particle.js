@@ -1,4 +1,5 @@
 import { BufferGeometry, Float32BufferAttribute, GLSL3, Points, ShaderMaterial, Vector2, type Texture } from 'three';
+import { perspectiveScale, V1_PALETTE_GLSL } from './shared';
 
 const VERTEX = /* glsl */ `
 precision highp sampler2D;
@@ -46,11 +47,7 @@ in float vLength;
 uniform float uReference;
 out vec4 fragmentColor;
 
-vec3 hsv2rgb(vec3 c) {
-  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
+${V1_PALETTE_GLSL}
 
 // iq's isosceles triangle with its tip at the origin and base at y = q.y.
 float triangleSdf(vec2 p, vec2 q) {
@@ -78,13 +75,7 @@ float arrowSdf(vec2 p, float len) {
 // v1's field palette: hue sweeps red to magenta up to the reference strength, white beyond.
 // sqrt spreads the low end, where most of a 1/r^2 field sits.
 vec3 fieldColor(float magnitude) {
-  float level = sqrt(magnitude / max(uReference, 1e-30));
-  float saturation = 1.0;
-  if (level > 1.0) {
-    level = 1.0;
-    saturation = 0.0;
-  }
-  return hsv2rgb(vec3(0.8333 * level, saturation, max(sqrt(level), 0.35)));
+  return v1Palette(sqrt(magnitude / max(uReference, 1e-30)), 0.35);
 }
 
 void main() {
@@ -145,7 +136,7 @@ export class FieldArrows {
 
   /** Same perspective scale as ParticlePoints.setRadius, plus the drawing-buffer size for directions. */
   setViewport(width: number, height: number, fovDegrees: number): void {
-    this.material.uniforms.uScale!.value = height / (2 * Math.tan((fovDegrees * Math.PI) / 360));
+    this.material.uniforms.uScale!.value = perspectiveScale(height, fovDegrees);
     (this.material.uniforms.uViewport!.value as Vector2).set(width, height);
   }
 

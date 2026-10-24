@@ -71,6 +71,7 @@ export class GpuCompute {
   private fieldStale = false;
   private readonly probeUniforms: Record<string, IUniform>;
   private probes: { width: number; count: number; positions: DataTexture; target: WebGLRenderTarget } | undefined;
+  private fieldBuffer: Float32Array | undefined;
   private forceUniforms: Record<string, IUniform>;
   private accelerationMaterial: RawShaderMaterial;
   private readonly positionMaterial: RawShaderMaterial;
@@ -337,7 +338,8 @@ export class GpuCompute {
   }
 
   /** Runs the probe pass for the test particle and returns |F| per probe (the field stays on the GPU for drawing). */
-  computeField(time: number, probe: FieldProbe): Float32Array {
+  /** Renders the field into the probe target (no readback; the arrows sample it directly). */
+  computeField(time: number, probe: FieldProbe): void {
     if (!this.probes) throw new Error('no probe grid; call setProbes first');
     this.buildFieldPass();
     const { width, count, positions, target } = this.probes;
@@ -353,11 +355,17 @@ export class GpuCompute {
     u.texturePosition!.value = this.position[this.current]!.texture;
     u.textureVelocity!.value = this.velocity[this.current]!.texture;
     this.renderTo(this.fieldMaterial, target);
+  }
+
+  /** |F| per probe from the last computeField; a synchronous readback, so callers keep it rare. */
+  readFieldMagnitudes(): Float32Array {
+    if (!this.probes) throw new Error('no probe grid; call setProbes first');
+    const { width, count, target } = this.probes;
     const rows = Math.ceil(count / width);
-    const buffer = new Float32Array(rows * width * 4);
-    this.renderer.readRenderTargetPixels(target, 0, 0, width, rows, buffer);
+    if (this.fieldBuffer?.length !== rows * width * 4) this.fieldBuffer = new Float32Array(rows * width * 4);
+    this.renderer.readRenderTargetPixels(target, 0, 0, width, rows, this.fieldBuffer);
     const magnitudes = new Float32Array(count);
-    for (let k = 0; k < count; k++) magnitudes[k] = buffer[k * 4 + 3]!;
+    for (let k = 0; k < count; k++) magnitudes[k] = this.fieldBuffer[k * 4 + 3]!;
     return magnitudes;
   }
 

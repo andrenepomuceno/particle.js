@@ -1,3 +1,4 @@
+import { cross, dot, normalize, scale, sub } from './vec3';
 import type { Vec3 } from './particles';
 
 /** Attributes of the test particle whose net force the field shows. Its clock is always 0. */
@@ -54,16 +55,6 @@ export interface FieldView {
   up: Vec3;
   halfWidth: number;
   halfHeight: number;
-}
-
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const scale = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
-const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-
-function normalize(a: Vec3): Vec3 | undefined {
-  const length = Math.hypot(...a);
-  return length > 1e-9 ? scale(a, 1 / length) : undefined;
 }
 
 /**

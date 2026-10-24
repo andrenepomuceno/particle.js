@@ -77,23 +77,23 @@ const failures = await withBrowser(async ({ browser, base }) => {
     const probe = { mass: 1.5, charge: -2, spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
     // GpuCompute is private to the controller; the probe pass is driven directly, bypassing the view.
     c.gpu.setProbes(positions);
-    const gpu = c.gpu.computeField(c.state.time, probe);
+    c.gpu.computeField(c.state.time, probe);
+    const gpu = c.gpu.readFieldMagnitudes();
     const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time);
+    const exact = Array.from(gpu, (_, p) => Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]));
+    // Per-probe relative error, floored at the median |F| so near-zero probes do not dominate
+    // and a single 1/r^2 spike cannot hide errors on the typical probes.
+    const median = [...exact].sort((a, b) => a - b)[Math.floor(exact.length / 2)];
     let worst = 0;
-    let largest = 0;
-    gpu.forEach((m, p) => {
-      const exact = Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]);
-      largest = Math.max(largest, exact);
-      worst = Math.max(worst, Math.abs(m - exact));
-    });
-    return { relative: worst / largest, largest };
+    gpu.forEach((m, p) => (worst = Math.max(worst, Math.abs(m - exact[p]) / Math.max(exact[p], median))));
+    return { relative: worst, largest: Math.max(...exact) };
   }, { scenario: JSON.stringify({
     format: 'particle.js-v2/scenario', version: 1, id: 'field', name: 'field', seed: 1,
     forces: CASES[1].forces, groups: GROUPS['short-range LJ + Coulomb, box'],
   }) });
   const fieldOk = field.relative <= 1e-4 && field.largest > 0;
   if (!fieldOk) failed++;
-  console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes vs referenceField: max |Δ|F|| / max |F| = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
+  console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes vs referenceField: max per-probe |Δ|F|| / max(|F|, median) = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
   if (problems.length) console.log(JSON.stringify({ problems }));
   return failed + problems.length;
 });

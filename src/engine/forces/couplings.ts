@@ -12,7 +12,16 @@ const at = (array: Float32Array, index: number, lane: number) => array[index * T
 
 const COUPLINGS: readonly Coupling[] = [
   { label: 'charge', variables: ['q_i', 'q_j'], isZero: (s, k) => at(s.attributes, k, 1) === 0 },
-  { label: 'spin', variables: ['s_i', 's_j'], isZero: (s, k) => at(s.attributes, k, 2) === 0 },
+  { label: 'second charge component', variables: ['q2_i', 'q2_j'], isZero: (s, k) => at(s.attributes, k, 2) === 0 },
+  {
+    label: 'charge', variables: ['q_dot'],
+    isZero: (s, k) => at(s.attributes, k, 1) === 0 && at(s.attributes, k, 2) === 0,
+  },
+  {
+    label: 'spin', variables: ['sx_i', 'sx_j', 'sy_i', 'sy_j', 'sz_i', 'sz_j', 's_dot', 'si_r', 'sj_r'],
+    isZero: (s, k) => at(s.spin, k, 0) === 0 && at(s.spin, k, 1) === 0 && at(s.spin, k, 2) === 0,
+  },
+  { label: 'isospin', variables: ['i3_i', 'i3_j'], isZero: (s, k) => at(s.spin, k, 3) === 0 },
   { label: 'parity', variables: ['p_i', 'p_j'], isZero: (s, k) => at(s.attributes, k, 3) === 0 },
   { label: 'nuclear charge', variables: ['n_i', 'n_j'], isZero: (s, k) => at(s.color, k, 3) === 0 },
   {

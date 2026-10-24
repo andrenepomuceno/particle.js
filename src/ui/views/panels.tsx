@@ -5,13 +5,20 @@ import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
 import { FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
 import { saveJson } from '../persist';
 import { PARTICLE_TARGET_KEY } from '../storageKeys';
+import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
 import { SCENARIOS } from '../../scenarios';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
-import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
+import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
 
 const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
 const FIT_FIELD_KEY = ACTIONS.find((a) => a.id === 'fitField')!.key!;
+
+/** Applying a species fills the generator template; the user can still edit each field afterwards. */
+const speciesTemplate = (id: SpeciesId) => {
+  const { mass, charge, isospin, nuclearCharge } = SPECIES[id];
+  return { mass, charge, charge2: 0, isospin, nuclearCharge, chargeSpread: 'fixed' as const };
+};
 
 const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(limit));
 
@@ -162,13 +169,12 @@ export function ParticleView() {
         <CheckField label="Fixed" checked={particle.kind === 2} onChange={(fixed) => edit({ kind: fixed ? 2 : 1 })} />
         <NumberField label="Mass" value={particle.mass} validate={positive} onCommit={(mass) => edit({ mass })} />
         <NumberField label="Charge" value={particle.charge} onCommit={(charge) => edit({ charge })} />
-        <NumberField label="Spin" value={particle.spin} onCommit={(spin) => edit({ spin })} />
+        <NumberField label="Charge 2" value={particle.charge2} onCommit={(charge2) => edit({ charge2 })} />
+        <Vec3Field label="Spin" value={particle.spin} onCommit={(spin) => edit({ spin })} />
+        <NumberField label="Isospin I3" value={particle.isospin} onCommit={(isospin) => edit({ isospin })} />
         <NumberField label="Parity" value={particle.parity} onCommit={(parity) => edit({ parity })} />
         <NumberField label="Nuclear charge" value={particle.nuclearCharge} onCommit={(nuclearCharge) => edit({ nuclearCharge })} />
-        {(['red', 'green', 'blue'] as const).map((channel, k) => (
-          <NumberField key={channel} label={`Color ${channel}`} value={particle.color[k]!}
-            onCommit={(v) => edit({ color: particle.color.map((c, j) => (j === k ? v : c)) as typeof particle.color })} />
-        ))}
+        <Vec3Field label="Color charge" axes={['r', 'g', 'b']} value={particle.color} onCommit={(color) => edit({ color })} />
       </div>
       <div className="row">
         <button className="outlined" onClick={() => controller.toggleFollow()}>{following ? 'Stop following' : 'Follow'} <kbd>{keyLabel(FOLLOW_KEY)}</kbd></button>
@@ -201,18 +207,19 @@ export function GeneratorView() {
   return (
     <div className="stack">
       <div className="grid">
+        <SelectField label="Species" value={'custom' as string} options={['custom', ...SPECIES_IDS]}
+          onChange={(id) => id !== 'custom' && set(speciesTemplate(id as SpeciesId))} />
         <NumberField label="Count" value={g.count} validate={(v) => (Number.isInteger(v) && v >= 1 ? undefined : 'must be an integer >= 1')} onCommit={(count) => set({ count })} />
         <NumberField label="Cloud radius" value={g.cloudRadius} validate={nonNegative} onCommit={(cloudRadius) => set({ cloudRadius })} />
         <NumberField label="Mass" value={g.mass} validate={positive} onCommit={(mass) => set({ mass })} />
         <NumberField label="Charge" value={g.charge} onCommit={(charge) => set({ charge })} />
+        <NumberField label="Charge 2" value={g.charge2} onCommit={(charge2) => set({ charge2 })} />
         <SelectField label="Charge sign" value={g.chargeSpread} options={['fixed', 'random sign'] as const} onChange={(chargeSpread) => set({ chargeSpread })} />
-        <NumberField label="Spin" value={g.spin} onCommit={(spin) => set({ spin })} />
+        <Vec3Field label="Spin" value={g.spin} onCommit={(spin) => set({ spin })} />
+        <NumberField label="Isospin I3" value={g.isospin} onCommit={(isospin) => set({ isospin })} />
         <NumberField label="Parity" value={g.parity} onCommit={(parity) => set({ parity })} />
         <NumberField label="Nuclear charge" value={g.nuclearCharge} onCommit={(nuclearCharge) => set({ nuclearCharge })} />
-        {(['red', 'green', 'blue'] as const).map((channel, k) => (
-          <NumberField key={channel} label={`Color ${channel}`} value={g.color[k]!}
-            onCommit={(v) => set({ color: g.color.map((c, j) => (j === k ? v : c)) as typeof g.color })} />
-        ))}
+        <Vec3Field label="Color charge" axes={['r', 'g', 'b']} value={g.color} onCommit={(color) => set({ color })} />
         <NumberField label="Speed" value={g.speed} validate={nonNegative} onCommit={(speed) => set({ speed })} />
         <CheckField label="Fixed" checked={g.fixed} onChange={(fixed) => set({ fixed })} />
       </div>
@@ -242,13 +249,12 @@ export function FieldView() {
       <div className="grid">
         <NumberField label="Mass" value={probe.mass} validate={positive} onCommit={(mass) => setProbe({ mass })} />
         <NumberField label="Charge" value={probe.charge} onCommit={(charge) => setProbe({ charge })} />
-        <NumberField label="Spin" value={probe.spin} onCommit={(spin) => setProbe({ spin })} />
+        <NumberField label="Charge 2" value={probe.charge2} onCommit={(charge2) => setProbe({ charge2 })} />
+        <Vec3Field label="Spin" value={probe.spin} onCommit={(spin) => setProbe({ spin })} />
+        <NumberField label="Isospin I3" value={probe.isospin} onCommit={(isospin) => setProbe({ isospin })} />
         <NumberField label="Parity" value={probe.parity} onCommit={(parity) => setProbe({ parity })} />
         <NumberField label="Nuclear charge" value={probe.nuclearCharge} onCommit={(nuclearCharge) => setProbe({ nuclearCharge })} />
-        {(['red', 'green', 'blue'] as const).map((channel, k) => (
-          <NumberField key={channel} label={`Color ${channel}`} value={probe.color[k]!}
-            onCommit={(v) => setProbe({ color: probe.color.map((c, j) => (j === k ? v : c)) as typeof probe.color })} />
-        ))}
+        <Vec3Field label="Color charge" axes={['r', 'g', 'b']} value={probe.color} onCommit={(color) => setProbe({ color })} />
       </div>
       {info && (
         <dl className="stats">

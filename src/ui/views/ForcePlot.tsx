@@ -9,7 +9,8 @@ const SAMPLES = 240;
 const SYMLOG_RATIO = 1e3;
 
 export const PLOT_PAIR: Omit<PairScope, 'r'> = {
-  m_i: 1, m_j: 1, q_i: 1, q_j: 1, s_i: 0.5, s_j: 0.5, p_i: 1, p_j: 1, n_i: 1, n_j: 1,
+  m_i: 1, m_j: 1, q_i: 1, q_j: 1, q2_i: 0, q2_j: 0, i3_i: 0.5, i3_j: 0.5,
+  sx_i: 0, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 0, sz_j: 0.5, ux: 1, uy: 0, uz: 0, p_i: 1, p_j: 1, n_i: 1, n_j: 1,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: -1, cg_j: 0, cb_j: 0, t_i: 0, t_j: 0, time: 0,
 };
 
@@ -90,7 +91,7 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
         )}
       </svg>
       <figcaption className="muted">
-        F &gt; 0 repels. Sample pair: m=1, q=+1/+1, s=½/½, p=+1/+1, color red/anti-red.
+        F &gt; 0 repels. Sample pair: m=1, q=+1/+1, spin ½ẑ each (r̂ along x), I3=+½, p=+1/+1, color red/anti-red.
         {plot.nonFinite && <span style={{ color: 'var(--danger)' }}> Non-finite values in range (check softening).</span>}
       </figcaption>
     </figure>

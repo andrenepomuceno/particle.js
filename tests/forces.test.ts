@@ -5,7 +5,8 @@ import { generateFieldShader, generateVelocityShader, POSITION_SHADER } from '..
 
 
 const pair: PairScope = {
-  r: 2, m_i: 1, m_j: 1, q_i: 1, q_j: 3, s_i: 0.5, s_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
+  r: 2, m_i: 1, m_j: 1, q_i: 1, q_j: 3, q2_i: 2, q2_j: -1, i3_i: 0.5, i3_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
+  sx_i: 1, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 2, sz_j: -0.5, ux: 0.6, uy: 0.8, uz: 0,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: 0.5, cg_j: 1, cb_j: 0, t_i: 4, t_j: 5, time: 9,
 };
 
@@ -31,9 +32,30 @@ describe('compileForce', () => {
     expect(forceToGlsl(force, 0)).toBe('(color1.w * color2.w)');
   });
 
-  it('exposes color, spin, parity and clocks', () => {
-    const force = compileForce(makeForce({ expression: 'c_dot + s_i * s_j + p_i * p_j + t_i + t_j + time', params: [] }));
-    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(0 - 0.25 - 1 + 4 + 5 + 9, 12);
+  it('exposes color, parity and clocks', () => {
+    const force = compileForce(makeForce({ expression: 'c_dot + p_i * p_j + t_i + t_j + time', params: [] }));
+    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(0 - 1 + 4 + 5 + 9, 12);
+  });
+
+  it('exposes the spin vectors, their alignment and their projections on r̂', () => {
+    const value = (expression: string) => {
+      const force = compileForce(makeForce({ expression, params: [] }));
+      return force.evaluate(forceScope(force, pair));
+    };
+    expect(value('s_dot')).toBeCloseTo(1 * 0 + 0 * 2 + 0.5 * -0.5, 12);
+    expect(value('si_r')).toBeCloseTo(1 * 0.6, 12);
+    expect(value('sj_r')).toBeCloseTo(2 * 0.8, 12);
+    expect(value('sx_i + sy_j + sz_i')).toBeCloseTo(1 + 2 + 0.5, 12);
+  });
+
+  it('exposes the 2D charge and isospin', () => {
+    const force = compileForce(makeForce({ expression: 'q_dot + 10 * i3_i * i3_j + 100 * q2_i', params: [] }));
+    expect(force.evaluate(forceScope(force, pair))).toBeCloseTo(1 * 3 + 2 * -1 - 2.5 + 200, 12);
+    expect(forceToGlsl(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })), 0)).toBe('(dot(attr1.yz, attr2.yz) * spin2.w)');
+  });
+
+  it('rejects the old scalar spin variables with the list of new ones', () => {
+    expect(() => compileForce(makeForce({ expression: 's_i * s_j', params: [] }))).toThrow(/unknown variable 's_i'.*s_dot/);
   });
 
   it.each([
@@ -86,7 +108,7 @@ describe('GLSL generation', () => {
     const shader = generateFieldShader([compileForce(makeForce())]);
     expect(shader).toContain('float force0(');
     expect(shader.match(/vec3 totalForce\(/g)).toHaveLength(1);
-    expect(shader).toContain('totalForce(-1, pos, uProbeAttributes, uProbeColor, 0.0)');
+    expect(shader).toContain('totalForce(-1, pos, uProbeAttributes, uProbeColor, uProbeSpin, 0.0)');
   });
 
   it('skips the clock fetch when no force reads t_j', () => {

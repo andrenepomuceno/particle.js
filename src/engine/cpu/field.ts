@@ -26,7 +26,7 @@ export function referenceField(
       const r2 = dx * dx + dy * dy + dz * dz;
       if (r2 === 0 || forces.length === 0) continue;
       const dist = Math.sqrt(r2);
-      const pair = probeScope(probe, set, j, time);
+      const pair = probeScope(probe, [positions[p * 3]!, positions[p * 3 + 1]!, positions[p * 3 + 2]!], set, j, time);
       let magnitude = 0;
       for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, r2, dist);
       fx += (magnitude * dx) / dist;

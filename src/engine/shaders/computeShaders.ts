@@ -1,6 +1,6 @@
 import { GLSL_COLOR_HELPERS } from '../colorCharge';
 import { GLSL_POWER_HELPERS } from '../expr/glsl';
-import { collectVariables } from '../expr/ast';
+import { collectVariables, type Expr } from '../expr/ast';
 import { forceToGlsl, forceUniformName, type CompiledForce } from '../forces/compile';
 
 export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
@@ -8,6 +8,7 @@ export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
 const COMMON_UNIFORMS = /* glsl */ `
 uniform sampler2D uAttributes;
 uniform sampler2D uColor;
+uniform sampler2D uSpin;
 uniform int uCount;
 uniform float uTimeStep;
 uniform float uTime;
@@ -30,8 +31,12 @@ function forceUniforms(force: CompiledForce, index: number): string {
     .join('\n');
 }
 
-const PAIR_ARGS = 'float r, vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, float tau1, float tau2';
-const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, tau1, tau2';
+const PAIR_ARGS = 'float r, vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2';
+const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2';
+const SPIN_J_VARIABLES = ['sx_j', 'sy_j', 'sz_j', 's_dot', 'sj_r', 'i3_j'];
+
+/** The other particle's spin is fetched only when an expression reads it, like its clock. */
+const readsSpinJ = (exprs: Expr[]) => exprs.some((e) => SPIN_J_VARIABLES.some((v) => collectVariables(e).has(v)));
 
 function forceFunction(force: CompiledForce, index: number): string {
   return `${forceUniforms(force, index)}
@@ -41,7 +46,7 @@ float force${index}(${PAIR_ARGS}) {
 }
 
 function forceAccumulation(force: CompiledForce, index: number): string {
-  const call = `force${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), attr1, attr2, color1, color2, tau1, tau2)`;
+  const call = `force${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
   if (force.definition.range === 'short') {
     return `if (dist < ${forceUniformName(index, 'cutoff')}) magnitude += ${call};`;
   }
@@ -101,11 +106,12 @@ vec3 confinePosition(vec3 pos) {
 function totalForceFunction(forces: readonly CompiledForce[]): string {
   const needsTau2 = forces.some((f) => collectVariables(f.magnitude).has('t_j'));
   const fetchTau2 = needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
+  const fetchSpin2 = readsSpinJ(forces.map((f) => f.magnitude)) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   return `${GLSL_POWER_HELPERS}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
-vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, float tau1) {
+vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, vec4 spin1, float tau1) {
   int width = TEXTURE_WIDTH;
   vec3 force = vec3(0.0);
   for (int index2 = 0; index2 < uCount; index2++) {
@@ -118,9 +124,11 @@ vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, float tau1) {
     vec4 attr2 = texelFetch(uAttributes, coord2, 0);
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
+    vec4 spin2 = ${fetchSpin2};
+    vec3 dir = delta / dist;
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
-    force += magnitude * (delta / dist);
+    force += magnitude * dir;
   }
   return force;
 }`;
@@ -153,7 +161,7 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), tau1);
+  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1);
   vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x;
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
 }
@@ -172,7 +180,7 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), velocityTexel.w + uClockShift);
+  vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift);
   vec3 acceleration = force / attr1.x;
   if (uMode2D) acceleration.z = 0.0;
   gl_FragColor = vec4(acceleration, 0.0);
@@ -229,6 +237,7 @@ function potentialTerm(force: CompiledForce, index: number): string {
  */
 export function generatePotentialShader(forces: readonly CompiledForce[]): string {
   const needsTau2 = forces.some((f) => f.potential && collectVariables(f.potential).has('t_j'));
+  const fetchSpin2 = readsSpinJ(forces.flatMap((f) => (f.potential ? [f.potential] : []))) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   return `${COMMON_UNIFORMS}
 ${GLSL_POWER_HELPERS}
 ${GLSL_COLOR_HELPERS}
@@ -249,6 +258,7 @@ void main() {
   float tau1 = texelFetch(textureVelocity, coord1, 0).w;
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
   vec4 color1 = texelFetch(uColor, coord1, 0);
+  vec4 spin1 = texelFetch(uSpin, coord1, 0);
   float energy = 0.0;
   for (int index2 = 0; index2 < uCount; index2++) {
     if (index2 == index1) continue;
@@ -260,6 +270,8 @@ void main() {
     vec4 attr2 = texelFetch(uAttributes, coord2, 0);
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0'};
+    vec4 spin2 = ${fetchSpin2};
+    vec3 dir = delta / dist;
     ${forces.map(potentialTerm).filter(Boolean).join('\n    ')}
   }
   gl_FragColor = vec4(energy, 0.0, 0.0, 0.0);
@@ -279,6 +291,7 @@ uniform int uProbeWidth;
 uniform int uProbeCount;
 uniform vec4 uProbeAttributes;
 uniform vec4 uProbeColor;
+uniform vec4 uProbeSpin;
 ${totalForceFunction(forces)}
 
 void main() {
@@ -288,7 +301,7 @@ void main() {
     return;
   }
   vec3 pos = texelFetch(uProbePositions, coord, 0).xyz;
-  vec3 force = totalForce(-1, pos, uProbeAttributes, uProbeColor, 0.0);
+  vec3 force = totalForce(-1, pos, uProbeAttributes, uProbeColor, uProbeSpin, 0.0);
   gl_FragColor = vec4(force, length(force));
 }
 `;

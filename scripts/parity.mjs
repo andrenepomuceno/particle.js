@@ -18,11 +18,20 @@ const CASES = [
       { preset: 'lennardJones', cutoff: 12, params: { epsilon: 1, sigma: 4 } },
       { preset: 'coulomb', softening: 1, params: { k: 2 } },
     ] },
+  { name: 'spin dipole, 2D charge, isospin', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 40 }, steps: 200, tolerance: 1e-3,
+    forces: [
+      { preset: 'spinSpin', cutoff: 15, params: { k: 5 } },
+      { name: 'charge 2D + isospin', mode: 'force', range: 'long', softening: 1, expression: 'q_dot / r^2 + 0.5 * i3_i * i3_j * exp(-r / 4)' },
+    ] },
 ];
 const GROUPS = {
   'binary gravity': [
     { count: 1, shape: { type: 'point', center: [-5, 0, 0] }, velocity: { type: 'constant', value: [0, -0.2, 0] } },
     { count: 1, shape: { type: 'point', center: [5, 0, 0] }, velocity: { type: 'constant', value: [0, 0.2, 0] } },
+  ],
+  'spin dipole, 2D charge, isospin': [
+    { count: 12, shape: { type: 'grid', spacing: 4, columns: 4, rows: 3 }, species: { cycle: ['u', 'd', 'p', 'n'] },
+      charge2: { cycle: [0.5, -0.5, 0] }, spin: { cycle: [[0, 0, 1], [1, 0, 0], [0, 1, 0.5]] }, velocity: { type: 'random', speed: 0.3 } },
   ],
   'short-range LJ + Coulomb, box': [
     { count: 16, shape: { type: 'grid', spacing: 5, columns: 4, rows: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 0.5 } },
@@ -74,7 +83,7 @@ const failures = await withBrowser(async ({ browser, base }) => {
     const cpu = new ParticleSet(particles.length);
     cpu.addAll(particles);
     const positions = new Float32Array(Array.from({ length: 300 * 3 }, (_, k) => (k % 3 === 2 ? 0.5 : ((k * 7919) % 97) - 48)));
-    const probe = { mass: 1.5, charge: -2, spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
+    const probe = { mass: 1.5, charge: -2, charge2: 0.5, spin: [0.3, 0, 1], isospin: 0.5, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
     // GpuCompute is private to the controller; the probe pass is driven directly, bypassing the view.
     c.gpu.setProbes(positions);
     c.gpu.computeField(c.state.time, probe);

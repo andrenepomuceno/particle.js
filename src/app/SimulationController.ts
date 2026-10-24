@@ -10,7 +10,7 @@ import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
-import { createRng, inSphere, inDisk, uniform } from '../engine/random';
+import { createRng, inSphere, inDisk } from '../engine/random';
 import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
@@ -27,8 +27,10 @@ export interface GeneratorTemplate {
   cloudRadius: number;
   mass: number;
   charge: number;
+  charge2: number;
   chargeSpread: 'fixed' | 'random sign';
-  spin: number;
+  spin: Vec3;
+  isospin: number;
   parity: number;
   nuclearCharge: number;
   color: Vec3;
@@ -38,7 +40,7 @@ export interface GeneratorTemplate {
 
 export const DEFAULT_GENERATOR: GeneratorTemplate = {
   count: 100, cloudRadius: 50, mass: 1, charge: 1, chargeSpread: 'random sign',
-  spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
+  charge2: 0, spin: [0, 0, 0], isospin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
 };
 
 export interface PhysicsSample {
@@ -749,8 +751,9 @@ export class SimulationController {
         velocity: direction.map((c) => c * g.speed) as Vec3,
         time: 0,
         mass: g.mass,
-        charge: g.chargeSpread === 'random sign' && uniform(rng, 0, 1) < 0.5 ? -g.charge : g.charge,
-        spin: g.spin,
+        ...signedCharges(g, rng),
+        spin: [...g.spin],
+        isospin: g.isospin,
         parity: g.parity,
         nuclearCharge: g.nuclearCharge,
         color: [...g.color],
@@ -815,6 +818,7 @@ export class SimulationController {
       velocity: this.gpu.velocityTexture,
       attributes: this.gpu.attributesTexture,
       color: this.gpu.colorTexture,
+      spin: this.gpu.spinTexture,
     });
     this.renderer.render(this.scene, this.camera);
   }
@@ -932,6 +936,12 @@ function appendBounded<T>(history: readonly T[], sample: T): T[] {
   const next = history.length >= HISTORY_LENGTH ? history.slice(history.length - HISTORY_LENGTH + 1) : [...history];
   next.push(sample);
   return next;
+}
+
+/** 'random sign' flips the whole 2D charge, so the pair keeps its direction in charge space. */
+function signedCharges(g: GeneratorTemplate, rng: () => number): { charge: number; charge2: number } {
+  const sign = g.chargeSpread === 'random sign' && rng() < 0.5 ? -1 : 1;
+  return { charge: sign * g.charge, charge2: sign * g.charge2 };
 }
 
 function centroid(points: Vec3[]): Vec3 {

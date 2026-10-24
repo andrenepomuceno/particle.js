@@ -78,7 +78,7 @@ describe('particle groups', () => {
       groups: [{ count: 6, shape: { type: 'point', center: [1, 2, 3] }, charge: { cycle: [1, -1, 0] }, spin: { choice: [0.5] }, mass: { min: 2, max: 3 }, color: [1, 0, 0] }],
     });
     expect(particles.map((p) => p.charge)).toEqual([1, -1, 0, 1, -1, 0]);
-    expect(particles.every((p) => p.spin === 0.5 && p.mass >= 2 && p.mass <= 3)).toBe(true);
+    expect(particles.every((p) => p.spin[2] === 0.5 && p.spin[0] === 0 && p.mass >= 2 && p.mass <= 3)).toBe(true);
     expect(particles[0]).toMatchObject({ position: [1, 2, 3], color: [1, 0, 0], parity: 1, kind: 1 });
   });
 
@@ -111,6 +111,19 @@ describe('particle groups', () => {
       expect(particles[k + 1]!.velocity).toEqual(particles[k]!.velocity);
       expect(particles[k + 2]!.velocity).toEqual(particles[k]!.velocity);
     }
+  });
+
+  it('fills attributes from species, cycled per particle, with explicit keys winning', () => {
+    const particles = build({ groups: [{ count: 3, shape: { type: 'point' }, species: { cycle: ['u', 'u', 'd'] }, mass: 2 }] });
+    expect(particles.map((p) => [p.charge, p.isospin, p.nuclearCharge, p.mass])).toEqual([
+      [2 / 3, 0.5, 1 / 3, 2], [2 / 3, 0.5, 1 / 3, 2], [-1 / 3, -0.5, 1 / 3, 2],
+    ]);
+  });
+
+  it('accepts vector spin and the second charge', () => {
+    const [p] = build({ groups: [{ count: 1, shape: { type: 'point' }, spin: [1, 2, 3], charge2: -1 }] });
+    expect(p).toMatchObject({ spin: [1, 2, 3], charge2: -1 });
+    expect(() => parse({ groups: [{ count: 1, shape: { type: 'point' }, species: 'quark' }] })).toThrow(/species': expected one of u, d/);
   });
 
   it('lays out grids centered on their center', () => {

@@ -1,5 +1,6 @@
 import { newForceId } from '../engine/forces/presets';
 import { readForce } from '../engine/forces/readForce';
+import { SPECIES, SPECIES_IDS, type SpeciesId } from '../engine/species';
 import { add, cross } from '../engine/vec3';
 import { scaleGroups } from './scaling';
 import type { ForceDefinition } from '../engine/forces/types';
@@ -43,17 +44,22 @@ export interface ParticleGroup {
   kind: 'dynamic' | 'fixed';
   shape: Shape;
   velocity: VelocitySpec;
-  mass: Sampled<number>;
-  charge: Sampled<number>;
-  spin: Sampled<number>;
+  /** Fills mass, charge, isospin and nuclear charge per particle; explicit keys win. */
+  species: Sampled<SpeciesId> | undefined;
+  mass: Sampled<number> | undefined;
+  charge: Sampled<number> | undefined;
+  charge2: Sampled<number>;
+  /** A number is the z component (the scalar spin of earlier versions). */
+  spin: Sampled<number | Vec3>;
+  isospin: Sampled<number> | undefined;
   parity: Sampled<number>;
-  nuclearCharge: Sampled<number>;
+  nuclearCharge: Sampled<number> | undefined;
   color: Sampled<Vec3>;
 }
 
 const ORIGIN: Vec3 = [0, 0, 0];
 const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups'] as const;
-const GROUP_KEYS = ['count', 'scale', 'cluster', 'kind', 'shape', 'velocity', 'mass', 'charge', 'spin', 'parity', 'nuclearCharge', 'color'] as const;
+const GROUP_KEYS = ['count', 'scale', 'cluster', 'kind', 'shape', 'velocity', 'species', 'mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
   sampledNumber(value: unknown, path: string): Sampled<number> {
@@ -69,12 +75,25 @@ class ScenarioReader extends JsonReader {
     return this.listSpec(o, path, (v, p) => this.finite(v, p));
   }
 
+  sampledSpin(value: unknown, path: string): Sampled<number | Vec3> {
+    if (typeof value === 'number') return this.finite(value, path);
+    if (Array.isArray(value)) return this.vec3(value, path);
+    const o = this.object(value, path);
+    if ('min' in o || 'max' in o) return this.sampledNumber(value, path);
+    return this.listSpec(o, path, (v, p) => (Array.isArray(v) ? this.vec3(v, p) : this.finite(v, p)));
+  }
+
+  sampledSpecies(value: unknown, path: string): Sampled<SpeciesId> {
+    if (typeof value === 'string') return this.oneOf(value, SPECIES_IDS, path);
+    return this.listSpec(this.object(value, path), path, (v, p) => this.oneOf(v, SPECIES_IDS, p));
+  }
+
   sampledVec3(value: unknown, path: string): Sampled<Vec3> {
     if (Array.isArray(value)) return this.vec3(value, path);
     return this.listSpec(this.object(value, path), path, (v, p) => this.vec3(v, p));
   }
 
-  private listSpec<T>(o: Record<string, unknown>, path: string, item: (v: unknown, p: string) => T): { choice: T[] } | { cycle: T[] } {
+  listSpec<T>(o: Record<string, unknown>, path: string, item: (v: unknown, p: string) => T): { choice: T[] } | { cycle: T[] } {
     const key = 'choice' in o ? 'choice' : 'cycle' in o ? 'cycle' : undefined;
     if (!key) this.fail(path, 'expected a value, {min, max}, {choice: [...]} or {cycle: [...]}');
     this.onlyKeys(o, [key], path);
@@ -177,11 +196,14 @@ class ScenarioReader extends JsonReader {
       kind: o.kind === undefined ? 'dynamic' : this.oneOf(o.kind, ['dynamic', 'fixed'] as const, `${path}.kind`),
       shape: this.shape(o.shape, `${path}.shape`),
       velocity: this.velocity(o.velocity, `${path}.velocity`),
-      mass: optionalNumber('mass', 1),
-      charge: optionalNumber('charge', 0),
-      spin: optionalNumber('spin', 0),
+      species: o.species === undefined ? undefined : this.sampledSpecies(o.species, `${path}.species`),
+      mass: o.mass === undefined ? undefined : this.sampledNumber(o.mass, `${path}.mass`),
+      charge: o.charge === undefined ? undefined : this.sampledNumber(o.charge, `${path}.charge`),
+      charge2: optionalNumber('charge2', 0),
+      spin: o.spin === undefined ? 0 : this.sampledSpin(o.spin, `${path}.spin`),
+      isospin: o.isospin === undefined ? undefined : this.sampledNumber(o.isospin, `${path}.isospin`),
       parity: optionalNumber('parity', 1),
-      nuclearCharge: optionalNumber('nuclearCharge', 0),
+      nuclearCharge: o.nuclearCharge === undefined ? undefined : this.sampledNumber(o.nuclearCharge, `${path}.nuclearCharge`),
       color: o.color === undefined ? ORIGIN : this.sampledVec3(o.color, `${path}.color`),
     };
     const clusterSize = group.cluster?.size ?? 1;
@@ -195,15 +217,15 @@ class ScenarioReader extends JsonReader {
         this.fail(`${path}.count`, `${centers} grid sites needed, a ${columns}×${rows}×${layers} grid has ${columns * rows * layers}`);
       }
     }
-    const masses = typeof group.mass === 'number' ? [group.mass]
+    const masses = group.mass === undefined ? [] : typeof group.mass === 'number' ? [group.mass]
       : 'min' in group.mass ? [group.mass.min] : 'choice' in group.mass ? group.mass.choice : group.mass.cycle;
     if (masses.some((m) => !(m > 0))) this.fail(`${path}.mass`, `every possible mass must be > 0, got ${JSON.stringify(group.mass)}`);
     return group;
   }
 }
 
-function sample<T extends number | Vec3>(spec: Sampled<T>, rng: Rng, index: number): T {
-  if (typeof spec === 'number' || Array.isArray(spec)) return spec as T;
+function sample<T extends number | string | Vec3>(spec: Sampled<T>, rng: Rng, index: number): T {
+  if (typeof spec !== 'object' || Array.isArray(spec)) return spec as T;
   const drawn = spec as { min: number; max: number } | { choice: T[] } | { cycle: T[] };
   if ('min' in drawn) return uniform(rng, drawn.min, drawn.max) as T;
   if ('choice' in drawn) return pick(rng, drawn.choice);
@@ -269,6 +291,20 @@ function randomPlane(rng: Rng): [Vec3, Vec3] {
   return [first, cross(normal, first)];
 }
 
+const asSpinVector = (spin: number | Vec3): Vec3 => (typeof spin === 'number' ? [0, 0, spin] : [...spin]);
+
+/** Species defaults, then explicit keys; mass 1 and zero charges when neither is given. */
+function speciesAttributes(group: ParticleGroup, rng: Rng, index: number) {
+  const species = group.species === undefined ? undefined : SPECIES[sample(group.species, rng, index)];
+  const pick = (spec: Sampled<number> | undefined, fallback: number) => (spec === undefined ? fallback : sample(spec, rng, index));
+  return {
+    mass: pick(group.mass, species?.mass ?? 1),
+    charge: pick(group.charge, species?.charge ?? 0),
+    isospin: pick(group.isospin, species?.isospin ?? 0),
+    nuclearCharge: pick(group.nuclearCharge, species?.nuclearCharge ?? 0),
+  };
+}
+
 export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2D: boolean): Particle[] {
   return groups.flatMap((group) => {
     let center: Vec3 = [0, 0, 0];
@@ -299,11 +335,10 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
         position,
         velocity: group.kind === 'fixed' ? [0, 0, 0] : group.cluster ? [...clusterVelocity] : sampleVelocity(group.velocity, position, rng, mode2D),
         time: 0,
-        mass: sample(group.mass, rng, index),
-        charge: sample(group.charge, rng, index),
-        spin: sample(group.spin, rng, index),
+        ...speciesAttributes(group, rng, index),
+        charge2: sample(group.charge2, rng, index),
+        spin: asSpinVector(sample(group.spin, rng, index)),
         parity: sample(group.parity, rng, index),
-        nuclearCharge: sample(group.nuclearCharge, rng, index),
         color: [...sample(group.color, rng, index)],
       };
     });

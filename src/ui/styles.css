@@ -176,6 +176,8 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
 .force-card header { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
 .force-card header input[type='text'] { font-weight: 600; }
 
+.vec3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
 .params { display: grid; grid-template-columns: 1fr 1fr auto; gap: 4px; margin-top: 4px; }
 
 .plot { margin-top: 6px; }

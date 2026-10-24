@@ -5,13 +5,15 @@ import type { Vec3 } from './particles';
 export interface FieldProbe {
   mass: number;
   charge: number;
-  spin: number;
+  charge2: number;
+  spin: Vec3;
+  isospin: number;
   parity: number;
   nuclearCharge: number;
   color: Vec3;
 }
 
-export const DEFAULT_PROBE: FieldProbe = { mass: 1, charge: 1, spin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
+export const DEFAULT_PROBE: FieldProbe = { mass: 1, charge: 1, charge2: 0, spin: [0, 0, 0], isospin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
 
 export const FIELD_COLUMNS_MIN = 2;
 export const FIELD_COLUMNS_MAX = 256;
@@ -22,7 +24,8 @@ export const FIELD_REFERENCE_QUANTILE = 0.9;
 export function validateProbe(probe: FieldProbe): string[] {
   const problems: string[] = [];
   const entries: [string, number][] = [
-    ['mass', probe.mass], ['charge', probe.charge], ['spin', probe.spin], ['parity', probe.parity],
+    ['mass', probe.mass], ['charge', probe.charge], ['charge2', probe.charge2], ['isospin', probe.isospin], ['parity', probe.parity],
+    ...probe.spin.map((c, k): [string, number] => [`spin[${k}]`, c]),
     ['nuclearCharge', probe.nuclearCharge], ...probe.color.map((c, k): [string, number] => [`color[${k}]`, c]),
   ];
   for (const [name, value] of entries) {

@@ -61,6 +61,7 @@ export class GpuCompute {
   private current = 0;
   private readonly attributes: DataTexture;
   private readonly color: DataTexture;
+  private readonly spin: DataTexture;
   private readonly quad = new FullScreenQuad();
   private readonly sharedUniforms: Record<string, IUniform>;
   private velocityMaterial: RawShaderMaterial;
@@ -92,11 +93,13 @@ export class GpuCompute {
     this.acceleration = [this.target(), this.target()];
     this.attributes = this.dataTexture(set.attributes);
     this.color = this.dataTexture(set.color);
+    this.spin = this.dataTexture(set.spin);
     this.sharedUniforms = {
       texturePosition: { value: null },
       textureVelocity: { value: null },
       uAttributes: { value: this.attributes },
       uColor: { value: this.color },
+      uSpin: { value: this.spin },
       uCount: { value: 0 },
       uTimeStep: { value: 1 },
       uTime: { value: 0 },
@@ -123,6 +126,7 @@ export class GpuCompute {
       uProbeCount: { value: 0 },
       uProbeAttributes: { value: new Vector4() },
       uProbeColor: { value: new Vector4() },
+      uProbeSpin: { value: new Vector4() },
     };
     this.fieldMaterial = this.material(generateFieldShader([]), { ...this.sharedUniforms, ...this.probeUniforms });
     this.forceUniforms = this.sharedUniforms;
@@ -146,6 +150,10 @@ export class GpuCompute {
 
   get colorTexture(): Texture {
     return this.color;
+  }
+
+  get spinTexture(): Texture {
+    return this.spin;
   }
 
   /** Recompiles the force passes (Euler velocity, Verlet acceleration). On failure the previous forces stay active. */
@@ -208,6 +216,7 @@ export class GpuCompute {
   upload(): void {
     this.attributes.needsUpdate = true;
     this.color.needsUpdate = true;
+    this.spin.needsUpdate = true;
     this.sharedUniforms.uCount!.value = this.set.count;
     for (const [targets, data] of [[this.position, this.set.position], [this.velocity, this.set.velocity]] as const) {
       const source = this.dataTexture(data);
@@ -347,8 +356,9 @@ export class GpuCompute {
     p.uProbePositions!.value = positions;
     p.uProbeWidth!.value = width;
     p.uProbeCount!.value = count;
-    (p.uProbeAttributes!.value as Vector4).set(probe.mass, probe.charge, probe.spin, probe.parity);
+    (p.uProbeAttributes!.value as Vector4).set(probe.mass, probe.charge, probe.charge2, probe.parity);
     (p.uProbeColor!.value as Vector4).set(...probe.color, probe.nuclearCharge);
+    (p.uProbeSpin!.value as Vector4).set(...probe.spin, probe.isospin);
     const u = this.sharedUniforms;
     u.uTime!.value = time;
     u.uClockShift!.value = 0;
@@ -407,6 +417,7 @@ export class GpuCompute {
     this.disposeProbes();
     this.attributes.dispose();
     this.color.dispose();
+    this.spin.dispose();
     this.quad.dispose();
   }
 

@@ -15,7 +15,7 @@ export const FORCE_PRESETS = {
   coulomb: {
     name: 'Coulomb',
     mode: 'force',
-    expression: 'k * q_i * q_j / r^2',
+    expression: 'k * q_dot / r^2',
     range: 'long',
     cutoff: 1,
     softening: 1,
@@ -67,9 +67,10 @@ export const FORCE_PRESETS = {
     params: [{ name: 'alpha', value: 20 }, { name: 'sigma', value: 0.5 }],
   },
   spinSpin: {
-    name: 'Spin-spin',
-    mode: 'force',
-    expression: 'k * s_i * s_j * p_i * p_j / r^4',
+    // Magnetic dipole-dipole energy; only its central part acts (spins are fixed, no torque).
+    name: 'Spin dipole',
+    mode: 'potential',
+    expression: 'k * (s_dot - 3 * si_r * sj_r) / r^3',
     range: 'short',
     cutoff: 20,
     softening: 1,

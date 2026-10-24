@@ -17,7 +17,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   validated before it replaces the old one.
 - **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr` by
   symbolic differentiation.
-- **Rich particles**: position, velocity, own clock, mass, electric charge, spin, parity, nuclear charge
+- **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Statistics**: energy, speed, temperature and performance charts.
 - **Force field view**: a grid of arrows showing the net force a configurable test particle

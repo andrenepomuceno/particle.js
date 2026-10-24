@@ -85,3 +85,25 @@ export const positive = (v: number) => (v > 0 ? undefined : 'must be > 0');
 export const nonNegative = (v: number) => (v >= 0 ? undefined : 'must be >= 0');
 export const integerAtLeast = (min: number) => (v: number) =>
   Number.isInteger(v) && v >= min ? undefined : `must be an integer >= ${min}`;
+
+interface Vec3FieldProps {
+  label: string;
+  value: readonly [number, number, number];
+  onCommit: (value: [number, number, number]) => void;
+  axes?: readonly [string, string, string];
+}
+
+/** Three inline number inputs on one grid row (spin, color charge). */
+export function Vec3Field({ label, value, onCommit, axes = ['x', 'y', 'z'] }: Vec3FieldProps) {
+  return (
+    <>
+      <label>{label}</label>
+      <div className="vec3">
+        {axes.map((axis, k) => (
+          <NumberField key={axis} inline label={`${label} ${axis}`} value={value[k]!}
+            onCommit={(v) => onCommit(value.map((c, j) => (j === k ? v : c)) as [number, number, number])} />
+        ))}
+      </div>
+    </>
+  );
+}

@@ -5,7 +5,7 @@ import type { Particle, ParticleKind } from './particles';
 import { readSettings, type SimulationSettings } from './settings';
 
 export const SNAPSHOT_FORMAT = 'particle.js-v2/snapshot';
-export const SNAPSHOT_VERSION = 3;
+export const SNAPSHOT_VERSION = 4;
 
 export interface Snapshot {
   format: typeof SNAPSHOT_FORMAT;
@@ -35,12 +35,23 @@ function parseParticle(value: unknown, index: number, version: number): Particle
     time: json.finite(o.time, `${path}.time`),
     mass: json.finite(o.mass, `${path}.mass`),
     charge: json.finite(o.charge, `${path}.charge`),
-    spin: json.finite(o.spin, `${path}.spin`),
+    // Versions 1-3 had a scalar spin (now the z component) and no second charge or isospin.
+    charge2: version < 4 ? 0 : json.finite(o.charge2, `${path}.charge2`),
+    spin: version < 4 ? [0, 0, json.finite(o.spin, `${path}.spin`)] : json.vec3(o.spin, `${path}.spin`),
+    isospin: version < 4 ? 0 : json.finite(o.isospin, `${path}.isospin`),
     parity: json.finite(o.parity, `${path}.parity`),
     // Version 1 predates nuclear charge; those particles had none.
     nuclearCharge: version === 1 ? 0 : json.finite(o.nuclearCharge, `${path}.nuclearCharge`),
     color: json.vec3(o.color, `${path}.color`),
   };
+}
+
+// Scalar spin became a vector in version 4: the old s_i/s_j are its z components.
+function migrateForce(force: unknown, version: number): unknown {
+  if (version >= 4 || typeof force !== 'object' || force === null) return force;
+  const expression = (force as { expression?: unknown }).expression;
+  if (typeof expression !== 'string') return force;
+  return { ...force, expression: expression.replace(/\bs_i\b/g, 'sz_i').replace(/\bs_j\b/g, 'sz_j') };
 }
 
 // Versions 1 and 2 predate the integrator choice and always ran semi-implicit Euler.
@@ -57,12 +68,12 @@ export function parseSnapshot(text: string): Snapshot {
 export function readSnapshot(value: unknown): Snapshot {
   const o = json.object(value, '$');
   if (o.format !== SNAPSHOT_FORMAT) json.fail('format', `expected '${SNAPSHOT_FORMAT}', got ${JSON.stringify(o.format)}`);
-  const version = json.oneOf(o.version, [1, 2, SNAPSHOT_VERSION] as const, 'version');
+  const version = json.oneOf(o.version, [1, 2, 3, SNAPSHOT_VERSION] as const, 'version');
   return createSnapshot(
     json.string(o.name, 'name'),
     json.finite(o.time, 'time'),
     readSettings(json, migrateSettings(o.settings, version), 'settings'),
-    json.array(o.forces, 'forces').map((f, k) => readForce(json, f, `forces[${k}]`, true)),
+    json.array(o.forces, 'forces').map((f, k) => readForce(json, migrateForce(f, version), `forces[${k}]`, true)),
     json.array(o.particles, 'particles').map((p, k) => parseParticle(p, k, version)),
   );
 }

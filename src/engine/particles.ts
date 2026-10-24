@@ -9,8 +9,13 @@ export interface Particle {
   velocity: Vec3;
   time: number;
   mass: number;
+  /** First component of the 2D charge (the usual electric charge); `charge2` is the second. */
   charge: number;
-  spin: number;
+  charge2: number;
+  /** Fixed 3D spin vector: it couples through expressions but does not precess. */
+  spin: Vec3;
+  /** Isospin projection I3 (u: +1/2, d: -1/2). */
+  isospin: number;
   parity: number;
   /** v1's nuclear charge: couples the nuclear force through n_i·n_j. */
   nuclearCharge: number;
@@ -22,13 +27,15 @@ export const TEXEL = 4;
 /**
  * Struct-of-arrays layout mirroring the GPU textures one-to-one:
  * position = (x, y, z, kind), velocity = (vx, vy, vz, time),
- * attributes = (mass, charge, spin, parity), color = (r, g, b, nuclear charge).
+ * attributes = (mass, charge, charge2, parity), color = (r, g, b, nuclear charge),
+ * spin = (sx, sy, sz, isospin).
  */
 export class ParticleSet {
   readonly position: Float32Array;
   readonly velocity: Float32Array;
   readonly attributes: Float32Array;
   readonly color: Float32Array;
+  readonly spin: Float32Array;
   count = 0;
 
   constructor(readonly capacity: number) {
@@ -39,6 +46,7 @@ export class ParticleSet {
     this.velocity = new Float32Array(capacity * TEXEL);
     this.attributes = new Float32Array(capacity * TEXEL);
     this.color = new Float32Array(capacity * TEXEL);
+    this.spin = new Float32Array(capacity * TEXEL);
   }
 
   add(particle: Particle): number {
@@ -63,7 +71,7 @@ export class ParticleSet {
   get(index: number): Particle {
     this.assertIndex(index);
     const o = index * TEXEL;
-    const { position: p, velocity: v, attributes: a, color: c } = this;
+    const { position: p, velocity: v, attributes: a, color: c, spin: s } = this;
     return {
       kind: p[o + 3] as ParticleKind,
       position: [p[o]!, p[o + 1]!, p[o + 2]!],
@@ -71,7 +79,9 @@ export class ParticleSet {
       time: v[o + 3]!,
       mass: a[o]!,
       charge: a[o + 1]!,
-      spin: a[o + 2]!,
+      charge2: a[o + 2]!,
+      spin: [s[o]!, s[o + 1]!, s[o + 2]!],
+      isospin: s[o + 3]!,
       parity: a[o + 3]!,
       nuclearCharge: c[o + 3]!,
       color: [c[o]!, c[o + 1]!, c[o + 2]!],
@@ -111,20 +121,25 @@ export class ParticleSet {
     const o = index * TEXEL;
     this.position.set([...particle.position, particle.kind], o);
     this.velocity.set([...particle.velocity, particle.time], o);
-    this.attributes.set([particle.mass, particle.charge, particle.spin, particle.parity], o);
+    this.attributes.set([particle.mass, particle.charge, particle.charge2, particle.parity], o);
+    this.spin.set([...particle.spin, particle.isospin], o);
     this.color.set([...particle.color, particle.nuclearCharge], o);
   }
 
   private copySlot(from: number, to: number): void {
-    for (const array of [this.position, this.velocity, this.attributes, this.color]) {
+    for (const array of this.arrays()) {
       array.copyWithin(to * TEXEL, from * TEXEL, from * TEXEL + TEXEL);
     }
   }
 
   private clearSlot(index: number): void {
-    for (const array of [this.position, this.velocity, this.attributes, this.color]) {
+    for (const array of this.arrays()) {
       array.fill(0, index * TEXEL, index * TEXEL + TEXEL);
     }
+  }
+
+  private arrays(): Float32Array[] {
+    return [this.position, this.velocity, this.attributes, this.color, this.spin];
   }
 
   private assertIndex(index: number): void {
@@ -137,7 +152,7 @@ export class ParticleSet {
 export function assertValidParticle(particle: Particle, index: number): void {
   const numbers = [
     ...particle.position, ...particle.velocity, ...particle.color,
-    particle.time, particle.mass, particle.charge, particle.spin, particle.parity, particle.nuclearCharge,
+    particle.time, particle.mass, particle.charge, particle.charge2, ...particle.spin, particle.isospin, particle.parity, particle.nuclearCharge,
   ];
   if (!numbers.every(Number.isFinite)) {
     throw new Error(`particle #${index} has a non-finite field: ${JSON.stringify(particle)}`);
@@ -158,7 +173,9 @@ export function defaultParticle(overrides: Partial<Particle> = {}): Particle {
     time: 0,
     mass: 1,
     charge: 0,
-    spin: 0,
+    charge2: 0,
+    spin: [0, 0, 0],
+    isospin: 0,
     parity: 1,
     nuclearCharge: 0,
     color: [0, 0, 0],

@@ -11,13 +11,13 @@ import { makeForce } from './helpers';
 
 const forces = [
   compileForce(makeForce({ expression: 'k * q_i * q_j / r^2', softening: 0.3 })),
-  compileForce(makeForce({ id: 'n', expression: 'n_i * n_j * s_i * (1 + s_j) * sin(x) + c_dot * t_j + 0.01 * time', range: 'short', cutoff: 2.5 })),
+  compileForce(makeForce({ id: 'n', expression: 'n_i * n_j * (s_dot + si_r * (1 + sj_r)) * sin(x) + c_dot * t_j + 0.01 * time + q_dot * i3_i * i3_j', range: 'short', cutoff: 2.5 })),
   compileForce(makeForce({ id: 'g', mode: 'potential', expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 0.7 }] })),
 ];
 
 const particles: Particle[] = [
-  defaultParticle({ position: [0, 0, 0], charge: 1, spin: 0.5, nuclearCharge: 1, color: [1, 0, 0], mass: 2 }),
-  defaultParticle({ position: [1, 0.5, 0], charge: -1, spin: -1, nuclearCharge: 2, color: [0, 1, 0], time: 3 }),
+  defaultParticle({ position: [0, 0, 0], charge: 1, charge2: 0.5, spin: [0.5, 0, 0.2], isospin: 0.5, nuclearCharge: 1, color: [1, 0, 0], mass: 2 }),
+  defaultParticle({ position: [1, 0.5, 0], charge: -1, spin: [0, -1, 0.3], isospin: -0.5, nuclearCharge: 2, color: [0, 1, 0], time: 3 }),
   defaultParticle({ position: [-1.5, 2, 0.5], charge: 2, nuclearCharge: -1, color: [0, 0, -1], time: 1 }),
   defaultParticle({ position: [4, -1, 0], charge: -2, mass: 0.5 }),
 ];
@@ -29,7 +29,7 @@ function setOf(list: Particle[]): ParticleSet {
 }
 
 const probeOf = (p: Particle): FieldProbe => ({
-  mass: p.mass, charge: p.charge, spin: p.spin, parity: p.parity, nuclearCharge: p.nuclearCharge, color: p.color,
+  mass: p.mass, charge: p.charge, charge2: p.charge2, spin: p.spin, isospin: p.isospin, parity: p.parity, nuclearCharge: p.nuclearCharge, color: p.color,
 });
 
 describe('referenceField', () => {

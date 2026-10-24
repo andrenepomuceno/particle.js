@@ -10,7 +10,7 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
 
 - Física **clássica**: nada de relatividade. `maxSpeed` é só um clamp numérico opcional.
 - Partícula: posição, velocidade, tempo próprio (relógio/idade, acumula `dt`), massa (> 0),
-  carga, spin (escalar), paridade, carga de cor (quantidades r,g,b sobre 3 vetores-base a 120°;
+  carga 2D (q, q2), spin vetorial fixo (sem torque), isospin I₃, paridade, carga de cor (quantidades r,g,b sobre 3 vetores-base a 120°;
   `c_dot` = C_i·C_j, ver `docs/forces.md`), carga nuclear (`n`, conceito do v1), tipo (`dynamic` | `fixed`).
 - Força de par: magnitude escalar `F(r)`, **positiva = repulsiva**, aplicada ao longo de
   `(x_i - x_j)/|x_i - x_j|`. No modo `potential` o usuário escreve `V(r)` e o motor usa
@@ -27,7 +27,7 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
 - `src/engine/forces/` — `ForceDefinition` (dados serializáveis), `compileForce` (valida e
   devolve todos os problemas de uma vez), catálogo de variáveis em `variables.ts`.
 - `src/engine/particles.ts` — `ParticleSet` em struct-of-arrays, espelho 1:1 das texturas:
-  position=(xyz, kind), velocity=(xyz, time), attributes=(mass, charge, spin, parity), color=(rgb, nuclear charge).
+  position=(xyz, kind), velocity=(xyz, time), attributes=(mass, q, q2, parity), color=(rgb, nuclear charge), spin=(sxyz, isospin).
 - `src/engine/shaders/` — geração dos compute shaders. Parâmetros de força, cutoff e
   softening são **uniforms** (mudar valor não recompila); mudar expressão/alcance/ativação recompila.
 - `src/scenarios/library/*.json` — cenários declarativos (formato em `docs/scenarios.md`);

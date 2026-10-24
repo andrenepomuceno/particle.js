@@ -34,7 +34,8 @@ describe('color charge in the 120° weight plane', () => {
   it('makes the Cornell preset confine color/anticolor and repel equal colors', () => {
     const force = compileForce(forceFromPreset('color'));
     const at = (a: Vec3, b: Vec3, r: number) => force.evaluate(forceScope(force, {
-      r, m_i: 1, m_j: 1, q_i: 0, q_j: 0, s_i: 0, s_j: 0, p_i: 1, p_j: 1, n_i: 0, n_j: 0,
+      r, m_i: 1, m_j: 1, q_i: 0, q_j: 0, q2_i: 0, q2_j: 0, i3_i: 0, i3_j: 0, p_i: 1, p_j: 1, n_i: 0, n_j: 0,
+      sx_i: 0, sy_i: 0, sz_i: 0, sx_j: 0, sy_j: 0, sz_j: 0, ux: 1, uy: 0, uz: 0,
       cr_i: a[0], cg_i: a[1], cb_i: a[2], cr_j: b[0], cg_j: b[1], cb_j: b[2], t_i: 0, t_j: 0, time: 0,
     }));
     expect(at(R, anti(R), 10)).toBeLessThan(0);

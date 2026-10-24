@@ -4,7 +4,7 @@ import {
 } from 'three';
 import { perspectiveScale, V1_PALETTE_GLSL } from './shared';
 
-export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear'] as const;
+export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear', 'isospin'] as const;
 export type ColorMode = (typeof COLOR_MODES)[number];
 
 export const PARTICLE_STYLES = ['spherow', 'flat'] as const;
@@ -28,6 +28,7 @@ uniform sampler2D uPosition;
 uniform sampler2D uVelocity;
 uniform sampler2D uAttributes;
 uniform sampler2D uColor;
+uniform sampler2D uSpin;
 uniform int uWidth;
 uniform int uColorMode;
 uniform int uStyle;
@@ -71,6 +72,7 @@ void main() {
   vec4 pos = texelFetch(uPosition, coord, 0);
   vec4 attr = texelFetch(uAttributes, coord, 0);
   vec4 color = texelFetch(uColor, coord, 0);
+  vec4 spin = texelFetch(uSpin, coord, 0);
   vVelocity = texelFetch(uVelocity, coord, 0).xyz;
   vCenter = pos.xyz;
 
@@ -78,9 +80,11 @@ void main() {
   else if (uColorMode == 1) vColor = displayColor(color.rgb);
   else if (uColorMode == 2) vColor = speedColor(length(vVelocity), uAverageSpeed);
   else if (uColorMode == 3) vColor = mix(vec3(0.5), vec3(1.0), clamp(log(attr.x + 1.0) * 0.3, 0.0, 1.0));
-  else if (uColorMode == 4) vColor = signedColor(attr.z);
+  // Spin direction as a color (x→red, y→green, z→blue, both signs), gray when spinless.
+  else if (uColorMode == 4) vColor = length(spin.xyz) > 0.0 ? 0.25 + 0.75 * abs(normalize(spin.xyz)) : vec3(0.5);
   else if (uColorMode == 5) vColor = signedColor(attr.w);
-  else vColor = signedColor(color.w);
+  else if (uColorMode == 6) vColor = signedColor(color.w);
+  else vColor = signedColor(spin.w);
   if (pos.w == 2.0) vColor *= 0.6;
   vHighlight = index == uHighlight ? 1.0 : 0.0;
 
@@ -242,6 +246,7 @@ export class ParticlePoints {
         uVelocity: { value: null },
         uAttributes: { value: null },
         uColor: { value: null },
+        uSpin: { value: null },
         uWidth: { value: width },
         uColorMode: { value: 0 },
         uStyle: { value: 0 },
@@ -256,12 +261,13 @@ export class ParticlePoints {
     this.setCount(0);
   }
 
-  bind(textures: { position: Texture; velocity: Texture; attributes: Texture; color: Texture }): void {
+  bind(textures: { position: Texture; velocity: Texture; attributes: Texture; color: Texture; spin: Texture }): void {
     const u = this.material.uniforms;
     u.uPosition!.value = textures.position;
     u.uVelocity!.value = textures.velocity;
     u.uAttributes!.value = textures.attributes;
     u.uColor!.value = textures.color;
+    u.uSpin!.value = textures.spin;
   }
 
   setCount(count: number): void {

@@ -32,7 +32,7 @@ Either a preset with overrides:
 { "preset": "lennardJones", "cutoff": 30, "softening": 0, "enabled": true, "params": { "epsilon": 5 } }
 ```
 
-Presets: `gravity`, `coulomb`, `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin`
+Presets: `gravity`, `coulomb`, `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin` (the spin dipole)
 (definitions in `src/engine/forces/presets.ts`). Or a full definition:
 
 ```json
@@ -72,10 +72,15 @@ density** — disks, shells and flat boxes grow by √factor, spheres and 3D box
 gain columns/rows/layers — and the boundary size and camera distance follow the largest length
 factor. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core.
 
-`count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `spin` and
-`nuclearCharge` to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
+`count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `charge2`,
+`spin`, `isospin` and `nuclearCharge` to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
+`spin` is a vector `[sx, sy, sz]`; a number means `[0, 0, n]` (the scalar spin of earlier files).
 
-**Sampled values** (`mass`, `charge`, `spin`, `parity`, `nuclearCharge`, `color`, random `speed`):
+`species` (`u`, `d`, `ubar`, `dbar`, `p`, `n`, `e`, `positron`; sampled like the attributes, so
+`{ "cycle": ["u", "u", "d"] }` makes protons from triplets) fills `mass`, `charge`, `isospin` and
+`nuclearCharge` per particle; keys written explicitly in the group win over the species.
+
+**Sampled values** (`species`, `mass`, `charge`, `charge2`, `spin`, `isospin`, `parity`, `nuclearCharge`, `color`, random `speed`):
 
 | Form | Per particle |
 | --- | --- |

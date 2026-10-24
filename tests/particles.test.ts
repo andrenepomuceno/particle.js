@@ -7,7 +7,7 @@ describe('ParticleSet', () => {
     const set = new ParticleSet(4);
     const particle = defaultParticle({
       kind: ParticleKind.fixed, position: [1, 2, 3], velocity: [4, 5, 6], time: 7,
-      mass: 8, charge: -1, spin: 0.5, parity: -1, nuclearCharge: -2, color: [1, 0, 0],
+      mass: 8, charge: -1, charge2: 0.25, spin: [0.5, -1, 2], isospin: -0.5, parity: -1, nuclearCharge: -2, color: [1, 0, 0],
     });
     expect(set.add(particle)).toBe(0);
     expect(set.get(0)).toEqual(particle);

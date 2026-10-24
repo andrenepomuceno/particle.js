@@ -43,8 +43,13 @@ Variables:
 | `r` | softened distance |
 | `x`, `cutoff` | `r / cutoff` and the cutoff itself (short range only) |
 | `m_i`, `m_j` | mass (must be > 0) |
-| `q_i`, `q_j` | electric charge |
-| `s_i`, `s_j` | spin (scalar) |
+| `q_i`, `q_j` | charge, first component (the electric charge) |
+| `q2_i`, `q2_j` | charge, second component (the charge is a generic 2D vector) |
+| `q_dot` | `q_i·q_j` over both components |
+| `sx_*`, `sy_*`, `sz_*` | spin vector components |
+| `s_dot` | `s_i·s_j` |
+| `si_r`, `sj_r` | `s_i·r̂`, `s_j·r̂`, with r̂ pointing from j to i |
+| `i3_i`, `i3_j` | isospin projection I₃ (u: +½, d: −½) |
 | `p_i`, `p_j` | parity |
 | `n_i`, `n_j` | nuclear charge (v1's coupling for the nuclear force) |
 | `cr_*`, `cg_*`, `cb_*` | color charge amounts (r, g, b) as stored |
@@ -66,15 +71,29 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 | Force | Mode | Range | Expression |
 | --- | --- | --- | --- |
 | Gravity | force | long | `-G * m_i * m_j / r^2` |
-| Coulomb | force | long | `k * q_i * q_j / r^2` |
+| Coulomb | force | long | `k * q_dot / r^2` |
 | v1 nuclear | force | short | `k * n_i * n_j * sin(2 * pi * x)` |
 | Lennard-Jones | potential | short | `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)` |
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |
 | Spring | potential | short | `0.5 * k * (r - r0)^2` |
 | Cornell (color) | potential | short | `c_dot * (alpha / r - sigma * r)` |
-| Spin-spin | force | short | `k * s_i * s_j * p_i * p_j / r^4` |
+| Spin dipole | potential | short | `k * (s_dot - 3 * si_r * sj_r) / r^3` |
 
 All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
+
+## Spin, 2D charge and isospin
+
+- **Spin** is a fixed 3D vector per particle. Expressions can depend on its orientation
+  (`s_dot`, `si_r`, `sj_r`), but forces stay central (along r̂) and spins never rotate: there is
+  no torque or precession. The *Spin dipole* preset is the magnetic dipole-dipole energy with
+  only its central part acting. In potential mode the angular terms are treated as constants
+  when differentiating by r.
+- **Charge** is a generic 2D vector (`q`, `q2`; user decision). Electromagnetism only needs the
+  first component (U(1) has rank 1, so its charges are real); `q_dot` lets a force couple through
+  both, and the Coulomb preset uses it (identical to `q_i·q_j` while every `q2` is 0).
+- **Isospin** I₃ is a scalar for isospin-dependent forces (e.g. a nuclear term that binds pn
+  differently from pp). Species presets (u, d, anti-u, anti-d, p, n, e, positron) fill mass,
+  charge, isospin and nuclear charge in the Generator and in scenario files.
 
 ## Color charge
 

@@ -1,18 +1,31 @@
 import { forceScope, type CompiledForce, type PairScope } from '../forces/compile';
 import type { FieldProbe } from '../field';
-import { TEXEL, type ParticleSet } from '../particles';
+import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
 
 type Pair = Omit<PairScope, 'r'>;
-type Side = [m: number, q: number, s: number, p: number, n: number, cr: number, cg: number, cb: number, t: number];
+interface Side { m: number; q: number; q2: number; i3: number; spin: Vec3; p: number; n: number; color: Vec3; t: number; position: Vec3 }
 
 function particleSide(set: ParticleSet, k: number): Side {
   const o = k * TEXEL;
-  const { velocity: vel, attributes: attr, color } = set;
-  return [attr[o]!, attr[o + 1]!, attr[o + 2]!, attr[o + 3]!, color[o + 3]!, color[o]!, color[o + 1]!, color[o + 2]!, vel[o + 3]!];
+  const { position: pos, velocity: vel, attributes: attr, color, spin } = set;
+  return {
+    m: attr[o]!, q: attr[o + 1]!, q2: attr[o + 2]!, i3: spin[o + 3]!, p: attr[o + 3]!, n: color[o + 3]!, t: vel[o + 3]!,
+    spin: [spin[o]!, spin[o + 1]!, spin[o + 2]!],
+    color: [color[o]!, color[o + 1]!, color[o + 2]!],
+    position: [pos[o]!, pos[o + 1]!, pos[o + 2]!],
+  };
 }
 
-function combine([m_i, q_i, s_i, p_i, n_i, cr_i, cg_i, cb_i, t_i]: Side, [m_j, q_j, s_j, p_j, n_j, cr_j, cg_j, cb_j, t_j]: Side, time: number): Pair {
-  return { m_i, m_j, q_i, q_j, s_i, s_j, p_i, p_j, n_i, n_j, cr_i, cg_i, cb_i, cr_j, cg_j, cb_j, t_i, t_j, time };
+function combine(i: Side, j: Side, time: number): Pair {
+  const d = [i.position[0] - j.position[0], i.position[1] - j.position[1], i.position[2] - j.position[2]];
+  const length = Math.hypot(d[0]!, d[1]!, d[2]!) || 1;
+  return {
+    m_i: i.m, m_j: j.m, q_i: i.q, q_j: j.q, q2_i: i.q2, q2_j: j.q2, i3_i: i.i3, i3_j: j.i3, p_i: i.p, p_j: j.p, n_i: i.n, n_j: j.n,
+    sx_i: i.spin[0], sy_i: i.spin[1], sz_i: i.spin[2], sx_j: j.spin[0], sy_j: j.spin[1], sz_j: j.spin[2],
+    ux: d[0]! / length, uy: d[1]! / length, uz: d[2]! / length,
+    cr_i: i.color[0], cg_i: i.color[1], cb_i: i.color[2], cr_j: j.color[0], cg_j: j.color[1], cb_j: j.color[2],
+    t_i: i.t, t_j: j.t, time,
+  };
 }
 
 /** Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. */
@@ -20,10 +33,10 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number):
   return combine(particleSide(set, i), particleSide(set, j), time);
 }
 
-/** Same as pairScope with the field's test particle (clock 0) receiving the force from particle j. */
-export function probeScope(probe: FieldProbe, set: ParticleSet, j: number, time: number): Pair {
-  const { mass, charge, spin, parity, nuclearCharge, color } = probe;
-  return combine([mass, charge, spin, parity, nuclearCharge, color[0], color[1], color[2], 0], particleSide(set, j), time);
+/** Same as pairScope with the field's test particle (clock 0) at `position` receiving the force from j. */
+export function probeScope(probe: FieldProbe, position: Vec3, set: ParticleSet, j: number, time: number): Pair {
+  const { mass, charge, charge2, spin, isospin, parity, nuclearCharge, color } = probe;
+  return combine({ m: mass, q: charge, q2: charge2, i3: isospin, spin, p: parity, n: nuclearCharge, color, t: 0, position }, particleSide(set, j), time);
 }
 
 /**

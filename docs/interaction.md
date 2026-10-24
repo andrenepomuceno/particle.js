@@ -22,7 +22,7 @@ field; click the canvas to give focus back.
 | A | show / hide axes |
 | J | show / hide the force field |
 | F | re-fit the field grid to the current view |
-| Q | cycle color mode (charge, color, speed, mass, spin, parity, nuclear) |
+| Q | cycle color mode (charge, color, speed, mass, spin direction, parity, nuclear, isospin) |
 | H | hide all overlays |
 | M | close all dialogs |
 | G | generate particles at the cursor (Generator dialog sets the template) |
@@ -79,7 +79,7 @@ lies in z = 0 in 2D mode and on the plane through the orbit target facing the ca
 cells are square, *Grid columns* across (2 to 256). Arrows point along the force (a component
 toward the camera shortens them) and are colored like the speed palette: red to magenta up to
 the 90th percentile of |F| over the probes, white beyond (the dialog shows that |F|). The test
-particle's mass, charge, spin, parity, nuclear charge and color are editable (default: mass 1,
+particle's mass, 2D charge, spin vector, isospin, parity, nuclear charge and color are editable (default: mass 1,
 charge 1, parity 1, the rest 0; its clock is 0). <kbd>F</kbd> re-fits the grid to the view;
 with *Re-fit after camera moves* on (default) that happens after every orbit, pan, zoom,
 camera reset or resize. The field is recomputed at most 10 times per second while time runs.

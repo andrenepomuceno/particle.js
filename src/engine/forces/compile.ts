@@ -140,7 +140,12 @@ export interface PairScope {
   r: number;
   m_i: number; m_j: number;
   q_i: number; q_j: number;
-  s_i: number; s_j: number;
+  q2_i: number; q2_j: number;
+  i3_i: number; i3_j: number;
+  sx_i: number; sy_i: number; sz_i: number;
+  sx_j: number; sy_j: number; sz_j: number;
+  /** Unit vector from j to i (the direction F > 0 pushes i). */
+  ux: number; uy: number; uz: number;
   p_i: number; p_j: number;
   n_i: number; n_j: number;
   cr_i: number; cg_i: number; cb_i: number;
@@ -158,6 +163,10 @@ export function forceScope(force: CompiledForce, pair: PairScope): Record<string
     ...pair,
     cx_i, cy_i, cx_j, cy_j,
     c_dot: colorDot(colorI, colorJ),
+    q_dot: pair.q_i * pair.q_j + pair.q2_i * pair.q2_j,
+    s_dot: pair.sx_i * pair.sx_j + pair.sy_i * pair.sy_j + pair.sz_i * pair.sz_j,
+    si_r: pair.sx_i * pair.ux + pair.sy_i * pair.uy + pair.sz_i * pair.uz,
+    sj_r: pair.sx_j * pair.ux + pair.sy_j * pair.uy + pair.sz_j * pair.uz,
     cutoff: force.definition.cutoff,
   };
   for (const param of force.definition.params) scope[param.name] = param.value;

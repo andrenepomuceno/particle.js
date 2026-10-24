@@ -18,6 +18,8 @@ uniform float uMaxSpeed;
 uniform int uBoundary;
 uniform float uBoundarySize;
 uniform float uRestitution;
+uniform float uCollisionDistance;
+uniform float uCollisionRestitution;
 uniform bool uMode2D;
 uniform sampler2D uAcceleration;
 uniform sampler2D uAccelerationNext;
@@ -87,6 +89,32 @@ vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration) {
 }
 `;
 
+/**
+ * Impulse on particle index1 from every pair closer than uCollisionDistance that is still
+ * approaching: Δv = -(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n)·n, with n pointing from j to i.
+ * Each pair's impulses are equal and opposite, so momentum is conserved; e = 1 keeps kinetic energy.
+ */
+const COLLISION_HELPERS = /* glsl */ `
+vec3 collisionImpulse(int index1, vec3 pos1, vec3 vel1, float mass1) {
+  vec3 dv = vec3(0.0);
+  if (uCollisionDistance <= 0.0) return dv;
+  int width = TEXTURE_WIDTH;
+  for (int index2 = 0; index2 < uCount; index2++) {
+    if (index2 == index1) continue;
+    ivec2 coord2 = ivec2(index2 % width, index2 / width);
+    vec3 delta = pos1 - texelFetch(texturePosition, coord2, 0).xyz;
+    float r2 = dot(delta, delta);
+    if (r2 == 0.0 || r2 >= uCollisionDistance * uCollisionDistance) continue;
+    vec3 n = delta / sqrt(r2);
+    float approach = dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, n);
+    if (approach >= 0.0) continue;
+    float mass2 = texelFetch(uAttributes, coord2, 0).x;
+    dv -= (1.0 + uCollisionRestitution) * mass2 / (mass1 + mass2) * approach * n;
+  }
+  return dv;
+}
+`;
+
 const POSITION_HELPERS = /* glsl */ `
 // The speed clamp bounds the step length too, so Verlet's ½·a·dt² cannot overshoot it.
 vec3 limitDisplacement(vec3 displacement) {
@@ -129,6 +157,8 @@ vec3 totalForce(int index1, vec3 pos1, vec4 attr1, vec4 color1, vec4 spin1, floa
     float r2 = dot(delta, delta);
     if (r2 == 0.0) continue;
     float dist = sqrt(r2);
+    // Colliding pairs exchange momentum in collisionImpulse instead (v1 skipped them the same way).
+    if (dist < uCollisionDistance) continue;
     vec4 attr2 = texelFetch(uAttributes, coord2, 0);
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
@@ -155,6 +185,7 @@ const PARTICLE_HEADER = /* glsl */ `
 export function generateVelocityShader(forces: readonly CompiledForce[]): string {
   return `${COMMON_UNIFORMS}
 ${VELOCITY_HELPERS}
+${COLLISION_HELPERS}
 ${totalForceFunction(forces)}
 
 void main() {
@@ -170,7 +201,8 @@ ${PARTICLE_HEADER}
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
   vec3 force = totalForce(index1, positionTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1);
-  vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x;
+  vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x
+    + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
 }
 `;
@@ -214,6 +246,7 @@ ${PARTICLE_HEADER}
 /** Velocity Verlet, kick: v' = v + ½(a + a')·dt, with texturePosition already at x'. */
 export const VERLET_VELOCITY_SHADER = `${COMMON_UNIFORMS}
 ${VELOCITY_HELPERS}
+${COLLISION_HELPERS}
 void main() {
 ${PARTICLE_HEADER}
   if (inactive) {
@@ -226,7 +259,8 @@ ${PARTICLE_HEADER}
     return;
   }
   vec3 accelerationNext = texelFetch(uAccelerationNext, coord1, 0).xyz;
-  vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (texelFetch(uAcceleration, coord1, 0).xyz + accelerationNext);
+  vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (texelFetch(uAcceleration, coord1, 0).xyz + accelerationNext)
+    + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, texelFetch(uAttributes, coord1, 0).x);
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext), tau1 + uTimeStep);
 }
 `;

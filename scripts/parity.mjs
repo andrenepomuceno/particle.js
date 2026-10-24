@@ -23,6 +23,8 @@ const CASES = [
       { preset: 'spinSpin', cutoff: 15, params: { k: 5 } },
       { name: 'charge 2D + isospin', mode: 'force', range: 'long', softening: 1, expression: 'q_dot / r^2 + 0.5 * i3_i * i3_j * exp(-r / 4)' },
     ] },
+  { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
+    forces: [{ preset: 'gravity', softening: 1, params: { G: 5 } }] },
 ];
 const GROUPS = {
   'binary gravity': [
@@ -32,6 +34,9 @@ const GROUPS = {
   'spin dipole, 2D charge, isospin': [
     { count: 12, shape: { type: 'grid', spacing: 4, columns: 4, rows: 3 }, species: { cycle: ['u', 'd', 'p', 'n'] },
       charge2: { cycle: [0.5, -0.5, 0] }, spin: { cycle: [[0, 0, 1], [1, 0, 0], [0, 1, 0.5]] }, velocity: { type: 'random', speed: 0.3 } },
+  ],
+  'collisions + gravity, box': [
+    { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, velocity: { type: 'random', speed: 1 } },
   ],
   'short-range LJ + Coulomb, box': [
     { count: 16, shape: { type: 'grid', spacing: 5, columns: 4, rows: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 0.5 } },

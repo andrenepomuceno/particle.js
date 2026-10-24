@@ -81,6 +81,15 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 
 All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 
+## Collisions
+
+Parameters → *Collision distance* (0 = off, as in v1) and *Collision restitution* (1 elastic,
+0 perfectly inelastic). In each velocity update, every pair closer than the distance that is
+still approaching gets the impulse `Δv_i = −(1 + e)·m_j/(m_i + m_j)·((v_i − v_j)·n̂)·n̂` (n̂ from j
+to i), computed from the same pre-step velocities for all pairs, so momentum is conserved and
+kinetic energy too for e = 1. Pairs inside the distance contribute no force that step, which
+keeps 1/r² terms from exploding on contact. Both integrators apply it (Verlet after its drift).
+
 ## Spin, 2D charge and isospin
 
 - **Spin** is a fixed 3D vector per particle. Expressions can depend on its orientation

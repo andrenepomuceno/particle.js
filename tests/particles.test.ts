@@ -62,8 +62,8 @@ describe('validateSettings', () => {
   it('lists every invalid field', () => {
     const problems = validateSettings({
       ...DEFAULT_SETTINGS, timeStep: 0, friction: -1, maxSpeed: -1,
-      boundary: 'cone' as never, boundarySize: 0, restitution: 2,
+      boundary: 'cone' as never, boundarySize: 0, restitution: 2, collisionDistance: -1, collisionRestitution: 1.5,
     });
-    expect(problems).toHaveLength(6);
+    expect(problems).toHaveLength(8);
   });
 });

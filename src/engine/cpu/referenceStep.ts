@@ -33,7 +33,32 @@ const isFixed = (set: ParticleSet, i: number) => set.position[i * TEXEL + 3] ===
 const read = (array: Float32Array, i: number): Vec => [array[i * TEXEL]!, array[i * TEXEL + 1]!, array[i * TEXEL + 2]!];
 
 /** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
-function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number): Vec {
+/** Impulses from approaching pairs closer than collisionDistance, all from the same pre-step velocities. */
+function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Float64Array {
+  const result = new Float64Array(set.count * 3);
+  const d = settings.collisionDistance;
+  if (d <= 0) return result;
+  const { position: x, velocity: v, attributes: a } = set;
+  for (let i = 0; i < set.count; i++) {
+    if (isFixed(set, i)) continue;
+    const oi = i * TEXEL;
+    for (let j = 0; j < set.count; j++) {
+      if (j === i) continue;
+      const oj = j * TEXEL;
+      const delta = [x[oi]! - x[oj]!, x[oi + 1]! - x[oj + 1]!, x[oi + 2]! - x[oj + 2]!];
+      const r2 = delta[0]! ** 2 + delta[1]! ** 2 + delta[2]! ** 2;
+      if (r2 === 0 || r2 >= d * d) continue;
+      const n = delta.map((c) => c / Math.sqrt(r2));
+      const approach = [0, 1, 2].reduce((s, k) => s + (v[oi + k]! - v[oj + k]!) * n[k]!, 0);
+      if (approach >= 0) continue;
+      const share = ((1 + settings.collisionRestitution) * a[oj]!) / (a[oi]! + a[oj]!);
+      for (let k = 0; k < 3; k++) result[i * 3 + k] = result[i * 3 + k]! - share * approach * n[k]!;
+    }
+  }
+  return result;
+}
+
+function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance = 0): Vec {
   const pos = set.position;
   const oi = i * TEXEL;
   let fx = 0;
@@ -48,6 +73,7 @@ function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[
     const r2 = dx * dx + dy * dy + dz * dz;
     if (r2 === 0 || forces.length === 0) continue;
     const dist = Math.sqrt(r2);
+    if (dist < collisionDistance) continue;
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;
@@ -65,7 +91,7 @@ function accelerations(set: ParticleSet, forces: readonly CompiledForce[], setti
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, clockShift);
+    const force = totalForce(set, i, forces, time, clockShift, settings.collisionDistance);
     result.set([force[0] / mass, force[1] / mass, settings.mode2D ? 0 : force[2] / mass], i * 3);
   }
   return result;
@@ -108,6 +134,7 @@ function confinePosition(p: Vec, settings: SimulationSettings): Vec {
 function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number): void {
   const dt = settings.timeStep;
   const nextVelocity = new Float64Array(set.count * TEXEL);
+  const impulses = collisionImpulses(set, settings);
   for (let i = 0; i < set.count; i++) {
     const tau = set.velocity[i * TEXEL + 3]!;
     if (isFixed(set, i)) {
@@ -115,8 +142,8 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
       continue;
     }
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, 0);
-    const v = read(set.velocity, i).map((c, k) => c + (dt * force[k]!) / mass) as Vec;
+    const force = totalForce(set, i, forces, time, 0, settings.collisionDistance);
+    const v = read(set.velocity, i).map((c, k) => c + (dt * force[k]!) / mass + impulses[i * 3 + k]!) as Vec;
     nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], settings), tau + dt], i * TEXEL);
   }
   set.velocity.set(nextVelocity);
@@ -144,13 +171,14 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
     set.position.set(confinePosition(drift, settings), i * TEXEL);
   }
   const after = accelerations(set, forces, settings, time + dt, dt);
+  const impulses = collisionImpulses(set, settings);
   for (let i = 0; i < set.count; i++) {
     const tau = set.velocity[i * TEXEL + 3]!;
     if (isFixed(set, i)) {
       set.velocity.set([0, 0, 0, tau + dt], i * TEXEL);
       continue;
     }
-    const v = read(set.velocity, i).map((c, k) => c + 0.5 * dt * (before[i * 3 + k]! + after[i * 3 + k]!)) as Vec;
+    const v = read(set.velocity, i).map((c, k) => c + 0.5 * dt * (before[i * 3 + k]! + after[i * 3 + k]!) + impulses[i * 3 + k]!) as Vec;
     const aNext: Vec = [after[i * 3]!, after[i * 3 + 1]!, after[i * 3 + 2]!];
     set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, settings), tau + dt], i * TEXEL);
   }

@@ -15,6 +15,10 @@ export interface SimulationSettings {
   boundarySize: number;
   /** Fraction of the normal velocity kept after bouncing off the boundary. */
   restitution: number;
+  /** Pairs closer than this collide (v1's minimum distance); 0 disables collisions. */
+  collisionDistance: number;
+  /** 1 = elastic, 0 = perfectly inelastic; applied along the line of centers. */
+  collisionRestitution: number;
   mode2D: boolean;
   /** Velocity Verlet (2nd order, time-reversible) or semi-implicit Euler (1st order). */
   integrator: Integrator;
@@ -27,6 +31,8 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   boundary: 'none',
   boundarySize: 1000,
   restitution: 1,
+  collisionDistance: 0,
+  collisionRestitution: 1,
   mode2D: false,
   integrator: 'verlet',
 };
@@ -47,10 +53,18 @@ export function validateSettings(settings: SimulationSettings): string[] {
     Number.isFinite(settings.restitution) && settings.restitution >= 0 && settings.restitution <= 1,
     `restitution must be within [0, 1], got ${settings.restitution}`,
   );
+  check(
+    Number.isFinite(settings.collisionDistance) && settings.collisionDistance >= 0,
+    `collisionDistance must be >= 0, got ${settings.collisionDistance}`,
+  );
+  check(
+    Number.isFinite(settings.collisionRestitution) && settings.collisionRestitution >= 0 && settings.collisionRestitution <= 1,
+    `collisionRestitution must be within [0, 1], got ${settings.collisionRestitution}`,
+  );
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'mode2D', 'integrator'] as const;
+const SETTING_KEYS = ['timeStep', 'friction', 'maxSpeed', 'boundary', 'boundarySize', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -70,6 +84,8 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
     boundary: read('boundary', (v, p) => json.oneOf(v, ['none', 'sphere', 'box'] as const, p), base?.boundary),
     boundarySize: read('boundarySize', (v, p) => json.finite(v, p), base?.boundarySize),
     restitution: read('restitution', (v, p) => json.finite(v, p), base?.restitution),
+    collisionDistance: read('collisionDistance', (v, p) => json.finite(v, p), base?.collisionDistance),
+    collisionRestitution: read('collisionRestitution', (v, p) => json.finite(v, p), base?.collisionRestitution),
     mode2D: read('mode2D', (v, p) => json.boolean(v, p), base?.mode2D),
     integrator: read('integrator', (v, p) => json.oneOf(v, INTEGRATORS, p), base?.integrator),
   };

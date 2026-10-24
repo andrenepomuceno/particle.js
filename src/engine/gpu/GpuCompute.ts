@@ -108,6 +108,8 @@ export class GpuCompute {
       uBoundary: { value: 0 },
       uBoundarySize: { value: 1 },
       uRestitution: { value: 1 },
+      uCollisionDistance: { value: 0 },
+      uCollisionRestitution: { value: 1 },
       uMode2D: { value: false },
       uAcceleration: { value: null },
       uAccelerationNext: { value: null },
@@ -207,6 +209,10 @@ export class GpuCompute {
     u.uBoundary!.value = BOUNDARY_CODE[settings.boundary];
     u.uBoundarySize!.value = settings.boundarySize;
     u.uRestitution!.value = settings.restitution;
+    // Collisions change which pairs exert forces, so a stored Verlet acceleration goes stale.
+    if (u.uCollisionDistance!.value !== settings.collisionDistance) this.accelerationValid = false;
+    u.uCollisionDistance!.value = settings.collisionDistance;
+    u.uCollisionRestitution!.value = settings.collisionRestitution;
     // a(x) depends on positions and forces only; mode2D zeroes its z, and Euler leaves it stale.
     if (u.uMode2D!.value !== settings.mode2D || this.integrator !== settings.integrator) this.accelerationValid = false;
     u.uMode2D!.value = settings.mode2D;

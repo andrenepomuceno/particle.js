@@ -141,6 +141,11 @@ export function ParametersView() {
             validate={(v) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]')} onCommit={(restitution) => set({ restitution })} />
         </>
       )}
+      <NumberField label="Collision distance (0 = off)" value={settings.collisionDistance} validate={nonNegative} onCommit={(collisionDistance) => set({ collisionDistance })} />
+      {settings.collisionDistance > 0 && (
+        <NumberField label="Collision restitution" value={settings.collisionRestitution}
+          validate={(v) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]')} onCommit={(collisionRestitution) => set({ collisionRestitution })} />
+      )}
       <CheckField label="2D mode" checked={settings.mode2D} onChange={(mode2D) => {
         set({ mode2D });
         controller.resetCamera();

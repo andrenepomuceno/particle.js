@@ -480,7 +480,15 @@ export class SimulationController {
       this.store.set({ fieldInfo: undefined });
       return;
     }
-    if (!previous.enabled || field.columns !== previous.columns || (field.autoRefresh && !previous.autoRefresh)) this.fitField();
+    if (!previous.enabled || field.columns !== previous.columns || (field.autoRefresh && !previous.autoRefresh)) {
+      try {
+        this.fitField();
+      } catch (error) {
+        this.store.set({ field: previous });
+        this.arrows.setVisible(previous.enabled);
+        throw error;
+      }
+    }
     this.fieldDirty = true;
   }
 

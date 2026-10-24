@@ -10,6 +10,7 @@ const pair: PairScope = {
   r: 2, m_i: 1, m_j: 1, q_i: 1, q_j: 3, q2_i: 2, q2_j: -1, i3_i: 0.5, i3_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
   sx_i: 1, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 2, sz_j: -0.5, ux: 0.6, uy: 0.8, uz: 0,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: 0.5, cg_j: 1, cb_j: 0, t_i: 4, t_j: 5, time: 9,
+  vx_i: 1, vy_i: -2, vz_i: 0.5, vx_j: 0, vy_j: 3, vz_j: -1,
 };
 
 describe('compileForce', () => {
@@ -56,14 +57,21 @@ describe('compileForce', () => {
     expect(body(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })))).toMatch(/dot\(attr1\.yz, attr2\.yz\) \* spin2\.w|spin2\.w \* dot\(attr1\.yz, attr2\.yz\)/);
   });
 
-  it('keeps the relative position for potential mode, where it makes the force a gradient', () => {
-    expect(() => compileForce(makeForce({ expression: 'dx * q_i / r^3', params: [] }))).toThrow(/dx are only available in potential mode/);
-    expect(compileForce(makeForce({ mode: 'potential', expression: 'si_r * sj_r / r^3', params: [] })).vector).toBe(true);
-    expect(compileForce(makeForce({ mode: 'potential', expression: 's_dot / r^3', params: [] })).vector).toBe(false);
+  it('classifies forces: central, gradient of a directional potential, vector', () => {
+    const kind = (mode: 'force' | 'potential', expression: string) => compileForce(makeForce({ mode, expression, params: [] })).kind;
+    expect(kind('potential', 'si_r * sj_r / r^3')).toBe('gradient');
+    expect(kind('potential', 's_dot / r^3')).toBe('central');
+    expect(kind('force', 'dx * q_i / r^3')).toBe('central');
+    expect(kind('force', 'q_i * cross(v_i, s_j) / r^3')).toBe('vector');
+    expect(kind('force', '-v_dot / r^2')).toBe('vector');
+    expect(kind('force', 'vv_dot * q_i / r^2')).toBe('vector');
   });
 
-  it('rejects the old scalar spin variables with the list of new ones', () => {
-    expect(() => compileForce(makeForce({ expression: 's_i * s_j', params: [] }))).toThrow(/unknown variable 's_i'.*s_dot/);
+  it('reports vector misuse with a hint (s_i and s_j are spin vectors now)', () => {
+    expect(() => compileForce(makeForce({ expression: 's_i * s_j', params: [] }))).toThrow(/cannot multiply two vectors with \*; use dot\(a, b\) or cross\(a, b\)/);
+    expect(() => compileForce(makeForce({ mode: 'potential', expression: 'cross(s_i, d) * r', params: [] }))).toThrow(/a potential must be a number/);
+    expect(() => compileForce(makeForce({ mode: 'potential', expression: 'v_rel / r', params: [] }))).toThrow(/v_rel depend on velocity.*force mode/);
+    expect(() => compileForce(makeForce({ expression: 'sin(d)', params: [] }))).toThrow(/sin\(\) takes numbers, got a vector/);
   });
 
   it.each([
@@ -164,7 +172,7 @@ describe('GLSL generation', () => {
     const shader = generateFieldShader([compileForce(makeForce())]);
     expect(shader).toContain('float force0(');
     expect(shader.match(/vec3 totalForce\(/g)).toHaveLength(1);
-    expect(shader).toContain('totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0)');
+    expect(shader).toContain('totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0, jacobian)');
   });
 
   it('skips the clock fetch when no force reads t_j', () => {

@@ -409,6 +409,7 @@ export class SimulationController {
     this.gpu.setSettings(settings);
     this.store.set({ settings });
     this.refreshCaption();
+    this.refreshForceWarnings();
     this.fieldDirty = true;
     if (planeChanged) this.refitFieldIfEnabled();
   }
@@ -750,6 +751,9 @@ export class SimulationController {
     const forceWarnings: Record<string, string[]> = {};
     for (const force of this.compiled) {
       const warnings = inactiveCouplings(force, this.set);
+      if (force.jacobian && this.state.settings.integrator === 'verlet') {
+        warnings.push('depends on v_i: the step uses the implicit Euler velocity update instead of Verlet (2nd-order Verlet assumes position-only forces)');
+      }
       if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;
     }
     this.store.set({ forceWarnings });

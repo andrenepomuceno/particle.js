@@ -58,6 +58,7 @@ export class GpuCompute {
   private readonly acceleration: PingPong;
   private accelerationValid = false;
   private integrator: SimulationSettings['integrator'] = 'verlet';
+  private velocityDependent = false;
   private current = 0;
   private readonly attributes: DataTexture;
   private readonly color: DataTexture;
@@ -176,6 +177,7 @@ export class GpuCompute {
     this.accelerationMaterial.dispose();
     this.accelerationMaterial = this.material(accelerationSource, uniforms);
     this.forceUniforms = uniforms;
+    this.velocityDependent = forces.some((f) => f.jacobian);
     this.potentialStale = true;
     this.fieldStale = true;
     this.forces = forces;
@@ -234,7 +236,8 @@ export class GpuCompute {
   }
 
   step(time: number): void {
-    if (this.integrator === 'verlet') this.stepVerlet(time);
+    // Velocity-dependent forces need the implicit velocity update, which only the Euler pass has.
+    if (this.integrator === 'verlet' && !this.velocityDependent) this.stepVerlet(time);
     else this.stepEuler(time);
   }
 

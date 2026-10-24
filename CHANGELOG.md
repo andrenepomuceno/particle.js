@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Vectors and velocity in expressions: `d`, `rhat`, `s_i`, `v_i`, `vec`, `cross`, `dot`, `length`,
+  `normalize`, `v_dot`, `v_rel`, `vv_dot`. A vector force-mode expression is applied as the force
+  (Lorentz, dipole fields, Biot–Savart); forces reading v_i use an implicit-midpoint velocity step
+  (exact Boris rotation for v × B). New scenarios: *Radiation Belt*, *Cyclotron and E×B Drift*,
+  *Beam Pinch*. Breaking: `s_i`/`s_j` are now spin vectors (`s_i * s_j` → `dot(s_i, s_j)` or `s_dot`).
 - Softened potentials: the force is now the exact gradient of the softened V, `−V'(r)·d/r`
   (Plummer), so potential-mode forces conserve energy even inside ε. Force mode is unchanged;
   scenarios with softened potentials move slightly differently at close range.

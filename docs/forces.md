@@ -78,6 +78,32 @@ never recompiles. Editing the expression, mode, range, enabled flag or the param
 Validation reports every problem at once (unknown variables, bad parameter names,
 non-positive cutoff, …). A force with errors is skipped; the others keep running.
 
+## Vectors and velocity
+
+Expressions may mix numbers and vectors. Vectors: `d` (Δx = x_i − x_j), `rhat` (d / |d|), `s_i`,
+`s_j` (spins), `v_i`, `v_j` (velocities) and `vec(a, b, c)`; scalar components `vx_i`… are also
+available. Vectors combine with `+`/`−` between vectors, `*`/`/` by numbers, and `cross`, `dot`,
+`length`, `normalize`; anything else (vector × vector, `sin(d)`, a vector exponent) is rejected with
+a hint. Shorthands: `v_dot` = (v_i − v_j)·r̂ (negative while approaching), `v_rel` = |v_i − v_j|,
+`vv_dot` = v_i·v_j.
+
+In **force mode** a vector result is applied as the force on i itself, so non-central and
+velocity-dependent laws can be written directly:
+
+| Law | Expression |
+| --- | --- |
+| Lorentz force in a uniform field | `q_i * cross(v_i, vec(0, 0, B))` |
+| Field of a magnetic dipole s_j on a moving charge | `q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)` |
+| Biot–Savart between moving charges (parallel currents attract) | `k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))` |
+| Pair drag (damps the closing speed) | `-c * v_dot` (a number: central) |
+
+Velocity is refused in potential mode (F = −∇V needs a V of positions). A force that reads `v_i`
+is integrated with an implicit-midpoint velocity update: shader-autodiff also yields ∂F/∂v_i, and
+each step solves (I − dt/2m·J)·Δv = dt/m·F. For F = q v × B this is exactly the Boris rotation, so
+speeds stay constant and magnetic forces do no work. Verlet assumes position-only forces, so with
+such a force the step uses this Euler update (the force card says so). Biot–Savart violates
+Newton's third law, as it does classically without field momentum.
+
 ## Examples
 
 | Force | Mode | Range | Expression |

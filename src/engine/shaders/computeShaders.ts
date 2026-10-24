@@ -32,12 +32,13 @@ function forceUniforms(force: CompiledForce, index: number): string {
     .join('\n');
 }
 
-const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2';
-const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2';
+const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2';
+const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2';
 /** Variables whose GLSL reads the other particle's texel; derived so new variables cannot be missed. */
 const readersOf = (glslName: string) => PAIR_VARIABLES.filter((v) => v.glsl.includes(glslName)).map((v) => v.name);
 const SPIN_J_VARIABLES = readersOf('spin2');
 const TAU_J_VARIABLES = readersOf('tau2');
+const VELOCITY_J_VARIABLES = readersOf('vel2');
 
 /** The other particle's spin and clock are fetched only when an expression reads them. */
 function reads(forces: readonly CompiledForce[], names: readonly string[]): boolean {
@@ -56,15 +57,20 @@ const SIGNED_POW = `float spow(float b, float e) {
 }`;
 
 function forceFunction(force: CompiledForce, index: number): string {
+  // Vector forces take v_i as the library variable, so the softened r comes in as an argument.
   return `${forceUniforms(force, index)}
-${force.glsl(`force${index}`, PAIR_ARGS, index)}`;
+${force.glsl(`force${index}`, force.kind === 'vector' ? `float r, ${PAIR_ARGS}` : PAIR_ARGS, index)}`;
 }
 
 function forceAccumulation(force: CompiledForce, index: number): string {
-  // Vector potentials return −∇V itself; `contact` is Δx at the (possibly clamped) distance.
-  const term = force.vector
-    ? `force += force${index}(contact, ${PAIR_CALL_ARGS});`
-    : `magnitude += force${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS});`;
+  const soft = `sqrt(r2 + ${forceUniformName(index, 'soft2')})`;
+  // Gradient forces return −∇V at Δx (`contact`, the possibly clamped Δx); vector forces take v_i and
+  // the softened r, and the ones that read v_i also add their Jacobian ∂F/∂v_i.
+  const term = force.kind === 'gradient' ? `force += force${index}(contact, ${PAIR_CALL_ARGS});`
+    : force.kind === 'vector' && force.jacobian
+      ? `{ vec3 f; mat3 j; force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS}, f, j); force += f; jacobian += j; }`
+      : force.kind === 'vector' ? `force += force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS});`
+        : `magnitude += force${index}(${soft}, ${PAIR_CALL_ARGS});`;
   return force.definition.range === 'short' ? `if (dist < ${forceUniformName(index, 'cutoff')}) ${term}` : term;
 }
 
@@ -151,13 +157,15 @@ vec3 confinePosition(vec3 pos) {
 function totalForceFunction(forces: readonly CompiledForce[]): string {
   const fetchTau2 = reads(forces, TAU_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
   const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
+  const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).xyz' : 'vec3(0.0)';
   return `${SIGNED_POW}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
-vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance) {
+vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance, out mat3 jacobian) {
   int width = TEXTURE_WIDTH;
   vec3 force = vec3(0.0);
+  jacobian = mat3(0.0);
   for (int index2 = 0; index2 < uCount; index2++) {
     if (index2 == index1) continue;
     ivec2 coord2 = ivec2(index2 % width, index2 / width);
@@ -177,9 +185,10 @@ vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 
     vec4 color2 = texelFetch(uColor, coord2, 0);
     float tau2 = ${fetchTau2};
     vec4 spin2 = ${fetchSpin2};
-    vec3 dir = normalize(delta);${forces.some((f) => f.vector) ? `
-    // Δx at the (possibly contact-clamped) distance: what vector potentials are evaluated at.
-    vec3 contact = dir * dist;` : ''}
+    vec3 dir = normalize(delta);
+    // Δx at the (possibly contact-clamped) distance: what direction-aware forces are evaluated at.
+    vec3 contact = dir * dist;
+    vec3 vel2 = ${fetchVel2};
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * dir;
@@ -216,9 +225,12 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance);
-  vec3 vel = velocityTexel.xyz + uTimeStep * force / attr1.x
-    + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
+  mat3 jacobian;
+  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance, jacobian);
+  vec3 kick = uTimeStep * force / attr1.x;${forces.some((f) => f.jacobian) ? `
+  // Implicit midpoint for velocity-dependent forces: (I − dt/2m·J)·Δv = dt/m·F (Boris for v × B).
+  kick = inverse(mat3(1.0) - (0.5 * uTimeStep / attr1.x) * jacobian) * kick;` : ''}
+  vec3 vel = velocityTexel.xyz + kick + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
   gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0)), tau1 + uTimeStep);
 }
 `;
@@ -236,7 +248,8 @@ ${PARTICLE_HEADER}
     return;
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
-  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift, uCollisionDistance);
+  mat3 jacobian;
+  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift, uCollisionDistance, jacobian);
   vec3 acceleration = force / attr1.x;
   if (uMode2D) acceleration.z = 0.0;
   gl_FragColor = vec4(acceleration, 0.0);
@@ -331,6 +344,10 @@ void main() {
     float tau2 = ${needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0'};
     vec4 spin2 = ${fetchSpin2};
     vec3 dir = delta / dist;
+    // Potentials read no velocity; these satisfy the shared pair signature.
+    vec3 contact = delta;
+    vec3 vel1 = vec3(0.0);
+    vec3 vel2 = vec3(0.0);
     ${forces.map(potentialTerm).filter(Boolean).join('\n    ')}
   }
   gl_FragColor = vec4(energy, 0.0, 0.0, 0.0);
@@ -361,7 +378,9 @@ void main() {
   }
   vec3 pos = texelFetch(uProbePositions, coord, 0).xyz;
   // Probes do not collide: the field shows every force, including inside the collision distance.
-  vec3 force = totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0);
+  // The test particle is at rest, so velocity-dependent forces on it vanish (jacobian unused).
+  mat3 jacobian;
+  vec3 force = totalForce(-1, pos, vec3(0.0), uProbeAttributes, uProbeColor, uProbeSpin, 0.0, 0.0, jacobian);
   gl_FragColor = vec4(force, length(force));
 }
 `;

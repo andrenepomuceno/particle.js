@@ -1,5 +1,6 @@
 import { createProgram, ExpressionError, type Handle, type Limits, type Program } from 'shader-autodiff';
-import { CONSTANTS, FUNCTION_ARITY, bin, collectVariables, num, toInfix, variable, type Expr } from '../expr/ast';
+import { CONSTANTS, FUNCTION_ARITY, bin, call, collectVariables, num, toInfix, variable, type Expr } from '../expr/ast';
+import { lowerVectors, VectorTypeError, type Lowered } from '../expr/vector';
 import { colorDot, colorPlane } from '../colorCharge';
 import type { CompiledFn } from '../expr/evaluate';
 import type { Vec3 } from '../particles';
@@ -21,7 +22,11 @@ const FLOAT32_MAX = 3.4028235e38;
 export const RELATIVE_POSITION = ['dx', 'dy', 'dz'] as const;
 /** Directional variables make a potential a vector potential (F = −∇V). */
 const VECTOR_TRIGGERS = new Set(PAIR_VARIABLES.filter((v) => v.directional).map((v) => v.name));
-const RELATIVE = new Set<string>(RELATIVE_POSITION);
+/** v_i's components: the variables of vector forces (∂F/∂v_i for the implicit velocity update). */
+const VELOCITY_I_COMPONENTS = ['vx_i', 'vy_i', 'vz_i'] as const;
+const VELOCITY_I = new Set<string>(VELOCITY_I_COMPONENTS);
+/** Names that depend on velocity (catalogue flag), refused in potential mode. */
+const VELOCITY = new Set(PAIR_VARIABLES.filter((v) => v.velocity).map((v) => v.name));
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
@@ -36,20 +41,28 @@ export interface CompiledForce {
   /** Same for V(r); empty in force mode. */
   potentialReads: ReadonlySet<string>;
   /**
-   * A potential of the relative position (reads dx, dy, dz, si_r or sj_r): the force is the vector
-   * −∇V, not a magnitude along r̂. Central forces leave this false.
+   * central: a magnitude along r̂. gradient: a potential of the relative position (reads dx, dy, dz,
+   * si_r or sj_r), whose force is −∇V. vector: a force-mode expression that is a vector or reads
+   * v_i, applied as written (e.g. q v_i × B).
    */
+  kind: 'central' | 'gradient' | 'vector';
+  /** Not central (gradient or vector): the force is a vec3 per pair. */
   vector: boolean;
+  /** A vector force that reads v_i: its Jacobian ∂F/∂v_i drives the implicit velocity update. */
+  jacobian: boolean;
   /** Signed force magnitude as a function of r; positive pushes the pair apart (radial part for vector forces). */
   evaluate: CompiledFn;
-  /** The full force on i, −∇_{Δx} V, for vector forces. */
+  /** The full force on i (−∇_{Δx} V for gradient forces). */
   evaluateVector: ((scope: Readonly<Record<string, number>>) => Vec3) | undefined;
+  /** ∂F_k/∂v_i,l as rows [k][l], for forces with `jacobian`. */
+  evaluateJacobian: ((scope: Readonly<Record<string, number>>) => [Vec3, Vec3, Vec3]) | undefined;
   /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
   evaluatePotential: CompiledFn | undefined;
   /**
-   * GLSL function `name`: the magnitude (float) or for vector forces the force (vec3), or V with
-   * `potential`; uniforms named for force `index`. Its first argument is the library's variable
-   * (`float r`, or `vec3 p` = Δx for vector forces), followed by `args`.
+   * GLSL function `name`: the magnitude (float), the force (vec3), or V with `potential`; uniforms
+   * named for force `index`. Its first argument is the library's variable (`float r`; `vec3 p` = Δx
+   * for gradient forces, = v_i for vector forces), followed by `args`. A force with `jacobian` is
+   * `void name(vec3 p, <args>, out vec3 F, out mat3 J)` instead (J column-major: J[l][k] = ∂F_k/∂v_l).
    */
   glsl(name: string, args: string, index: number, which?: 'magnitude' | 'potential'): string;
 }
@@ -105,16 +118,26 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     problems.push(error.message);
   }
   if (parsed) problems.push(...unknownVariables(def, parsed));
-  if (parsed && def.mode === 'force') {
-    const relative = [...collectVariables(parsed)].filter((name) => RELATIVE.has(name));
-    if (relative.length > 0) {
-      problems.push(`${relative.join(', ')} are only available in potential mode, where the force is the gradient −∇V`);
-    }
+  if (parsed && def.mode === 'potential') {
+    const velocity = [...collectVariables(parsed)].filter((name) => VELOCITY.has(name));
+    if (velocity.length > 0) problems.push(`${velocity.join(', ')} depend on velocity, which a potential cannot (F = −∇V); use force mode`);
   }
-  if (problems.length > 0 || !parsed) throw new ForceValidationError(def.name, problems);
+  let lowered: Lowered | undefined;
+  if (parsed && problems.length === 0) {
+    try {
+      lowered = lowerVectors(parsed);
+    } catch (error) {
+      if (!(error instanceof VectorTypeError)) throw error;
+      problems.push(error.message);
+    }
+    if (lowered?.kind === 'vector' && def.mode === 'potential') problems.push('a potential must be a number, but this expression is a vector');
+  }
+  if (problems.length > 0 || !lowered) throw new ForceValidationError(def.name, problems);
 
-  const inR = simplify(substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff'))));
-  const badConstants = outOfFloat32(inR);
+  const inX = (e: Expr) => simplify(substitute(e, 'x', bin('/', variable('r'), variable('cutoff'))));
+  const parts = lowered.kind === 'scalar' ? [inX(lowered.expr)] : lowered.components.map(inX);
+  const inR = parts[0]!;
+  const badConstants = parts.flatMap((e) => outOfFloat32(e));
   const nonFinite = badConstants.filter((c) => !Number.isFinite(c));
   if (nonFinite.length > 0) {
     throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
@@ -122,23 +145,32 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   if (badConstants.length > 0) {
     throw new ForceValidationError(def.name, [`constant(s) ${badConstants.join(', ')} outside float32 range (|c| between ${FLOAT32_MIN} and ${FLOAT32_MAX}, or 0): the GPU would compute 0 or ∞ while the CPU would not; rescale the units`]);
   }
-  const names = [...collectVariables(inR)].filter((name) => name !== 'r' && !(name in CONSTANTS));
-  const vector = def.mode === 'potential' && names.some((name) => VECTOR_TRIGGERS.has(name));
-  const built = vector ? buildVector(def, inR, names) : buildCentral(def, inR, names);
+  const names = [...new Set(parts.flatMap((e) => [...collectVariables(e)]))].filter((name) => name !== 'r' && !(name in CONSTANTS));
+  const readsVelocityI = names.some((name) => VELOCITY_I.has(name));
+  const kind = def.mode === 'force'
+    ? (lowered.kind === 'vector' || readsVelocityI ? 'vector' : 'central')
+    : (names.some((name) => VECTOR_TRIGGERS.has(name)) ? 'gradient' : 'central');
+  const built = kind === 'gradient' ? buildVector(def, inR, names)
+    : kind === 'vector' ? buildVectorForce(def, lowered.kind === 'vector' ? parts : radialComponents(inR), names, readsVelocityI)
+      : buildCentral(def, inR, names);
   const { program, potential } = built;
+  const vectorJs = kind === 'central' ? undefined : forceJs(program, built.force, built.jacobian);
   const compiled: CompiledForce = {
     definition: def,
-    vector,
-    reads: readNames(program, built.force, built.parameters),
+    kind,
+    vector: kind !== 'central',
+    jacobian: built.jacobian !== undefined,
+    reads: readNames(program, [...built.force, ...(built.jacobian ?? [])], built.parameters),
     potentialReads: potential === undefined ? new Set<string>() : readNames(program, [potential], built.parameters),
     evaluate: jsFunction(program, built.radial),
-    evaluateVector: vector ? vectorJsFunction(program, built.force) : undefined,
+    evaluateVector: vectorJs && ((scope) => vectorJs(scope).F),
+    evaluateJacobian: vectorJs && built.jacobian ? (scope) => vectorJs(scope).J! : undefined,
     evaluatePotential: potential === undefined ? undefined : jsFunction(program, potential),
     glsl: (name, args, index, which = 'magnitude') => {
       if (which === 'potential' && potential === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
-      const components = which === 'potential' ? [potential!] : built.force;
       const names = which === 'potential' ? compiled.potentialReads : compiled.reads;
-      return glslFunction(program, components, built.variables, name, args, index, def, [...names]);
+      if (which === 'potential') return glslFunction(program, [potential!], undefined, built.variables, name, args, index, def, [...names]);
+      return glslFunction(program, built.force, built.jacobian, built.variables, name, args, index, def, [...names]);
     },
   };
   // Emit once now so code-generation failures surface as validation problems, not at shader build.
@@ -157,6 +189,8 @@ interface Built {
   variables: readonly string[];
   /** Everything else the program reads, renamed to uniforms and pair bindings in GLSL. */
   parameters: readonly string[];
+  /** ∂F/∂v_i column-major (9 handles), for vector forces that read v_i. */
+  jacobian?: Handle[];
   /** [F] for central forces, [Fx, Fy, Fz] for vector forces. */
   force: Handle[];
   /** The signed magnitude along r̂ (for the plot and CPU references of central forces). */
@@ -222,9 +256,37 @@ function buildVector(def: ForceDefinition, inR: Expr, names: string[]): Built {
   });
 }
 
+/** A velocity-dependent central magnitude m applied along r̂ = d / |d|, as three components. */
+function radialComponents(magnitude: Expr): Expr[] {
+  const d = RELATIVE_POSITION.map((name) => variable(name));
+  const length = call('sqrt', d.map((c) => bin('*', c, c)).reduce((a, b) => bin('+', a, b)));
+  return d.map((c) => bin('/', bin('*', magnitude, c), length));
+}
+
+/**
+ * A force-mode vector force, applied as written. Its variables are v_i's components, so the library
+ * also gives ∂F/∂v_i when the force reads them (the implicit velocity update needs it).
+ */
+function buildVectorForce(def: ForceDefinition, components: Expr[], names: string[], jacobian: boolean): Built {
+  // r (softened) is an argument of the GLSL function here, so it is a parameter like the others.
+  const readsR = components.some((c) => collectVariables(c).has('r'));
+  // dx, dy, dz are always declared: the plot's radial part projects the force on them.
+  const parameters = [...new Set([...names.filter((name) => !VELOCITY_I.has(name)), ...(readsR ? ['r'] : []), ...RELATIVE_POSITION])];
+  return withProgram(def, () => {
+    const program = createProgram({ variables: [...VELOCITY_I_COMPONENTS], parameters, limits: LIMITS });
+    const force = components.map((c) => program.expression(librarySource(c)));
+    const [fx, fy, fz] = force;
+    const [dx, dy, dz] = RELATIVE_POSITION.map((v) => program.expression(v));
+    const length = program.expression('sqrt(dx*dx + dy*dy + dz*dz)');
+    const radial = program.div(program.add(program.add(program.mul(fx!, dx!), program.mul(fy!, dy!)), program.mul(fz!, dz!)), length);
+    const columns = jacobian ? VELOCITY_I_COMPONENTS.flatMap((v) => force.map((f) => program.derivative(f, v))) : undefined;
+    return { program, variables: VELOCITY_I_COMPONENTS, parameters, force, jacobian: columns, radial, potential: undefined };
+  });
+}
+
 /** Names the emitted code of `handle` actually uses: a term constant in r drops out of -dV/dr. */
 function readNames(program: Program, handles: Handle[], names: readonly string[]): Set<string> {
-  const glsl = program.glsl({ name: 'reads', returns: { type: handles.length === 1 ? 'float' : 'vec3', components: handles } });
+  const glsl = program.glsl({ name: 'reads', outputs: handles.map((h, k) => ({ name: `o${k}`, type: 'float', components: [h] })) });
   const used = new Set(glsl.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g));
   return new Set(names.filter((name) => used.has(name)));
 }
@@ -236,10 +298,11 @@ function jsFunction(program: Program, handle: Handle): CompiledFn {
   return (scope) => fn(scope).value;
 }
 
-function vectorJsFunction(program: Program, handles: Handle[]): (scope: Readonly<Record<string, number>>) => Vec3 {
-  const source = program.js({ name: 'f', returns: { type: 'vec3', components: handles } });
-  const fn = new Function(`${source}\nreturn f;`)() as (scope: Readonly<Record<string, number>>) => { value: Vec3 };
-  return (scope) => fn(scope).value;
+/** The force (and Jacobian) as one JS function: F as a vector, J as rows J[k][l] = ∂F_k/∂v_l. */
+function forceJs(program: Program, force: Handle[], jacobian: Handle[] | undefined): (scope: Readonly<Record<string, number>>) => { F: Vec3; J?: [Vec3, Vec3, Vec3] } {
+  const outputs = [{ name: 'F', type: 'vec3', components: force }, ...(jacobian ? [{ name: 'J', type: 'mat3', components: jacobian }] : [])];
+  const source = program.js({ name: 'f', outputs });
+  return new Function(`${source}\nreturn f;`)() as (scope: Readonly<Record<string, number>>) => { F: Vec3; J?: [Vec3, Vec3, Vec3] };
 }
 
 /**
@@ -248,8 +311,8 @@ function vectorJsFunction(program: Program, handles: Handle[]): (scope: Readonly
  * negative bases, while q^n with an odd integer n must behave like Math.pow (the JS side).
  */
 function glslFunction(
-  program: Program, components: Handle[], variables: readonly string[], name: string, args: string, index: number,
-  def: ForceDefinition, names: readonly string[],
+  program: Program, components: Handle[], jacobian: Handle[] | undefined, variables: readonly string[], name: string, args: string,
+  index: number, def: ForceDefinition, names: readonly string[],
 ): string {
   const params = new Set(def.params.map((p) => p.name));
   const byName = new Map(PAIR_VARIABLES.map((v) => [v.name, v.glsl]));
@@ -261,13 +324,16 @@ function glslFunction(
     if (glsl === undefined) throw new Error(`no GLSL binding for variable '${n}'`);
     return [n, glsl.replaceAll('CUTOFF', cutoff)];
   }));
-  const type = components.length === 1 ? 'float' : 'vec3';
-  const glsl = program.glsl({ name, returns: { type, components }, parameters });
-  // One variable is passed as float r, three as vec3 p (components dx, dy, dz).
+  // One variable is passed as float r, three as vec3 p (Δx or v_i); our arguments follow it.
   const variable = variables.length === 1 ? `float ${variables[0]}` : 'vec3 p';
-  const header = `${type} ${name}(${variable}) {`;
+  const type = components.length === 1 ? 'float' : 'vec3';
+  const glsl = jacobian
+    ? program.glsl({ name, outputs: [{ name: 'F', type: 'vec3', components }, { name: 'J', type: 'mat3', components: jacobian }], parameters })
+    : program.glsl({ name, returns: { type, components }, parameters });
+  const header = jacobian ? `void ${name}(${variable}, out vec3 F, out mat3 J) {` : `${type} ${name}(${variable}) {`;
   if (!glsl.startsWith(header)) throw new Error(`unexpected shader-autodiff header: ${glsl.split('\n')[0]}`);
-  return `${type} ${name}(${variable}, ${args}) {${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
+  const signature = jacobian ? `void ${name}(${variable}, ${args}, out vec3 F, out mat3 J) {` : `${type} ${name}(${variable}, ${args}) {`;
+  return `${signature}${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
 }
 
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
@@ -334,6 +400,8 @@ export interface PairScope {
   cr_i: number; cg_i: number; cb_i: number;
   cr_j: number; cg_j: number; cb_j: number;
   t_i: number; t_j: number;
+  vx_i: number; vy_i: number; vz_i: number;
+  vx_j: number; vy_j: number; vz_j: number;
   time: number;
 }
 

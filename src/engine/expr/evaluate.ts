@@ -1,4 +1,4 @@
-import { CONSTANTS, type Expr, type FunctionName } from './ast';
+import { CONSTANTS, isVectorFunction, type Expr, type FunctionName } from './ast';
 
 export type Scope = Readonly<Record<string, number>>;
 export type CompiledFn = (scope: Scope) => number;
@@ -47,7 +47,9 @@ export function compileJs(expr: Expr): CompiledFn {
       break;
     }
     case 'call': {
-      const fn = FUNCTIONS[expr.fn];
+      const name = expr.fn;
+      if (isVectorFunction(name)) throw new Error(`vector function '${name}' must be lowered (lowerVectors) before evaluation`);
+      const fn = FUNCTIONS[name];
       const args = expr.args.map(compileJs);
       return (scope) => fn(...args.map((arg) => arg(scope)));
     }

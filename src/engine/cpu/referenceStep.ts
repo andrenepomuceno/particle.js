@@ -25,8 +25,26 @@ export function referenceStep(
   time: number,
   state: ReferenceState = {},
 ): void {
-  if (settings.integrator === 'verlet') verletStep(set, forces, settings, time, state);
+  // Velocity-dependent forces need the implicit velocity update, which only the Euler step has.
+  if (settings.integrator === 'verlet' && !forces.some((f) => f.jacobian)) verletStep(set, forces, settings, time, state);
   else eulerStep(set, forces, settings, time);
+}
+
+/**
+ * Δv over dt for F(v) linearized at v (Jacobian J = ∂F/∂v): the implicit midpoint step
+ * (I − dt/(2m)·J)·Δv = dt/m·F. For F = v × B it is the exact Boris rotation (|v| preserved).
+ */
+export function implicitKick(force: Vec, jacobian: ArrayLike<number>, mass: number, dt: number): Vec {
+  const h = dt / (2 * mass);
+  const a = [0, 1, 2].map((k) => [0, 1, 2].map((l) => (k === l ? 1 : 0) - h * jacobian[k * 3 + l]!));
+  const b = force.map((c) => (dt * c) / mass) as Vec;
+  const det = (m: number[][]) => m[0]![0]! * (m[1]![1]! * m[2]![2]! - m[1]![2]! * m[2]![1]!)
+    - m[0]![1]! * (m[1]![0]! * m[2]![2]! - m[1]![2]! * m[2]![0]!)
+    + m[0]![2]! * (m[1]![0]! * m[2]![1]! - m[1]![1]! * m[2]![0]!);
+  const d = det(a);
+  if (!(Math.abs(d) > 1e-12)) throw new Error(`implicit velocity step is singular (det ${d}); lower the time step`);
+  // Cramer's rule: 3×3, so cheaper and clearer than a general solver.
+  return [0, 1, 2].map((col) => det(a.map((row, k) => row.map((c, l) => (l === col ? b[k]! : c)))) / d) as Vec;
 }
 
 const isFixed = (set: ParticleSet, i: number) => set.position[i * TEXEL + 3] === ParticleKind.fixed;
@@ -66,7 +84,9 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
 }
 
 /** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
-function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance: number): Vec {
+function totalForce(
+  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance: number, jacobian?: Float64Array,
+): Vec {
   const pos = set.position;
   const oi = i * TEXEL;
   const force: [number, number, number] = [0, 0, 0];
@@ -88,7 +108,7 @@ function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;
-    addPairForce(forces, pair, dist, force);
+    addPairForce(forces, pair, dist, force, jacobian);
   }
   return force;
 }
@@ -149,8 +169,10 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
       continue;
     }
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, 0, settings.collisionDistance);
-    const v = read(set.velocity, i).map((c, k) => c + (dt * force[k]!) / mass + impulses[i * 3 + k]!) as Vec;
+    const jacobian = new Float64Array(9);
+    const force = totalForce(set, i, forces, time, 0, settings.collisionDistance, jacobian);
+    const kick = implicitKick(force, jacobian, mass, dt);
+    const v = read(set.velocity, i).map((c, k) => c + kick[k]! + impulses[i * 3 + k]!) as Vec;
     nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], settings), tau + dt], i * TEXEL);
   }
   set.velocity.set(nextVelocity);

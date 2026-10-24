@@ -29,6 +29,13 @@ const CASES = [
       { preset: 'spinSpin', cutoff: 12, softening: 0.5, params: { k: 4 } },
       { name: 'anisotropic', mode: 'potential', range: 'long', softening: 0.5, expression: '0.2 * q_i * q_j * dx * dy / r^4' },
     ] },
+  // Velocity-dependent: a fixed magnetic dipole's field and Biot–Savart between moving charges (implicit kick).
+  { name: 'magnetic: dipole field + Biot-Savart', settings: { timeStep: 0.01 }, steps: 300, tolerance: 1e-3,
+    forces: [
+      { name: 'dipole field', mode: 'force', range: 'long', softening: 0.5, expression: 'q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)', params: [{ name: 'k', value: 40 }] },
+      { name: 'biot-savart', mode: 'force', range: 'long', softening: 0.5, expression: 'k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))', params: [{ name: 'k', value: 2 }] },
+      { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
+    ] },
   { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
     forces: [{ preset: 'gravity', softening: 1, params: { G: 5 } }] },
 ];
@@ -44,6 +51,10 @@ const GROUPS = {
   'vector potential (dipole), collisions': [
     { count: 12, shape: { type: 'grid', spacing: 3, columns: 4, rows: 3 }, charge: { cycle: [1, -1, 0.5] },
       spin: { cycle: [[0, 0, 1], [1, 0, 0], [0, 0.6, 0.8], [-1, 0, 0]] }, velocity: { type: 'random', speed: 0.3 } },
+  ],
+  'magnetic: dipole field + Biot-Savart': [
+    { count: 1, kind: 'fixed', shape: { type: 'point', center: [0, 0, 0] }, spin: [0, 0, 1], charge: 0 },
+    { count: 10, shape: { type: 'shell', radius: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 1 } },
   ],
   'collisions + gravity, box': [
     { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, velocity: { type: 'random', speed: 1 } },
@@ -61,7 +72,7 @@ const failures = await withBrowser(async ({ browser, base }) => {
   for (const testCase of CASES) {
     for (const integrator of ['euler', 'verlet']) {
       const scenario = JSON.stringify({
-        format: 'particle.js-v2/scenario', version: 1, id: 'parity', name: testCase.name, seed: 1,
+        format: 'particle.js-v2/scenario', version: 2, id: 'parity', name: testCase.name, seed: 1,
         settings: { ...testCase.settings, integrator }, forces: testCase.forces, groups: GROUPS[testCase.name],
       });
       const deviation = await page.evaluate(async ({ scenario, steps }) => {
@@ -112,7 +123,7 @@ const failures = await withBrowser(async ({ browser, base }) => {
     gpu.forEach((m, p) => (worst = Math.max(worst, Math.abs(m - exact[p]) / Math.max(exact[p], median))));
     return { relative: worst, largest: Math.max(...exact) };
   }, { scenario: JSON.stringify({
-    format: 'particle.js-v2/scenario', version: 1, id: 'field', name: 'field', seed: 1,
+    format: 'particle.js-v2/scenario', version: 2, id: 'field', name: 'field', seed: 1,
     forces: CASES[1].forces, groups: GROUPS['short-range LJ + Coulomb, box'],
   }) });
   const fieldOk = field.relative <= 1e-4 && field.largest > 0;

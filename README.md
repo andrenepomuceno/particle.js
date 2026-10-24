@@ -17,6 +17,8 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   validated before it replaces the old one.
 - **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr`, differentiated
   exactly by [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff).
+- **Vectors and velocity**: expressions may be vectors (`cross(v_i, B)`, `d`, `s_j`, …); a vector force
+  is applied as written, and velocity-dependent ones (v × B) get an exact implicit step.
 - **Vector forces**: a potential of the relative position (`dx`, `dy`, `dz`, or the spin projections)
   gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
@@ -67,6 +69,9 @@ you can also load your own with <kbd>I</kbd>.
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
 | Dipole Chains | spin dipole (vector force) + repulsive core | a 2D ferrofluid: in-plane dipoles join head to tail into chains |
 | Dipole Crystal | spin dipole (vector force) + repulsive core | perpendicular dipoles repel into a triangular lattice; flipped ones bind defects |
+| Radiation Belt | dipole magnetic field, q v × B | charges gyrate, mirror between the poles and drift around a magnetized planet |
+| Cyclotron and E×B Drift | uniform E and B + Coulomb | electrons and ions gyrate opposite ways, yet the plasma drifts together at E/B |
+| Beam Pinch | Coulomb + Biot–Savart | a slow beam blows apart while a fast one self-focuses (magnetic attraction ∝ v²) |
 | Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
 | Quarks to nuclei | color + v1 nuclear force + Coulomb + quark core | quark triplets bound into molecules and ring-shaped nuclei |
 | Welcome *(v1)* | v1 force map 2 + v1 color + Coulomb | "Welcome to particle.js !" written in quark nuclei |

@@ -1,13 +1,14 @@
 import { Fragment } from 'react';
-import { FUNCTION_ARITY } from '../../engine/expr/ast';
+import { FUNCTION_ARITY, VECTOR_FUNCTIONS } from '../../engine/expr/ast';
 import { PAIR_VARIABLES, type PairVariable } from '../../engine/forces/variables';
 
 const GROUPS: readonly [title: string, bases: readonly string[]][] = [
-  ['Geometry', ['r', 'x', 'cutoff', 'dx', 'dy', 'dz']],
+  ['Geometry', ['r', 'x', 'cutoff', 'dx', 'dy', 'dz', 'd', 'rhat']],
   ['Mass and charge', ['m', 'q', 'q2', 'q_dot']],
-  ['Spin and isospin', ['sx', 'sy', 'sz', 's_dot', 'si_r', 'sj_r', 'i3']],
+  ['Spin and isospin', ['sx', 'sy', 'sz', 's', 's_dot', 'si_r', 'sj_r', 'i3']],
   ['Color charge', ['cr', 'cg', 'cb', 'cx', 'cy', 'c_dot']],
   ['Nuclear charge and parity', ['n', 'p']],
+  ['Velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
   ['Time', ['t', 'time']],
 ];
 
@@ -60,6 +61,12 @@ export function ExpressionsView() {
       <section>
         <h3 className="section-title">Functions and operators</h3>
         <p className="mono" style={{ margin: 0 }}>{Object.entries(FUNCTION_ARITY).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
+        <p className="mono" style={{ margin: '4px 0 0' }}>{Object.entries(VECTOR_FUNCTIONS).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
+        <p className="muted" style={{ margin: '4px 0 0' }}>
+          Vectors (d, rhat, s_i, s_j, v_i, v_j, vec(·, ·, ·)) combine with + − between vectors, × and ÷ by numbers,
+          cross, dot, length and normalize. In force mode a vector result is applied as the force itself (e.g.
+          q_i * cross(v_i, B)); a force that reads v_i is stepped with an implicit velocity update that keeps v × B rotations exact.
+        </p>
         <p className="mono" style={{ margin: '4px 0 0' }}>+ - * / ^ (or **) · constants pi, e · any other name must be a parameter of the force</p>
       </section>
       <section>

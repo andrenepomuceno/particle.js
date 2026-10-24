@@ -1,0 +1,26 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "radiation-belt",
+  "name": "Radiation Belt",
+  "folder": "Magnetism",
+  "description": "A planet's magnetic dipole traps charged particles, like Earth's Van Allen belts. Each charge gyrates around a field line (F = q v × B), bounces between the poles where the field converges (magnetic mirror) and drifts around the planet: light negative charges and heavy positive ones drift in opposite directions. The magnetic force does no work, so every speed stays constant. Charges moving almost along the field (the loss cone) are not mirrored and escape along the poles.",
+  "seed": 7,
+  "view": { "cameraDistance": 34, "particleRadius": 0.12, "colorMode": "charge" },
+  "settings": { "timeStep": 0.02, "integrator": "euler" },
+  "forces": [
+    {
+      "name": "Dipole field",
+      "mode": "force",
+      "range": "long",
+      "softening": 0.5,
+      "expression": "q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)",
+      "params": [{ "name": "k", "value": 400 }]
+    }
+  ],
+  "groups": [
+    { "count": 1, "kind": "fixed", "shape": { "type": "point", "center": [0, 0, 0] }, "spin": [0, 0, 1], "charge": 0, "mass": 100 },
+    { "count": 200, "shape": { "type": "disk", "radius": 7, "innerRadius": 4 }, "charge": -1, "mass": 1, "velocity": { "type": "random", "speed": 1 } },
+    { "count": 200, "shape": { "type": "disk", "radius": 7, "innerRadius": 4 }, "charge": 1, "mass": 4, "velocity": { "type": "random", "speed": 0.6 } }
+  ]
+}

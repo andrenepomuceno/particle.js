@@ -5,6 +5,10 @@ export interface PairVariable {
   shortRangeOnly?: boolean;
   /** Depends on the pair's direction: reading one makes a potential a vector potential (F = −∇V). */
   directional?: boolean;
+  /** Depends on velocities: force mode only (F = −dV/dr needs a position-only V). */
+  velocity?: boolean;
+  /** A vector or a shorthand expanded by lowerVectors; it never reaches a backend (`glsl` unused). */
+  lowered?: boolean;
 }
 
 const perParticle = (
@@ -21,9 +25,11 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   { name: 'x', description: 'r / cutoff, normalized distance', glsl: '(r / CUTOFF)', shortRangeOnly: true },
   { name: 'cutoff', description: 'interaction range of this force', glsl: 'CUTOFF', shortRangeOnly: true },
   // Library variables of vector potentials (never bound in central GLSL; force mode rejects them).
-  { name: 'dx', description: 'relative position x_i − x_j, x component (potential mode: F = −∇V)', glsl: 'dx', directional: true },
-  { name: 'dy', description: 'relative position, y component (potential mode)', glsl: 'dy', directional: true },
-  { name: 'dz', description: 'relative position, z component (potential mode)', glsl: 'dz', directional: true },
+  { name: 'dx', description: 'relative position x_i − x_j, x component (in a potential: F = −∇V)', glsl: 'delta.x', directional: true },
+  { name: 'dy', description: 'relative position, y component', glsl: 'delta.y', directional: true },
+  { name: 'dz', description: 'relative position, z component', glsl: 'delta.z', directional: true },
+  { name: 'd', description: 'relative position vector x_i − x_j', glsl: '', directional: true, lowered: true },
+  { name: 'rhat', description: 'unit vector d / |d|, from j to i', glsl: '', directional: true, lowered: true },
   ...perParticle('m', 'mass', (k) => `attr${k}.x`),
   ...perParticle('q', 'charge, first component (electric charge)', (k) => `attr${k}.y`),
   ...perParticle('q2', 'charge, second component', (k) => `attr${k}.z`),
@@ -32,6 +38,16 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   ...perParticle('sy', 'spin vector, y', (k) => `spin${k}.y`),
   ...perParticle('sz', 'spin vector, z', (k) => `spin${k}.z`),
   ...perParticle('i3', 'isospin projection I3', (k) => `spin${k}.w`),
+  { name: 's_i', description: 'spin vector of the particle receiving the force', glsl: '', lowered: true },
+  { name: 's_j', description: 'spin vector of the particle exerting the force', glsl: '', lowered: true },
+  ...perParticle('vx', 'velocity, x', (k) => `vel${k}.x`).map((v) => ({ ...v, velocity: true })),
+  ...perParticle('vy', 'velocity, y', (k) => `vel${k}.y`).map((v) => ({ ...v, velocity: true })),
+  ...perParticle('vz', 'velocity, z', (k) => `vel${k}.z`).map((v) => ({ ...v, velocity: true })),
+  { name: 'v_i', description: 'velocity vector of the particle receiving the force', glsl: '', velocity: true, lowered: true },
+  { name: 'v_j', description: 'velocity vector of the particle exerting the force', glsl: '', velocity: true, lowered: true },
+  { name: 'v_dot', description: '(v_i − v_j)·r̂: separation speed (negative while approaching)', glsl: '', velocity: true, lowered: true },
+  { name: 'v_rel', description: '|v_i − v_j|, relative speed', glsl: '', velocity: true, lowered: true },
+  { name: 'vv_dot', description: 'v_i·v_j (parallel currents attract magnetically)', glsl: '', velocity: true, lowered: true },
   { name: 's_dot', description: 'spin alignment s_i·s_j', glsl: 'dot(spin1.xyz, spin2.xyz)' },
   { name: 'si_r', description: 's_i·r̂, r̂ pointing from j to i (in a potential, F = −∇V follows its direction)', glsl: 'dot(spin1.xyz, dir)', directional: true },
   { name: 'sj_r', description: 's_j·r̂, r̂ pointing from j to i', glsl: 'dot(spin2.xyz, dir)', directional: true },

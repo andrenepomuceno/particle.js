@@ -5,7 +5,7 @@ export type Expr =
   | { kind: 'var'; name: string }
   | { kind: 'neg'; arg: Expr }
   | { kind: 'bin'; op: BinaryOp; left: Expr; right: Expr }
-  | { kind: 'call'; fn: FunctionName; args: Expr[] };
+  | { kind: 'call'; fn: FunctionName | VectorFunctionName; args: Expr[] };
 
 export const FUNCTION_ARITY = {
   sin: 1, cos: 1, tan: 1, asin: 1, acos: 1, atan: 1,
@@ -17,6 +17,14 @@ export const FUNCTION_ARITY = {
 
 export type FunctionName = keyof typeof FUNCTION_ARITY;
 
+/** Functions that take or return vectors; lowerVectors (vector.ts) removes them before any backend. */
+export const VECTOR_FUNCTIONS = { cross: 2, dot: 2, vec: 3, length: 1, normalize: 1 } as const;
+export type VectorFunctionName = keyof typeof VECTOR_FUNCTIONS;
+
+export function isVectorFunction(name: string): name is VectorFunctionName {
+  return Object.hasOwn(VECTOR_FUNCTIONS, name);
+}
+
 export function isFunctionName(name: string): name is FunctionName {
   return Object.hasOwn(FUNCTION_ARITY, name);
 }
@@ -27,7 +35,7 @@ export const num = (value: number): Expr => ({ kind: 'num', value });
 export const variable = (name: string): Expr => ({ kind: 'var', name });
 export const neg = (arg: Expr): Expr => ({ kind: 'neg', arg });
 export const bin = (op: BinaryOp, left: Expr, right: Expr): Expr => ({ kind: 'bin', op, left, right });
-export const call = (fn: FunctionName, ...args: Expr[]): Expr => ({ kind: 'call', fn, args });
+export const call = (fn: FunctionName | VectorFunctionName, ...args: Expr[]): Expr => ({ kind: 'call', fn, args });
 
 export function collectVariables(expr: Expr, into = new Set<string>()): Set<string> {
   switch (expr.kind) {

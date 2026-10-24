@@ -25,6 +25,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number):
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
     t_i: v[oi + 3]!, t_j: v[oj + 3]!, time,
+    vx_i: v[oi]!, vy_i: v[oi + 1]!, vz_i: v[oi + 2]!, vx_j: v[oj]!, vy_j: v[oj + 1]!, vz_j: v[oj + 2]!,
   };
 }
 
@@ -44,6 +45,8 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: probe.color[0], cg_i: probe.color[1], cb_i: probe.color[2], cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
     t_i: 0, t_j: v[oj + 3]!, time,
+    // The test particle is at rest: velocity-dependent forces on it vanish.
+    vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]!, vy_j: v[oj + 1]!, vz_j: v[oj + 2]!,
   };
 }
 
@@ -51,13 +54,17 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
  * Σ over `forces` of the force on i at true distance `dist` along the pair's unit vector (ux, uy, uz):
  * central forces as magnitude·û, vector potentials as −∇V. Added into `out`.
  */
-export function addPairForce(forces: readonly CompiledForce[], pair: Pair, dist: number, out: [number, number, number]): void {
+export function addPairForce(
+  forces: readonly CompiledForce[], pair: Pair, dist: number, out: [number, number, number], jacobian?: Float64Array,
+): void {
   const scope = pairVariables(pair);
   let magnitude = 0;
   for (const f of forces) {
     if (!acts(f, dist)) continue;
     setForceVariables(scope, f, dist);
     if (f.evaluateVector) {
+      // `jacobian` (row-major ∂F_k/∂v_i,l) collects the velocity forces' Jacobians.
+      if (jacobian && f.evaluateJacobian) f.evaluateJacobian(scope).forEach((row, k) => row.forEach((c, l) => (jacobian[k * 3 + l] = jacobian[k * 3 + l]! + c)));
       const [x, y, z] = f.evaluateVector(scope);
       out[0] += x;
       out[1] += y;

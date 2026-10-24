@@ -1,4 +1,4 @@
-import { FUNCTION_ARITY, isFunctionName, type BinaryOp, type Expr } from './ast';
+import { FUNCTION_ARITY, VECTOR_FUNCTIONS, isFunctionName, isVectorFunction, type BinaryOp, type Expr } from './ast';
 
 export class ExprError extends Error {
   constructor(message: string, readonly position: number) {
@@ -138,8 +138,8 @@ class Parser {
   }
 
   private callArgs(name: string, pos: number): Expr {
-    if (!isFunctionName(name)) {
-      throw new ExprError(`unknown function '${name}'; available: ${Object.keys(FUNCTION_ARITY).join(', ')}`, pos);
+    if (!isFunctionName(name) && !isVectorFunction(name)) {
+      throw new ExprError(`unknown function '${name}'; available: ${[...Object.keys(FUNCTION_ARITY), ...Object.keys(VECTOR_FUNCTIONS)].join(', ')}`, pos);
     }
     const args: Expr[] = [];
     if (!this.acceptOp(')')) {
@@ -147,7 +147,7 @@ class Parser {
       while (this.acceptOp(','));
       this.expectOp(')');
     }
-    const arity = FUNCTION_ARITY[name];
+    const arity = isVectorFunction(name) ? VECTOR_FUNCTIONS[name] : FUNCTION_ARITY[name];
     if (args.length !== arity) {
       throw new ExprError(`function '${name}' takes ${arity} argument(s), got ${args.length}`, pos);
     }

@@ -16,6 +16,8 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
   `(x_i - x_j)/|x_i - x_j|`. No modo `potential` o usuário escreve `V(r)` e o motor usa
   `F = -dV/dr` (derivada exata pelo shader-autodiff). Exceção: um potencial que lê `dx`, `dy`, `dz`
   (Δx = x_i − x_j) ou `si_r`/`sj_r` é vetorial — a força é o gradiente completo `−∇_Δx V` (não central).
+  No modo `force` a expressão pode ser um vetor (`cross`, `v_i`, `d`, …), aplicado como a própria força;
+  forças que leem `v_i` usam passo implícito de ponto médio com o Jacobiano ∂F/∂v_i (Boris para v × B).
 - Curto alcance: corte rígido em `cutoff` (`x = r/cutoff` disponível). Longo alcance: sem corte.
 - `softening` ε: a expressão recebe `r = sqrt(r² + ε²)`; a direção usa a distância real. No modo
   `potential` a força é o gradiente exato do V suavizado: `−V'(r)·d/r` (Plummer, conserva energia).

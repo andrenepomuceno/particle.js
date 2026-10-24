@@ -22,6 +22,7 @@ export function plotPair({ i, j }: PlotParticles): Pair {
     ux: 1, uy: 0, uz: 0, p_i: i.parity, p_j: j.parity, n_i: i.nuclearCharge, n_j: j.nuclearCharge,
     cr_i: i.color[0], cg_i: i.color[1], cb_i: i.color[2], cr_j: j.color[0], cg_j: j.color[1], cb_j: j.color[2],
     t_i: 0, t_j: 0, time: 0,
+    vx_i: 0, vy_i: 0, vz_i: 0, vx_j: 0, vy_j: 0, vz_j: 0,
   };
 }
 

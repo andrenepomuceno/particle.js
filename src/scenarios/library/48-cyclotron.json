@@ -1,0 +1,26 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "cyclotron",
+  "name": "Cyclotron and E×B Drift",
+  "folder": "Magnetism",
+  "description": "A 2D plasma in a uniform magnetic field B (out of the screen) and an electric field E (along x). Each charge gyrates — light electrons on tight circles one way, heavy ions on wide circles the other — yet the whole plasma drifts together along −y at E/B, whatever the charge or mass (the E×B drift). The fields come from the fixed source particle: only it has nuclear charge n = 1.",
+  "seed": 11,
+  "view": { "cameraDistance": 160, "particleRadius": 0.5, "colorMode": "charge" },
+  "settings": { "timeStep": 0.02, "mode2D": true, "integrator": "euler" },
+  "forces": [
+    {
+      "name": "Background E and B",
+      "mode": "force",
+      "range": "long",
+      "expression": "n_j * q_i * (cross(v_i, vec(0, 0, Bz)) + vec(Ex, 0, 0))",
+      "params": [{ "name": "Bz", "value": 1 }, { "name": "Ex", "value": 0.2 }]
+    },
+    { "preset": "coulomb", "softening": 1, "params": { "k": 0.3 } }
+  ],
+  "groups": [
+    { "count": 1, "kind": "fixed", "shape": { "type": "point", "center": [0, 60, 0] }, "charge": 0, "nuclearCharge": 1 },
+    { "count": 250, "shape": { "type": "disk", "radius": 25 }, "charge": -1, "mass": 1, "velocity": { "type": "random", "speed": 1 } },
+    { "count": 250, "shape": { "type": "disk", "radius": 25 }, "charge": 1, "mass": 6, "velocity": { "type": "random", "speed": 0.5 } }
+  ]
+}

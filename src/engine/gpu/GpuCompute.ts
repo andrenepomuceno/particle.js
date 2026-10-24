@@ -191,6 +191,14 @@ export class GpuCompute {
     }
   }
 
+  /** Reads a single particle position without a full-texture readback. */
+  readPosition(index: number): [number, number, number] {
+    if (!(index >= 0 && index < this.set.count)) throw new Error(`particle index ${index} out of range [0, ${this.set.count})`);
+    const texel = new Float32Array(4);
+    this.renderer.readRenderTargetPixels(this.position[this.current]!, index % this.width, Math.floor(index / this.width), 1, 1, texel);
+    return [texel[0]!, texel[1]!, texel[2]!];
+  }
+
   dispose(): void {
     [...this.position, ...this.velocity].forEach((target) => target.dispose());
     [this.velocityMaterial, this.positionMaterial, this.copyMaterial].forEach((m) => m.dispose());

@@ -8,7 +8,8 @@ import type { ForceDefinition } from './types';
 import { PAIR_VARIABLES, PAIR_VARIABLE_NAMES } from './variables';
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY)]);
+// 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
+const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
 export interface CompiledForce {
   definition: ForceDefinition;
@@ -35,6 +36,7 @@ export function validateForceShape(def: ForceDefinition): string[] {
   const seen = new Set<string>();
   for (const param of def.params) {
     if (!IDENTIFIER.test(param.name)) problems.push(`parameter name '${param.name}' is not a valid identifier`);
+    else if (param.name.startsWith('_') || param.name.includes('__')) problems.push(`parameter name '${param.name}' may not start with '_' or contain '__'`);
     else if (RESERVED.has(param.name)) problems.push(`parameter name '${param.name}' is reserved`);
     else if (seen.has(param.name)) problems.push(`parameter '${param.name}' is declared twice`);
     seen.add(param.name);
@@ -57,6 +59,10 @@ export function compileForce(def: ForceDefinition): CompiledForce {
 
   const inR = substitute(parsed, 'x', bin('/', variable('r'), variable('cutoff')));
   const magnitude = def.mode === 'potential' ? simplify(neg(derivative(inR, 'r'))) : simplify(inR);
+  const nonFinite = nonFiniteConstants(magnitude);
+  if (nonFinite.length > 0) {
+    throw new ForceValidationError(def.name, [`expression folds to a non-finite constant (${nonFinite.join(', ')}); check divisions by zero and log/sqrt of non-positive numbers`]);
+  }
   return { definition: def, magnitude, evaluate: compileJs(magnitude) };
 }
 
@@ -72,6 +78,27 @@ function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
         : `; declare it as a parameter or use one of: ${allowed.join(', ')}`;
       return `unknown variable '${name}'${hint}`;
     });
+}
+
+function nonFiniteConstants(expr: Expr, found: number[] = []): number[] {
+  switch (expr.kind) {
+    case 'num':
+      if (!Number.isFinite(expr.value)) found.push(expr.value);
+      break;
+    case 'var':
+      break;
+    case 'neg':
+      nonFiniteConstants(expr.arg, found);
+      break;
+    case 'bin':
+      nonFiniteConstants(expr.left, found);
+      nonFiniteConstants(expr.right, found);
+      break;
+    case 'call':
+      expr.args.forEach((arg) => nonFiniteConstants(arg, found));
+      break;
+  }
+  return found;
 }
 
 function substitute(expr: Expr, name: string, replacement: Expr): Expr {

@@ -123,6 +123,8 @@ describe('toGlsl', () => {
     expect(glsl('r^0')).toBe('1.0');
     expect(glsl('r^0.5')).toBe('pow(u_r, 0.5)');
     expect(glsl('r^20')).toBe('pow(u_r, 20.0)');
+    expect(glsl('(r - a)^n')).toBe('spow((u_r - u_a), u_n)');
+    expect(GLSL_POWER_HELPERS).toContain('float spow(float b, float e)');
     expect(GLSL_POWER_HELPERS).toContain('float ipow3(float x) { return x * x * x; }');
   });
 

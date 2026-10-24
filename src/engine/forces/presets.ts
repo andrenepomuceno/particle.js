@@ -79,11 +79,9 @@ export const FORCE_PRESETS = {
 
 export type ForcePresetId = keyof typeof FORCE_PRESETS;
 
-let nextId = 0;
-
+// crypto.randomUUID is unavailable in insecure contexts (plain-http LAN hosting), which crashed v1.
 export function newForceId(): string {
-  nextId += 1;
-  return `force-${Date.now().toString(36)}-${nextId}`;
+  return `force-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export function forceFromPreset(id: ForcePresetId, overrides: Partial<ForceDefinition> = {}): ForceDefinition {

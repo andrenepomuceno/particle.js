@@ -40,6 +40,9 @@ describe('compileForce', () => {
     [{ params: [{ name: '1a', value: 1 }] }, /not a valid identifier/],
     [{ params: [{ name: 'k', value: 1 }, { name: 'k', value: 2 }] }, /declared twice/],
     [{ params: [{ name: 'k', value: NaN }] }, /parameter 'k' must be finite/],
+    [{ params: [{ name: 'soft2', value: 1 }] }, /parameter name 'soft2' is reserved/],
+    [{ params: [{ name: '_k', value: 1 }] }, /may not start with '_' or contain '__'/],
+    [{ expression: 'r + log(0)', params: [] }, /non-finite constant \(-Infinity\)/],
   ])('rejects %j', (overrides, message) => {
     expect(() => compileForce(makeForce(overrides))).toThrow(ForceValidationError);
     expect(() => compileForce(makeForce(overrides))).toThrow(message);

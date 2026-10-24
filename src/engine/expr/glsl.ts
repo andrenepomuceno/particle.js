@@ -31,7 +31,7 @@ export function toGlsl(expr: Expr, rename: Rename): string {
   }
 }
 
-// GLSL pow() is undefined for negative bases, but r^-2 or q^3 must behave like Math.pow.
+// GLSL pow() is undefined for negative bases, but r^-2, q^3 or (r - r0)^n must behave like Math.pow.
 function emitPower(base: string, exponent: Expr, exponentGlsl: string): string {
   if (exponent.kind === 'neg' && exponent.arg.kind === 'num') {
     return emitPower(base, { kind: 'num', value: -exponent.arg.value }, exponentGlsl);
@@ -42,11 +42,21 @@ function emitPower(base: string, exponent: Expr, exponentGlsl: string): string {
     const positive = `ipow${Math.abs(n)}(${base})`;
     return n > 0 ? positive : `(1.0 / ${positive})`;
   }
-  return `pow(${base}, ${exponentGlsl})`;
+  if (exponent.kind === 'num') return `pow(${base}, ${exponentGlsl})`;
+  return `spow(${base}, ${exponentGlsl})`;
 }
 
-export const GLSL_POWER_HELPERS = Array.from({ length: MAX_UNROLLED_POWER }, (_, k) => {
-  const n = k + 1;
-  const body = Array.from({ length: n }, () => 'x').join(' * ');
-  return `float ipow${n}(float x) { return ${body}; }`;
-}).join('\n');
+const SIGNED_POW = `float spow(float b, float e) {
+  if (b >= 0.0 || fract(e) != 0.0) return pow(b, e);
+  float m = pow(-b, e);
+  return mod(e, 2.0) == 0.0 ? m : -m;
+}`;
+
+export const GLSL_POWER_HELPERS = [
+  ...Array.from({ length: MAX_UNROLLED_POWER }, (_, k) => {
+    const n = k + 1;
+    const body = Array.from({ length: n }, () => 'x').join(' * ');
+    return `float ipow${n}(float x) { return ${body}; }`;
+  }),
+  SIGNED_POW,
+].join('\n');

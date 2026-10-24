@@ -16,6 +16,7 @@ async function libraryIds() {
   return Promise.all(files.map(async (f) => JSON.parse(await readFile(new URL(f, dir), 'utf8')).id));
 }
 const ids = values.scenario === 'all' ? await libraryIds() : values.scenario.split(',');
+const BATCH = 10;
 
 /** Runs in the page: metrics of the current particles (positions, velocities, masses). */
 function measure() {
@@ -76,8 +77,11 @@ const results = await withBrowser(async ({ browser, base }) => {
     await page.evaluate(() => globalThis.particleController.store.set({ paused: true }));
     let done = 0;
     for (const target of [0, Math.round(steps / 2), steps]) {
-      await page.evaluate((n) => globalThis.particleController.advance(n), target - done);
-      done = target;
+      // Small batches: advance() queues every step at once, and hundreds of heavy steps (e.g. a
+      // velocity-dependent force on 10k particles) can trip the GPU watchdog and lose the context.
+      for (; done < target; done += Math.min(BATCH, target - done)) {
+        await page.evaluate((n) => globalThis.particleController.advance(n), Math.min(BATCH, target - done));
+      }
       const sample = await page.evaluate(measure);
       positions.push(await page.evaluate(() => globalThis.particleController.readParticles().filter((p) => p.kind !== 2).map((p) => p.position)));
       samples.push({ ...sample, time: await page.evaluate(() => globalThis.particleController.state.time) });

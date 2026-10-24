@@ -1,5 +1,6 @@
 // Boots the dev server, opens scenarios in headless Chromium and saves screenshots.
-// Usage: node scripts/snap.mjs [--scenario id,id] [--wait ms] [--capacity n] [--out dir]
+// Usage: node scripts/snap.mjs [--scenario id,id] [--wait ms] [--capacity n] [--out dir] [--press key,key]
+// --press sends the keys (e.g. j for the force field) after loading, before waiting.
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -13,6 +14,7 @@ const { values } = parseArgs({
     out: { type: 'string', default: 'reports/screenshots' },
     width: { type: 'string', default: '1400' },
     height: { type: 'string', default: '900' },
+    press: { type: 'string', default: '' },
   },
 });
 
@@ -27,6 +29,9 @@ await withBrowser(async ({ browser, base }) => {
     const problems = collectProblems(page);
     const query = new URLSearchParams({ scenario, ...(values.capacity ? { capacity: values.capacity } : {}) });
     await page.goto(`${base}?${query}`);
+    const keys = values.press.split(',').filter(Boolean);
+    if (keys.length > 0) await page.waitForTimeout(500);
+    for (const key of keys) await page.keyboard.press(key);
     await page.waitForTimeout(wait);
     const state = await page.evaluate(() => {
       const c = globalThis.particleController;

@@ -63,6 +63,8 @@ export const ACTIONS: readonly Action[] = [
       controller.notify(`Color mode: ${next}`);
     },
   },
+  { id: 'field', label: 'Show / hide force field', key: 'j', group: 'View', run: ({ controller }) => controller.toggleField() },
+  { id: 'fitField', label: 'Re-fit field grid to the view', key: 'f', group: 'View', run: ({ controller }) => controller.fitField() },
   { id: 'hideOverlay', label: 'Hide everything', key: 'h', group: 'View', run: (ctx) => ctx.toggleOverlay() },
   { id: 'collapseAll', label: 'Close all dialogs', key: 'm', group: 'View', run: (ctx) => ctx.collapseAll() },
   { id: 'help', label: 'Keyboard help', key: '?', group: 'View', run: (ctx) => ctx.toggleDialog('help') },

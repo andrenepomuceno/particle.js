@@ -8,7 +8,7 @@ import { loadJson, saveJson } from './persist';
 import { AboutView } from './views/AboutView';
 import { ForcesView } from './views/ForcesView';
 import { StatsView } from './views/StatsView';
-import { ControlsView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
+import { ControlsView, FieldView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
 
 interface DialogSpec {
   id: string;
@@ -27,6 +27,7 @@ const DIALOGS: readonly DialogSpec[] = [
   { id: 'particle', title: 'Particle', position: { x: 8, y: 520 }, render: () => <ParticleView /> },
   { id: 'selection', title: 'Selection', position: { x: 290, y: 320 }, render: (ctx) => <SelectionView ctx={ctx} /> },
   { id: 'generator', title: 'Generator', position: { x: 290, y: 420 }, render: () => <GeneratorView /> },
+  { id: 'field', title: 'Field', position: { x: 560, y: 320 }, render: () => <FieldView /> },
   { id: 'stats', title: 'Statistics', position: right(900), render: () => <StatsView /> },
   { id: 'about', title: 'About', position: { x: Math.max((window.innerWidth - 460) / 2, 8), y: 120 }, render: () => <AboutView /> },
   { id: 'help', title: 'Shortcuts', position: { x: 560, y: 56 }, render: () => <HelpView /> },

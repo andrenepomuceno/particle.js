@@ -7,9 +7,10 @@ src/
     forces/          ForceDefinition, compileForce, variable catalogue, presets
     shaders/         velocity/position compute shader generation
     gpu/GpuCompute   ping-pong render targets, shader validation, upload/readback
-    render/          ParticlePoints: spherow/flat sprites drawn straight from the GPU textures
-    cpu/             referenceStep: float64 mirror of the shaders (the spec)
+    render/          ParticlePoints (spherow/flat sprites) and FieldArrows, drawn straight from GPU textures
+    cpu/             referenceStep, energy, field: float64 mirrors of the shaders (the spec)
     particles.ts     ParticleSet, struct-of-arrays mirroring the textures
+    field.ts         field probe grid placement, color reference, test particle
     settings.ts      SimulationSettings + validation
     snapshot.ts      JSON export/import with path-precise validation
     json.ts          JsonReader: typed readers that fail with the JSON path
@@ -54,6 +55,20 @@ for every potential-mode force, with the same softening and cutoff. It shares th
 with the velocity pass and runs only for the Statistics dialog's 1 Hz sample
 (`GpuCompute.readPotentials`). `src/engine/cpu/energy.ts` is its float64 mirror and turns
 velocities and potentials into kinetic/potential energy, speeds and temperature.
+
+## Field probe pass
+
+`generateFieldShader` wraps the same generated `totalForce` as the velocity and acceleration
+passes and calls it at each probe position with index −1 (matches no particle), the test
+particle's attributes from uniforms and clock 0. Probes live in their own textures
+(`GpuCompute.setProbes`: positions in, (F, |F|) out), never in the particle set, so they do
+not move, count, get picked or end up in snapshots. The program shares the force uniforms,
+is built lazily and rebuilt after a force recompile, like the energy pass. `FieldArrows`
+(`src/engine/render/`) draws one point sprite per probe straight from those two textures;
+the CPU only reads |F| back to pick the color reference (`fieldReference`, the 90th
+percentile). The controller lays the grid with `fieldGrid(fieldView(camera))` and reruns the
+pass at most every 100 ms while time advances, or right after an edit. `src/engine/cpu/field.ts`
+is its float64 mirror; `npm run parity` compares the two.
 
 ## Recompilation
 

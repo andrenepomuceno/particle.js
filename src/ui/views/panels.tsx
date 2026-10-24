@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
+import { validateColumns } from '../../engine/field';
 import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
 import { FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
 import { saveJson } from '../persist';
@@ -10,6 +11,7 @@ import { CheckField, NumberField, SelectField, nonNegative, positive } from '../
 import { useAppState, useController } from '../context';
 
 const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
+const FIT_FIELD_KEY = ACTIONS.find((a) => a.id === 'fitField')!.key!;
 
 const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(limit));
 
@@ -216,6 +218,52 @@ export function GeneratorView() {
       </div>
       <button className="primary" onClick={() => controller.generateAt(undefined, undefined)}>Generate at origin</button>
       <p className="muted" style={{ margin: 0 }}>Press <kbd>G</kbd> over the canvas to generate at the cursor.</p>
+    </div>
+  );
+}
+
+export function FieldView() {
+  const controller = useController();
+  const field = useAppState((s) => s.field);
+  const info = useAppState((s) => s.fieldInfo);
+  const error = useAppState((s) => s.fieldError);
+  const set = (patch: Partial<typeof field>) => controller.setField(patch);
+  const probe = field.probe;
+  const setProbe = (patch: Partial<typeof probe>) => set({ probe: { ...probe, ...patch } });
+  return (
+    <div className="stack">
+      {error && <pre className="errors">{error}</pre>}
+      <div className="grid">
+        <CheckField label="Show field" checked={field.enabled} onChange={(enabled) => set({ enabled })} />
+        <CheckField label="Re-fit after camera moves" checked={field.autoRefresh} onChange={(autoRefresh) => set({ autoRefresh })} />
+        <NumberField label="Grid columns" value={field.columns} validate={validateColumns} onCommit={(columns) => set({ columns })} />
+      </div>
+      <h3 className="section-title">Test particle</h3>
+      <div className="grid">
+        <NumberField label="Mass" value={probe.mass} validate={positive} onCommit={(mass) => setProbe({ mass })} />
+        <NumberField label="Charge" value={probe.charge} onCommit={(charge) => setProbe({ charge })} />
+        <NumberField label="Spin" value={probe.spin} onCommit={(spin) => setProbe({ spin })} />
+        <NumberField label="Parity" value={probe.parity} onCommit={(parity) => setProbe({ parity })} />
+        <NumberField label="Nuclear charge" value={probe.nuclearCharge} onCommit={(nuclearCharge) => setProbe({ nuclearCharge })} />
+        {(['red', 'green', 'blue'] as const).map((channel, k) => (
+          <NumberField key={channel} label={`Color ${channel}`} value={probe.color[k]!}
+            onCommit={(v) => setProbe({ color: probe.color.map((c, j) => (j === k ? v : c)) as typeof probe.color })} />
+        ))}
+      </div>
+      {info && (
+        <dl className="stats">
+          <dt>Probes</dt><dd>{info.columns} × {info.rows}</dd>
+          <dt>Spacing</dt><dd>{format(info.spacing, 4)}</dd>
+          <dt>|F| at white</dt><dd>{format(info.reference, 4)}</dd>
+        </dl>
+      )}
+      <button className="outlined" disabled={!field.enabled} onClick={() => controller.fitField()}>
+        Re-fit to view <kbd>{keyLabel(FIT_FIELD_KEY)}</kbd>
+      </button>
+      <p className="muted" style={{ margin: 0 }}>
+        Arrows show the net force the test particle would feel at each probe. Color runs red to magenta
+        up to the 90th percentile of |F| over the probes, white beyond.
+      </p>
     </div>
   );
 }

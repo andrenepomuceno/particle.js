@@ -136,6 +136,34 @@ await withBrowser(async ({ browser, base }) => {
   const afterReset = await page.evaluate(() => ({ name: globalThis.particleController.state.name, count: globalThis.particleController.state.particleCount }));
   check('I opens the import input; a scenario file imports and R resets it', opened && imported === 'Lennard-Jones crystal' && afterReset.name === imported && afterReset.count === 1200, afterReset);
 
+  const fieldState = () => page.evaluate(() => {
+    const s = globalThis.particleController.state;
+    return { enabled: s.field.enabled, info: s.fieldInfo, count: s.particleCount, error: s.fieldError };
+  });
+  await page.mouse.move(700, 600);
+  await page.keyboard.press('j');
+  await page.waitForTimeout(500);
+  let field = await fieldState();
+  check('J shows the field, probes are not particles',
+    field.enabled && field.info?.columns === 48 && field.info.rows > 0 && field.info.reference > 0 && Number.isFinite(field.info.reference)
+    && field.count === afterReset.count && !field.error, field);
+  const spacingBefore = field.info?.spacing;
+  await page.evaluate(() => {
+    const c = globalThis.particleController;
+    c.setField({ autoRefresh: false });
+    c.camera.position.sub(c.controls.target).multiplyScalar(2).add(c.controls.target);
+    c.controls.update();
+  });
+  const unchanged = (await fieldState()).info?.spacing;
+  await page.keyboard.press('f');
+  await page.waitForTimeout(200);
+  field = await fieldState();
+  const ratio = field.info?.spacing / spacingBefore;
+  check('F re-fits the grid to the view (auto-refresh off)', unchanged === spacingBefore && Math.abs(ratio - 2) < 1e-3, { spacingBefore, unchanged, ratio });
+  await page.keyboard.press('j');
+  field = await fieldState();
+  check('J hides the field', !field.enabled && field.info === undefined, field);
+
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   await mkdir(path.dirname(out), { recursive: true });

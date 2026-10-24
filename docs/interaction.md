@@ -20,6 +20,8 @@ field; click the canvas to give focus back.
 | V | look down the z axis |
 | L | follow (lock the camera on) the inspected particle |
 | A | show / hide axes |
+| J | show / hide the force field |
+| F | re-fit the field grid to the current view |
 | Q | cycle color mode (charge, color, speed, mass, spin, parity, nuclear) |
 | H | hide all overlays |
 | M | close all dialogs |
@@ -69,7 +71,19 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 
 ## Dialogs
 
-Information, Forces, Parameters, Controls, Particle, Selection, Generator, Statistics, Shortcuts.
+Information, Forces, Parameters, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
+
+**Field** (<kbd>J</kbd>) draws a grid of arrows over the view showing the net force a test
+particle would feel there, using the enabled forces exactly as the integrator does. The grid
+lies in z = 0 in 2D mode and on the plane through the orbit target facing the camera in 3D;
+cells are square, *Grid columns* across (2 to 256). Arrows point along the force (a component
+toward the camera shortens them) and are colored like the speed palette: red to magenta up to
+the 90th percentile of |F| over the probes, white beyond (the dialog shows that |F|). The test
+particle's mass, charge, spin, parity, nuclear charge and color are editable (default: mass 1,
+charge 1, parity 1, the rest 0; its clock is 0). <kbd>F</kbd> re-fits the grid to the view;
+with *Re-fit after camera moves* on (default) that happens after every orbit, pan, zoom,
+camera reset or resize. The field is recomputed at most 10 times per second while time runs.
+Probes are not particles: they never move, count, get selected or saved.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
 total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,

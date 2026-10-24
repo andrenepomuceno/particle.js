@@ -2,12 +2,16 @@ import { AxesHelper, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
 import { summarizeEnergy } from '../engine/cpu/energy';
+import {
+  DEFAULT_PROBE, fieldGrid, fieldReference, fieldView, validateColumns, validateProbe, type FieldProbe,
+} from '../engine/field';
 import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk, uniform } from '../engine/random';
+import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
@@ -56,6 +60,26 @@ export interface PerformanceSample {
   sampleMs: number;
 }
 
+export interface FieldSettings {
+  enabled: boolean;
+  /** Probes across the view; rows follow from the aspect ratio (square cells). */
+  columns: number;
+  /** Re-fit the grid to the view whenever a camera move ends. */
+  autoRefresh: boolean;
+  probe: FieldProbe;
+}
+
+export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, probe: DEFAULT_PROBE };
+
+export interface FieldInfo {
+  columns: number;
+  rows: number;
+  /** World distance between neighboring probes. */
+  spacing: number;
+  /** |F| at the top of the palette (90th percentile of the probes). */
+  reference: number;
+}
+
 export interface Notice {
   id: number;
   level: 'info' | 'error';
@@ -92,6 +116,9 @@ export interface AppState {
   selection: number[];
   clipboard: Particle[];
   generator: GeneratorTemplate;
+  field: FieldSettings;
+  fieldInfo: FieldInfo | undefined;
+  fieldError: string | undefined;
   fps: number;
   notices: Notice[];
 }
@@ -104,6 +131,8 @@ const DEFAULT_CAPACITY = 128 * 128;
 /** 256² slots: the O(N²) step is already far from interactive there (v1 topped out at 50k in its record build). */
 export const MAX_CAPACITY = 256 * 256;
 const NOTICE_LIFETIME_MS = 6000;
+/** The probe pass is O(probes × N) plus a readback, so it is not repeated every frame. */
+const FIELD_INTERVAL_MS = 100;
 
 function structureKey(forces: readonly CompiledForce[]): string {
   return JSON.stringify(forces.map(({ definition: d }) => [d.expression, d.mode, d.range, d.params.map((p) => p.name)]));
@@ -119,6 +148,10 @@ export class SimulationController {
   private set: ParticleSet;
   private gpu: GpuCompute;
   private points: ParticlePoints;
+  private readonly arrows = new FieldArrows();
+  private fieldDirty = false;
+  private fieldTime = NaN;
+  private fieldComputedAt = 0;
   private compiled: CompiledForce[] = [];
   private compiledKey = '';
   private cpuStale = false;
@@ -143,12 +176,14 @@ export class SimulationController {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.gpu = new GpuCompute(this.renderer, this.set);
     this.points = new ParticlePoints(width);
-    this.scene.add(this.points.object, this.axes);
+    this.scene.add(this.points.object, this.arrows.object, this.axes);
+    this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
-      selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
+      selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
+      fieldInfo: undefined, fieldError: undefined, fps: 0, notices: [],
     });
   }
 
@@ -178,6 +213,7 @@ export class SimulationController {
     this.controls.dispose();
     this.gpu.dispose();
     this.points.dispose();
+    this.arrows.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -187,6 +223,7 @@ export class SimulationController {
     this.camera.aspect = width / Math.max(height, 1);
     this.camera.updateProjectionMatrix();
     this.applyRadius();
+    this.autoFitField();
   }
 
   notify(text: string, level: Notice['level'] = 'info'): void {
@@ -291,6 +328,8 @@ export class SimulationController {
     this.cpuStale = false;
     this.applyRadius();
     this.store.set({ capacity: this.set.capacity });
+    // Probes live in the GpuCompute that was just replaced.
+    if (this.state.field.enabled) this.fitField();
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
@@ -313,6 +352,7 @@ export class SimulationController {
     if (problems.length > 0) throw new Error(problems.join('; '));
     this.gpu.setSettings(settings);
     this.store.set({ settings });
+    this.fieldDirty = true;
   }
 
   setForces(forces: ForceDefinition[]): void {
@@ -337,6 +377,7 @@ export class SimulationController {
         this.gpu.setForceValues(compiled);
       }
       this.compiled = compiled;
+      this.fieldDirty = true;
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       shaderError = error.log;
@@ -414,6 +455,7 @@ export class SimulationController {
     this.controls.enableRotate = !this.state.settings.mode2D;
     this.controls.update();
     this.store.set({ followInspected: false });
+    this.autoFitField();
   }
 
   /** Looks straight down the z axis at the current target, as v1's [V] key. */
@@ -422,6 +464,82 @@ export class SimulationController {
     this.camera.position.set(target.x, target.y, target.z + this.controls.getDistance());
     this.camera.up.set(0, 1, 0);
     this.controls.update();
+    this.autoFitField();
+  }
+
+  /* Field */
+
+  setField(patch: Partial<FieldSettings>): void {
+    const field = { ...this.state.field, ...patch };
+    const problems = [validateColumns(field.columns), ...validateProbe(field.probe)].filter((p) => p !== undefined);
+    if (problems.length > 0) throw new Error(problems.join('; '));
+    const previous = this.state.field;
+    this.store.set({ field, fieldError: undefined });
+    this.arrows.setVisible(field.enabled);
+    if (!field.enabled) {
+      this.store.set({ fieldInfo: undefined });
+      return;
+    }
+    if (!previous.enabled || field.columns !== previous.columns || (field.autoRefresh && !previous.autoRefresh)) this.fitField();
+    this.fieldDirty = true;
+  }
+
+  toggleField(): void {
+    this.setField({ enabled: !this.state.field.enabled });
+  }
+
+  /** Lays the probe grid over the current view (v1's [F]). */
+  fitField(): void {
+    const { field, settings } = this.state;
+    if (!field.enabled) {
+      this.notify('The field is off: press J to show it', 'error');
+      return;
+    }
+    this.camera.updateMatrixWorld();
+    const direction = this.camera.getWorldDirection(new Vector3());
+    const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).normalize();
+    const view = fieldView({
+      position: this.camera.position.toArray(), target: this.controls.target.toArray(), direction: direction.toArray(),
+      right: right.toArray(), fovDegrees: this.camera.fov, aspect: this.camera.aspect,
+    }, settings.mode2D);
+    const grid = fieldGrid(view, field.columns);
+    this.gpu.setProbes(grid.positions);
+    this.arrows.setGrid({ probes: this.gpu.probeTexture, field: this.gpu.fieldTexture }, this.gpu.probeWidth, grid.count, grid.spacing);
+    this.store.set({ fieldInfo: { columns: grid.columns, rows: grid.rows, spacing: grid.spacing, reference: this.state.fieldInfo?.reference ?? 0 } });
+    this.fieldDirty = true;
+  }
+
+  private autoFitField(): void {
+    const { enabled, autoRefresh } = this.state.field;
+    if (!enabled || !autoRefresh) return;
+    // Runs from camera and resize events, where a throw would escape as an uncaught error.
+    try {
+      this.fitField();
+    } catch (error) {
+      this.notify(`Field re-fit failed: ${(error as Error).message}`, 'error');
+    }
+  }
+
+  /** Recomputes the field when something changed, and at most every FIELD_INTERVAL_MS while time runs. */
+  private updateField(now: number): void {
+    const { field, fieldInfo, time } = this.state;
+    if (!field.enabled || !fieldInfo) return;
+    const due = time !== this.fieldTime && now - this.fieldComputedAt >= FIELD_INTERVAL_MS;
+    if (!this.fieldDirty && !due) return;
+    try {
+      const reference = fieldReference(this.gpu.computeField(time, field.probe));
+      this.arrows.setReference(reference);
+      if (reference !== fieldInfo.reference) this.store.set({ fieldInfo: { ...fieldInfo, reference } });
+    } catch (error) {
+      if (!(error instanceof ShaderCompileError)) throw error;
+      this.setField({ enabled: false });
+      const fieldError = `Field pass failed to compile; the simulation is unaffected.\n${error.log}`;
+      this.store.set({ fieldError });
+      this.notify(fieldError, 'error');
+    }
+    this.fieldDirty = false;
+    this.fieldTime = time;
+    this.fieldComputedAt = now;
   }
 
   /* Particles */
@@ -436,6 +554,7 @@ export class SimulationController {
     this.gpu.upload();
     this.points.setCount(this.set.count);
     this.store.set({ particleCount: this.set.count });
+    this.fieldDirty = true;
     this.refreshForceWarnings();
     this.refreshInspected();
   }
@@ -655,6 +774,7 @@ export class SimulationController {
   private applyRadius(): void {
     const height = this.renderer.domElement.height;
     this.points.setRadius(this.state.particleRadius, height, this.camera.fov);
+    this.arrows.setViewport(this.renderer.domElement.width, height, this.camera.fov);
   }
 
   private render(): void {
@@ -709,6 +829,7 @@ export class SimulationController {
       this.camera.position.add(shift);
     }
     this.controls.update();
+    this.updateField(now);
     this.render();
     this.frameMsSinceSample += performance.now() - frameStart;
     this.trackFps(now);

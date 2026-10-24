@@ -98,7 +98,7 @@ void main() {
   float diameter = 2.0 * uRadius * uScale / -mvPosition.z;
   if (uStyle == 0) diameter /= ${SPHERE_FRACTION};
   gl_PointSize = max(diameter * (vHighlight > 0.0 ? 1.6 : 1.0), 2.0);
-  vPixels = gl_PointSize;
+  vPixels = max(diameter, 2.0);
 }
 `;
 

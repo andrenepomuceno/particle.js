@@ -72,7 +72,7 @@ npm run smoke:all  # headless Chromium: every scenario + interaction smoke test
 npm run build      # production bundle in dist/
 ```
 
-More in [docs/development.md](docs/development.md). Documentation index: [docs/README.md](docs/README.md).
+Release notes: [CHANGELOG.md](CHANGELOG.md). More in [docs/development.md](docs/development.md). Documentation index: [docs/README.md](docs/README.md).
 
 ## Thanks
 

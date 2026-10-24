@@ -32,6 +32,16 @@ Mode **force**: the text is `F(r)`. Mode **potential**: the text is `V(r)` and t
 uses `F = −dV/dr`, differentiated exactly by shader-autodiff (no finite differences). In a
 short-range potential `x` is expanded to `r / cutoff` before differentiating.
 
+**Vector potentials.** A potential that reads the relative position `dx`, `dy`, `dz`
+(Δx = x_i − x_j) or the spin projections `si_r`, `sj_r` is a function of Δx, and its force is the
+full gradient `F_i = −∇_Δx V`, not a magnitude along r̂: non-central forces such as the magnetic
+dipole–dipole interaction. `r` inside it is `√(Δx² + ε²)`, so softening gives the exact gradient
+of the softened V (Plummer); a central force instead applies `−V'(r_soft)` along r̂, which equals
+it only without softening. With fixed spins V depends on positions alone, so energy is conserved;
+momentum is conserved when V is symmetric under swapping the particles (Δx → −Δx with i ↔ j),
+as the dipole is. Orbital angular momentum is not (the torque on the spins is not modelled).
+`dx`, `dy`, `dz` are rejected in force mode.
+
 Operators: `+ - * / ^` (`**` is accepted for `^`; `^` is right-associative and binds
 tighter than unary minus, so `-2^2 = -4`). Functions: `sin cos tan asin acos atan sinh
 cosh tanh exp log sqrt abs sign floor min max pow step clamp`. Constants: `pi`, `e`.
@@ -48,7 +58,8 @@ Variables:
 | `q_dot` | `q_i·q_j` over both components |
 | `sx_*`, `sy_*`, `sz_*` | spin vector components |
 | `s_dot` | `s_i·s_j` |
-| `si_r`, `sj_r` | `s_i·r̂`, `s_j·r̂`, with r̂ pointing from j to i |
+| `si_r`, `sj_r` | `s_i·r̂`, `s_j·r̂`, with r̂ pointing from j to i (vector force in a potential) |
+| `dx`, `dy`, `dz` | relative position x_i − x_j (potential mode: vector force) |
 | `i3_i`, `i3_j` | isospin projection I₃ (u: +½, d: −½) |
 | `p_i`, `p_j` | parity |
 | `n_i`, `n_j` | nuclear charge (v1's coupling for the nuclear force) |
@@ -77,7 +88,7 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |
 | Spring | potential | short | `0.5 * k * (r - r0)^2` |
 | Cornell (color) | potential | short | `c_dot * (alpha / r - sigma * r)` |
-| Spin dipole | force | short | `3 * k * (s_dot - 3 * si_r * sj_r) / r^4` |
+| Spin dipole | potential (vector) | short | `k * (s_dot - 3 * si_r * sj_r) / r^3` |
 
 All of them are presets in the Forces dialog (`src/engine/forces/presets.ts`).
 
@@ -99,11 +110,10 @@ integrators apply the impulse (Verlet after its drift); field probes ignore coll
 ## Spin, 2D charge and isospin
 
 - **Spin** is a fixed 3D vector per particle. Expressions can depend on its orientation
-  (`s_dot`, `si_r`, `sj_r`), but forces stay central (along r̂) and spins never rotate: there is
-  no torque or precession. The *Spin dipole* preset is the central part of the magnetic
-  dipole-dipole force, written in force mode: with direction-dependent terms V(r) is not a true
-  potential (the missing torque would do work), so potential mode rejects `si_r`/`sj_r`, and the
-  energy chart lists such forces as missing instead of reporting a drifting total.
+  (`s_dot`, `si_r`, `sj_r`); spins never rotate (no torque or precession). The *Spin dipole*
+  preset is the magnetic dipole–dipole energy in potential mode, so its force is the full,
+  non-central −∇V (see *Vector potentials*) and the energy chart includes it. In force mode,
+  `si_r`/`sj_r` only shape a central magnitude.
 - **Charge** is a generic 2D vector (`q`, `q2`; user decision). Electromagnetism only needs the
   first component (U(1) has rank 1, so its charges are real); `q_dot` lets a force couple through
   both, and the Coulomb preset uses it (identical to `q_i·q_j` while every `q2` is 0).

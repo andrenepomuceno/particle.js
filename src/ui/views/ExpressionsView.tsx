@@ -3,7 +3,7 @@ import { FUNCTION_ARITY } from '../../engine/expr/ast';
 import { PAIR_VARIABLES, type PairVariable } from '../../engine/forces/variables';
 
 const GROUPS: readonly [title: string, bases: readonly string[]][] = [
-  ['Geometry', ['r', 'x', 'cutoff']],
+  ['Geometry', ['r', 'x', 'cutoff', 'dx', 'dy', 'dz']],
   ['Mass and charge', ['m', 'q', 'q2', 'q_dot']],
   ['Spin and isospin', ['sx', 'sy', 'sz', 's_dot', 'si_r', 'sj_r', 'i3']],
   ['Color charge', ['cr', 'cg', 'cb', 'cx', 'cy', 'c_dot']],
@@ -66,8 +66,8 @@ export function ExpressionsView() {
         <h3 className="section-title">Range and softening</h3>
         <p className="muted" style={{ margin: 0 }}>
           Short-range forces act only below their cutoff (x = r / cutoff). Softening ε replaces r with √(r² + ε²)
-          inside the expression; the direction still uses the true distance. Direction-dependent terms
-          (si_r, sj_r) are allowed in force mode only.
+          inside the expression; the direction still uses the true distance. A potential that reads dx, dy, dz,
+          si_r or sj_r is a vector potential: its force is the full gradient −∇V (non-central), not a magnitude along r̂.
         </p>
       </section>
     </div>

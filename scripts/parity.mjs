@@ -20,8 +20,14 @@ const CASES = [
     ] },
   { name: 'spin dipole, 2D charge, isospin', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 40 }, steps: 200, tolerance: 1e-3,
     forces: [
-      { preset: 'spinSpin', cutoff: 15, params: { k: 5 } },
+      { name: 'spin radial', mode: 'force', range: 'short', cutoff: 15, softening: 1, expression: '15 * (s_dot - 3 * si_r * sj_r) / r^4' },
       { name: 'charge 2D + isospin', mode: 'force', range: 'long', softening: 1, expression: 'q_dot / r^2 + 0.5 * i3_i * i3_j * exp(-r / 4)' },
+    ] },
+  // Non-central: F = −∇V of a potential in the relative position (spin dipole + anisotropic term).
+  { name: 'vector potential (dipole), collisions', settings: { timeStep: 0.01, boundary: 'box', boundarySize: 30, collisionDistance: 1 }, steps: 200, tolerance: 1e-3,
+    forces: [
+      { preset: 'spinSpin', cutoff: 12, softening: 0.5, params: { k: 4 } },
+      { name: 'anisotropic', mode: 'potential', range: 'long', softening: 0.5, expression: '0.2 * q_i * q_j * dx * dy / r^4' },
     ] },
   { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
     forces: [{ preset: 'gravity', softening: 1, params: { G: 5 } }] },
@@ -34,6 +40,10 @@ const GROUPS = {
   'spin dipole, 2D charge, isospin': [
     { count: 12, shape: { type: 'grid', spacing: 4, columns: 4, rows: 3 }, species: { cycle: ['u', 'd', 'p', 'n'] },
       charge2: { cycle: [0.5, -0.5, 0] }, spin: { cycle: [[0, 0, 1], [1, 0, 0], [0, 1, 0.5]] }, velocity: { type: 'random', speed: 0.3 } },
+  ],
+  'vector potential (dipole), collisions': [
+    { count: 12, shape: { type: 'grid', spacing: 3, columns: 4, rows: 3 }, charge: { cycle: [1, -1, 0.5] },
+      spin: { cycle: [[0, 0, 1], [1, 0, 0], [0, 0.6, 0.8], [-1, 0, 0]] }, velocity: { type: 'random', speed: 0.3 } },
   ],
   'collisions + gravity, box': [
     { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, velocity: { type: 'random', speed: 1 } },

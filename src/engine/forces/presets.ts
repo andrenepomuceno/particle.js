@@ -67,11 +67,11 @@ export const FORCE_PRESETS = {
     params: [{ name: 'alpha', value: 20 }, { name: 'sigma', value: 0.5 }],
   },
   spinSpin: {
-    // Central part of the magnetic dipole-dipole force, -d/dr of k (s_dot - 3 si_r sj_r) / r^3 at fixed
-    // orientation. The angular part (a torque) is not modelled, so it has no consistent potential.
+    // Magnetic dipole-dipole energy of the (fixed) spins; potential mode makes the force the full,
+    // non-central −∇V. Spins do not turn: the torque on them is not modelled.
     name: 'Spin dipole',
-    mode: 'force',
-    expression: '3 * k * (s_dot - 3 * si_r * sj_r) / r^4',
+    mode: 'potential',
+    expression: 'k * (s_dot - 3 * si_r * sj_r) / r^3',
     range: 'short',
     cutoff: 20,
     softening: 1,

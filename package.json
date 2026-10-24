@@ -17,7 +17,7 @@
     "snap": "node scripts/snap.mjs",
     "smoke": "node scripts/smoke-interaction.mjs",
     "parity": "node scripts/parity.mjs",
-    "smoke:all": "node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs",
+    "smoke:all": "node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,dipole-chains,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs",
     "cluster-stats": "node scripts/cluster-stats.mjs",
     "snap:library": "node scripts/snap.mjs --wait 2500 --scenario all"
   },

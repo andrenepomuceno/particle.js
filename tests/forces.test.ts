@@ -56,9 +56,10 @@ describe('compileForce', () => {
     expect(body(compileForce(makeForce({ expression: 'q_dot * i3_j', params: [] })))).toMatch(/dot\(attr1\.yz, attr2\.yz\) \* spin2\.w|spin2\.w \* dot\(attr1\.yz, attr2\.yz\)/);
   });
 
-  it('rejects direction-dependent spin terms in potential mode', () => {
-    expect(() => compileForce(makeForce({ mode: 'potential', expression: 'si_r * sj_r / r^3', params: [] })))
-      .toThrow(/si_r, sj_r depend on the pair's direction.*force mode/);
+  it('keeps the relative position for potential mode, where it makes the force a gradient', () => {
+    expect(() => compileForce(makeForce({ expression: 'dx * q_i / r^3', params: [] }))).toThrow(/dx are only available in potential mode/);
+    expect(compileForce(makeForce({ mode: 'potential', expression: 'si_r * sj_r / r^3', params: [] })).vector).toBe(true);
+    expect(compileForce(makeForce({ mode: 'potential', expression: 's_dot / r^3', params: [] })).vector).toBe(false);
   });
 
   it('rejects the old scalar spin variables with the list of new ones', () => {
@@ -95,28 +96,28 @@ describe('compileForce', () => {
 });
 
 /** Body of the force's GLSL function (bindings only, not the signature). */
-const body = (force: ReturnType<typeof compileForce>) => force.glsl('f', 'float r', 0).split('\n').slice(1).join('\n');
+const body = (force: ReturnType<typeof compileForce>) => force.glsl('f', 'vec4 attr1', 0).split('\n').slice(1).join('\n');
 
 describe('GLSL generation', () => {
   it('binds parameters, attributes and cutoff to uniforms in a function with the pair signature', () => {
     const force = compileForce(makeForce({ range: 'short', cutoff: 2, expression: 'k * m_i * cr_j * x', params: [{ name: 'k', value: 1 }] }));
-    const glsl = force.glsl('force3', 'float r, vec4 attr1', 3);
+    const glsl = force.glsl('force3', 'vec4 attr1', 3);
     expect(glsl.startsWith('float force3(float r, vec4 attr1) {')).toBe(true);
     for (const name of ['uF3_k', 'attr1.x', 'color2.x', 'uF3_cutoff']) expect(glsl).toContain(name);
     expect(glsl).not.toMatch(/\b(k|m_i|cr_j|cutoff)\b/);
   });
 
   it('keeps powers of negative bases defined (spow, never raw pow)', () => {
-    const glsl = compileForce(makeForce({ expression: 'q_i^n / r', params: [{ name: 'n', value: 3 }] })).glsl('f', 'float r', 0);
+    const glsl = compileForce(makeForce({ expression: 'q_i^n / r', params: [{ name: 'n', value: 3 }] })).glsl('f', 'vec4 attr1', 0);
     expect(glsl).toContain('spow(attr1.y, uF0_n)');
     expect(glsl).not.toMatch(/(^|[^s])pow\(/);
   });
 
   it('emits the potential separately and refuses it for force-mode forces', () => {
     const lj = compileForce(makeForce({ mode: 'potential', expression: '4 * (r^-12 - r^-6)', params: [] }));
-    expect(lj.glsl('potential0', 'float r', 0, 'potential')).toMatch(/^float potential0\(float r\) \{/);
+    expect(lj.glsl('potential0', 'vec4 attr1', 0, 'potential')).toMatch(/^float potential0\(float r, vec4 attr1\) \{/);
     const plain = compileForce(makeForce({ expression: 'k / r', params: [{ name: 'k', value: 1 }] }));
-    expect(() => plain.glsl('p', 'float r', 0, 'potential')).toThrow(/has no potential/);
+    expect(() => plain.glsl('p', 'vec4 attr1', 0, 'potential')).toThrow(/has no potential/);
   });
 
   it('keeps the sign of negative constants under powers', () => {

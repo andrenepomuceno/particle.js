@@ -17,6 +17,8 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   validated before it replaces the old one.
 - **Force or potential**: write `F(r)` directly, or write `V(r)` and get `F = −dV/dr`, differentiated
   exactly by [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff).
+- **Vector forces**: a potential of the relative position (`dx`, `dy`, `dz`, or the spin projections)
+  gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Statistics**: energy, speed, temperature and performance charts.
@@ -63,6 +65,8 @@ you can also load your own with <kbd>I</kbd>.
 | Neutral plasma | Coulomb + weak gravity | ± charges in a reflecting sphere |
 | Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
+| Dipole Chains | spin dipole (vector force) + repulsive core | a 2D ferrofluid: in-plane dipoles join head to tail into chains |
+| Dipole Crystal | spin dipole (vector force) + repulsive core | perpendicular dipoles repel into a triangular lattice; flipped ones bind defects |
 | Color confinement | Casimir-scaled Cornell potential, 120° color charge | quarks pairing into color-neutral mesons and baryons |
 | Quarks to nuclei | color + v1 nuclear force + Coulomb + quark core | quark triplets bound into molecules and ring-shaped nuclei |
 | Welcome *(v1)* | v1 force map 2 + v1 color + Coulomb | "Welcome to particle.js !" written in quark nuclei |

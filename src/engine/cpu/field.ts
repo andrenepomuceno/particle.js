@@ -1,7 +1,7 @@
 import type { FieldProbe } from '../field';
 import type { CompiledForce } from '../forces/compile';
 import { TEXEL, type ParticleSet } from '../particles';
-import { pairTerm, probeScope } from './pairs';
+import { addPairForce, probeScope } from './pairs';
 
 /**
  * Float64 mirror of the GPU field pass: the net force Σ_j F on the test particle placed at
@@ -15,9 +15,7 @@ export function referenceField(
   const result = new Float64Array(count * 3);
   const pos = set.position;
   for (let p = 0; p < count; p++) {
-    let fx = 0;
-    let fy = 0;
-    let fz = 0;
+    const force: [number, number, number] = [0, 0, 0];
     for (let j = 0; j < set.count; j++) {
       const oj = j * TEXEL;
       const dx = positions[p * 3]! - pos[oj]!;
@@ -27,13 +25,9 @@ export function referenceField(
       if (r2 === 0 || forces.length === 0) continue;
       const dist = Math.sqrt(r2);
       const pair = probeScope({ ...probe, position: [positions[p * 3]!, positions[p * 3 + 1]!, positions[p * 3 + 2]!] }, set, j, time);
-      let magnitude = 0;
-      for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, r2, dist);
-      fx += (magnitude * dx) / dist;
-      fy += (magnitude * dy) / dist;
-      fz += (magnitude * dz) / dist;
+      addPairForce(forces, pair, dist, force);
     }
-    result.set([fx, fy, fz], p * 3);
+    result.set(force, p * 3);
   }
   return result;
 }

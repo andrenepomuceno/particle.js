@@ -1,0 +1,18 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "dipole-chains",
+  "name": "Dipole Chains",
+  "folder": "Spin",
+  "description": "A 2D ferrofluid: magnetic dipoles all pointing along x, with a hard repulsive core. The full dipole force F = −∇V (non-central) pulls them head to tail, so the gas condenses into chains along the field direction, which then merge side by side.",
+  "seed": 3,
+  "view": { "cameraDistance": 260, "particleRadius": 1, "colorMode": "spin" },
+  "settings": { "timeStep": 0.02, "mode2D": true, "friction": 0.05, "boundary": "box", "boundarySize": 90 },
+  "forces": [
+    { "preset": "spinSpin", "cutoff": 16, "softening": 0.3, "params": { "k": 40 } },
+    { "name": "Core", "mode": "potential", "range": "short", "cutoff": 4, "softening": 0.5, "expression": "eps * (sigma / r)^12", "params": [{ "name": "eps", "value": 1 }, { "name": "sigma", "value": 2 }] }
+  ],
+  "groups": [
+    { "count": 900, "shape": { "type": "grid", "spacing": 5.5, "columns": 30, "rows": 30 }, "spin": [1, 0, 0], "velocity": { "type": "random", "speed": 0.5 } }
+  ]
+}

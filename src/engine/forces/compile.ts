@@ -17,6 +17,9 @@ const LIMITS: Partial<Limits> = { maxExponent: 1024, maxDepth: 1000, maxLength: 
 /** Smallest normal and largest finite float32: constants outside are 0 or ∞ on the GPU but not on the CPU. */
 const FLOAT32_MIN = 1.1754944e-38;
 const FLOAT32_MAX = 3.4028235e38;
+/** Components of Δx = x_i − x_j: in a potential they make the force the vector −∇V. */
+export const RELATIVE_POSITION = ['dx', 'dy', 'dz'] as const;
+const VECTOR_TRIGGERS = new Set<string>([...RELATIVE_POSITION, 'si_r', 'sj_r']);
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), 'soft2', 'cutoff']);
 
@@ -30,11 +33,22 @@ export interface CompiledForce {
   reads: ReadonlySet<string>;
   /** Same for V(r); empty in force mode. */
   potentialReads: ReadonlySet<string>;
-  /** Signed force magnitude as a function of r; positive pushes the pair apart. */
+  /**
+   * A potential of the relative position (reads dx, dy, dz, si_r or sj_r): the force is the vector
+   * −∇V, not a magnitude along r̂. Central forces leave this false.
+   */
+  vector: boolean;
+  /** Signed force magnitude as a function of r; positive pushes the pair apart (radial part for vector forces). */
   evaluate: CompiledFn;
+  /** The full force on i, −∇_{Δx} V, for vector forces. */
+  evaluateVector: ((scope: Readonly<Record<string, number>>) => Vec3) | undefined;
   /** V(r) for potential-mode forces; force-mode expressions have no known potential. */
   evaluatePotential: CompiledFn | undefined;
-  /** GLSL `float <name>(<args>)` returning the magnitude (or V with `potential`), uniforms named for force `index`. */
+  /**
+   * GLSL function `name`: the magnitude (float) or for vector forces the force (vec3), or V with
+   * `potential`; uniforms named for force `index`. Its first argument is the library's variable
+   * (`float r`, or `vec3 p` = Δx for vector forces), followed by `args`.
+   */
   glsl(name: string, args: string, index: number, which?: 'magnitude' | 'potential'): string;
 }
 
@@ -89,10 +103,10 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     problems.push(error.message);
   }
   if (parsed) problems.push(...unknownVariables(def, parsed));
-  if (parsed && def.mode === 'potential') {
-    const directional = [...collectVariables(parsed)].filter((name) => PAIR_VARIABLES.find((v) => v.name === name)?.directional);
-    if (directional.length > 0) {
-      problems.push(`${directional.join(', ')} depend on the pair's direction, which F = -dV/dr cannot account for (it would need a torque); write the force in force mode instead`);
+  if (parsed && def.mode === 'force') {
+    const relative = [...collectVariables(parsed)].filter((name) => (RELATIVE_POSITION as readonly string[]).includes(name));
+    if (relative.length > 0) {
+      problems.push(`${relative.join(', ')} are only available in potential mode, where the force is the gradient −∇V`);
     }
   }
   if (problems.length > 0 || !parsed) throw new ForceValidationError(def.name, problems);
@@ -107,45 +121,99 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     throw new ForceValidationError(def.name, [`constant(s) ${badConstants.join(', ')} outside float32 range (|c| between ${FLOAT32_MIN} and ${FLOAT32_MAX}, or 0): the GPU would compute 0 or ∞ while the CPU would not; rescale the units`]);
   }
   const names = [...collectVariables(inR)].filter((name) => name !== 'r' && !(name in CONSTANTS));
-  let program: Program;
-  let magnitude: Handle;
-  let potential: Handle | undefined;
-  try {
-    program = createProgram({ variables: ['r'], parameters: names, limits: LIMITS });
-    const source = program.expression(toInfix(Object.entries(CONSTANTS).reduce((e, [name, value]) => substitute(e, name, num(value)), inR)));
-    potential = def.mode === 'potential' ? source : undefined;
-    magnitude = potential === undefined ? source : program.neg(program.derivative(potential, 'r'));
-  } catch (error) {
-    // Offsets in library messages point into our generated text, not what the user typed.
-    throw new ForceValidationError(def.name, [error instanceof ExpressionError ? error.reason : (error as Error).message]);
-  }
-  const reads = readNames(program, magnitude, names);
-  const potentialReads = potential === undefined ? new Set<string>() : readNames(program, potential, names);
+  const vector = def.mode === 'potential' && names.some((name) => VECTOR_TRIGGERS.has(name));
+  const built = vector ? buildVector(def, inR, names) : buildCentral(def, inR, names);
+  const { program, potential } = built;
   const compiled: CompiledForce = {
     definition: def,
-    reads,
-    potentialReads,
-    evaluate: jsFunction(program, magnitude),
+    vector,
+    reads: readNames(program, built.force, built.parameters),
+    potentialReads: potential === undefined ? new Set<string>() : readNames(program, [potential], built.parameters),
+    evaluate: jsFunction(program, built.radial),
+    evaluateVector: vector ? vectorJsFunction(program, built.force) : undefined,
     evaluatePotential: potential === undefined ? undefined : jsFunction(program, potential),
     glsl: (name, args, index, which = 'magnitude') => {
-      const handle = which === 'potential' ? potential : magnitude;
-      if (handle === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
-      return glslFunction(program, handle, name, args, index, def, which === 'potential' ? potentialReads : reads);
+      if (which === 'potential' && potential === undefined) throw new Error(`force '${def.name}' has no potential (force mode)`);
+      const components = which === 'potential' ? [potential!] : built.force;
+      return glslFunction(program, components, built.variables, name, args, index, def, built.parameters);
     },
   };
   // Emit once now so code-generation failures surface as validation problems, not at shader build.
   try {
-    compiled.glsl('check', 'float r', 0);
-    if (potential !== undefined) compiled.glsl('check', 'float r', 0, 'potential');
+    compiled.glsl('check', 'float unused', 0);
+    if (potential !== undefined) compiled.glsl('check', 'float unused', 0, 'potential');
   } catch (error) {
     throw new ForceValidationError(def.name, [(error as Error).message]);
   }
   return compiled;
 }
 
+interface Built {
+  program: Program;
+  /** Library variables, in argument order: r, or dx, dy, dz. */
+  variables: readonly string[];
+  /** Everything else the program reads, renamed to uniforms and pair bindings in GLSL. */
+  parameters: readonly string[];
+  /** [F] for central forces, [Fx, Fy, Fz] for vector forces. */
+  force: Handle[];
+  /** The signed magnitude along r̂ (for the plot and CPU references of central forces). */
+  radial: Handle;
+  potential: Handle | undefined;
+}
+
+/** The library's text for our AST: named constants as numbers (the library spells e as E). */
+function librarySource(inR: Expr): string {
+  return toInfix(Object.entries(CONSTANTS).reduce((e, [name, value]) => substitute(e, name, num(value)), inR));
+}
+
+function withProgram<T>(def: ForceDefinition, build: () => T): T {
+  try {
+    return build();
+  } catch (error) {
+    // Offsets in library messages point into our generated text, not what the user typed.
+    throw new ForceValidationError(def.name, [error instanceof ExpressionError ? error.reason : (error as Error).message]);
+  }
+}
+
+function buildCentral(def: ForceDefinition, inR: Expr, names: string[]): Built {
+  return withProgram(def, () => {
+    const program = createProgram({ variables: ['r'], parameters: names, limits: LIMITS });
+    const source = program.expression(librarySource(inR));
+    const potential = def.mode === 'potential' ? source : undefined;
+    const magnitude = potential === undefined ? source : program.neg(program.derivative(potential, 'r'));
+    return { program, variables: ['r'], parameters: names, force: [magnitude], radial: magnitude, potential };
+  });
+}
+
+/**
+ * V(Δx) with Δx = x_i − x_j: r (softened) and the spin projections are derived from dx, dy, dz, so
+ * the library's gradient carries their direction dependence; F_i = −∇_{Δx} V.
+ */
+function buildVector(def: ForceDefinition, inR: Expr, names: string[]): Built {
+  const length = 'sqrt(dx*dx + dy*dy + dz*dz)';
+  const derived: Record<string, string> = { r: `sqrt(dx*dx + dy*dy + dz*dz + soft2)` };
+  const needed = new Set(names.filter((name) => !(RELATIVE_POSITION as readonly string[]).includes(name) && name !== 'si_r' && name !== 'sj_r'));
+  for (const side of ['i', 'j'] as const) {
+    if (!names.includes(`s${side}_r`)) continue;
+    derived[`s${side}_r`] = `(sx_${side}*dx + sy_${side}*dy + sz_${side}*dz) / ${length}`;
+    for (const axis of ['x', 'y', 'z']) needed.add(`s${axis}_${side}`);
+  }
+  needed.add('soft2');
+  const parameters = [...needed];
+  return withProgram(def, () => {
+    const program = createProgram({ variables: [...RELATIVE_POSITION], parameters, derived, limits: LIMITS });
+    const potential = program.expression(librarySource(inR));
+    const force = RELATIVE_POSITION.map((v) => program.neg(program.derivative(potential, v)));
+    const [fx, fy, fz] = force;
+    const [dx, dy, dz] = RELATIVE_POSITION.map((v) => program.expression(v));
+    const radial = program.div(program.add(program.add(program.mul(fx!, dx!), program.mul(fy!, dy!)), program.mul(fz!, dz!)), program.expression(length));
+    return { program, variables: RELATIVE_POSITION, parameters, force, radial, potential };
+  });
+}
+
 /** Names the emitted code of `handle` actually uses: a term constant in r drops out of -dV/dr. */
-function readNames(program: Program, handle: Handle, names: readonly string[]): Set<string> {
-  const glsl = program.glsl({ name: 'reads', returns: { type: 'float', components: [handle] } });
+function readNames(program: Program, handles: Handle[], names: readonly string[]): Set<string> {
+  const glsl = program.glsl({ name: 'reads', returns: { type: handles.length === 1 ? 'float' : 'vec3', components: handles } });
   const used = new Set(glsl.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g));
   return new Set(names.filter((name) => used.has(name)));
 }
@@ -157,26 +225,38 @@ function jsFunction(program: Program, handle: Handle): CompiledFn {
   return (scope) => fn(scope).value;
 }
 
+function vectorJsFunction(program: Program, handles: Handle[]): (scope: Readonly<Record<string, number>>) => Vec3 {
+  const source = program.js({ name: 'f', returns: { type: 'vec3', components: handles } });
+  const fn = new Function(`${source}\nreturn f;`)() as (scope: Readonly<Record<string, number>>) => { value: Vec3 };
+  return (scope) => fn(scope).value;
+}
+
 /**
  * GLSL from the library with r as the only argument, renamed to our uniforms and pair-variable
  * bindings, then given the full pair signature. pow() becomes spow(): GLSL's pow is undefined for
  * negative bases, while q^n with an odd integer n must behave like Math.pow (the JS side).
  */
-function glslFunction(program: Program, handle: Handle, name: string, args: string, index: number, def: ForceDefinition, reads: ReadonlySet<string>): string {
+function glslFunction(
+  program: Program, components: Handle[], variables: readonly string[], name: string, args: string, index: number,
+  def: ForceDefinition, names: readonly string[],
+): string {
   const params = new Set(def.params.map((p) => p.name));
   const byName = new Map(PAIR_VARIABLES.map((v) => [v.name, v.glsl]));
   const cutoff = forceUniformName(index, 'cutoff');
-  const parameters = Object.fromEntries([...reads].map((n) => {
-    if (n === 'cutoff') return [n, cutoff];
+  const parameters = Object.fromEntries(names.map((n) => {
+    if (n === 'cutoff' || n === 'soft2') return [n, forceUniformName(index, n)];
     if (params.has(n)) return [n, forceUniformName(index, n)];
     const glsl = byName.get(n);
     if (glsl === undefined) throw new Error(`no GLSL binding for variable '${n}'`);
     return [n, glsl.replaceAll('CUTOFF', cutoff)];
   }));
-  const glsl = program.glsl({ name, returns: { type: 'float', components: [handle] }, parameters });
-  const header = `float ${name}(float r) {`;
+  const type = components.length === 1 ? 'float' : 'vec3';
+  const glsl = program.glsl({ name, returns: { type, components }, parameters });
+  // One variable is passed as float r, three as vec3 p (components dx, dy, dz).
+  const variable = variables.length === 1 ? `float ${variables[0]}` : 'vec3 p';
+  const header = `${type} ${name}(${variable}) {`;
   if (!glsl.startsWith(header)) throw new Error(`unexpected shader-autodiff header: ${glsl.split('\n')[0]}`);
-  return `float ${name}(${args}) {${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
+  return `${type} ${name}(${variable}, ${args}) {${glsl.slice(header.length).replaceAll(/\bpow\(/g, 'spow(')}`;
 }
 
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
@@ -246,7 +326,11 @@ export interface PairScope {
   time: number;
 }
 
-export function forceScope(force: CompiledForce, pair: PairScope): Record<string, number> {
+/**
+ * Every name a compiled force may read for one pair. `dist` is the true (unsoftened) distance the
+ * relative position dx, dy, dz of vector potentials is built from; it defaults to `pair.r`.
+ */
+export function forceScope(force: CompiledForce, pair: PairScope, dist = pair.r): Record<string, number> {
   const colorI: Vec3 = [pair.cr_i, pair.cg_i, pair.cb_i];
   const colorJ: Vec3 = [pair.cr_j, pair.cg_j, pair.cb_j];
   const [cx_i, cy_i] = colorPlane(colorI);
@@ -260,6 +344,8 @@ export function forceScope(force: CompiledForce, pair: PairScope): Record<string
     si_r: pair.sx_i * pair.ux + pair.sy_i * pair.uy + pair.sz_i * pair.uz,
     sj_r: pair.sx_j * pair.ux + pair.sy_j * pair.uy + pair.sz_j * pair.uz,
     cutoff: force.definition.cutoff,
+    soft2: force.definition.softening ** 2,
+    dx: pair.ux * dist, dy: pair.uy * dist, dz: pair.uz * dist,
   };
   for (const param of force.definition.params) scope[param.name] = param.value;
   return scope;

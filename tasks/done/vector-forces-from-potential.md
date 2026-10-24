@@ -13,3 +13,17 @@ Plan:
 - CPU reference, field probes and energy follow; parity cases for an anisotropic potential.
 - Newton's third law holds for V(Δx) (gradient wrt Δx is antisymmetric in i↔j only if V(Δx) =
   V(−Δx) with swapped attributes) — document and test which forms conserve momentum.
+
+## Result
+
+Done. A potential reading dx/dy/dz/si_r/sj_r compiles as a vector force: shader-autodiff program
+with variables dx, dy, dz, derived r (softened) and spin projections, F = −∇V emitted as a vec3
+GLSL function added straight to the force (cutoff and contact-radius clamp as central forces), JS
+for the CPU reference/field/energy through one addPairForce helper, the plot showing the radial part.
+Spin dipole preset is now the true potential. Tests: exact gradient vs central differences,
+isotropic V(Δx) equals the central force (ε = 0; with softening a vector force is Plummer-exact,
+a central one applies −V'(r_soft) — documented), third law, momentum/energy conservation in a
+3-body Verlet run; parity case on the GPU (2.4e-7 vs 0.76 displacement caused by the force).
+Scenarios: Dipole Chains, Dipole Crystal.
+Open question for later: central potential-mode forces with softening are not exact gradients
+(−V'(r_soft) along r̂); switching them to the Plummer gradient would make them conserve energy.

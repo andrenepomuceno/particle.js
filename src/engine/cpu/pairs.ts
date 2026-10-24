@@ -48,12 +48,38 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
 }
 
 /**
- * One force's contribution at true distance `dist`, with the same cutoff and softening rules
- * as the shaders: `fn` is the compiled F(r) or V(r).
+ * One force's contribution at distance `dist`, with the same cutoff and softening rules as the
+ * shaders: `fn` is the compiled F(r) (radial part for vector forces) or V.
  */
 export function pairTerm(
-  force: CompiledForce, fn: (scope: Record<string, number>) => number, pair: Pair, r2: number, dist: number,
+  force: CompiledForce, fn: (scope: Record<string, number>) => number, pair: Pair, dist: number,
 ): number {
   if (force.definition.range === 'short' && !(dist < force.definition.cutoff)) return 0;
-  return fn(forceScope(force, { ...pair, r: Math.sqrt(r2 + force.definition.softening ** 2) }));
+  return fn(scopeAt(force, pair, dist));
+}
+
+function scopeAt(force: CompiledForce, pair: Pair, dist: number): Record<string, number> {
+  return forceScope(force, { ...pair, r: Math.sqrt(dist * dist + force.definition.softening ** 2) }, dist);
+}
+
+/**
+ * Σ over `forces` of the force on i at distance `dist` along the pair's unit vector (ux, uy, uz):
+ * central forces as magnitude·û, vector potentials as −∇V. Added into `out`.
+ */
+export function addPairForce(forces: readonly CompiledForce[], pair: Pair, dist: number, out: [number, number, number]): void {
+  let magnitude = 0;
+  for (const f of forces) {
+    if (f.definition.range === 'short' && !(dist < f.definition.cutoff)) continue;
+    if (f.evaluateVector) {
+      const [x, y, z] = f.evaluateVector(scopeAt(f, pair, dist));
+      out[0] += x;
+      out[1] += y;
+      out[2] += z;
+    } else {
+      magnitude += f.evaluate(scopeAt(f, pair, dist));
+    }
+  }
+  out[0] += magnitude * pair.ux;
+  out[1] += magnitude * pair.uy;
+  out[2] += magnitude * pair.uz;
 }

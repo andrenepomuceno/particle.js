@@ -74,6 +74,8 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
   removido a pedido do usuário (a carga vinha do Chromium sem GPU).
 - Subagentes: no máximo 3, sem filhos; os que escrevem usam worktree. Escolha o modelo mais adequado para a tarefa.
 - Documentação (`README.md`, `docs/`, este arquivo) muda no mesmo commit do comportamento.
+- Toda feature nova ganha um cenário que a demonstra (pedido do usuário); ideias de cenários
+  interessantes também entram na biblioteca.
 - Automação repetitiva de CLI vai para `scripts/`.
 - Fase atual: **MVP**. Testes completos/gate de cobertura/e2e estão em `tasks/inbox/`.
 - Docs: `docs/README.md` é o índice; `docs/forces.md` descreve o modelo e a linguagem de expressões.

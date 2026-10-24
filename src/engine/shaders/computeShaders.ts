@@ -32,7 +32,7 @@ function forceUniforms(force: CompiledForce, index: number): string {
     .join('\n');
 }
 
-const PAIR_ARGS = 'float r, vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2';
+const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2';
 const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2';
 /** Variables whose GLSL reads the other particle's texel; derived so new variables cannot be missed. */
 const readersOf = (glslName: string) => PAIR_VARIABLES.filter((v) => v.glsl.includes(glslName)).map((v) => v.name);
@@ -61,11 +61,11 @@ ${force.glsl(`force${index}`, PAIR_ARGS, index)}`;
 }
 
 function forceAccumulation(force: CompiledForce, index: number): string {
-  const call = `force${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
-  if (force.definition.range === 'short') {
-    return `if (dist < ${forceUniformName(index, 'cutoff')}) magnitude += ${call};`;
-  }
-  return `magnitude += ${call};`;
+  // Vector potentials return −∇V itself; `contact` is Δx at the (possibly clamped) distance.
+  const term = force.vector
+    ? `force += force${index}(contact, ${PAIR_CALL_ARGS});`
+    : `magnitude += force${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS});`;
+  return force.definition.range === 'short' ? `if (dist < ${forceUniformName(index, 'cutoff')}) ${term}` : term;
 }
 
 const VELOCITY_HELPERS = /* glsl */ `
@@ -178,6 +178,7 @@ vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 
     float tau2 = ${fetchTau2};
     vec4 spin2 = ${fetchSpin2};
     vec3 dir = normalize(delta);
+    vec3 contact = dir * dist;
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * dir;
@@ -281,7 +282,9 @@ ${PARTICLE_HEADER}
 
 function potentialTerm(force: CompiledForce, index: number): string {
   if (!force.evaluatePotential) return '';
-  const call = `potential${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
+  const call = force.vector
+    ? `potential${index}(delta, ${PAIR_CALL_ARGS})`
+    : `potential${index}(sqrt(r2 + ${forceUniformName(index, 'soft2')}), ${PAIR_CALL_ARGS})`;
   return force.definition.range === 'short'
     ? `if (dist < ${forceUniformName(index, 'cutoff')}) energy += ${call};`
     : `energy += ${call};`;

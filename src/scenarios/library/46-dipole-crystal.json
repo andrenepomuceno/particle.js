@@ -1,0 +1,18 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "dipole-crystal",
+  "name": "Dipole Crystal",
+  "folder": "Spin",
+  "description": "The other half of the ferrofluid: dipoles perpendicular to the plane all repel (V ∝ +1/r³), so a disordered 2D gas in a box cools into a triangular lattice. A tenth of them point the other way; those attract their neighbours and sit as defects in the crystal.",
+  "seed": 5,
+  "view": { "cameraDistance": 260, "particleRadius": 1.2, "colorMode": "spin" },
+  "settings": { "timeStep": 0.02, "mode2D": true, "friction": 0.05, "boundary": "box", "boundarySize": 80 },
+  "forces": [
+    { "preset": "spinSpin", "cutoff": 25, "softening": 1, "params": { "k": 60 } },
+    { "name": "Core", "mode": "potential", "range": "short", "cutoff": 4, "softening": 0.5, "expression": "eps * (sigma / r)^12", "params": [{ "name": "eps", "value": 1 }, { "name": "sigma", "value": 2 }] }
+  ],
+  "groups": [
+    { "count": 630, "shape": { "type": "grid", "spacing": 6, "columns": 28, "rows": 25 }, "spin": { "cycle": [[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1]] }, "velocity": { "type": "random", "speed": 3 } }
+  ]
+}

@@ -1,5 +1,5 @@
 import type { CompiledForce } from '../forces/compile';
-import { pairScope, pairTerm } from './pairs';
+import { pairScope, addPairForce } from './pairs';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
 import type { SimulationSettings } from '../settings';
 
@@ -69,9 +69,7 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
 function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance: number): Vec {
   const pos = set.position;
   const oi = i * TEXEL;
-  let fx = 0;
-  let fy = 0;
-  let fz = 0;
+  const force: [number, number, number] = [0, 0, 0];
   for (let j = 0; j < set.count; j++) {
     if (j === i) continue;
     const oj = j * TEXEL;
@@ -90,13 +88,9 @@ function totalForce(set: ParticleSet, i: number, forces: readonly CompiledForce[
     const pair = pairScope(set, i, j, time);
     pair.t_i += clockShift;
     pair.t_j += clockShift;
-    let magnitude = 0;
-    for (const f of forces) magnitude += pairTerm(f, f.evaluate, pair, dist * dist, dist);
-    fx += (magnitude * dx) / trueDist;
-    fy += (magnitude * dy) / trueDist;
-    fz += (magnitude * dz) / trueDist;
+    addPairForce(forces, pair, dist, force);
   }
-  return [fx, fy, fz];
+  return force;
 }
 
 function accelerations(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShift: number): Float64Array {

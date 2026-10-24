@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Vector forces: a potential reading `dx`, `dy`, `dz`, `si_r` or `sj_r` yields the full force
+  −∇V (non-central). The Spin dipole preset is now the true dipole–dipole potential. New scenarios
+  *Dipole Chains* (2D ferrofluid chains) and *Dipole Crystal* (triangular lattice with defects).
 - Forces compile through [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff): one
   graph per force emits the GLSL and the JS reference, with exact `−dV/dr` and shared subexpressions
   computed once (7–17% more steps/s at 16k particles on an RTX 5060 Ti).

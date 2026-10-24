@@ -18,7 +18,7 @@ export const PLOT_PAIR: Omit<PairScope, 'r'> = {
 export function appliedForce(force: CompiledForce, distance: number): number {
   const { range, cutoff, softening } = force.definition;
   if (range === 'short' && !(distance < cutoff)) return 0;
-  return force.evaluate(forceScope(force, { ...PLOT_PAIR, r: Math.sqrt(distance ** 2 + softening ** 2) }));
+  return force.evaluate(forceScope(force, { ...PLOT_PAIR, r: Math.sqrt(distance ** 2 + softening ** 2) }, distance));
 }
 
 function formatNumber(value: number): string {

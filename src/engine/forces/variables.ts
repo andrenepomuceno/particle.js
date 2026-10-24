@@ -3,7 +3,7 @@ export interface PairVariable {
   description: string;
   glsl: string;
   shortRangeOnly?: boolean;
-  /** Depends on the pair's direction, so it has no place in a V(r) differentiated along r only. */
+  /** Depends on the pair's direction: in potential mode it makes the force the vector −∇V. */
   directional?: boolean;
 }
 
@@ -20,6 +20,10 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   { name: 'r', description: 'distance between the pair (softened)', glsl: 'r' },
   { name: 'x', description: 'r / cutoff, normalized distance', glsl: '(r / CUTOFF)', shortRangeOnly: true },
   { name: 'cutoff', description: 'interaction range of this force', glsl: 'CUTOFF', shortRangeOnly: true },
+  // Library variables of vector potentials (never bound in central GLSL; force mode rejects them).
+  { name: 'dx', description: 'relative position x_i − x_j, x component (potential mode: F = −∇V)', glsl: 'dx', directional: true },
+  { name: 'dy', description: 'relative position, y component (potential mode)', glsl: 'dy', directional: true },
+  { name: 'dz', description: 'relative position, z component (potential mode)', glsl: 'dz', directional: true },
   ...perParticle('m', 'mass', (k) => `attr${k}.x`),
   ...perParticle('q', 'charge, first component (electric charge)', (k) => `attr${k}.y`),
   ...perParticle('q2', 'charge, second component', (k) => `attr${k}.z`),
@@ -29,8 +33,8 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   ...perParticle('sz', 'spin vector, z', (k) => `spin${k}.z`),
   ...perParticle('i3', 'isospin projection I3', (k) => `spin${k}.w`),
   { name: 's_dot', description: 'spin alignment s_i·s_j', glsl: 'dot(spin1.xyz, spin2.xyz)' },
-  { name: 'si_r', description: 's_i·r̂, r̂ pointing from j to i (force mode only)', glsl: 'dot(spin1.xyz, dir)', directional: true },
-  { name: 'sj_r', description: 's_j·r̂, r̂ pointing from j to i (force mode only)', glsl: 'dot(spin2.xyz, dir)', directional: true },
+  { name: 'si_r', description: 's_i·r̂, r̂ pointing from j to i (in a potential, F = −∇V follows its direction)', glsl: 'dot(spin1.xyz, dir)', directional: true },
+  { name: 'sj_r', description: 's_j·r̂, r̂ pointing from j to i', glsl: 'dot(spin2.xyz, dir)', directional: true },
   ...perParticle('p', 'parity', (k) => `attr${k}.w`),
   ...perParticle('n', 'nuclear charge', (k) => `color${k}.w`),
   ...perParticle('cr', 'red color charge', (k) => `color${k}.x`),

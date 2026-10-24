@@ -18,7 +18,7 @@ An invalid bundled file stops the app at startup.
 | `version` | yes | `1` |
 | `id`, `name` | yes | unique id (used in `?scenario=`) and display name |
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
-| `seed` | no | RNG seed (default 1); the same seed always rebuilds the same particles |
+| `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`) |
 | `settings` | no | any subset of `timeStep`, `friction`, `maxSpeed`, `boundary`, `boundarySize`, `restitution`, `mode2D`; the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
@@ -40,7 +40,8 @@ Presets: `gravity`, `coulomb`, `nuclear`, `lennardJones`, `yukawa`, `spring`, `c
   "expression": "-k * q_i * q_j * exp(-r / l) / r", "params": [{ "name": "k", "value": 1 }, { "name": "l", "value": 10 }] }
 ```
 
-`enabled` defaults to true, `cutoff` to 1, `softening` to 0, `params` to `[]`. Expressions are
+`enabled` defaults to true, `softening` to 0, `params` to `[]`; `cutoff` is required for short-range
+forces. Optional keys must be omitted, not `null`. Expressions are
 compiled while loading, so an invalid one fails with its path. The language is in [forces.md](forces.md).
 
 ## Particle groups
@@ -80,7 +81,7 @@ to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
 | `shell` | `radius` | uniform on the surface |
 | `disk` | `radius`, `innerRadius` (0), `thickness` (0) | uniform in the annulus, z within ±thickness/2 |
 | `box` | `size` `[x, y, z]` | uniform in the box |
-| `grid` | `spacing`, `columns`, `rows`, `layers` (1) | lattice centered on the center |
+| `grid` | `spacing`, `columns`, `rows`, `layers` (1) | lattice centered on the center; `count` may not exceed the number of sites |
 
 **Velocity**:
 
@@ -91,4 +92,5 @@ to 0, `parity` to 1, `color` to `[0, 0, 0]`, `velocity` to `still`.
 | `random` | `speed` (sampled) | random direction (in-plane when `mode2D`) |
 | `orbit` | `centralMass`, `G`, `center` | circular speed `√(G·M/r)` around the z axis through `center` |
 
-Fixed particles (`"kind": "fixed"`) always start with zero velocity.
+Fixed particles (`"kind": "fixed"`) always start with zero velocity. With `settings.mode2D`, every
+position is projected onto z = 0, so 3D shapes collapse into the plane.

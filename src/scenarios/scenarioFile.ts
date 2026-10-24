@@ -1,3 +1,4 @@
+import { newForceId } from '../engine/forces/presets';
 import { readForce } from '../engine/forces/readForce';
 import type { ForceDefinition } from '../engine/forces/types';
 import { JsonReader } from '../engine/json';
@@ -163,6 +164,12 @@ class ScenarioReader extends JsonReader {
       parity: optionalNumber('parity', 1),
       color: o.color === undefined ? ORIGIN : this.sampledVec3(o.color, `${path}.color`),
     };
+    if (group.shape.type === 'grid') {
+      const { columns, rows, layers } = group.shape;
+      if (group.count > columns * rows * layers) {
+        this.fail(`${path}.count`, `${group.count} particles do not fit a ${columns}×${rows}×${layers} grid (${columns * rows * layers} sites)`);
+      }
+    }
     const masses = typeof group.mass === 'number' ? [group.mass]
       : 'min' in group.mass ? [group.mass.min] : 'choice' in group.mass ? group.mass.choice : group.mass.cycle;
     if (masses.some((m) => !(m > 0))) this.fail(`${path}.mass`, `every possible mass must be > 0, got ${JSON.stringify(group.mass)}`);
@@ -231,7 +238,8 @@ function sampleVelocity(spec: VelocitySpec, position: Vec3, rng: Rng, mode2D: bo
 export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2D: boolean): Particle[] {
   return groups.flatMap((group) =>
     Array.from({ length: group.count }, (_, index): Particle => {
-      const position = samplePosition(group.shape, rng, index);
+      const sampled = samplePosition(group.shape, rng, index);
+      const position: Vec3 = mode2D ? [sampled[0], sampled[1], 0] : sampled;
       return {
         kind: group.kind === 'fixed' ? ParticleKind.fixed : ParticleKind.dynamic,
         position,
@@ -249,19 +257,25 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
 
 /** Parses a scenario file into the runtime Scenario; `source` names the file in error messages. */
 export function parseScenario(text: string, source: string): Scenario {
+  return readScenario(new ScenarioReader(`scenario ${source}`).parse(text), source);
+}
+
+/** Validates an already-parsed JSON value; `source` names the file in error messages. */
+export function readScenario(value: unknown, source: string): Scenario {
   const json = new ScenarioReader(`scenario ${source}`);
-  const o = json.object(json.parse(text), '$');
+  const o = json.object(value, '$');
   json.onlyKeys(o, TOP_KEYS, '$');
   if (o.format !== SCENARIO_FORMAT) json.fail('format', `expected '${SCENARIO_FORMAT}', got ${JSON.stringify(o.format)}`);
   if (o.version !== SCENARIO_VERSION) json.fail('version', `unsupported version ${JSON.stringify(o.version)}, expected ${SCENARIO_VERSION}`);
 
-  const view = json.object(o.view ?? {}, 'view');
+  const view = o.view === undefined ? {} : json.object(o.view, 'view');
   json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode'], 'view');
-  const settings = readSettings(json, o.settings ?? {}, 'settings', { ...DEFAULT_SETTINGS });
-  const forceSpecs = json.array(o.forces ?? [], 'forces');
-  forceSpecs.forEach((f, k) => readForce(json, f, `forces[${k}]`, false));
-  const groups = json.array(o.groups ?? [], 'groups').map((g, k) => json.group(g, `groups[${k}]`));
+  const settings = o.settings === undefined ? { ...DEFAULT_SETTINGS } : readSettings(json, o.settings, 'settings', { ...DEFAULT_SETTINGS });
+  const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
+  const forces = forceSpecs.map((f, k) => readForce(json, f, `forces[${k}]`, false));
+  const groups = (o.groups === undefined ? [] : json.array(o.groups, 'groups')).map((g, k) => json.group(g, `groups[${k}]`));
   const seed = o.seed === undefined ? 1 : json.finite(o.seed, 'seed');
+  if (!Number.isInteger(seed) || seed < 0) json.fail('seed', `must be an integer >= 0, got ${seed}`);
 
   return {
     id: json.string(o.id, 'id'),
@@ -270,7 +284,7 @@ export function parseScenario(text: string, source: string): Scenario {
     description: o.description === undefined ? '' : json.string(o.description, 'description'),
     seed,
     settings,
-    forces: (): ForceDefinition[] => forceSpecs.map((f, k) => readForce(json, f, `forces[${k}]`, false)),
+    forces: (): ForceDefinition[] => forces.map((f) => ({ ...f, id: newForceId(), params: f.params.map((p) => ({ ...p })) })),
     particles: (rng) => buildParticles(groups, rng, settings.mode2D),
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),

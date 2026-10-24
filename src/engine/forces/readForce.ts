@@ -59,7 +59,8 @@ export function readForce(json: JsonReader, value: unknown, path: string, requir
       mode: json.oneOf(o.mode, ['force', 'potential'] as const, `${path}.mode`),
       expression: json.string(o.expression, `${path}.expression`),
       range: json.oneOf(o.range, ['long', 'short'] as const, `${path}.range`),
-      cutoff: o.cutoff === undefined && !requireId ? 1 : json.finite(o.cutoff, `${path}.cutoff`),
+      // A long-range force never reads its cutoff; a short-range one must state it.
+      cutoff: o.cutoff === undefined && !requireId && o.range === 'long' ? 1 : json.finite(o.cutoff, `${path}.cutoff`),
       softening: o.softening === undefined && !requireId ? 0 : json.finite(o.softening, `${path}.softening`),
       params: o.params === undefined && !requireId ? [] : readParamList(json, o.params, `${path}.params`),
     };

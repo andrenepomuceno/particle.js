@@ -203,8 +203,10 @@ void spherow() {
   }
 
   vec3 p = rayOrigin + rayDirection * t;
-  vec3 n = hitSphere ? normalize(p) : sceneNormal(p);
-  vec3 hitColor = hitSphere ? vColor : speedColor(length(vVelocity), uAverageSpeed);
+  // sceneNormal re-evaluates the SDF and overwrites hitSphere, so read it first.
+  bool onSphere = hitSphere;
+  vec3 n = onSphere ? normalize(p) : sceneNormal(p);
+  vec3 hitColor = onSphere ? vColor : speedColor(length(vVelocity), uAverageSpeed);
   vec3 light = normalize(-forward + 0.6 * up - 0.4 * right);
   vec3 color = hitColor * max(dot(n, light), 0.0);
   color += 0.33 * hitColor * (0.5 + 0.5 * dot(n, up));

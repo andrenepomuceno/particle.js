@@ -59,6 +59,10 @@ describe('parseScenario', () => {
     [{ groups: [{ count: 1, shape: { type: 'point' }, charge: { min: 2, max: 1 } }] }, /min 2 is greater than max 1/],
     [{ groups: [{ count: 1, shape: { type: 'point' }, color: { cycle: [] } }] }, /color.cycle': must not be empty/],
     [{ view: { colorMode: 'neon' } }, /at 'view.colorMode'/],
+    [{ groups: null }, /at 'groups': expected an array/],
+    [{ seed: 1.5 }, /at 'seed': must be an integer >= 0, got 1.5/],
+    [{ forces: [{ name: 'x', mode: 'force', range: 'short', expression: 'x' }] }, /at 'forces\[0\].cutoff': expected a finite number/],
+    [{ groups: [{ count: 5, shape: { type: 'grid', spacing: 1, columns: 2, rows: 2 } }] }, /5 particles do not fit a 2×2×1 grid \(4 sites\)/],
   ])('rejects %j with its path', (extra, message) => {
     expect(() => parse(extra)).toThrow(message);
   });
@@ -76,6 +80,11 @@ describe('particle groups', () => {
     expect(particles.map((p) => p.charge)).toEqual([1, -1, 0, 1, -1, 0]);
     expect(particles.every((p) => p.spin === 0.5 && p.mass >= 2 && p.mass <= 3)).toBe(true);
     expect(particles[0]).toMatchObject({ position: [1, 2, 3], color: [1, 0, 0], parity: 1, kind: 1 });
+  });
+
+  it('places every particle on z = 0 in 2D mode', () => {
+    const particles = build({ settings: { mode2D: true }, groups: [{ count: 50, shape: { type: 'sphere', radius: 10 } }] });
+    expect(particles.every((p) => p.position[2] === 0)).toBe(true);
   });
 
   it('lays out grids centered on their center', () => {

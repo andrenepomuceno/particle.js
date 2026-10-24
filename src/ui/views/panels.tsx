@@ -22,7 +22,7 @@ export function InfoView() {
   const averageSpeed = useAppState((s) => s.averageSpeed);
   const paused = useAppState((s) => s.paused);
   const forces = useAppState((s) => s.forces.filter((f) => f.enabled).length);
-  const description = SCENARIOS.find((s) => s.id === scenarioId)?.description;
+  const description = useAppState((s) => s.description);
 
   return (
     <div className="stack">

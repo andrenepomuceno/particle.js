@@ -191,6 +191,14 @@ export class GpuCompute {
     }
   }
 
+  /** Reads the current velocities (vx, vy, vz, clock per particle) without touching the ParticleSet. */
+  readVelocities(): Float32Array {
+    const rows = Math.ceil(this.set.count / this.width);
+    const buffer = new Float32Array(rows * this.width * 4);
+    if (rows > 0) this.renderer.readRenderTargetPixels(this.velocity[this.current]!, 0, 0, this.width, rows, buffer);
+    return buffer;
+  }
+
   /** Reads a single particle position without a full-texture readback. */
   readPosition(index: number): [number, number, number] {
     if (!(index >= 0 && index < this.set.count)) throw new Error(`particle index ${index} out of range [0, ${this.set.count})`);

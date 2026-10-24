@@ -42,7 +42,12 @@ function parseParticle(value: unknown, index: number): Particle {
 }
 
 export function parseSnapshot(text: string): Snapshot {
-  const o = json.object(json.parse(text), '$');
+  return readSnapshot(json.parse(text));
+}
+
+/** Validates an already-parsed JSON value. */
+export function readSnapshot(value: unknown): Snapshot {
+  const o = json.object(value, '$');
   if (o.format !== SNAPSHOT_FORMAT) json.fail('format', `expected '${SNAPSHOT_FORMAT}', got ${JSON.stringify(o.format)}`);
   if (o.version !== SNAPSHOT_VERSION) json.fail('version', `unsupported version ${JSON.stringify(o.version)}, expected ${SNAPSHOT_VERSION}`);
   return createSnapshot(

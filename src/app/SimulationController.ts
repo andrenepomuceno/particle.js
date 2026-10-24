@@ -8,9 +8,10 @@ import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/p
 import { createRng, inSphere, inDisk, uniform } from '../engine/random';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
-import { createSnapshot, parseSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
+import { JsonReader } from '../engine/json';
+import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { findScenario, SCENARIOS } from '../scenarios';
-import { parseScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
+import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import type { Scenario } from '../scenarios/types';
 import { Store } from './store';
 
@@ -40,6 +41,7 @@ export interface Notice {
 
 export interface AppState {
   scenarioId: string;
+  description: string;
   name: string;
   settings: SimulationSettings;
   forces: ForceDefinition[];
@@ -90,6 +92,7 @@ export class SimulationController {
   private cpuStale = false;
   private stepRequested = false;
   private running = false;
+  private frameHandle = 0;
   private lastFrame = 0;
   private fpsFrames = 0;
   private fpsSince = 0;
@@ -108,7 +111,7 @@ export class SimulationController {
     this.points = new ParticlePoints(width);
     this.scene.add(this.points.object, this.axes);
     this.store = new Store<AppState>({
-      scenarioId: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {},
+      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], forceErrors: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, particleRadius: 3, showAxes: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, fps: 0, notices: [],
@@ -127,12 +130,14 @@ export class SimulationController {
     this.scheduleFrame();
     return () => {
       this.running = false;
+      cancelAnimationFrame(this.frameHandle);
       this.renderer.domElement.remove();
     };
   }
 
   dispose(): void {
     this.running = false;
+    cancelAnimationFrame(this.frameHandle);
     this.controls.dispose();
     this.gpu.dispose();
     this.points.dispose();
@@ -164,7 +169,7 @@ export class SimulationController {
     const settings = { ...DEFAULT_SETTINGS, ...scenario.settings };
     const particles = scenario.particles(createRng(scenario.seed));
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance);
     this.applyRadius();
@@ -178,6 +183,10 @@ export class SimulationController {
 
   cycleScenario(offset: number): void {
     const index = SCENARIOS.findIndex((s) => s.id === this.state.scenarioId);
+    if (index === -1) {
+      this.notify('The current world was imported and is not in the scenario list; press Home for the first scenario', 'error');
+      return;
+    }
     const next = Math.min(Math.max(index + offset, 0), SCENARIOS.length - 1);
     if (next !== index) this.loadScenario(SCENARIOS[next]!.id);
   }
@@ -190,18 +199,20 @@ export class SimulationController {
 
   /** Accepts either a snapshot or a scenario file, dispatching on its `format` field. */
   importFile(text: string, fileName: string): void {
-    const format = peekFormat(text);
+    const json = new JsonReader(`file ${fileName}`);
+    const value = json.parse(text);
+    const format = json.object(value, '$').format;
     if (format === SCENARIO_FORMAT) {
-      this.startScenario(parseScenario(text, fileName), '');
+      this.startScenario(readScenario(value, fileName), '');
       return;
     }
     if (format !== SNAPSHOT_FORMAT) {
-      throw new Error(`${fileName}: unknown format ${JSON.stringify(format)}; expected '${SNAPSHOT_FORMAT}' or '${SCENARIO_FORMAT}'`);
+      json.fail('format', `unknown format ${JSON.stringify(format)}; expected '${SNAPSHOT_FORMAT}' or '${SCENARIO_FORMAT}'`);
     }
-    const snapshot = parseSnapshot(text);
+    const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '' });
+      this.store.set({ scenarioId: '', description: `Snapshot imported from ${fileName}` });
     };
     load();
     this.restart = load;
@@ -566,18 +577,24 @@ export class SimulationController {
   // "Unlimited" means every display refresh. Rendering faster than requestAnimationFrame
   // (e.g. via MessageChannel) only queues frames nobody sees and starves the page.
   private scheduleFrame(): void {
-    if (this.running) requestAnimationFrame(this.frame);
+    if (this.running) this.frameHandle = requestAnimationFrame(this.frame);
   }
 
   private frame = (now: number): void => {
     if (!this.running) return;
     const limit = this.state.fpsLimit;
     // Half a millisecond of slack keeps a 60 Hz display at 60 fps despite rAF timestamp jitter.
-    if (limit > 0 && now - this.lastFrame < 1000 / limit - 0.5) {
-      this.scheduleFrame();
-      return;
+    if (limit > 0) {
+      const interval = 1000 / limit;
+      if (now - this.lastFrame < interval - 0.5) {
+        this.scheduleFrame();
+        return;
+      }
+      // Advance by whole intervals so 60 on a 144 Hz display averages 60, not 48; resync after stalls.
+      this.lastFrame = now - this.lastFrame > 2 * interval ? now : this.lastFrame + interval;
+    } else {
+      this.lastFrame = now;
     }
-    this.lastFrame = now;
     this.scheduleFrame();
     const { paused, settings, inspected, followInspected } = this.state;
     if (!paused || this.stepRequested) {
@@ -608,30 +625,23 @@ export class SimulationController {
     this.refreshInspected();
   }
 
-  /** Once-per-second readback that feeds the speed palette (as v1 did). */
+  /**
+   * Once-per-second velocity readback that feeds the speed palette, as v1 did. It stalls the
+   * pipeline briefly; a GPU reduction is tracked in tasks/inbox/benchmark-script.md.
+   */
   private sampleState(): void {
-    if (this.set.count === 0) return;
-    this.syncFromGpu();
+    const velocity = this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
     let total = 0;
     let dynamic = 0;
     for (let k = 0; k < this.set.count; k++) {
       const o = k * 4;
       if (this.set.position[o + 3] === ParticleKind.fixed) continue;
-      total += Math.hypot(this.set.velocity[o]!, this.set.velocity[o + 1]!, this.set.velocity[o + 2]!);
+      total += Math.hypot(velocity[o]!, velocity[o + 1]!, velocity[o + 2]!);
       dynamic++;
     }
     const averageSpeed = dynamic > 0 ? total / dynamic : 0;
     this.points.setAverageSpeed(averageSpeed);
     this.store.set({ averageSpeed });
-  }
-}
-
-function peekFormat(text: string): unknown {
-  try {
-    const parsed: unknown = JSON.parse(text);
-    return typeof parsed === 'object' && parsed !== null ? (parsed as { format?: unknown }).format : undefined;
-  } catch (error) {
-    throw new Error(`file is not valid JSON (${(error as Error).message})`, { cause: error });
   }
 }
 

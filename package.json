@@ -1,6 +1,6 @@
 {
   "name": "particle-js-v2",
-  "version": "0.1.0",
+  "version": "2.0.0-rc.1",
   "description": "GPU n-body particle simulator with user-defined force expressions.",
   "private": true,
   "type": "module",

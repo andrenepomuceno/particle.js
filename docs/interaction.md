@@ -91,12 +91,21 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 
 Information, Forces, Expressions, Parameters, Spacetime, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
 
-**Information** has two tabs. *Overview* has the scenario select, the particle total and the status.
+**Information** has three tabs. *Overview* has the scenario select, the particle total and the status.
 *Scenarios* browses the library. *Order* is `suggested` (the library's curated order, the default),
 `name` (A–Z) or `newest` (by the date each scenario was added). *Group by folder* shows collapsible
 folders, whose expanded state is remembered, or a flat list. Click a name to load it; hover for its
 description. The Overview select and PageDown/PageUp/Home follow the same order, and the choice is
 remembered.
+*JSON* shows the current scenario's file (the library file or the imported one; see
+[scenarios](scenarios.md)) for editing its initial conditions. *Apply (reset)* validates the text like an
+imported file and starts it the same way, so <kbd>R</kbd> restarts the edit and the Overview select
+lists it as *(edited)*; an invalid edit shows the error with its JSON path and the current world keeps
+running. The particle total still rescales the groups. *Revert* brings back the text as loaded from
+the library or the file; *Download* saves the text as `<id>.json`. Unapplied edits survive tab
+switches and resets, and are replaced only when another scenario or file is loaded or an edit is
+applied; closing the dialog discards them. A world imported from a snapshot has no scenario file, so
+the tab only says so.
 
 **Spacetime** picks the metric: Galilean (classical) or Minkowski (special relativity, with the
 speed of light c; see [forces](forces.md#spacetime-metric)). It shows the largest γ, the fastest

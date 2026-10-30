@@ -291,6 +291,7 @@ kbd {
 .about a { color: var(--ink-1); }
 
 .scenario-browser { max-height: 60vh; overflow-y: auto; }
+.json-editor { width: 436px; max-width: 100%; height: 50vh; min-height: 160px; font-size: 12px; tab-size: 2; }
 .folder-toggle { background: none; border: none; padding: 2px 0; color: var(--ink-1); font-weight: 600; text-align: left; }
 .scenario-list { list-style: none; margin: 0; padding: 0 0 0 14px; }
 .scenario-item { display: flex; justify-content: space-between; gap: 8px; width: 100%; background: none; border: none; border-radius: var(--radius); padding: 2px 6px; color: var(--ink-1); text-align: left; }

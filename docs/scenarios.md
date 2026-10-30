@@ -3,7 +3,9 @@
 Every scenario is a JSON file in `src/scenarios/library/`. Files are bundled at build time and
 listed in file-name order (hence the numeric prefixes). A file can also be loaded at runtime
 with **Import** (<kbd>I</kbd>), which accepts scenario files and snapshots alike; <kbd>R</kbd>
-then rebuilds it from the file.
+then rebuilds it from the file. Information → **JSON** shows the current scenario's file: edit it
+and *Apply* to restart with other initial conditions (validated like an import; see
+[interaction](interaction.md#dialogs)).
 
 Validation is strict: unknown keys are rejected (so a typo never silently falls back to a
 default) and every error names the file and the JSON path, e.g.

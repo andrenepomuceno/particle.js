@@ -6,6 +6,9 @@
   particle); *Hydrogen*, *Helium* and *Water* (Elements) now show their electric field.
 - Fix: a particle total at the maximum (65536) no longer fails for scenarios whose counts rounded up
   past it; scaled counts now round down to whole cycles, so the total never exceeds the one requested.
+- Information has a *JSON* tab: the current scenario's file as text. Edit it and *Apply (reset)* to
+  restart with other initial conditions (validated like an imported file; R restarts the edit),
+  *Revert* to the file as loaded, or *Download* it.
 - Information has a *Scenarios* tab: the library in collapsible folders (or a flat list), ordered
   `suggested` (default), by `name` or `newest` first. The Overview select and PageDown/PageUp/Home follow it.
   Scenario files gain an optional `added` date.

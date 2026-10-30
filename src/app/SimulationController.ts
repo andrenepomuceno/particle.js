@@ -23,7 +23,8 @@ import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '..
 import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
 import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
-import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
+import { parseScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
+import { parseEdit, sourceOf, type ScenarioSource } from '../scenarios/source';
 import { scaleBoundary } from '../scenarios/scaling';
 import type { Scenario, ScenarioField } from '../scenarios/types';
 import { limitFrame } from './frameLimiter';
@@ -107,7 +108,10 @@ export interface Notice {
 }
 
 export interface AppState {
+  /** The bundled scenario's id; '' for imported files, applied edits and snapshots. */
   scenarioId: string;
+  /** The scenario file behind the current world (Information → JSON); undefined for a snapshot. */
+  scenarioSource: ScenarioSource | undefined;
   description: string;
   name: string;
   settings: SimulationSettings;
@@ -238,7 +242,7 @@ export class SimulationController {
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
-      scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
+      scenarioId: '', scenarioSource: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
@@ -299,23 +303,35 @@ export class SimulationController {
   /* Scenarios and snapshots */
 
   loadScenario(id: string): void {
-    this.startScenario(findScenario(id), id);
+    const scenario = findScenario(id);
+    this.startScenario(scenario, id, sourceOf(scenario));
   }
 
-  private startScenario(scenario: Scenario, scenarioId: string): void {
+  /**
+   * Starts an edit of the current scenario file (Information → JSON) the way an import does, so R
+   * restarts the edit. Text that fails to parse or validate throws, and the current world keeps running.
+   */
+  applyScenarioEdit(text: string): void {
+    const current = this.state.scenarioSource;
+    if (!current) throw new Error('the current world came from a snapshot, which has no scenario file to edit');
+    const { scenario, source } = parseEdit(current, text);
+    this.startScenario(scenario, '', source);
+  }
+
+  private startScenario(scenario: Scenario, scenarioId: string, source: ScenarioSource): void {
     // An empty scenario (sandbox) has nothing to scale; the target only resizes populated ones.
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
     const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
     const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...scenario.settings }, linearScale);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, scenarioSource: source, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
     this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
     this.runTimeline();
     this.showScenarioField(scenario.field);
-    this.restart = () => this.startScenario(scenario, scenarioId);
+    this.restart = () => this.startScenario(scenario, scenarioId, source);
   }
 
   /**
@@ -385,7 +401,8 @@ export class SimulationController {
     const value = json.parse(text);
     const format = json.object(value, '$').format;
     if (format === SCENARIO_FORMAT) {
-      this.startScenario(readScenario(value, fileName), '');
+      const scenario = parseScenario(text, fileName);
+      this.startScenario(scenario, '', sourceOf(scenario));
       return;
     }
     if (format !== SNAPSHOT_FORMAT) {
@@ -394,7 +411,9 @@ export class SimulationController {
     const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '', description: `Snapshot imported from ${fileName}` });
+      this.store.set({ scenarioId: '', scenarioSource: undefined, description: `Snapshot imported from ${fileName}` });
+      // A snapshot has no view.field: like a scenario without one, it ends a scenario's hold on the field.
+      this.showScenarioField(undefined);
     };
     load();
     this.restart = load;

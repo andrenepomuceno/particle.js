@@ -34,7 +34,8 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
 - **v1 look**: spheres with a velocity arrow through them, colored by charge, color charge or speed.
 - **v1-style interaction**: keyboard shortcuts, draggable dialogs, click to inspect and
   edit a particle, shift+drag to select, copy and place groups, particle generator.
-- **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file.
+- **JSON scenarios**: shapes, sampled attributes, presets or custom forces, all in one file,
+  editable in the app (Information → JSON) to try other initial conditions.
 - **Snapshots**: export the full state (forces, settings, particles) to JSON plus a PNG,
   and import it back with field-by-field validation.
 - **Adjustable particle count**: scenarios regenerate at the chosen size, keeping their density.

@@ -394,15 +394,10 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
   });
 }
 
-/** Parses a scenario file into the runtime Scenario; `source` names the file in error messages. */
-export function parseScenario(text: string, source: string): Scenario {
-  return readScenario(new ScenarioReader(`scenario ${source}`).parse(text), source);
-}
-
-/** Validates an already-parsed JSON value; `source` names the file in error messages. */
-export function readScenario(value: unknown, source: string): Scenario {
-  const json = new ScenarioReader(`scenario ${source}`);
-  const o = json.object(value, '$');
+/** Parses a scenario file into the runtime Scenario; `file` names it in error messages. */
+export function parseScenario(text: string, file: string): Scenario {
+  const json = new ScenarioReader(`scenario ${file}`);
+  const o = json.object(json.parse(text), '$');
   json.onlyKeys(o, TOP_KEYS, '$');
   if (o.format !== SCENARIO_FORMAT) json.fail('format', `expected '${SCENARIO_FORMAT}', got ${JSON.stringify(o.format)}`);
   // Version 1 had scalar spin variables in expressions; they are migrated like snapshot forces.
@@ -421,6 +416,8 @@ export function readScenario(value: unknown, source: string): Scenario {
   return {
     id: json.string(o.id, 'id'),
     name: json.string(o.name, 'name'),
+    file,
+    text,
     folder: o.folder === undefined ? 'Custom' : json.string(o.folder, 'folder'),
     added: o.added === undefined ? undefined : readAdded(json, o.added),
     description: o.description === undefined ? '' : json.string(o.description, 'description'),

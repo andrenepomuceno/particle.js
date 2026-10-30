@@ -9,8 +9,9 @@ import { PARTICLE_TARGET_KEY, SCENARIO_FOLDERS_KEY, SCENARIO_ORDER_KEY } from '.
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
 import { SCENARIOS } from '../../scenarios';
 import { orderScenarios, SCENARIO_ORDERS, scenarioFolders, type ScenarioOrder } from '../../scenarios/order';
+import type { ScenarioSource } from '../../scenarios/source';
 import type { Scenario } from '../../scenarios/types';
-import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
+import { ACTIONS, download, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
 import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive, unitInterval } from '../components/fields';
 import { useAppState, useController } from '../context';
 
@@ -30,11 +31,25 @@ const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(
 
 const format = (value: number, digits = 3) => (Number.isInteger(value) ? String(value) : value.toPrecision(digits));
 
-const INFO_TABS = ['Overview', 'Scenarios'] as const;
+const INFO_TABS = ['Overview', 'Scenarios', 'JSON'] as const;
 type InfoTab = (typeof INFO_TABS)[number];
+
+/** The JSON tab's text, tied to the world source it started from; `error` is the last failed apply. */
+interface JsonDraft {
+  source: ScenarioSource | undefined;
+  text: string;
+  error: string | undefined;
+}
+
+const freshDraft = (source: ScenarioSource | undefined): JsonDraft => ({ source, text: source?.text ?? '', error: undefined });
 
 export function InfoView() {
   const [tab, setTab] = useState<InfoTab>('Overview');
+  const source = useAppState((s) => s.scenarioSource);
+  // Held above the tabs so switching tabs keeps unapplied edits; only a new world source
+  // (another scenario or file loaded, or an applied edit) replaces it. R keeps the same source.
+  const [draft, setDraft] = useState(() => freshDraft(source));
+  if (draft.source !== source) setDraft(freshDraft(source));
   return (
     <div className="stack">
       <div className="tabs" role="tablist">
@@ -42,7 +57,9 @@ export function InfoView() {
           <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
         ))}
       </div>
-      {tab === 'Overview' ? <OverviewTab /> : <ScenariosTab />}
+      {tab === 'Overview' && <OverviewTab />}
+      {tab === 'Scenarios' && <ScenariosTab />}
+      {tab === 'JSON' && <JsonTab draft={draft} onChange={setDraft} />}
     </div>
   );
 }
@@ -62,6 +79,7 @@ function OverviewTab() {
   const paused = useAppState((s) => s.paused);
   const forces = useAppState((s) => s.forces.filter((f) => f.enabled).length);
   const description = useAppState((s) => s.description);
+  const edited = useAppState((s) => s.scenarioSource !== undefined && s.scenarioSource.text !== s.scenarioSource.original);
   const target = useAppState((s) => s.particleTarget);
   const defaultCount = SCENARIOS.find((s) => s.id === scenarioId)?.defaultCount;
   const order = useAppState((s) => s.scenarioOrder);
@@ -82,7 +100,7 @@ function OverviewTab() {
   return (
     <div className="stack">
       <select aria-label="Scenario" value={scenarioId} onChange={(e) => attempt('Loading the scenario', () => controller.loadScenario(e.target.value))}>
-        {scenarioId === '' && <option value="">{name} (imported)</option>}
+        {scenarioId === '' && <option value="">{name} ({edited ? 'edited' : 'imported'})</option>}
         {controller.listedScenarios().map((s) => <option key={s.id} value={s.id}>{scenarioLabel(s, order)}</option>)}
       </select>
       {description && <p className="muted" style={{ margin: 0 }}>{description}</p>}
@@ -181,6 +199,44 @@ function ScenariosTab() {
       ) : (
         <ul className="scenario-list">{orderScenarios(SCENARIOS, order).map((s) => item(s, true))}</ul>
       )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The current scenario file as text. Apply starts it like an imported file (R restarts the edit);
+ * Revert brings back the text as loaded from the library or the file.
+ */
+function JsonTab({ draft, onChange }: { draft: JsonDraft; onChange: (draft: JsonDraft) => void }) {
+  const controller = useController();
+  const target = useAppState((s) => s.particleTarget);
+  const { source, text, error } = draft;
+  if (!source) {
+    return <p className="muted" style={{ margin: 0 }}>The current world came from a snapshot, not a scenario file, so there is no JSON to edit. Load a scenario or import a scenario file.</p>;
+  }
+  const apply = () => {
+    try {
+      controller.applyScenarioEdit(text);
+      controller.notify(`Applied the edited ${source.file}`);
+    } catch (failure) {
+      onChange({ ...draft, error: (failure as Error).message });
+    }
+  };
+  const status = text !== source.text ? 'unapplied changes' : source.text !== source.original ? 'edit applied' : 'as loaded';
+  return (
+    <div className="stack">
+      <p className="muted" style={{ margin: 0 }}>{source.file} · {status}</p>
+      <textarea className={error ? 'json-editor invalid' : 'json-editor'} aria-label="Scenario JSON" spellCheck={false} value={text}
+        onChange={(event) => onChange({ ...draft, text: event.target.value })} />
+      {error && <pre className="errors">{error}</pre>}
+      {target !== undefined && (
+        <p className="muted" style={{ margin: 0 }}>Particles (next reset) is {target}: the groups' counts are rescaled to that total.</p>
+      )}
+      <div className="row">
+        <button className="primary" onClick={apply}>Apply (reset)</button>
+        <button className="outlined" disabled={text === source.original} onClick={() => onChange({ ...draft, text: source.original, error: undefined })}>Revert</button>
+        <button className="outlined" onClick={() => download(new Blob([text], { type: 'application/json' }), `${source.id}.json`)}>Download</button>
       </div>
     </div>
   );

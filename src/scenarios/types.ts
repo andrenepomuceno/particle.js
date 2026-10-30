@@ -16,6 +16,10 @@ export interface ScenarioField {
 export interface Scenario {
   id: string;
   name: string;
+  /** The file it was read from (library or imported file name), as error messages name it. */
+  file: string;
+  /** The file's text as read; Information → JSON shows and edits it. */
+  text: string;
   folder: string;
   /** When the scenario joined the library (ISO 8601); orders the "newest" view. */
   added: string | undefined;

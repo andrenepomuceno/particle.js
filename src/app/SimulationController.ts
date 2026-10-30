@@ -9,7 +9,7 @@ import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
 import { groupParticles, type ParticleGroup } from '../engine/particleGroups';
-import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
+import { GpuCompute, HistoryAllocationError, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import type { SpeciesId } from '../engine/species';
 import { assertStorableParticle, ParticleKind, ParticleSet, TEXEL, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk } from '../engine/random';
@@ -463,11 +463,17 @@ export class SimulationController {
     this.store.set({ capacity: this.set.capacity });
   }
 
-  private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
+  private replaceWorld(name: string, requested: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
+    // A scenario or snapshot made on a GPU with more texture array layers loads here with the history this
+    // one holds, and says so (a shorter reach for its retarded forces), rather than not loading at all.
+    const settings = { ...requested, historyDepth: Math.min(requested.historyDepth, this.maxHistoryDepth) };
     // Whatever can refuse the new world is checked before the old one is touched (an edit applied from
     // Information → JSON must leave the running world intact when it fails).
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
+    if (settings.historyDepth < requested.historyDepth) {
+      this.notify(`${name} asks for a history of ${requested.historyDepth} steps; this GPU holds ${settings.historyDepth}, so its retarded forces reach less far`, 'error');
+    }
     const inverseC2 = inverseLightSpeed2(settings);
     particles.forEach((particle, index) => assertStorableParticle(particle, index, inverseC2));
     this.loadedSettings = { ...settings };
@@ -867,7 +873,12 @@ export class SimulationController {
   private uploadParticles(): void {
     // Edits can move or renumber particles: a trail would jump.
     this.trail.clear();
-    this.gpu.upload(this.state.time);
+    try {
+      this.gpu.upload(this.state.time);
+    } catch (error) {
+      // More particles can need a larger history than the GPU holds; the particles are uploaded regardless.
+      this.historyFailed(error);
+    }
     this.points.setCount(this.set.count);
     this.store.set({ particleCount: this.set.count, particlesVersion: this.state.particlesVersion + 1 });
     this.fieldDirty = true;
@@ -905,10 +916,14 @@ export class SimulationController {
     try {
       this.gpu.setHistoryDepth(needed ? settings.historyDepth : 0, this.state.time);
     } catch (error) {
-      // Without a history retarded forces act instantaneously; say so instead of failing the edit.
-      this.gpu.setHistoryDepth(0, this.state.time);
-      this.notify(`Retarded forces act instantaneously: ${(error as Error).message}. Lower the history depth K (Spacetime).`, 'error');
+      this.historyFailed(error);
     }
+  }
+
+  /** Without a history (freed by GpuCompute) retarded forces act instantaneously: say so, do not fail the edit. */
+  private historyFailed(error: unknown): void {
+    if (!(error instanceof HistoryAllocationError)) throw error;
+    this.notify(`Retarded forces act instantaneously: ${error.message}. Lower the history depth K (Spacetime).`, 'error');
   }
 
   /** Most history steps this GPU can hold (Spacetime dialog). */

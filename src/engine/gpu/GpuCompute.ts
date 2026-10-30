@@ -34,6 +34,14 @@ uniform sampler2D uSource;
 void main() { gl_FragColor = texelFetch(uSource, ivec2(gl_FragCoord.xy), 0); }
 `;
 
+/** The GPU cannot hold the history retarded forces asked for (layers or memory); it is freed. */
+export class HistoryAllocationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'HistoryAllocationError';
+  }
+}
+
 export class ShaderCompileError extends Error {
   constructor(readonly log: string, readonly source: string) {
     super(`compute shader failed to compile:\n${log}`);
@@ -287,7 +295,11 @@ export class GpuCompute {
   setHistoryDepth(depth: number, time: number): void {
     const rows = this.historyRows();
     if ((this.history?.depth ?? 0) === depth && (depth === 0 || this.history!.rows === rows)) return;
-    if (depth > this.maxHistoryDepth) throw new Error(`a history of ${depth} steps exceeds this GPU's ${this.maxHistoryDepth} texture array layers`);
+    if (depth > this.maxHistoryDepth) {
+      this.disposeHistory();
+      this.bindHistory();
+      throw new HistoryAllocationError(`a history of ${depth} steps exceeds this GPU's ${this.maxHistoryDepth} texture array layers`);
+    }
     this.disposeHistory();
     if (depth > 0) {
       const options = { type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false };
@@ -304,7 +316,7 @@ export class GpuCompute {
         const megabytes = this.historyBytes(depth) / 2 ** 20;
         this.disposeHistory();
         this.bindHistory();
-        throw new Error(`the GPU ran out of memory allocating a history of ${depth} steps (${megabytes.toFixed(0)} MB)`);
+        throw new HistoryAllocationError(`the GPU ran out of memory allocating a history of ${depth} steps (${megabytes.toFixed(0)} MB)`);
       }
     }
     this.bindHistory();

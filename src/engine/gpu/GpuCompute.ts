@@ -1,6 +1,6 @@
 import {
   ClampToEdgeWrapping, DataTexture, FloatType, GLSL3, NearestFilter, RawShaderMaterial, RGBAFormat,
-  Vector4, WebGLRenderTarget, type IUniform, type Texture, type WebGLRenderer,
+  Vector4, WebGLArrayRenderTarget, WebGLRenderTarget, type IUniform, type Texture, type WebGLRenderer,
 } from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
@@ -9,7 +9,7 @@ import type { ParticleSet } from '../particles';
 import { inverseLightSpeed2 } from '../metric';
 import { DEFAULT_SETTINGS, type SimulationSettings } from '../settings';
 import {
-  BOUNDARY_CODE, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
+  BOUNDARY_CODE, EXTRAPOLATE_POSITION_SHADER, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
   VERLET_POSITION_SHADER, VERLET_VELOCITY_SHADER,
 } from '../shaders/computeShaders';
 
@@ -48,6 +48,18 @@ export function textureWidthFor(capacity: number): number {
 type PingPong = [WebGLRenderTarget, WebGLRenderTarget];
 
 /**
+ * Past states for retarded forces: `depth` layers of positions and stored velocities, a ring whose
+ * newest layer is `head`, and each layer's time in a depth×1 texture. See cpu/history.ts, its mirror.
+ */
+interface History {
+  depth: number;
+  head: number;
+  position: WebGLArrayRenderTarget;
+  velocity: WebGLArrayRenderTarget;
+  times: DataTexture;
+}
+
+/**
  * Ping-pong GPGPU integrator. Owns its own render targets and materials so the
  * velocity shader can be regenerated at runtime and validated before it is swapped in.
  */
@@ -81,6 +93,8 @@ export class GpuCompute {
   private readonly verletPositionMaterial: RawShaderMaterial;
   private readonly verletVelocityMaterial: RawShaderMaterial;
   private readonly copyMaterial: RawShaderMaterial;
+  private readonly extrapolateMaterial: RawShaderMaterial;
+  private history: History | undefined;
   private forces: readonly CompiledForce[] = [];
   private readonly prelude: string;
 
@@ -118,6 +132,11 @@ export class GpuCompute {
       uAcceleration: { value: null },
       uAccelerationNext: { value: null },
       uClockShift: { value: 0 },
+      uHistoryPosition: { value: null },
+      uHistoryVelocity: { value: null },
+      uHistoryTimes: { value: null },
+      uHistoryHead: { value: 0 },
+      uHistoryCount: { value: 0 },
       uInverseLightSpeed2: { value: 0 },
       uLightSpeed: { value: DEFAULT_SETTINGS.lightSpeed },
     };
@@ -139,6 +158,7 @@ export class GpuCompute {
     this.fieldMaterial = this.material(generateFieldShader([]), { ...this.sharedUniforms, ...this.probeUniforms });
     this.forceUniforms = this.sharedUniforms;
     this.copyMaterial = this.material(COPY_SHADER, { uSource: { value: null } });
+    this.extrapolateMaterial = this.material(EXTRAPOLATE_POSITION_SHADER, { ...this.sharedUniforms, uHistoryOffset: { value: 0 } });
     for (const material of this.programs()) {
       this.validate(material.fragmentShader);
     }
@@ -233,7 +253,8 @@ export class GpuCompute {
     this.integrator = settings.integrator;
   }
 
-  upload(): void {
+  /** Copies the ParticleSet to the GPU; a history restarts from it, extrapolated back from `time`. */
+  upload(time: number): void {
     this.attributes.needsUpdate = true;
     this.color.needsUpdate = true;
     this.spin.needsUpdate = true;
@@ -245,12 +266,90 @@ export class GpuCompute {
       source.dispose();
     }
     this.accelerationValid = false;
+    // Edits can renumber particles: the past is rebuilt from the new present.
+    this.resetHistory(time);
   }
 
   step(time: number): void {
     // Velocity-dependent forces need the implicit velocity update, which only the Euler pass has.
     if (this.integrator === 'verlet' && !this.velocityDependent) this.stepVerlet(time);
     else this.stepEuler(time);
+    if (this.history) this.pushHistory(time + (this.sharedUniforms.uTimeStep!.value as number));
+  }
+
+  /**
+   * Keeps `depth` past states for retarded forces (0 frees them). A new history is extrapolated back
+   * from the present at `time`, as if every particle had moved uniformly before.
+   */
+  setHistoryDepth(depth: number, time: number): void {
+    if ((this.history?.depth ?? 0) === depth) return;
+    this.disposeHistory();
+    if (depth > 0) {
+      const options = { type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false };
+      this.history = {
+        depth, head: 0,
+        position: new WebGLArrayRenderTarget(this.width, this.width, depth, options),
+        velocity: new WebGLArrayRenderTarget(this.width, this.width, depth, options),
+        times: new DataTexture(new Float32Array(depth * 4), depth, 1, RGBAFormat, FloatType),
+      };
+      this.resetHistory(time);
+    }
+    this.bindHistory();
+  }
+
+  /** Bytes the history of `depth` layers takes: positions and velocities, one RGBA float texel each. */
+  historyBytes(depth: number): number {
+    return 2 * depth * this.width * this.width * 16;
+  }
+
+  // Step k (1 = newest) lives in layer head − (k − 1) of the ring.
+  private resetHistory(time: number): void {
+    const history = this.history;
+    if (!history) return;
+    const dt = this.sharedUniforms.uTimeStep!.value as number;
+    const u = this.sharedUniforms;
+    u.texturePosition!.value = this.position[this.current]!.texture;
+    u.textureVelocity!.value = this.velocity[this.current]!.texture;
+    this.copyMaterial.uniforms.uSource!.value = this.velocity[this.current]!.texture;
+    history.head = 0;
+    const times = history.times.image.data as Float32Array;
+    for (let k = 1; k <= history.depth; k++) {
+      const layer = (history.depth - (k - 1)) % history.depth;
+      this.extrapolateMaterial.uniforms.uHistoryOffset!.value = (k - 1) * dt;
+      this.renderTo(this.extrapolateMaterial, history.position, layer);
+      this.renderTo(this.copyMaterial, history.velocity, layer);
+      times[layer * 4] = time - (k - 1) * dt;
+    }
+    history.times.needsUpdate = true;
+    this.bindHistory();
+  }
+
+  private pushHistory(time: number): void {
+    const history = this.history!;
+    history.head = (history.head + 1) % history.depth;
+    this.copyMaterial.uniforms.uSource!.value = this.position[this.current]!.texture;
+    this.renderTo(this.copyMaterial, history.position, history.head);
+    this.copyMaterial.uniforms.uSource!.value = this.velocity[this.current]!.texture;
+    this.renderTo(this.copyMaterial, history.velocity, history.head);
+    (history.times.image.data as Float32Array)[history.head * 4] = time;
+    history.times.needsUpdate = true;
+    this.bindHistory();
+  }
+
+  private bindHistory(): void {
+    const u = this.sharedUniforms;
+    u.uHistoryPosition!.value = this.history?.position.texture ?? null;
+    u.uHistoryVelocity!.value = this.history?.velocity.texture ?? null;
+    u.uHistoryTimes!.value = this.history?.times ?? null;
+    u.uHistoryHead!.value = this.history?.head ?? 0;
+    u.uHistoryCount!.value = this.history?.depth ?? 0;
+  }
+
+  private disposeHistory(): void {
+    this.history?.position.dispose();
+    this.history?.velocity.dispose();
+    this.history?.times.dispose();
+    this.history = undefined;
   }
 
   private stepEuler(time: number): void {
@@ -439,6 +538,7 @@ export class GpuCompute {
     [...this.position, ...this.velocity, ...this.acceleration, this.potentialTarget].forEach((target) => target.dispose());
     this.programs().forEach((m) => m.dispose());
     this.disposeProbes();
+    this.disposeHistory();
     this.attributes.dispose();
     this.color.dispose();
     this.spin.dispose();
@@ -448,14 +548,14 @@ export class GpuCompute {
   private programs(): RawShaderMaterial[] {
     return [
       this.positionMaterial, this.velocityMaterial, this.accelerationMaterial, this.verletPositionMaterial,
-      this.verletVelocityMaterial, this.potentialMaterial, this.fieldMaterial, this.copyMaterial,
+      this.verletVelocityMaterial, this.potentialMaterial, this.fieldMaterial, this.copyMaterial, this.extrapolateMaterial,
     ];
   }
 
-  private renderTo(material: RawShaderMaterial, target: WebGLRenderTarget): void {
+  private renderTo(material: RawShaderMaterial, target: WebGLRenderTarget, layer = 0): void {
     const previous = this.renderer.getRenderTarget();
     this.quad.material = material;
-    this.renderer.setRenderTarget(target);
+    this.renderer.setRenderTarget(target, layer);
     this.quad.render(this.renderer);
     this.renderer.setRenderTarget(previous);
   }

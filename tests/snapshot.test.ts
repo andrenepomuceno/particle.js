@@ -68,7 +68,7 @@ describe('snapshots', () => {
   });
 
   it.each([
-    [(s: Record<string, unknown>) => (s.version = 7), /at 'version': expected one of 1, 2, 3, 4, 5, 6, got 7/],
+    [(s: Record<string, unknown>) => (s.version = 8), /at 'version': expected one of 1, 2, 3, 4, 5, 6, 7, got 8/],
     [(s: Record<string, unknown>) => delete (s.settings as Record<string, unknown>).metric, /settings.metric': is required/],
     [(s: Record<string, unknown>) => delete (s.settings as Record<string, unknown>).boundaryDepth, /settings.boundaryDepth': is required/],
     [(s: Record<string, unknown>) => delete (s.particles as Record<string, unknown>[])[0]!.nuclearCharge, /particles\[0\].nuclearCharge': expected a finite number/],

@@ -59,10 +59,38 @@ Settings `metric` (`galilean`, the default, or `minkowski`) and `lightSpeed` (c)
   conserved.
 - The energy chart's kinetic energy is (γ − 1)·m·c², which equals ½·m·v² when Galilean. Speeds
   are coordinate speeds.
-- Still instantaneous: pair forces act at equal lab time (Δt = 0), so distances are Euclidean.
-  The light cone (retarded interactions) is not modelled.
+- Pair forces act at equal lab time (Δt = 0), so distances are Euclidean, unless a force is
+  *retarded* (next section).
 - Changing the metric or c keeps every particle's v. If a particle would be at or above the new
   c, the change is refused.
+
+## Retarded forces (light cone)
+
+A force-mode force with `retarded: true` (*Retarded (light cone)* on its card) reads each source
+where it was when the light now reaching the receiver left it: at the retarded time t_r with
+c·(t − t_r) = |x_i(t) − x_j(t_r)|, where the Minkowski interval between the two events is null. Under
+the Galilean metric (c → ∞) it acts instantaneously, and the card says so.
+
+- `d`, `r`, `rhat`, `dx`… and `v_j` (with `v_dot`, `v_rel`, `vv_dot`) come from j's retarded event;
+  `v_i` is i's present velocity. Two variables exist for these forces: `a_j`, j's acceleration at
+  t_r (from its velocity history), and `t_ret` = t − t_r; both are 0 in instantaneous forces.
+- The GPU keeps the last K steps (Spacetime → *History depth K*) of every particle's position and
+  velocity, plus their times, in texture arrays, only while a retarded force is enabled under
+  Minkowski: 2·K·capacity·16 bytes (Spacetime shows it). Before the start, and after any particle
+  edit, the past is extrapolated as uniform motion.
+- Per pair, the gap g(k) = c·(t − t_k) − |x_i − x_j(t_k)| grows into the past while |v| < c: a
+  bisection over the steps finds the one holding the root and a linear interpolation finds t_r (the
+  trajectory is exact for uniform motion; the root carries an O(dt²) error).
+- The history reaches pairs up to c·(K − 1)·dt apart. Farther pairs act instantaneously, and the
+  force card warns when the particles spread beyond that reach.
+- The field view shows the retarded field (the test particle is a receiver at rest). The CPU field
+  reference does not model retardation.
+- The *Liénard–Wiechert* preset is the Lorentz force of j's retarded fields on q_i: the velocity
+  field k·q_j·(n − β)(1 − β²)/(κ³R²) and the radiation field k·q_j·n × ((n − β) × β̇)/(c·κ³R), with
+  n = r̂, β = v_j/c, β̇ = a_j/c, κ = 1 − n·β and B = n × E/c. It is exact at all speeds (for a charge in
+  uniform motion it gives the field measured from its present position) and contains the Darwin
+  terms. Not modelled: radiation reaction (an accelerated charge radiates without losing energy).
+  Momentum and energy travel in the fields, so the mechanical totals are not conserved.
 
 ## Writing an expression
 
@@ -106,6 +134,8 @@ Variables:
 | `t_i`, `t_j` | particle clocks (proper times under Minkowski) |
 | `time` | global simulation time |
 | `c_light` | speed of light c (Spacetime dialog), also while Galilean: e.g. the magnetic coupling k/c² |
+| `a_j`, `ax_j`, `ay_j`, `az_j` | j's acceleration at the retarded time (retarded forces under Minkowski; else 0) |
+| `t_ret` | light delay t − t_r of a retarded force (else 0) |
 | `rand` | uniform random number in [0, 1), new each step, shared by the pair (force mode; see *Random numbers*) |
 | `randn` | standard normal random number, new each step, shared by the pair |
 | `randv` | vector of three independent standard normals, new each step, shared by the pair |
@@ -188,6 +218,7 @@ calls: `randn` read twice, in one expression or in two forces of the pair, is th
 | Gravity | force | long | `-G * m_i * m_j / r^2` |
 | Coulomb | force | long | `k * q_dot / r^2` |
 | Magnetic (Biot–Savart) | force (vector) | long | `k * q_i * q_j / (c_light^2 * r^3) * cross(v_i, cross(v_j, d))` |
+| Liénard–Wiechert (E + B) | force (vector), retarded | long | the retarded E and B of j on q_i (see *Retarded forces*) |
 | v1 nuclear | force | short | `k * n_i * n_j * sin(2 * pi * x)` |
 | Lennard-Jones | potential | short | `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)` |
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |

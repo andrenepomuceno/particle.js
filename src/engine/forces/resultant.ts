@@ -1,7 +1,7 @@
 import type { FieldProbe } from '../field';
 import { MEAN_NOISE } from '../noise';
 import { DEFAULT_SETTINGS } from '../settings';
-import { acts, forceScope, type CompiledForce, type PairScope } from './compile';
+import { acts, forceScope, INSTANTANEOUS, type CompiledForce, type PairScope } from './compile';
 import type { ForceRange } from './types';
 
 type Pair = Omit<PairScope, 'r'>;
@@ -28,6 +28,7 @@ export function plotPair({ i, j }: PlotParticles, lightSpeed = DEFAULT_SETTINGS.
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: 0, vy_j: 0, vz_j: 0,
     // Random numbers at their mean, so the curves do not flicker.
     ...MEAN_NOISE,
+    ...INSTANTANEOUS,
   };
 }
 

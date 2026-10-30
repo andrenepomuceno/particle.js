@@ -4,6 +4,7 @@ import { bin, call, isVectorFunction, neg, variable, type Expr } from './ast';
 export const VECTOR_VARIABLES: Readonly<Record<string, readonly [string, string, string]>> = {
   v_i: ['vx_i', 'vy_i', 'vz_i'],
   v_j: ['vx_j', 'vy_j', 'vz_j'],
+  a_j: ['ax_j', 'ay_j', 'az_j'],
   s_i: ['sx_i', 'sy_i', 'sz_i'],
   s_j: ['sx_j', 'sy_j', 'sz_j'],
   d: ['dx', 'dy', 'dz'],

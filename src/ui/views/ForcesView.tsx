@@ -1,7 +1,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { FORCE_PRESETS, newForceId, type ForcePresetId } from '../../engine/forces/presets';
 import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
-import { NumberField, SelectField, nonNegative, positive } from '../components/fields';
+import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
 import { useAppState, useController } from '../context';
 import { loadJson, saveJson } from '../persist';
 import { FORCES_EXPANDED_KEY } from '../storageKeys';
@@ -81,6 +81,9 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
         <SelectField label="Range" value={force.range} options={['long', 'short'] as const} onChange={(range) => update({ range })} />
         {force.range === 'short' && <NumberField label="Cutoff" value={force.cutoff} validate={positive} onCommit={(cutoff) => update({ cutoff })} />}
         <NumberField label="Softening" value={force.softening} validate={nonNegative} onCommit={(softening) => update({ softening })} />
+        {force.mode === 'force' && (
+          <CheckField label="Retarded (light cone)" checked={force.retarded === true} onChange={(retarded) => update({ retarded })} />
+        )}
         <label>{force.mode === 'potential' ? 'V(r) =' : 'F(r) ='}</label>
         <TextCommit label="expression" multiline value={force.expression} onCommit={(expression) => update({ expression })} />
       </div>

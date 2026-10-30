@@ -58,6 +58,8 @@ export interface CompiledForce {
   velocity: boolean;
   /** Reads rand, randn or randv: the pair loops hash them (field probes and plots use their mean). */
   random: boolean;
+  /** Reads j on i's past light cone under the Minkowski metric (`retarded` in force mode). */
+  retarded: boolean;
   /** Signed force magnitude as a function of r; positive pushes the pair apart (radial part for vector forces). */
   evaluate: CompiledFn;
   /** The full force on i (−∇_{Δx} V for gradient forces). */
@@ -89,6 +91,9 @@ export function validateForceShape(def: ForceDefinition): string[] {
   }
   if (!(Number.isFinite(def.softening) && def.softening >= 0)) {
     problems.push(`softening must be a finite number >= 0, got ${def.softening}`);
+  }
+  if (def.retarded && def.mode === 'potential') {
+    problems.push('a retarded force must be in force mode: it reads its source on the light cone, while F = −∇V needs a V of the present positions');
   }
   const seen = new Set<string>();
   for (const param of def.params) {
@@ -174,6 +179,7 @@ export function compileForce(def: ForceDefinition): CompiledForce {
     jacobian: built.jacobian !== undefined,
     velocity: names.some((name) => VELOCITY.has(name)),
     random: [...reads].some((name) => RANDOM.has(name)),
+    retarded: def.mode === 'force' && def.retarded === true,
     reads,
     potentialReads: potential === undefined ? new Set<string>() : readNames(program, [potential], built.parameters),
     evaluate: jsFunction(program, built.radial),
@@ -405,6 +411,9 @@ export interface PairScope extends PairNoise {
   r: number;
   /** The configured speed of light (settings.lightSpeed). */
   c_light: number;
+  /** Retarded source acceleration and light delay (0 unless the force is retarded under Minkowski). */
+  ax_j: number; ay_j: number; az_j: number;
+  t_ret: number;
   m_i: number; m_j: number;
   q_i: number; q_j: number;
   q2_i: number; q2_j: number;
@@ -424,6 +433,9 @@ export interface PairScope extends PairNoise {
 }
 
 /** The pair's own variables (no r and nothing force-specific): built once per pair, shared by its forces. */
+/** The retarded-source variables of an instantaneous evaluation (non-retarded forces, probes of the plots). */
+export const INSTANTANEOUS = { ax_j: 0, ay_j: 0, az_j: 0, t_ret: 0 } as const;
+
 export function pairVariables(pair: Omit<PairScope, 'r'>): Record<string, number> {
   const colorI: Vec3 = [pair.cr_i, pair.cg_i, pair.cb_i];
   const colorJ: Vec3 = [pair.cr_j, pair.cg_j, pair.cb_j];

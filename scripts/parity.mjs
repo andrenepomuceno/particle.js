@@ -72,8 +72,20 @@ const CASES = [
     forces: [
       { name: 'aging Coulomb', mode: 'force', range: 'long', softening: 1, expression: 'q_i * q_j * (1 + 0.2 * t_j) / r^2' },
     ] },
+  // Retarded forces: the history ring, the light-cone search and the fallback beyond it (reach
+  // c·(K − 1)·dt = 3.1 against a disk of radius 6).
+  { name: 'retarded Coulomb', settings: { timeStep: 0.05, metric: 'minkowski', lightSpeed: 2, historyDepth: 32 }, steps: 200, tolerance: 1e-3,
+    forces: [{ preset: 'coulomb', softening: 0.5, params: { k: 0.5 }, retarded: true }] },
+  { name: 'retarded Liénard–Wiechert', settings: { timeStep: 0.05, metric: 'minkowski', lightSpeed: 2, historyDepth: 32 }, steps: 200, tolerance: 1e-3,
+    forces: [{ preset: 'lienardWiechert', softening: 0.5, params: { k: 0.5 } }] },
 ];
 const GROUPS = {
+  'retarded Coulomb': [
+    { count: 12, shape: { type: 'disk', radius: 6 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: { cycle: [0.5, 1, 1.5] } } },
+  ],
+  'retarded Liénard–Wiechert': [
+    { count: 12, shape: { type: 'disk', radius: 6 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: { cycle: [0.5, 1, 1.5] } } },
+  ],
   'minkowski: uniform E + B, Coulomb': [
     { count: 1, kind: 'fixed', shape: { type: 'point', center: [0, 0, 30] }, nuclearCharge: 1 },
     { count: 10, shape: { type: 'shell', radius: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: { cycle: [0.5, 1, 1.4] } } },

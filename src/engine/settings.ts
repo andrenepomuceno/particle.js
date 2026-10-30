@@ -7,6 +7,8 @@ export const METRICS = ['galilean', 'minkowski'] as const;
 export type Metric = (typeof METRICS)[number];
 /** c bounds: the GPU works with 1/c², which must stay a normal float32. */
 export const LIGHT_SPEED_RANGE = [1e-18, 1e18] as const;
+/** History layers for retarded forces: WebGL2 guarantees 256 texture array layers. */
+export const HISTORY_DEPTH_RANGE = [2, 256] as const;
 
 export interface SimulationSettings {
   timeStep: number;
@@ -34,6 +36,11 @@ export interface SimulationSettings {
   metric: Metric;
   /** Speed of light c of the Minkowski metric; validated but unused while Galilean. */
   lightSpeed: number;
+  /**
+   * Steps of past positions and velocities kept for retarded forces (only while one is enabled under
+   * Minkowski): they reach pairs up to c·(historyDepth − 1)·dt apart; farther ones act instantaneously.
+   */
+  historyDepth: number;
 }
 
 export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
@@ -51,6 +58,7 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   integrator: 'verlet',
   metric: 'galilean',
   lightSpeed: 10,
+  historyDepth: 128,
 };
 
 export function validateSettings(settings: SimulationSettings): string[] {
@@ -66,6 +74,10 @@ export function validateSettings(settings: SimulationSettings): string[] {
   check(
     Number.isFinite(settings.lightSpeed) && settings.lightSpeed >= LIGHT_SPEED_RANGE[0] && settings.lightSpeed <= LIGHT_SPEED_RANGE[1],
     `lightSpeed must be within [${LIGHT_SPEED_RANGE[0].toExponential()}, ${LIGHT_SPEED_RANGE[1].toExponential()}] (the GPU works with 1/c² in float32), got ${settings.lightSpeed}`,
+  );
+  check(
+    Number.isInteger(settings.historyDepth) && settings.historyDepth >= HISTORY_DEPTH_RANGE[0] && settings.historyDepth <= HISTORY_DEPTH_RANGE[1],
+    `historyDepth must be an integer within [${HISTORY_DEPTH_RANGE[0]}, ${HISTORY_DEPTH_RANGE[1]}] (WebGL2 guarantees 256 texture array layers), got ${settings.historyDepth}`,
   );
   check(
     settings.metric !== 'minkowski' || settings.maxSpeed === 0,
@@ -94,7 +106,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
 
 const SETTING_KEYS = [
   'timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution',
-  'mode2D', 'integrator', 'metric', 'lightSpeed',
+  'mode2D', 'integrator', 'metric', 'lightSpeed', 'historyDepth',
 ] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
@@ -123,6 +135,7 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
     integrator: read('integrator', (v, p) => json.oneOf(v, INTEGRATORS, p), base?.integrator),
     metric: read('metric', (v, p) => json.oneOf(v, METRICS, p), base?.metric),
     lightSpeed: read('lightSpeed', (v, p) => json.finite(v, p), base?.lightSpeed),
+    historyDepth: read('historyDepth', (v, p) => json.finite(v, p), base?.historyDepth),
   };
   const problems = validateSettings(settings);
   if (problems.length > 0) json.fail(path, problems.join('; '));

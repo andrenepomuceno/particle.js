@@ -10,7 +10,7 @@ const GROUPS: readonly [title: string, bases: readonly string[]][] = [
   ['Nuclear charge and parity', ['n', 'p']],
   ['Velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
   ['Time', ['t', 'time']],
-  ['Spacetime', ['c_light']],
+  ['Spacetime (retarded forces)', ['c_light', 't_ret', 'ax', 'ay', 'az', 'a']],
   ['Random (force mode)', ['rand', 'randn', 'randv']],
 ];
 

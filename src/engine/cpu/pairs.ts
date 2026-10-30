@@ -1,4 +1,4 @@
-import { acts, pairVariables, setForceVariables, type CompiledForce, type PairScope } from '../forces/compile';
+import { acts, INSTANTANEOUS, pairVariables, setForceVariables, type CompiledForce, type PairScope } from '../forces/compile';
 import type { FieldProbe } from '../field';
 import { MEAN_NOISE, pairNoise, type PairNoise } from '../noise';
 import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
@@ -43,6 +43,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number, 
     t_i: v[oi + 3]!, t_j: v[oj + 3]!, time, c_light: lightSpeed,
     vx_i: v[oi]! * gi, vy_i: v[oi + 1]! * gi, vz_i: v[oi + 2]! * gi, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     rand: n.rand, randn: n.randn, randvx: n.randvx, randvy: n.randvy, randvz: n.randvz,
+    ...INSTANTANEOUS,
   };
 }
 
@@ -69,6 +70,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     // The test particle is at rest: velocity-dependent forces on it vanish.
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     ...MEAN_NOISE,
+    ...INSTANTANEOUS,
   };
 }
 

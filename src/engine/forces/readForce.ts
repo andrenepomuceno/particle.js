@@ -3,8 +3,8 @@ import { compileForce } from './compile';
 import { FORCE_PRESETS, forceFromPreset, newForceId, withParams, type ForcePresetId } from './presets';
 import type { ForceDefinition } from './types';
 
-const FULL_KEYS = ['id', 'name', 'enabled', 'mode', 'expression', 'range', 'cutoff', 'softening', 'params'] as const;
-const PRESET_KEYS = ['preset', 'name', 'enabled', 'cutoff', 'softening', 'params'] as const;
+const FULL_KEYS = ['id', 'name', 'enabled', 'mode', 'expression', 'range', 'cutoff', 'softening', 'params', 'retarded'] as const;
+const PRESET_KEYS = ['preset', 'name', 'enabled', 'cutoff', 'softening', 'params', 'retarded'] as const;
 
 function readParamList(json: JsonReader, value: unknown, path: string): ForceDefinition['params'] {
   return json.array(value, path).map((p, k) => {
@@ -22,12 +22,14 @@ function readPresetForce(json: JsonReader, o: Record<string, unknown>, path: str
   const enabled = json.optional(o, 'enabled', (v) => json.boolean(v, `${path}.enabled`));
   const cutoff = json.optional(o, 'cutoff', (v) => json.finite(v, `${path}.cutoff`));
   const softening = json.optional(o, 'softening', (v) => json.finite(v, `${path}.softening`));
+  const retarded = json.optional(o, 'retarded', (v) => json.boolean(v, `${path}.retarded`));
   force = {
     ...force,
     ...(name !== undefined && { name }),
     ...(enabled !== undefined && { enabled }),
     ...(cutoff !== undefined && { cutoff }),
     ...(softening !== undefined && { softening }),
+    ...(retarded !== undefined && { retarded }),
   };
   if (o.params !== undefined) {
     const values = json.object(o.params, `${path}.params`);
@@ -63,6 +65,7 @@ export function readForce(json: JsonReader, value: unknown, path: string, requir
       cutoff: o.cutoff === undefined && !requireId && o.range === 'long' ? 1 : json.finite(o.cutoff, `${path}.cutoff`),
       softening: o.softening === undefined && !requireId ? 0 : json.finite(o.softening, `${path}.softening`),
       params: o.params === undefined && !requireId ? [] : readParamList(json, o.params, `${path}.params`),
+      ...(o.retarded !== undefined && { retarded: json.boolean(o.retarded, `${path}.retarded`) }),
     };
   }
   try {

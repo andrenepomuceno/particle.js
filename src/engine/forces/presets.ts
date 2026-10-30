@@ -31,6 +31,18 @@ export const FORCE_PRESETS = {
     softening: 1,
     params: [{ name: 'k', value: 1 }],
   },
+  lienardWiechert: {
+    name: 'Liénard–Wiechert (E + B)',
+    mode: 'force',
+    // The retarded fields of j (n = rhat from its retarded position, β = v_j/c, κ = 1 − n·β): velocity field
+    // k·q_j·(n − β)(1 − β²)/(κ³R²) plus radiation k·q_j·n × ((n − β) × a_j/c)/(c·κ³R), B = n × E / c, on q_i.
+    expression: 'q_i * ((k * q_j * ((rhat - v_j / c_light) * (1 - dot(v_j, v_j) / c_light^2) / ((1 - dot(rhat, v_j) / c_light)^3 * r^2) + cross(rhat, cross(rhat - v_j / c_light, a_j / c_light)) / (c_light * (1 - dot(rhat, v_j) / c_light)^3 * r))) + cross(v_i / c_light, cross(rhat, k * q_j * ((rhat - v_j / c_light) * (1 - dot(v_j, v_j) / c_light^2) / ((1 - dot(rhat, v_j) / c_light)^3 * r^2) + cross(rhat, cross(rhat - v_j / c_light, a_j / c_light)) / (c_light * (1 - dot(rhat, v_j) / c_light)^3 * r)))))',
+    range: 'long',
+    cutoff: 1,
+    softening: 1,
+    params: [{ name: 'k', value: 1 }],
+    retarded: true,
+  },
   nuclear: {
     name: 'Nuclear (v1 sine)',
     mode: 'force',

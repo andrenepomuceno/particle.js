@@ -1,4 +1,5 @@
 import type { CompiledForce } from '../forces/compile';
+import { createHistory, pushHistory, retardedSource, type History } from './history';
 import { pairScope, addPairForce } from './pairs';
 import { coordinateVelocity, inverseLightSpeed2, lorentzFactor, velocityJacobian } from '../metric';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
@@ -13,6 +14,8 @@ type Vec = [number, number, number];
  */
 export interface ReferenceState {
   acceleration?: Float64Array;
+  /** Past states for retarded forces, as the GPU's history textures (rebuilt when stale). */
+  history?: History;
 }
 
 /**
@@ -31,10 +34,22 @@ export function referenceStep(
   if (set.inverseLightSpeed2 !== k) {
     throw new Error(`the particle set stores velocities for 1/c² = ${set.inverseLightSpeed2}, but the settings' metric gives ${k}; call setMetric first`);
   }
+  // Retarded forces read a history of past states, extrapolated in uniform motion when it starts (as the
+  // GPU's after an upload) and fed with every new state; under Galilean they act instantaneously.
+  const history = k > 0 && forces.some((f) => f.retarded) ? currentHistory(set, settings, time, state) : undefined;
+  if (!history) state.history = undefined;
   // Velocity-dependent forces break Verlet's position-only assumption; the Euler step (with the
   // implicit kick for forces reading v_i) handles them.
-  if (settings.integrator === 'verlet' && !forces.some((f) => f.velocity)) verletStep(set, forces, settings, time, state);
-  else eulerStep(set, forces, settings, time);
+  if (settings.integrator === 'verlet' && !forces.some((f) => f.velocity)) verletStep(set, forces, settings, time, state, history);
+  else eulerStep(set, forces, settings, time, history);
+  if (history) pushHistory(history, set, time + settings.timeStep);
+}
+
+function currentHistory(set: ParticleSet, settings: SimulationSettings, time: number, state: ReferenceState): History {
+  const { history } = state;
+  if (history && history.depth === settings.historyDepth && history.particles === set.count) return history;
+  state.history = createHistory(set, settings.historyDepth, time, settings.timeStep);
+  return state.history;
 }
 
 /**
@@ -113,9 +128,12 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
 
 /** Σ_j F_ij on particle i; clocks are read advanced by `clockShifts` (Verlet evaluates before writing them). */
 function totalForce(
-  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShifts: Float64Array | undefined, settings: SimulationSettings, jacobian?: Float64Array,
+  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShifts: Float64Array | undefined, settings: SimulationSettings,
+  history: History | undefined, jacobian?: Float64Array,
 ): Vec {
   const { collisionDistance, lightSpeed } = settings;
+  const retarded = history ? forces.filter((f) => f.retarded) : [];
+  const instantaneous = history ? forces.filter((f) => !f.retarded) : forces;
   const pos = set.position;
   const oi = i * TEXEL;
   const force: [number, number, number] = [0, 0, 0];
@@ -141,17 +159,29 @@ function totalForce(
       pair.t_i += clockShifts[i]!;
       pair.t_j += clockShifts[j]!;
     }
-    addPairForce(forces, pair, dist, force, jacobian);
+    addPairForce(instantaneous, pair, dist, force, jacobian);
+    if (retarded.length > 0) {
+      // j as i sees it now: on i's past light cone (its present state when that lies beyond the history).
+      const source = retardedSource(set, history!, j, [pos[oi]!, pos[oi + 1]!, pos[oi + 2]!], time, lightSpeed);
+      const distance = Math.hypot(...source.delta);
+      if (distance === 0) continue;
+      const [ux, uy, uz] = source.delta.map((c) => c / distance);
+      const [vx_j, vy_j, vz_j] = source.velocity;
+      const [ax_j, ay_j, az_j] = source.acceleration;
+      addPairForce(retarded, { ...pair, ux: ux!, uy: uy!, uz: uz!, vx_j, vy_j, vz_j, ax_j, ay_j, az_j, t_ret: source.delay }, distance, force, jacobian);
+    }
   }
   return force;
 }
 
-function accelerations(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShifts: Float64Array | undefined): Float64Array {
+function accelerations(
+  set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShifts: Float64Array | undefined, history: History | undefined,
+): Float64Array {
   const result = new Float64Array(set.count * 3);
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, clockShifts, settings);
+    const force = totalForce(set, i, forces, time, clockShifts, settings, history);
     result.set([force[0] / mass, force[1] / mass, settings.mode2D ? 0 : force[2] / mass], i * 3);
   }
   return result;
@@ -202,7 +232,7 @@ function confinePosition(p: Vec, settings: SimulationSettings): Vec {
   return p;
 }
 
-function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number): void {
+function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, history: History | undefined): void {
   const dt = settings.timeStep;
   const k = inverseLightSpeed2(settings);
   const nextVelocity = new Float64Array(set.count * TEXEL);
@@ -216,7 +246,7 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
     }
     const mass = set.attributes[i * TEXEL]!;
     const jacobian = implicit ? new Float64Array(9) : undefined;
-    const force = totalForce(set, i, forces, time, undefined, settings, jacobian);
+    const force = totalForce(set, i, forces, time, undefined, settings, history, jacobian);
     if (jacobian && k > 0) toProperJacobian(jacobian, read(set.velocity, i), k);
     const kick = jacobian ? implicitKick(force, jacobian, mass, dt) : force.map((c) => (dt * c) / mass) as Vec;
     const u = read(set.velocity, i).map((c, axis) => c + kick[axis]! + impulses[i * 3 + axis]!) as Vec;
@@ -232,13 +262,15 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
   }
 }
 
-function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, state: ReferenceState): void {
+function verletStep(
+  set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, state: ReferenceState, history: History | undefined,
+): void {
   const dt = settings.timeStep;
   if (state.acceleration && state.acceleration.length !== set.count * 3) {
     throw new Error(`stored acceleration covers ${state.acceleration.length / 3} particles but the set has ${set.count}; clear ReferenceState after edits`);
   }
   const k = inverseLightSpeed2(settings);
-  const before = state.acceleration ?? accelerations(set, forces, settings, time, undefined);
+  const before = state.acceleration ?? accelerations(set, forces, settings, time, undefined, history);
   const limit = settings.maxSpeed * dt;
   // Each clock advances by dτ = dt/γ of the half-kicked u the drift moves with (dt when Galilean, or fixed).
   const clockShifts = new Float64Array(set.count);
@@ -253,7 +285,7 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
     const drift = read(set.position, i).map((c, axis) => c + scale * d[axis]!) as Vec;
     set.position.set(confinePosition(drift, settings), i * TEXEL);
   }
-  const after = accelerations(set, forces, settings, time + dt, clockShifts);
+  const after = accelerations(set, forces, settings, time + dt, clockShifts, history);
   const impulses = collisionImpulses(set, settings);
   for (let i = 0; i < set.count; i++) {
     const tau = set.velocity[i * TEXEL + 3]!;

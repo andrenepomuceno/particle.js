@@ -16,4 +16,9 @@ export interface ForceDefinition {
   cutoff: number;
   softening: number;
   params: ForceParam[];
+  /**
+   * Force mode only: j is read on i's past light cone (Minkowski metric; instantaneous under
+   * Galilean, where c → ∞). Omitted means false.
+   */
+  retarded?: boolean;
 }

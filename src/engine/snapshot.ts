@@ -6,7 +6,7 @@ import type { Particle, ParticleKind } from './particles';
 import { DEFAULT_SETTINGS, readSettings, type SimulationSettings } from './settings';
 
 export const SNAPSHOT_FORMAT = 'particle.js-v2/snapshot';
-export const SNAPSHOT_VERSION = 6;
+export const SNAPSHOT_VERSION = 7;
 
 export interface Snapshot {
   format: typeof SNAPSHOT_FORMAT;
@@ -51,14 +51,16 @@ const migrateForce = (force: unknown, version: number) => (version >= 4 ? force 
 
 /**
  * v1–2 had only Euler; v3–4 predate quadraticDrag and boundaryDepth (neither existed: 0); v1–5
- * predate the metric (all Galilean, so c is unused and takes the default).
+ * predate the metric (all Galilean, so c is unused and takes the default); v1–6 predate retarded
+ * forces (the history depth takes the default).
  */
 function migrateSettings(settings: unknown, version: number): unknown {
-  if (version >= 6 || typeof settings !== 'object' || settings === null) return settings;
+  if (version >= 7 || typeof settings !== 'object' || settings === null) return settings;
   return {
     ...(version < 3 && { integrator: 'euler' }),
     ...(version < 5 && { quadraticDrag: 0, boundaryDepth: 0 }),
-    metric: 'galilean', lightSpeed: DEFAULT_SETTINGS.lightSpeed,
+    ...(version < 6 && { metric: 'galilean', lightSpeed: DEFAULT_SETTINGS.lightSpeed }),
+    historyDepth: DEFAULT_SETTINGS.historyDepth,
     ...settings,
   };
 }
@@ -71,7 +73,7 @@ export function parseSnapshot(text: string): Snapshot {
 export function readSnapshot(value: unknown): Snapshot {
   const o = json.object(value, '$');
   if (o.format !== SNAPSHOT_FORMAT) json.fail('format', `expected '${SNAPSHOT_FORMAT}', got ${JSON.stringify(o.format)}`);
-  const version = json.oneOf(o.version, [1, 2, 3, 4, 5, SNAPSHOT_VERSION] as const, 'version');
+  const version = json.oneOf(o.version, [1, 2, 3, 4, 5, 6, SNAPSHOT_VERSION] as const, 'version');
   return createSnapshot(
     json.string(o.name, 'name'),
     json.finite(o.time, 'time'),

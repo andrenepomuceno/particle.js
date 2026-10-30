@@ -42,6 +42,11 @@ Four RGBA float textures of `width × width` texels, one particle per texel, ind
 
 Under the Minkowski metric the velocity texture (and the `ParticleSet` mirror) holds the proper
 velocity u = γv; `Particle` objects, scenario files and snapshots always carry v (`src/engine/metric.ts`).
+
+Retarded forces add a history: two `width × width × K` texture arrays (positions and velocities of the
+last K steps, a ring written after every step) and a `K × 1` texture of their times, allocated by
+`GpuCompute.setHistoryDepth` only while a retarded force is enabled under Minkowski. The CPU mirror is
+`src/engine/cpu/history.ts` (same layout and search).
 | attributes (static) | mass | charge q | charge q2 | parity |
 | color (static) | red | green | blue | nuclear charge |
 | spin (static) | sx | sy | sz | isospin I₃ |

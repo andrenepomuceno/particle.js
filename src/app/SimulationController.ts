@@ -187,7 +187,7 @@ const FIELD_REFERENCE_INTERVAL_MS = 1000;
 const FIELD_FOLLOW_REFIT_MS = 250;
 
 function structureKey(forces: readonly CompiledForce[]): string {
-  return JSON.stringify(forces.map(({ definition: d }) => [d.expression, d.mode, d.range, d.params.map((p) => p.name)]));
+  return JSON.stringify(forces.map(({ definition: d }) => [d.expression, d.mode, d.range, d.retarded === true, d.params.map((p) => p.name)]));
 }
 
 export class SimulationController {
@@ -515,6 +515,7 @@ export class SimulationController {
     if (metricChanged) this.uploadParticles();
     const previous = this.state.settings;
     this.store.set({ settings });
+    this.syncHistory();
     if (['boundary', 'boundarySize', 'boundaryDepth', 'mode2D'].some((key) => settings[key as keyof SimulationSettings] !== previous[key as keyof SimulationSettings]) || !this.boundaryDrawn) {
       this.boundaryLines.update(settings);
       this.boundaryDrawn = true;
@@ -547,6 +548,7 @@ export class SimulationController {
         this.gpu.setForceValues(compiled);
       }
       this.compiled = compiled;
+      this.syncHistory();
       this.fieldDirty = true;
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
@@ -861,7 +863,7 @@ export class SimulationController {
   private uploadParticles(): void {
     // Edits can move or renumber particles: a trail would jump.
     this.trail.clear();
-    this.gpu.upload();
+    this.gpu.upload(this.state.time);
     this.points.setCount(this.set.count);
     this.store.set({ particleCount: this.set.count, particlesVersion: this.state.particlesVersion + 1 });
     this.fieldDirty = true;
@@ -872,14 +874,50 @@ export class SimulationController {
   /** Attribute columns never change on the GPU, so the CPU copy is current even when positions are stale. */
   private refreshForceWarnings(): void {
     const forceWarnings: Record<string, string[]> = {};
+    const { settings } = this.state;
     for (const force of this.compiled) {
       const warnings = inactiveCouplings(force, this.set);
-      if (force.velocity && this.state.settings.integrator === 'verlet') {
+      if (force.velocity && settings.integrator === 'verlet') {
         warnings.push('depends on velocity: the step uses the Euler update (implicit for v_i) instead of Verlet, which assumes position-only forces');
+      }
+      if (force.retarded && settings.metric !== 'minkowski') {
+        warnings.push('retarded: acts instantaneously under the Galilean metric (c → ∞); the light cone needs Minkowski (Spacetime dialog)');
+      } else if (force.retarded) {
+        const reach = settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep;
+        const span = this.particleSpan();
+        if (span > reach) {
+          warnings.push(`retarded: pairs farther apart than c·(K − 1)·dt = ${reach.toPrecision(3)} act instantaneously, and the particles span about ${span.toPrecision(3)}; raise the history depth K or the time step (Spacetime, Parameters)`);
+        }
       }
       if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;
     }
     this.store.set({ forceWarnings });
+  }
+
+  /** Retarded forces read the GPU history only under Minkowski; under Galilean they act instantaneously. */
+  private syncHistory(): void {
+    const { settings } = this.state;
+    const needed = settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded);
+    this.gpu.setHistoryDepth(needed ? settings.historyDepth : 0, this.state.time);
+  }
+
+  /** Bytes a history of `depth` steps takes on the GPU at the current capacity (Spacetime dialog). */
+  historyBytes(depth: number): number {
+    return this.gpu.historyBytes(depth);
+  }
+
+  /** Diagonal of the particles' bounding box, from the CPU copy (current after the last sync). */
+  private particleSpan(): number {
+    const low = [Infinity, Infinity, Infinity];
+    const high = [-Infinity, -Infinity, -Infinity];
+    for (let k = 0; k < this.set.count; k++) {
+      for (let c = 0; c < 3; c++) {
+        const x = this.set.position[k * TEXEL + c]!;
+        low[c] = Math.min(low[c]!, x);
+        high[c] = Math.max(high[c]!, x);
+      }
+    }
+    return this.set.count > 0 ? Math.hypot(high[0]! - low[0]!, high[1]! - low[1]!, high[2]! - low[2]!) : 0;
   }
 
   /** Every CPU-side edit goes through here: read back, mutate, upload. */
@@ -1290,6 +1328,11 @@ export class SimulationController {
     this.points.setAverageSpeed(energy.meanSpeed);
     this.points.setClockRange(spacetime.clockMin, spacetime.clockMax, time);
     this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing, spacetime });
+    // The retarded-force reach warning follows the particles as they spread (a readback, only then).
+    if (settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded)) {
+      this.syncFromGpu();
+      this.refreshForceWarnings();
+    }
     if (!advanced || !this.statsActive) return;
     const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;
     this.store.set({

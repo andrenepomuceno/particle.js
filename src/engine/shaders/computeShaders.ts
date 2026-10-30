@@ -1,6 +1,7 @@
 import { GLSL_COLOR_HELPERS } from '../colorCharge';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import { PAIR_VARIABLES } from '../forces/variables';
+import { HISTORY_SEARCH_STEPS } from '../cpu/history';
 import { GLSL_METRIC } from '../metric';
 import { GLSL_NOISE_HELPERS, MEAN_NOISE, NOISE_STREAMS, type PairNoise } from '../noise';
 
@@ -27,6 +28,13 @@ uniform sampler2D uAcceleration;
 uniform sampler2D uAccelerationNext;
 uniform float uClockShift;
 uniform float uLightSpeed;
+// Past states for retarded forces (see GpuCompute's history): layers of positions and stored velocities,
+// their times in a depth×1 texture, the newest at uHistoryHead; uHistoryCount is 0 without a history.
+uniform highp sampler2DArray uHistoryPosition;
+uniform highp sampler2DArray uHistoryVelocity;
+uniform highp sampler2D uHistoryTimes;
+uniform int uHistoryHead;
+uniform int uHistoryCount;
 
 #define KIND_FIXED 2.0
 
@@ -62,8 +70,67 @@ function forceUniforms(force: CompiledForce, index: number): string {
     .join('\n');
 }
 
-const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2, vec2 noise, vec3 noiseVec';
-const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2, noise, noiseVec';
+const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2, vec2 noise, vec3 noiseVec, vec3 acc2, float delay';
+const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2, noise, noiseVec, acc2, delay';
+/** The same pair seen on the light cone: j's retarded geometry, velocity, acceleration and delay. */
+const RETARDED_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dirR, tau1, tau2, deltaR, vel1, vel2R, noise, noiseVec, acc2R, delayR';
+
+/**
+ * j on the past light cone of pos1, c·(t − t_r) = |pos1 − x_j(t_r)| (mirrors cpu/history.ts). The gap
+ * g(k) = c·(t − t_k) − |pos1 − x_j(t_k)| grows into the past for |v| < c: bisect the history steps for
+ * the interval holding the root, then interpolate linearly. Step 0 is the live state at uTime, step k ≥ 1
+ * the k-th newest layer. Returns false, leaving delta and vel2 as given (the present), when there is no
+ * history (Galilean, or no retarded force) or the cone lies beyond it.
+ */
+const GLSL_RETARDED = /* glsl */ `
+float coneGap(ivec2 coord2, vec3 pos1, vec3 pos2Now, int k, out vec3 pos2, out float time2) {
+  if (k == 0) {
+    pos2 = pos2Now;
+    time2 = uTime;
+  } else {
+    int layer = (uHistoryHead - k + 1 + uHistoryCount) % uHistoryCount;
+    pos2 = texelFetch(uHistoryPosition, ivec3(coord2, layer), 0).xyz;
+    time2 = texelFetch(uHistoryTimes, ivec2(layer, 0), 0).x;
+  }
+  return uLightSpeed * (uTime - time2) - length(pos1 - pos2);
+}
+
+vec3 historyVelocity(ivec2 coord2, vec3 stored2Now, int k) {
+  if (k == 0) return coordinateVelocity(stored2Now);
+  int layer = (uHistoryHead - k + 1 + uHistoryCount) % uHistoryCount;
+  return coordinateVelocity(texelFetch(uHistoryVelocity, ivec3(coord2, layer), 0).xyz);
+}
+
+bool retardedSource(ivec2 coord2, vec3 pos1, vec3 stored2, inout vec3 delta, inout vec3 vel2, out vec3 acc2, out float delay) {
+  acc2 = vec3(0.0);
+  delay = 0.0;
+  if (uInverseLightSpeed2 == 0.0 || uHistoryCount < 2) return false;
+  vec3 pos2Now = pos1 - delta;
+  vec3 pLo;
+  vec3 pHi;
+  float tLo;
+  float tHi;
+  if (coneGap(coord2, pos1, pos2Now, uHistoryCount, pHi, tHi) < 0.0) return false;
+  int lo = 0;
+  int hi = uHistoryCount;
+  for (int iteration = 0; iteration < ${HISTORY_SEARCH_STEPS}; iteration++) {
+    if (hi - lo <= 1) break;
+    int mid = (lo + hi) / 2;
+    if (coneGap(coord2, pos1, pos2Now, mid, pHi, tHi) >= 0.0) hi = mid;
+    else lo = mid;
+  }
+  float gLo = coneGap(coord2, pos1, pos2Now, lo, pLo, tLo);
+  float gHi = coneGap(coord2, pos1, pos2Now, hi, pHi, tHi);
+  float s = gLo / (gLo - gHi);
+  vec3 vLo = historyVelocity(coord2, stored2, lo);
+  vec3 vHi = historyVelocity(coord2, stored2, hi);
+  delta = pos1 - mix(pLo, pHi, s);
+  vel2 = mix(vLo, vHi, s);
+  acc2 = tLo > tHi ? (vLo - vHi) / (tLo - tHi) : vec3(0.0);
+  delay = uTime - mix(tLo, tHi, s);
+  return true;
+}
+`;
 /** Variables whose GLSL reads the other particle's texel; derived so new variables cannot be missed. */
 const readersOf = (glslName: string) => PAIR_VARIABLES.filter((v) => v.glsl.includes(glslName)).map((v) => v.name);
 const SPIN_J_VARIABLES = readersOf('spin2');
@@ -124,16 +191,20 @@ ${force.glsl(`force${index}`, force.kind === 'vector' ? `float r, ${PAIR_ARGS}` 
 }
 
 function forceAccumulation(force: CompiledForce, index: number): string {
-  const soft = `sqrt(r2 + ${forceUniformName(index, 'soft2')})`;
+  // A retarded force reads the pair on the light cone (the R variables); the others, the present.
+  const [args, r2, dist, magnitude] = force.retarded ? [RETARDED_CALL_ARGS, 'r2R', 'distR', 'magnitudeR'] : [PAIR_CALL_ARGS, 'r2', 'dist', 'magnitude'];
+  const soft = `sqrt(${r2} + ${forceUniformName(index, 'soft2')})`;
   // Gradient forces return −∇V at Δx (`contact`, the possibly clamped Δx); vector forces take v_i and
   // the softened r, and the ones that read v_i also add their Jacobian ∂F/∂v_i.
-  const term = force.kind === 'gradient' ? `force += force${index}(contact, ${PAIR_CALL_ARGS});`
+  const term = force.kind === 'gradient' ? `force += force${index}(contact, ${args});`
     : force.kind === 'vector' && force.jacobian
       // A non-finite ∂F/∂v (e.g. of |v| at v = 0) is dropped for this pair only: its force is then stepped explicitly.
-      ? `{ vec3 f; mat3 j; force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS}, f, j); force += f; if (finite3(j[0]) && finite3(j[1]) && finite3(j[2])) jacobian += j; }`
-      : force.kind === 'vector' ? `force += force${index}(vel1, ${soft}, ${PAIR_CALL_ARGS});`
-        : `magnitude += force${index}(${soft}, ${PAIR_CALL_ARGS});`;
-  return force.definition.range === 'short' ? `if (dist < ${forceUniformName(index, 'cutoff')}) ${term}` : term;
+      ? `{ vec3 f; mat3 j; force${index}(vel1, ${soft}, ${args}, f, j); force += f; if (finite3(j[0]) && finite3(j[1]) && finite3(j[2])) jacobian += j; }`
+      : force.kind === 'vector' ? `force += force${index}(vel1, ${soft}, ${args});`
+        : `${magnitude} += force${index}(${soft}, ${args});`;
+  // A retarded source at the very point i is skipped, as coincident particles are (and as the CPU does).
+  const conditions = [...(force.retarded ? ['distR > 0.0'] : []), ...(force.definition.range === 'short' ? [`${dist} < ${forceUniformName(index, 'cutoff')}`] : [])];
+  return conditions.length > 0 ? `if (${conditions.join(' && ')}) ${term}` : term;
 }
 
 const VELOCITY_HELPERS = /* glsl */ `
@@ -226,9 +297,10 @@ function totalForceFunction(forces: readonly CompiledForce[], noise: 'sampled' |
   const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'coordinateVelocity(texelFetch(textureVelocity, coord2, 0).xyz)' : 'vec3(0.0)';
   const sampling = noise === 'sampled' ? noiseSampling(forces) : '';
+  const retarded = forces.some((f) => f.retarded);
   return `${SIGNED_POW}
 ${FINITE3}
-${GLSL_COLOR_HELPERS}${sampling ? GLSL_NOISE_HELPERS : ''}
+${GLSL_COLOR_HELPERS}${sampling ? GLSL_NOISE_HELPERS : ''}${retarded ? GLSL_RETARDED : ''}
 ${forces.map(forceFunction).join('\n')}
 
 vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance, out mat3 jacobian) {
@@ -262,9 +334,22 @@ vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, ve
     vec3 vel2 = ${fetchVel2};
     ${MEAN_NOISE_DECLARATIONS}${sampling ? `
     ${sampling}` : ''}
+    vec3 acc2 = vec3(0.0);
+    float delay = 0.0;${retarded ? `
+    // Retarded forces: j as pos1 sees it now, on its past light cone.
+    vec3 deltaR = pos1 - texelFetch(texturePosition, coord2, 0).xyz;
+    vec3 vel2R = coordinateVelocity(texelFetch(textureVelocity, coord2, 0).xyz);
+    vec3 acc2R;
+    float delayR;
+    retardedSource(coord2, pos1, texelFetch(textureVelocity, coord2, 0).xyz, deltaR, vel2R, acc2R, delayR);
+    float r2R = dot(deltaR, deltaR);
+    float distR = sqrt(r2R);
+    vec3 dirR = r2R > 0.0 ? deltaR / distR : dir;
+    float magnitudeR = 0.0;` : ''}
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
-    force += magnitude * dir;
+    force += magnitude * dir;${retarded ? `
+    force += magnitudeR * dirR;` : ''}
   }
   return force;
 }`;
@@ -430,6 +515,8 @@ void main() {
     vec3 contact = delta;
     vec3 vel1 = vec3(0.0);
     vec3 vel2 = vec3(0.0);
+    vec3 acc2 = vec3(0.0);
+    float delay = 0.0;
     ${MEAN_NOISE_DECLARATIONS}
     ${forces.map(potentialTerm).filter(Boolean).join('\n    ')}
   }
@@ -468,6 +555,17 @@ void main() {
 }
 `;
 }
+
+/** A history layer extrapolated back by uHistoryOffset in uniform motion: x − offset·v (v = u/γ). */
+export const EXTRAPOLATE_POSITION_SHADER = `${COMMON_UNIFORMS}
+uniform float uHistoryOffset;
+void main() {
+  ivec2 coord = ivec2(gl_FragCoord.xy);
+  vec4 positionTexel = texelFetch(texturePosition, coord, 0);
+  vec3 velocity = coordinateVelocity(texelFetch(textureVelocity, coord, 0).xyz);
+  gl_FragColor = vec4(positionTexel.xyz - uHistoryOffset * velocity, positionTexel.w);
+}
+`;
 
 /** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity (v = u/γ under Minkowski). */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}

@@ -7,7 +7,7 @@ import { generateFieldShader, generateVelocityShader, POSITION_SHADER } from '..
 
 
 const pair: PairScope = {
-  r: 2, c_light: 7, m_i: 1, m_j: 1, q_i: 1, q_j: 3, q2_i: 2, q2_j: -1, i3_i: 0.5, i3_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
+  r: 2, c_light: 7, ax_j: 0.5, ay_j: -1, az_j: 0, t_ret: 3, m_i: 1, m_j: 1, q_i: 1, q_j: 3, q2_i: 2, q2_j: -1, i3_i: 0.5, i3_j: -0.5, p_i: 1, p_j: -1, n_i: 2, n_j: 3,
   sx_i: 1, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 2, sz_j: -0.5, ux: 0.6, uy: 0.8, uz: 0,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: 0.5, cg_j: 1, cb_j: 0, t_i: 4, t_j: 5, time: 9,
   vx_i: 1, vy_i: -2, vz_i: 0.5, vx_j: 0, vy_j: 3, vz_j: -1,

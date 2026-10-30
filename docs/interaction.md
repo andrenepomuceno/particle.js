@@ -111,7 +111,9 @@ applied; closing the dialog discards them. A world imported from a snapshot has 
 the tab only says so.
 
 **Spacetime** picks the metric: Galilean (classical) or Minkowski (special relativity, with the
-speed of light c; see [forces](forces.md#spacetime-metric)). It shows the largest γ, the fastest
+speed of light c; see [forces](forces.md#spacetime-metric)), and the history depth K that retarded
+forces read (their reach c·(K − 1)·dt and GPU memory are shown; a force card's *Retarded (light cone)*
+makes a force retarded). It shows the largest γ, the fastest
 speed as a fraction of c and the spread of the particle clocks, sampled once per second. A
 switch that cannot apply is refused with a notice: Minkowski with a speed clamp set, or a
 particle at or above the new c. Under Minkowski the Particle dialog adds γ and labels the clock

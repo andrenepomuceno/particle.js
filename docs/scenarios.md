@@ -31,7 +31,7 @@ v1's quadratic friction (`v /= 1 + c·dt·|v|/m`) is the `quadraticDrag` setting
 | `added` | no | ISO 8601 date (`"2026-10-30"`, optionally with time and offset) the scenario joined the library; orders the scenario list's *newest* view. Every bundled scenario has one |
 | `seed` | no | RNG seed, integer ≥ 0. Omitted (as in every bundled scenario), each start (load or R) draws a new one, so every run is unique; set, the same seed always rebuilds the same particles. Information shows the seed of the current run, to paste here and repeat it |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`), `field`: `true` or `{ "columns", "logScale", "probe" }` shows the force field on load (`probe` overrides fields of the default test particle: `mass`, `charge`, `charge2`, `spin`, `isospin`, `parity`, `nuclearCharge`, `color`); the next scenario without it restores the user's field settings |
-| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`), `metric` (`galilean` default, `minkowski`; see [forces](forces.md#spacetime-metric)), `lightSpeed` (c, default 10); the rest keeps the defaults |
+| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`), `metric` (`galilean` default, `minkowski`; see [forces](forces.md#spacetime-metric)), `lightSpeed` (c, default 10), `historyDepth` (K steps of history for retarded forces, 2–256, default 128); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
 | `groups` | no | list of particle groups (below) |
 | `timeline` | no | scripted events in time order (below; v1's scenario actions) |
@@ -44,7 +44,7 @@ Either a preset with overrides:
 { "preset": "lennardJones", "cutoff": 30, "softening": 0, "enabled": true, "params": { "epsilon": 5 } }
 ```
 
-Presets: `gravity`, `coulomb`, `magnetic` (Biot–Savart with k/c², c = `c_light`), `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin` (the spin dipole)
+Presets: `gravity`, `coulomb`, `magnetic` (Biot–Savart with k/c², c = `c_light`), `lienardWiechert` (retarded E + B), `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin` (the spin dipole)
 (definitions in `src/engine/forces/presets.ts`). Or a full definition:
 
 ```json
@@ -52,7 +52,8 @@ Presets: `gravity`, `coulomb`, `magnetic` (Biot–Savart with k/c², c = `c_ligh
   "expression": "-k * q_i * q_j * exp(-r / l) / r", "params": [{ "name": "k", "value": 1 }, { "name": "l", "value": 10 }] }
 ```
 
-`enabled` defaults to true, `softening` to 0, `params` to `[]`; `cutoff` is required for short-range
+`enabled` defaults to true, `softening` to 0, `params` to `[]`, `retarded` (force mode: read the source on
+the light cone, see [forces](forces.md#retarded-forces-light-cone)) to false; `cutoff` is required for short-range
 forces. Optional keys must be omitted, not `null`. Expressions are
 compiled while loading, so an invalid one fails with its path. The language is in [forces.md](forces.md).
 

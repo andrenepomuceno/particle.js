@@ -54,6 +54,7 @@ export const ACTIONS: readonly Action[] = [
   { id: 'resetCamera', label: 'Reset camera', key: 'c', group: 'Camera', run: ({ controller }) => controller.resetCamera() },
   { id: 'frontCamera', label: 'Look down the z axis', key: 'v', group: 'Camera', run: ({ controller }) => controller.frontCamera() },
   { id: 'follow', label: 'Follow inspected particle', key: 'l', group: 'Camera', run: ({ controller }) => controller.toggleFollow() },
+  { id: 'trail', label: 'Show / hide the inspected particle\'s trail', key: 'k', group: 'View', run: ({ controller }) => controller.toggleTrail() },
   { id: 'axes', label: 'Show / hide axes', key: 'a', group: 'View', run: ({ controller }) => controller.toggleAxes() },
   { id: 'boundary', label: 'Show / hide the boundary', key: 'e', group: 'View', run: ({ controller }) => controller.toggleBoundary() },
   {

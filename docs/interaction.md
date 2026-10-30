@@ -19,6 +19,7 @@ field; click the canvas to give focus back.
 | C | reset camera |
 | V | look down the z axis |
 | L | follow (lock the camera on) the inspected particle |
+| K | show / hide the inspected particle's trail: its last 1000 steps as a line fading with age (cleared on edits and when another particle is inspected) |
 | A | show / hide axes |
 | E | show / hide the boundary (sphere or box lines; also in Parameters) |
 | J | show / hide the force field |

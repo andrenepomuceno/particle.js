@@ -16,6 +16,7 @@ import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive,
 import { useAppState, useController } from '../context';
 
 const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
+const TRAIL_KEY = ACTIONS.find((a) => a.id === 'trail')!.key!;
 const FIT_FIELD_KEY = ACTIONS.find((a) => a.id === 'fitField')!.key!;
 
 /** Applying a species fills the generator template; the user can still edit each field afterwards. */
@@ -357,6 +358,7 @@ export function ParticleView() {
   const controller = useController();
   const inspected = useAppState((s) => s.inspected);
   const following = useAppState((s) => s.followInspected);
+  const showTrail = useAppState((s) => s.showTrail);
   const settings = useAppState((s) => s.settings);
   if (!inspected) return <p className="muted">Click a particle to inspect it.</p>;
   const { index, particle } = inspected;
@@ -389,6 +391,7 @@ export function ParticleView() {
       </div>
       <div className="row">
         <button className="outlined" onClick={() => controller.toggleFollow()}>{following ? 'Stop following' : 'Follow'} <kbd>{keyLabel(FOLLOW_KEY)}</kbd></button>
+        <button className="outlined" aria-pressed={showTrail} onClick={() => controller.toggleTrail()}>{showTrail ? 'Hide trail' : 'Trail'} <kbd>{keyLabel(TRAIL_KEY)}</kbd></button>
         <button className="outlined" onClick={() => edit({ velocity: [0, 0, 0] })}>Stop</button>
         <button className="danger outlined" onClick={() => controller.removeParticles([index])}>Delete</button>
       </div>

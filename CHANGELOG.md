@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Trail of the inspected particle (K, or *Trail* in the Particle dialog): its last 1000 steps as a line
+  that fades with age.
 - Scenarios can show the force field on load (`view.field`, with grid columns, log scale and test
   particle); *Hydrogen*, *Helium* and *Water* (Elements) now show their electric field.
 - Fix: a particle total at the maximum (65536) no longer fails for scenarios whose counts rounded up

@@ -16,6 +16,7 @@ import { createRng, inSphere, inDisk } from '../engine/random';
 import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { ParticleTrail } from '../engine/render/ParticleTrail';
 import { inverseLightSpeed2 } from '../engine/metric';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
@@ -148,6 +149,8 @@ export interface AppState {
   showBoundary: boolean;
   inspected: { index: number; particle: Particle } | undefined;
   followInspected: boolean;
+  /** Draw the inspected particle's recent path (K). */
+  showTrail: boolean;
   selection: number[];
   clipboard: Particle[];
   generator: GeneratorTemplate;
@@ -197,6 +200,7 @@ export class SimulationController {
   private points: ParticlePoints;
   private readonly arrows = new FieldArrows();
   private readonly boundaryLines = new BoundaryLines();
+  private readonly trail = new ParticleTrail();
   private boundaryDrawn = false;
   private fieldDirty = false;
   private fieldTime = NaN;
@@ -238,13 +242,13 @@ export class SimulationController {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.gpu = new GpuCompute(this.renderer, this.set);
     this.points = new ParticlePoints(width);
-    this.scene.add(this.points.object, this.arrows.object, this.axes, this.boundaryLines.object);
+    this.scene.add(this.points.object, this.arrows.object, this.axes, this.boundaryLines.object, this.trail.object);
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', scenarioSource: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -281,6 +285,7 @@ export class SimulationController {
     this.points.dispose();
     this.arrows.dispose();
     this.boundaryLines.dispose();
+    this.trail.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -844,6 +849,8 @@ export class SimulationController {
   }
 
   private uploadParticles(): void {
+    // Edits can move or renumber particles: a trail would jump.
+    this.trail.clear();
     this.gpu.upload();
     this.points.setCount(this.set.count);
     this.store.set({ particleCount: this.set.count, particlesVersion: this.state.particlesVersion + 1 });
@@ -879,6 +886,7 @@ export class SimulationController {
 
   inspect(index: number | undefined): void {
     this.points.setHighlight(index);
+    if (index !== this.state.inspected?.index) this.trail.clear();
     if (index === undefined) {
       this.store.set({ inspected: undefined, followInspected: false });
       return;
@@ -903,6 +911,14 @@ export class SimulationController {
     const inspected = this.state.inspected;
     if (!inspected) throw new Error('no particle is being inspected');
     this.editParticles((set) => set.set(inspected.index, { ...set.get(inspected.index), ...patch }));
+  }
+
+  /** Shows or hides the inspected particle's recent path; it starts empty and grows as time runs. */
+  toggleTrail(): void {
+    const showTrail = !this.state.showTrail;
+    this.trail.clear();
+    this.trail.setVisible(showTrail);
+    this.store.set({ showTrail });
   }
 
   toggleFollow(): void {
@@ -1176,17 +1192,22 @@ export class SimulationController {
     }
     this.scheduleFrame();
     const frameStart = performance.now();
-    const { paused, settings, inspected, followInspected } = this.state;
+    const { paused, settings, inspected, followInspected, showTrail } = this.state;
+    let stepped = false;
     if (!paused || this.stepRequested) {
       this.stepRequested = false;
       this.gpu.step(this.state.time);
       this.cpuStale = true;
       this.store.set({ time: this.state.time + settings.timeStep });
       this.runTimeline();
+      stepped = true;
     }
     this.updateCameraMove(now);
-    if (followInspected && inspected) {
-      this.centerOn(this.gpu.readPosition(inspected.index));
+    // One texel read back per frame, shared by following and the trail (a point per step).
+    const position = inspected && (followInspected || (showTrail && stepped)) ? this.gpu.readPosition(inspected.index) : undefined;
+    if (position && showTrail && stepped) this.trail.push(position);
+    if (followInspected && position) {
+      this.centerOn(position);
       if (now - this.fieldFollowFitAt >= FIELD_FOLLOW_REFIT_MS) {
         this.fieldFollowFitAt = now;
         this.autoFitField();

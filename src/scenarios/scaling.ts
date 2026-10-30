@@ -108,7 +108,9 @@ export function scaleGroups(
     if (!group.scale) return group;
     const size = group.cluster?.size ?? 1;
     const step = countStep(group);
-    const count = Math.max(step, Math.round((group.count * factor) / step) * step);
+    // Rounded down, so the total never exceeds the target (nor, at the maximum, the capacity); the
+    // epsilon keeps an exact multiple from losing a step to floating-point error.
+    const count = Math.max(step, Math.floor((group.count * factor) / step + 1e-9) * step);
     const { shape, linear } = scaleShape(group.shape, count / group.count, extent, `groups[${k}]`);
     linearScale = Math.max(linearScale, linear);
     if (shape.type === 'grid' && shape.columns * shape.rows * shape.layers < count / size) {

@@ -39,6 +39,13 @@ describe('scaling scenarios to a particle total', () => {
     expect(s.build(createRng(1)).particles).toHaveLength(10);
   });
 
+  it.each(SCENARIOS.map((s) => [s.id, s] as const))('never builds %s past the requested total, even at the capacity', (_, s) => {
+    for (const target of [MAX_CAPACITY, 15001, 1001]) {
+      if (target < s.defaultCount) continue;
+      expect(s.build(createRng(s.seed), target).particles.length).toBeLessThanOrEqual(target);
+    }
+  });
+
   it('rounds a scaled count to whole cycles so the mix stays balanced', () => {
     const soup = scenario([{ count: 21, shape: { type: 'disk', radius: 10 }, charge: { cycle: [1, 1, -1, 1, -1, -1, -1] }, mass: { cycle: [1, 2] } }]);
     const { particles } = soup.build(createRng(1), 100);

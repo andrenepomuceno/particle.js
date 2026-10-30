@@ -87,8 +87,9 @@ groups, measured on what was built: for a grid, how far its outer sites moved, (
 for n sites in a row, a bit more than the root because the spacing is fixed and columns and rows
 round up. So a group that starts inside the boundary at the file count starts inside it at any
 total; keep the outer grid sites and cluster rings within `boundarySize` (and `boundaryDepth`).
-Scaled counts are rounded to whole cycles of the group's `{ "cycle" }` values (and its
-cluster size) so the mix stays balanced. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
+Scaled counts are rounded down to whole cycles of the group's `{ "cycle" }` values (and its
+cluster size) so the mix stays balanced and the total never exceeds the one requested (at least
+one cycle per group). Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
 or the particles of one atom.
 
 `count` and `shape` are required; `kind` defaults to `dynamic`, `mass` to 1, `charge`, `charge2`,

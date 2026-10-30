@@ -890,6 +890,7 @@ export class SimulationController {
   private refreshForceWarnings(): void {
     const forceWarnings: Record<string, string[]> = {};
     const { settings } = this.state;
+    let span: number | undefined;
     for (const force of this.compiled) {
       const warnings = inactiveCouplings(force, this.set);
       if (force.velocity && settings.integrator === 'verlet') {
@@ -899,14 +900,15 @@ export class SimulationController {
         warnings.push('retarded: acts instantaneously under the Galilean metric (c → ∞); the light cone needs Minkowski (Spacetime dialog)');
       } else if (force.retarded) {
         const reach = settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep;
-        const span = this.particleSpan();
+        span ??= this.particleSpan();
         if (span > reach) {
           warnings.push(`retarded: pairs farther apart than c·(K − 1)·dt = ${reach.toPrecision(3)} act instantaneously, and the particles span about ${span.toPrecision(3)}; raise the history depth K or the time step (Spacetime, Parameters)`);
         }
       }
       if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;
     }
-    this.store.set({ forceWarnings });
+    // Refreshed every second while retarded forces run: unchanged warnings must not re-render the dialog.
+    if (JSON.stringify(forceWarnings) !== JSON.stringify(this.state.forceWarnings)) this.store.set({ forceWarnings });
   }
 
   /** Retarded forces read the GPU history only under Minkowski; under Galilean they act instantaneously. */
@@ -1339,7 +1341,11 @@ export class SimulationController {
   private sampleState(): void {
     const { time, settings, physicsHistory } = this.state;
     const advanced = physicsHistory.length === 0 || physicsHistory[physicsHistory.length - 1]!.time !== time;
-    const velocity = this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
+    // Retarded forces under Minkowski need the positions too (their reach warning follows the particles):
+    // then one full readback serves both.
+    const retarded = settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded);
+    if (retarded) this.syncFromGpu();
+    const velocity = retarded ? this.set.velocity : this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
     // The potential pass is a full O(N²) sweep plus a readback, so it only runs while someone is looking.
     let potentials: Float32Array = new Float32Array(this.set.count);
     let energyError: string | undefined;
@@ -1358,11 +1364,7 @@ export class SimulationController {
     this.points.setAverageSpeed(energy.meanSpeed);
     this.points.setClockRange(spacetime.clockMin, spacetime.clockMax, time);
     this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing, spacetime });
-    // The retarded-force reach warning follows the particles as they spread (a readback, only then).
-    if (settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded)) {
-      this.syncFromGpu();
-      this.refreshForceWarnings();
-    }
+    if (retarded) this.refreshForceWarnings();
     if (!advanced || !this.statsActive) return;
     const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;
     this.store.set({

@@ -277,6 +277,9 @@ export class GpuCompute {
       u.uClockShift!.value = 0;
       u.texturePosition!.value = this.position[now]!.texture;
       u.textureVelocity!.value = this.velocity[now]!.texture;
+      // The pass samples uAcceleration (shiftedClock; unread while uClockShift is 0). After an odd
+      // number of Euler steps it can still be the target texture, a feedback loop WebGL refuses.
+      u.uAcceleration!.value = this.acceleration[next]!.texture;
       this.renderTo(this.accelerationMaterial, this.acceleration[now]!);
       this.accelerationValid = true;
     }

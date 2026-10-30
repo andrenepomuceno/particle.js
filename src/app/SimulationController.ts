@@ -11,7 +11,7 @@ import type { ForceDefinition } from '../engine/forces/types';
 import { groupParticles, type ParticleGroup } from '../engine/particleGroups';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import type { SpeciesId } from '../engine/species';
-import { ParticleKind, ParticleSet, TEXEL, type Particle, type Vec3 } from '../engine/particles';
+import { assertStorableParticle, ParticleKind, ParticleSet, TEXEL, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk } from '../engine/random';
 import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
@@ -460,12 +460,18 @@ export class SimulationController {
   }
 
   private replaceWorld(name: string, settings: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
+    // Whatever can refuse the new world is checked before the old one is touched (an edit applied from
+    // Information → JSON must leave the running world intact when it fails).
+    const problems = validateSettings(settings);
+    if (problems.length > 0) throw new Error(problems.join('; '));
+    const inverseC2 = inverseLightSpeed2(settings);
+    particles.forEach((particle, index) => assertStorableParticle(particle, index, inverseC2));
     this.loadedSettings = { ...settings };
     this.loadedForces = forces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) }));
     this.ensureCapacity(particles.length);
-    // The old world goes first: a new metric then has no velocities to convert, and the new
-    // particles are stored for it (their speeds checked against its c).
-    this.syncFromGpu();
+    // The old world goes first, unread: a new metric then has no velocities to convert, and the new
+    // particles are stored for it.
+    this.cpuStale = false;
     this.set.clear();
     this.setSettings(settings);
     this.setForces(forces);

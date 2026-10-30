@@ -166,14 +166,8 @@ export class ParticleSet {
     this.count = 0;
   }
 
-  /** A valid particle whose speed stays below c, so it has a proper velocity to store. */
   private assertWritable(particle: Particle, index: number): void {
-    assertValidParticle(particle, index);
-    try {
-      properVelocity(particle.velocity, this.k);
-    } catch (error) {
-      throw new Error(`particle #${index}: ${(error as Error).message}`, { cause: error });
-    }
+    assertStorableParticle(particle, index, this.k);
   }
 
   private write(index: number, particle: Particle): void {
@@ -205,6 +199,16 @@ export class ParticleSet {
     if (!Number.isInteger(index) || index < 0 || index >= this.count) {
       throw new Error(`particle index ${index} out of range [0, ${this.count})`);
     }
+  }
+}
+
+/** A valid particle whose speed stays below c (k = 1/c²; 0 when Galilean), so it has a proper velocity to store. */
+export function assertStorableParticle(particle: Particle, index: number, k: number): void {
+  assertValidParticle(particle, index);
+  try {
+    properVelocity(particle.velocity, k);
+  } catch (error) {
+    throw new Error(`particle #${index}: ${(error as Error).message}`, { cause: error });
   }
 }
 

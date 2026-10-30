@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Information has a *Scenarios* tab: the library in collapsible folders (or a flat list), ordered
+  `suggested` (default), by `name` or `newest` first. The Overview select and PageDown/PageUp/Home follow it.
+  Scenario files gain an optional `added` date.
 - Special relativity: a **Spacetime** dialog switches the metric from Galilean (classical, the
   default) to Minkowski with a chosen speed of light c (`metric` and `lightSpeed` settings).
   Forces change the momentum γmv, so speeds stay below c without a clamp. Each clock shows its

@@ -1,13 +1,15 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
 import { DEFAULT_PROBE, validateColumns } from '../../engine/field';
 import { ProbeFields } from '../components/ProbeFields';
 import { INTEGRATORS, METRICS, type BoundaryShape, type Metric, type SimulationSettings } from '../../engine/settings';
 import { DEFAULT_GENERATOR, FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
-import { saveJson } from '../persist';
-import { PARTICLE_TARGET_KEY } from '../storageKeys';
+import { loadJson, saveJson } from '../persist';
+import { PARTICLE_TARGET_KEY, SCENARIO_FOLDERS_KEY, SCENARIO_ORDER_KEY } from '../storageKeys';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
 import { SCENARIOS } from '../../scenarios';
+import { orderScenarios, SCENARIO_ORDERS, scenarioFolders, type ScenarioOrder } from '../../scenarios/order';
+import type { Scenario } from '../../scenarios/types';
 import { ACTIONS, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
 import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive, unitInterval } from '../components/fields';
 import { useAppState, useController } from '../context';
@@ -28,7 +30,26 @@ const fpsLimitLabel = (limit: number) => (limit === 0 ? 'display rate' : String(
 
 const format = (value: number, digits = 3) => (Number.isInteger(value) ? String(value) : value.toPrecision(digits));
 
+const INFO_TABS = ['Overview', 'Scenarios'] as const;
+type InfoTab = (typeof INFO_TABS)[number];
+
 export function InfoView() {
+  const [tab, setTab] = useState<InfoTab>('Overview');
+  return (
+    <div className="stack">
+      <div className="tabs" role="tablist">
+        {INFO_TABS.map((t) => (
+          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
+        ))}
+      </div>
+      {tab === 'Overview' ? <OverviewTab /> : <ScenariosTab />}
+    </div>
+  );
+}
+
+const scenarioLabel = (s: Scenario, order: ScenarioOrder) => (order === 'name' ? `${s.name} (${s.folder})` : `${s.folder} / ${s.name}`);
+
+function OverviewTab() {
   const controller = useController();
   const name = useAppState((s) => s.name);
   const scenarioId = useAppState((s) => s.scenarioId);
@@ -43,6 +64,9 @@ export function InfoView() {
   const description = useAppState((s) => s.description);
   const target = useAppState((s) => s.particleTarget);
   const defaultCount = SCENARIOS.find((s) => s.id === scenarioId)?.defaultCount;
+  const order = useAppState((s) => s.scenarioOrder);
+  // Re-renders with the grouping too, since the listed order depends on it.
+  useAppState((s) => s.scenariosByFolder);
   const applyTarget = (value: number | undefined) => {
     controller.setParticleTarget(value);
     saveJson(PARTICLE_TARGET_KEY, value ?? null);
@@ -59,7 +83,7 @@ export function InfoView() {
     <div className="stack">
       <select aria-label="Scenario" value={scenarioId} onChange={(e) => attempt('Loading the scenario', () => controller.loadScenario(e.target.value))}>
         {scenarioId === '' && <option value="">{name} (imported)</option>}
-        {SCENARIOS.map((s) => <option key={s.id} value={s.id}>{s.folder} / {s.name}</option>)}
+        {controller.listedScenarios().map((s) => <option key={s.id} value={s.id}>{scenarioLabel(s, order)}</option>)}
       </select>
       {description && <p className="muted" style={{ margin: 0 }}>{description}</p>}
       {defaultCount === 0 && target === undefined ? (
@@ -87,6 +111,77 @@ export function InfoView() {
         )}
       </dl>
       <p className="muted" style={{ margin: 0 }}>v{__APP_VERSION__} · press <kbd>?</kbd> for shortcuts</p>
+    </div>
+  );
+}
+
+/** The library as a list: collapsible folders (remembered) or flat, in the chosen order. */
+function ScenariosTab() {
+  const controller = useController();
+  const scenarioId = useAppState((s) => s.scenarioId);
+  const order = useAppState((s) => s.scenarioOrder);
+  const byFolder = useAppState((s) => s.scenariosByFolder);
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    const stored = loadJson<unknown>(SCENARIO_FOLDERS_KEY, null);
+    if (Array.isArray(stored) && stored.every((f) => typeof f === 'string')) return stored;
+    const current = SCENARIOS.find((s) => s.id === scenarioId);
+    return current ? [current.folder] : [];
+  });
+  const folders = scenarioFolders(SCENARIOS, order);
+  const setOrder = (nextOrder: ScenarioOrder, nextByFolder: boolean) => {
+    controller.setScenarioOrder(nextOrder, nextByFolder);
+    saveJson(SCENARIO_ORDER_KEY, { order: nextOrder, byFolder: nextByFolder });
+  };
+  const expand = (next: string[]) => {
+    setExpanded(next);
+    saveJson(SCENARIO_FOLDERS_KEY, next);
+  };
+  const load = (id: string) => {
+    try {
+      controller.loadScenario(id);
+    } catch (error) {
+      controller.notify(`Loading the scenario failed: ${(error as Error).message}`, 'error');
+    }
+  };
+  const item = (s: Scenario, showFolder: boolean) => (
+    <li key={s.id}>
+      <button className={s.id === scenarioId ? 'scenario-item active' : 'scenario-item'} aria-current={s.id === scenarioId} title={s.description} onClick={() => load(s.id)}>
+        <span>{s.name}</span>
+        <span className="muted">{[showFolder && s.folder, order === 'newest' && s.added?.slice(0, 10)].filter(Boolean).join(' · ')}</span>
+      </button>
+    </li>
+  );
+  return (
+    <div className="stack">
+      <div className="grid">
+        <SelectField<ScenarioOrder> label="Order" value={order} options={SCENARIO_ORDERS} onChange={(next) => setOrder(next, byFolder)} />
+        <CheckField label="Group by folder" checked={byFolder} onChange={(next) => setOrder(order, next)} />
+      </div>
+      {byFolder && (
+        <div className="row">
+          <button className="outlined" onClick={() => expand(folders.map((f) => f.folder))}>Expand all</button>
+          <button className="outlined" onClick={() => expand([])}>Collapse all</button>
+        </div>
+      )}
+      <div className="scenario-browser">
+      {byFolder ? (
+        <>
+          {folders.map(({ folder, scenarios }) => {
+            const open = expanded.includes(folder);
+            return (
+              <section key={folder}>
+                <button className="folder-toggle" aria-expanded={open} onClick={() => expand(open ? expanded.filter((f) => f !== folder) : [...expanded, folder])}>
+                  {open ? '▾' : '▸'} {folder} <span className="muted">{scenarios.length}</span>
+                </button>
+                {open && <ul className="scenario-list">{scenarios.map((s) => item(s, false))}</ul>}
+              </section>
+            );
+          })}
+        </>
+      ) : (
+        <ul className="scenario-list">{orderScenarios(SCENARIOS, order).map((s) => item(s, true))}</ul>
+      )}
+      </div>
     </div>
   );
 }

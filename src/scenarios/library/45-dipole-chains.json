@@ -4,6 +4,7 @@
   "id": "dipole-chains",
   "name": "Dipole Chains",
   "folder": "Spin",
+  "added": "2026-10-24T03:56:07-03:00",
   "description": "A 2D ferrofluid: magnetic dipoles all pointing along x, with a hard repulsive core. The full dipole force F = −∇V (non-central) pulls them head to tail, so the gas condenses into chains along the field direction, which then merge side by side.",
   "seed": 3,
   "view": { "cameraDistance": 260, "particleRadius": 1, "colorMode": "spin" },

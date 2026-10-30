@@ -4,6 +4,7 @@
   "id": "water",
   "name": "Water",
   "folder": "Elements",
+  "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's water molecule: an oxygen atom (8 protons, 8 neutrons, 8 electrons) between two hydrogen atoms, nuclei bound by v1's force map 2 and everything coupled by 1/d Coulomb. v1 gave each electron a tangential speed of 16 with a random sense; here they start on orbits with that speed at the middle of their ring. Gravity (G = 1e-6) is negligible and omitted.",
   "seed": 1,
   "view": { "cameraDistance": 7000, "particleRadius": 30, "colorMode": "charge" },

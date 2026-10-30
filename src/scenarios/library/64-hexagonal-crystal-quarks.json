@@ -4,6 +4,7 @@
   "id": "hexagonal-crystal-quarks",
   "name": "Hexagonal Crystal",
   "folder": "Force Map",
+  "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's force-map Hexagonal Crystal: 96 carbon-like atoms (36 colored quarks and 48 electrons each) on the vertices of a honeycomb of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, in a box of half-size 1e5. v1's quadratic drag (v /= 1 + c·dt·|v|/m) is the quadraticDrag setting, c = 1e-3 lowered to 1e-4 at t = 33. Gravity (G ≈ 1e-39) is negligible and omitted.",
   "seed": 1,
   "view": {

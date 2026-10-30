@@ -4,6 +4,7 @@
   "id": "super-nucleus-3d",
   "name": "Super Nucleus 3D",
   "folder": "Experiments",
+  "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Super Nucleus 3D: 10000 particles packed in a ball of radius 1 with random mass (up to 256), random charge (up to ±16) and ±1 nuclear charge burst out under Coulomb (k = 0.01) and gravity (G = 1e-6), then v1's powAX nuclear force (range 1e6: equal nuclear charges pull below a quarter of it, push beyond) gathers them into a giant 3D nucleus. v1 rounded masses and charges to integers; they are uniform here.",
   "seed": 1,
   "view": { "cameraDistance": 600000, "particleRadius": 1000, "colorMode": "charge" },

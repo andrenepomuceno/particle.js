@@ -4,6 +4,7 @@
   "id": "beam-pinch",
   "name": "Beam Pinch",
   "folder": "Magnetism",
+  "added": "2026-10-24T04:50:56-03:00",
   "description": "Two beams of like charges moving along +x. Inside each beam Coulomb repulsion fights the magnetic attraction of parallel currents (Biot–Savart, ∝ v_i·v_j), which grows with speed: the slow beam (top, v = 0.5) spreads apart, while the fast one (bottom, v = 3) self-focuses into a pinched filament.",
   "seed": 13,
   "view": { "cameraDistance": 420, "particleRadius": 0.8, "colorMode": "speed" },

@@ -9,6 +9,8 @@ export interface Scenario {
   id: string;
   name: string;
   folder: string;
+  /** When the scenario joined the library (ISO 8601); orders the "newest" view. */
+  added: string | undefined;
   description: string;
   seed: number;
   settings: Partial<SimulationSettings>;

@@ -4,6 +4,7 @@
   "id": "cyclotron",
   "name": "Cyclotron and E×B Drift",
   "folder": "Magnetism",
+  "added": "2026-10-24T04:50:56-03:00",
   "description": "A 2D plasma in a uniform magnetic field B (out of the screen) and an electric field E (along x). Each charge gyrates — light electrons on tight circles one way, heavy ions on wide circles the other — yet the whole plasma drifts together along −y at E/B, whatever the charge or mass (the E×B drift). The fields come from the fixed source particle: only it has nuclear charge n = 1.",
   "seed": 11,
   "view": { "cameraDistance": 160, "particleRadius": 0.5, "colorMode": "charge" },

@@ -4,6 +4,7 @@
   "id": "crystal-slab",
   "name": "Crystal in a Slab",
   "folder": "Short range",
+  "added": "2026-10-24T06:03:40-03:00",
   "description": "A semi-2D world: a 3D box as wide as a plate in x and y but only two particle diameters thick in z (boundaryDepth). A hot Lennard-Jones liquid cools into a bilayer: each layer orders into a triangular lattice and the two stack offset, as thin films of colloids do. Tilt the camera to see the layers; E shows or hides the box.",
   "seed": 9,
   "view": { "cameraDistance": 600, "particleRadius": 4, "colorMode": "speed" },

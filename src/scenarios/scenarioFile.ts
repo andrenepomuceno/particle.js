@@ -60,7 +60,18 @@ export interface ParticleGroup {
 }
 
 const ORIGIN: Vec3 = [0, 0, 0];
-const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'description', 'seed', 'view', 'settings', 'forces', 'groups', 'timeline'] as const;
+const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'added', 'description', 'seed', 'view', 'settings', 'forces', 'groups', 'timeline'] as const;
+
+/** ISO 8601 date, optionally with a time and an offset: "2026-10-30" or "2026-10-30T17:18:57-03:00". */
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/;
+
+function readAdded(json: JsonReader, value: unknown): string {
+  const text = json.string(value, 'added');
+  if (!ISO_DATE.test(text) || !Number.isFinite(Date.parse(text))) {
+    json.fail('added', `expected an ISO 8601 date such as "2026-10-30" or "2026-10-30T17:18:57-03:00", got ${JSON.stringify(text)}`);
+  }
+  return text;
+}
 const GROUP_KEYS = ['count', 'scale', 'cluster', 'kind', 'shape', 'velocity', 'species', 'mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
 
 class ScenarioReader extends JsonReader {
@@ -379,6 +390,7 @@ export function readScenario(value: unknown, source: string): Scenario {
     id: json.string(o.id, 'id'),
     name: json.string(o.name, 'name'),
     folder: o.folder === undefined ? 'Custom' : json.string(o.folder, 'folder'),
+    added: o.added === undefined ? undefined : readAdded(json, o.added),
     description: o.description === undefined ? '' : json.string(o.description, 'description'),
     seed,
     settings,

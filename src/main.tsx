@@ -4,7 +4,8 @@ import { startAnalytics } from './analytics';
 import { SimulationController } from './app/SimulationController';
 import { App } from './ui/App';
 import { loadJson, saveJson } from './ui/persist';
-import { PARTICLE_TARGET_KEY } from './ui/storageKeys';
+import { PARTICLE_TARGET_KEY, SCENARIO_ORDER_KEY } from './ui/storageKeys';
+import { SCENARIO_ORDERS, type ScenarioOrder } from './scenarios/order';
 import './ui/styles.css';
 
 function readCapacity(): number | undefined {
@@ -43,6 +44,11 @@ function start(): void {
     return;
   }
   const controller = new SimulationController(readCapacity());
+  // A stale or hand-edited preference is ignored, not fatal: it only orders a list.
+  const savedOrder = loadJson<{ order?: unknown; byFolder?: unknown } | null>(SCENARIO_ORDER_KEY, null);
+  if (SCENARIO_ORDERS.includes(savedOrder?.order as ScenarioOrder) && typeof savedOrder?.byFolder === 'boolean') {
+    controller.setScenarioOrder(savedOrder.order as ScenarioOrder, savedOrder.byFolder);
+  }
   const scenarioId = readScenario();
   const savedTarget = loadJson<number | null>(PARTICLE_TARGET_KEY, null);
   try {

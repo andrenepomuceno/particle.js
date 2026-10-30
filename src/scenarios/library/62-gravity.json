@@ -4,6 +4,7 @@
   "id": "gravity",
   "name": "Gravity",
   "folder": "Force Map",
+  "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's 2D gravity: 10000 bodies (mass 20·U^(1/3)) in a rotating annulus under 1/d gravity (the 2D law, G = 66.7) collapse into clumps. v1's rigid rotation with random speeds is replaced by orbits of the same mean speed; its tiny charges, out-of-reach nuclear force and post-Newtonian/Lorentz corrections are negligible here and omitted.",
   "seed": 1,
   "view": { "cameraDistance": 200000, "particleRadius": 300, "colorMode": "mass" },

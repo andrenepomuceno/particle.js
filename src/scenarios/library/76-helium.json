@@ -4,6 +4,7 @@
   "id": "helium",
   "name": "Helium",
   "folder": "Elements",
+  "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's helium: two protons and two neutrons bound by v1's force map 2 against their 1/d Coulomb repulsion, with two electrons around them. v1 gave the electrons a tangential speed of 16 with a random sense; here they start on orbits with that speed at the middle of their ring. Gravity (G = 1e-6) is negligible and omitted.",
   "seed": 1,
   "view": { "cameraDistance": 3000, "particleRadius": 30, "colorMode": "charge" },

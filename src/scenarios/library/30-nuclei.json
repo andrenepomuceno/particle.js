@@ -4,6 +4,7 @@
   "id": "nuclei",
   "name": "Nuclear clusters",
   "folder": "Short range",
+  "added": "2026-10-24T00:37:21-03:00",
   "description": "v1-style short-range sine force plus Coulomb repulsion: charged nucleons clump into nuclei.",
   "seed": 3,
   "view": { "cameraDistance": 1000, "particleRadius": 2, "colorMode": "charge" },

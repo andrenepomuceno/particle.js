@@ -4,6 +4,7 @@
   "id": "experiments-4",
   "name": "Experiments 4",
   "folder": "Force Map",
+  "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Experiments 4, The Egg's sibling: 9996 colored quarks (uud + udd, nuclear charge 10) and electrons (nuclear charge -10/3) in a 2e5 disk under v1's force map 2 with a wider Yukawa core (b = 0.2), its color force (three times stronger than The Egg's), 1/d Coulomb and 1/d gravity, in a box of half-size 1e6. Scripted like v1 (times are v1's seconds × 60): G jumps by 1e41 at t = 120 and the soup collapses, G drops 100-fold at t = 300, again with a tenfold drag at t = 3600, and the drag eases tenfold at t = 4200. v1's quadratic drag (v /= 1 + c·dt·|v|/m) is the quadraticDrag setting, and the scene runs with the Euler step like v1; v1's random force noise is not reproduced.",
   "seed": 1,
   "view": { "cameraDistance": 400000, "particleRadius": 500, "colorMode": "charge" },

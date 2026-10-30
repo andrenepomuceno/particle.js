@@ -4,6 +4,7 @@
   "id": "periodic-table",
   "name": "Periodic Table",
   "folder": "EPN Model",
+  "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's electron-proton-neutron model: elements Z = 1 to 64 on an 8×8 grid, each Z protons + Z neutrons with Z electrons, bound by v1's powAXv3 nuclear force (nuclear charge 1 for nucleons, -1/3 for electrons) and Coulomb. Gravity (G ≈ 7e-39) is negligible and omitted.",
   "seed": 1,
   "view": {

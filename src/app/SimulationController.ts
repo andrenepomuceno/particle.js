@@ -22,6 +22,7 @@ import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
+import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import type { Scenario } from '../scenarios/types';
 import { limitFrame } from './frameLimiter';
@@ -122,6 +123,9 @@ export interface AppState {
   particlesVersion: number;
   capacity: number;
   particleTarget: number | undefined;
+  /** How the scenario list is ordered and whether it is grouped by folder (the scenario browser). */
+  scenarioOrder: ScenarioOrder;
+  scenariosByFolder: boolean;
   colorMode: ColorMode;
   particleStyle: ParticleStyle;
   fpsLimit: FpsLimit;
@@ -232,7 +236,7 @@ export class SimulationController {
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
-      shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined,
+      shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
@@ -317,14 +321,31 @@ export class SimulationController {
     this.restart();
   }
 
+  /** The bundled scenarios as the list shows them (order and folder grouping). */
+  listedScenarios(): Scenario[] {
+    return listedScenarios(SCENARIOS, this.state.scenarioOrder, this.state.scenariosByFolder);
+  }
+
+  setScenarioOrder(scenarioOrder: ScenarioOrder, scenariosByFolder: boolean): void {
+    if (!SCENARIO_ORDERS.includes(scenarioOrder)) throw new Error(`scenario order must be one of ${SCENARIO_ORDERS.join(', ')}, got '${scenarioOrder}'`);
+    this.store.set({ scenarioOrder, scenariosByFolder });
+  }
+
+  /** Previous/next scenario in the listed order (PageUp/PageDown). */
   cycleScenario(offset: number): void {
-    const index = SCENARIOS.findIndex((s) => s.id === this.state.scenarioId);
+    const listed = this.listedScenarios();
+    const index = listed.findIndex((s) => s.id === this.state.scenarioId);
     if (index === -1) {
       this.notify('The current world was imported and is not in the scenario list; press Home for the first scenario', 'error');
       return;
     }
-    const next = Math.min(Math.max(index + offset, 0), SCENARIOS.length - 1);
-    if (next !== index) this.loadScenario(SCENARIOS[next]!.id);
+    const next = Math.min(Math.max(index + offset, 0), listed.length - 1);
+    if (next !== index) this.loadScenario(listed[next]!.id);
+  }
+
+  /** The first scenario of the listed order (Home). */
+  loadFirstScenario(): void {
+    this.loadScenario(this.listedScenarios()[0]!.id);
   }
 
   exportSnapshot(): Snapshot {

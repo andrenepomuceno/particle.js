@@ -4,6 +4,7 @@
   "id": "plasma",
   "name": "Neutral plasma",
   "folder": "Electromagnetism",
+  "added": "2026-10-24T00:37:21-03:00",
   "description": "Equal numbers of positive and negative charges inside a reflecting sphere.",
   "seed": 2,
   "view": { "cameraDistance": 1100, "particleRadius": 3, "colorMode": "charge" },

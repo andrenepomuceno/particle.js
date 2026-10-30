@@ -4,6 +4,7 @@
   "id": "sandbox",
   "name": "Sandbox",
   "folder": "Sandbox",
+  "added": "2026-10-24T00:37:21-03:00",
   "description": "Empty space with gravity and Coulomb. Press G to generate particles.",
   "seed": 6,
   "view": { "cameraDistance": 800, "particleRadius": 3, "colorMode": "charge" },

@@ -11,7 +11,7 @@ field; click the canvas to give focus back.
 | Space | pause / resume |
 | N | one step (when paused) |
 | R | reset (rebuild the current scenario or re-import the snapshot) |
-| PageDown / PageUp / Home | next / previous / first scenario |
+| PageDown / PageUp / Home | next / previous / first scenario, in the order the scenario list shows |
 | S | sandbox |
 | P | export snapshot (JSON + PNG) |
 | I | import a snapshot or a scenario file |
@@ -90,6 +90,13 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 ## Dialogs
 
 Information, Forces, Expressions, Parameters, Spacetime, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
+
+**Information** has two tabs. *Overview* has the scenario select, the particle total and the status.
+*Scenarios* browses the library. *Order* is `suggested` (the library's curated order, the default),
+`name` (A–Z) or `newest` (by the date each scenario was added). *Group by folder* shows collapsible
+folders, whose expanded state is remembered, or a flat list. Click a name to load it; hover for its
+description. The Overview select and PageDown/PageUp/Home follow the same order, and the choice is
+remembered.
 
 **Spacetime** picks the metric: Galilean (classical) or Minkowski (special relativity, with the
 speed of light c; see [forces](forces.md#spacetime-metric)). It shows the largest γ, the fastest

@@ -4,6 +4,7 @@
   "id": "twin-clocks",
   "name": "Twin Clocks",
   "folder": "Relativity",
+  "added": "2026-10-30T17:18:57-03:00",
   "description": "Seven rows of clocks bounce between the walls of a box at 0, 0.3, 0.6, 0.8, 0.9, 0.95 and 0.99 c (c = 1, Minkowski metric). Each particle's clock shows its proper time, which advances by dt·√(1 − v²/c²): the faster rows fall behind (warm colors) while the resting row runs ahead (blue). At t = 100 the 0.99 c row has aged about 14 — the twin paradox, with the walls as the turnaround. Click a particle to read its proper time and γ in the Particle dialog; switch the metric to Galilean in the Spacetime dialog and every clock ticks alike again.",
   "seed": 1,
   "view": { "cameraDistance": 140, "particleRadius": 1.2, "colorMode": "clock" },

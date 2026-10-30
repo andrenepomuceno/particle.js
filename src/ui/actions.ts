@@ -1,6 +1,5 @@
 import type { SimulationController } from '../app/SimulationController';
 import { COLOR_MODES } from '../engine/render/ParticlePoints';
-import { SCENARIOS } from '../scenarios';
 
 export interface ActionContext {
   controller: SimulationController;
@@ -44,7 +43,7 @@ export const ACTIONS: readonly Action[] = [
   { id: 'reset', label: 'Reset scenario', key: 'r', group: 'Simulation', run: ({ controller }) => controller.reset() },
   { id: 'next', label: 'Next scenario', key: 'pagedown', group: 'Simulation', run: ({ controller }) => controller.cycleScenario(1) },
   { id: 'previous', label: 'Previous scenario', key: 'pageup', group: 'Simulation', run: ({ controller }) => controller.cycleScenario(-1) },
-  { id: 'home', label: 'First scenario', key: 'home', group: 'Simulation', run: ({ controller }) => controller.loadScenario(SCENARIOS[0]!.id) },
+  { id: 'home', label: 'First scenario', key: 'home', group: 'Simulation', run: ({ controller }) => controller.loadFirstScenario() },
   { id: 'sandbox', label: 'Sandbox', key: 's', group: 'Simulation', run: ({ controller }) => controller.loadScenario('sandbox') },
   { id: 'export', label: 'Export snapshot (JSON + PNG)', key: 'p', group: 'Simulation', run: exportSnapshot },
   { id: 'import', label: 'Import snapshot or scenario', key: 'i', group: 'Simulation', run: (ctx) => ctx.importFile() },

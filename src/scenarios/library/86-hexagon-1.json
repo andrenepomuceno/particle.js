@@ -4,6 +4,7 @@
   "id": "hexagon-1",
   "name": "Hexagon 1",
   "folder": "Experiments 0",
+  "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Hexagon 1: a honeycomb of 412 tiny nuclei (4 up + 2 down quarks, nuclear charge alternating ±1 around each hexagon), tilted 20°, bound by v1's sine nuclear force (range 500) against Coulomb (k = 1/60). Three rows of 500 electrons with alternating nuclear charge fly in from the left at speed 200 and hit the lattice from t ≈ 75. Gravity (G = 1e-6) is negligible and omitted.",
   "seed": 1,
   "view": {

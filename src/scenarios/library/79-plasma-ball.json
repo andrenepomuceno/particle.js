@@ -6,7 +6,6 @@
   "folder": "Experiments",
   "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Plasma Ball: 9999 electrons (m 0.5) and up and down quarks (m 3 and 6) with random ±1 nuclear charge start in a ball of radius 1, burst out under weak Coulomb (k = 1/60) and fill a reflecting sphere of radius 1e5 where v1's powAX nuclear force (range 1e4) and gravity (G = 1e-3) shape them into a 3D plasma.",
-  "seed": 1,
   "view": { "cameraDistance": 200000, "particleRadius": 100, "colorMode": "charge" },
   "settings": { "timeStep": 1, "boundary": "sphere", "boundarySize": 100000, "restitution": 0.9 },
   "forces": [

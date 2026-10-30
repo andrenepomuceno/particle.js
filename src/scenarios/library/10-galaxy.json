@@ -6,7 +6,6 @@
   "folder": "Gravity",
   "added": "2026-10-24T00:37:21-03:00",
   "description": "A massive fixed core with a rotating disk of light bodies in near-circular orbits.",
-  "seed": 1,
   "view": {
     "cameraDistance": 1400,
     "particleRadius": 3,

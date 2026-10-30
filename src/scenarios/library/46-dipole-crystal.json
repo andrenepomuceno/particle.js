@@ -6,7 +6,6 @@
   "folder": "Spin",
   "added": "2026-10-24T03:56:07-03:00",
   "description": "The other half of the ferrofluid: dipoles perpendicular to the plane all repel (V ∝ +1/r³), so a disordered 2D gas in a box cools into a triangular lattice. A tenth of them point the other way; those attract their neighbours and sit as defects in the crystal.",
-  "seed": 5,
   "view": { "cameraDistance": 260, "particleRadius": 1.2, "colorMode": "spin" },
   "settings": { "timeStep": 0.02, "mode2D": true, "friction": 0.05, "boundary": "box", "boundarySize": 80 },
   "forces": [

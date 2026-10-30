@@ -6,7 +6,6 @@
   "folder": "Force Map",
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's quark soup: 9996 colored quarks (uud + udd) and electrons in a 2e5 disk under v1's force map 2, color force and 1/d Coulomb, plus 1/d gravity. Scripted like v1 (times are v1's seconds × 53): G jumps by 1e41 at t = 106 and the soup collapses into an egg; G then drops tenfold at t = 265, 424, 6360 and 6466 while the drag rises tenfold at t = 265, 318, 371 and 424. v1's quadratic, mass-scaled drag is approximated by a linear one of matching size; its random force noise is not reproduced.",
-  "seed": 1,
   "view": { "cameraDistance": 900000, "particleRadius": 800, "colorMode": "charge" },
   "settings": { "timeStep": 1, "mode2D": true, "friction": 5e-7 },
   "forces": [

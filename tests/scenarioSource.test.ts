@@ -16,7 +16,7 @@ describe('scenario source text', () => {
     expect(file).toMatch(/^\d+-[\w-]+\.json$/);
     const again = parseScenario(scenario.text, file);
     expect(again).toMatchObject({ id: scenario.id, name: scenario.name, folder: scenario.folder, defaultCount: scenario.defaultCount, text: scenario.text });
-    expect(again.build(createRng(again.seed)).particles).toEqual(scenario.build(createRng(scenario.seed)).particles);
+    expect(again.build(createRng(again.seed ?? 1)).particles).toEqual(scenario.build(createRng(scenario.seed ?? 1)).particles);
   });
 
   it('starts a source from the loaded file', () => {

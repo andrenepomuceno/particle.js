@@ -6,7 +6,6 @@
   "folder": "Relativity",
   "added": "2026-10-30T17:18:57-03:00",
   "description": "Twelve charges leave the center together along x at speeds from 0.1 c to 0.95 c (c = 1, Minkowski metric), in a uniform magnetic field from the fixed source (the only particle with n = 1). Classically the cyclotron period 2πm/(qB) does not depend on speed, so all would come back to the center at the same time. Relativistically the period is 2πγm/(qB) and the radius γmv/(qB): the faster charges, carrying momentum γmv, swing on wider circles and fall behind, returning one after another. Speeds stay constant (the magnetic force does no work), and the clocks show the dilation too (colors: warm = behind). Switch the metric to Galilean in the Spacetime dialog to see them return in step.",
-  "seed": 3,
   "view": { "cameraDistance": 260, "particleRadius": 2, "colorMode": "clock" },
   "settings": { "timeStep": 0.1, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1 },
   "forces": [

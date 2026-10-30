@@ -410,8 +410,8 @@ export function parseScenario(text: string, file: string): Scenario {
   const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
   const groups = (o.groups === undefined ? [] : json.array(o.groups, 'groups')).map((g, k) => json.group(g, `groups[${k}]`));
   const timeline = o.timeline === undefined ? [] : readTimeline(json, o.timeline, forces);
-  const seed = o.seed === undefined ? 1 : json.finite(o.seed, 'seed');
-  if (!Number.isInteger(seed) || seed < 0) json.fail('seed', `must be an integer >= 0, got ${seed}`);
+  const seed = o.seed === undefined ? undefined : json.finite(o.seed, 'seed');
+  if (seed !== undefined && !(Number.isInteger(seed) && seed >= 0)) json.fail('seed', `must be an integer >= 0, got ${seed}`);
 
   return {
     id: json.string(o.id, 'id'),

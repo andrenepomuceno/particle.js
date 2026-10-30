@@ -25,8 +25,8 @@ describe('bundled scenario library', () => {
   });
 
   it.each(SCENARIOS.map((s) => [s.id, s] as const))('%s builds deterministically with valid forces, below its c', (_, scenario) => {
-    const first = scenario.build(createRng(scenario.seed)).particles;
-    const second = scenario.build(createRng(scenario.seed)).particles;
+    const first = scenario.build(createRng(scenario.seed ?? 1)).particles;
+    const second = scenario.build(createRng(scenario.seed ?? 1)).particles;
     expect(first).toEqual(second);
     scenario.forces().forEach((force) => expect(() => compileForce(force)).not.toThrow());
     // Under Minkowski every particle must start below c (the set refuses it otherwise).
@@ -78,6 +78,13 @@ describe('parseScenario', () => {
     [{ groups: [{ count: 5, shape: { type: 'grid', spacing: 1, columns: 2, rows: 2 } }] }, /5 grid sites needed, a 2×2×1 grid has 4/],
   ])('rejects %j with its path', (extra, message) => {
     expect(() => parse(extra)).toThrow(message);
+  });
+
+  it('leaves the seed to each start unless the file fixes one', () => {
+    expect(parse({}).seed).toBeUndefined();
+    expect(parse({ seed: 42 }).seed).toBe(42);
+    expect(() => parse({ seed: -1 })).toThrow(/at 'seed': must be an integer >= 0, got -1/);
+    expect(SCENARIOS.filter((s) => s.seed !== undefined).map((s) => s.id)).toEqual([]);
   });
 
   it('reads view.field: true, or options over the defaults, and rejects bad ones with their path', () => {

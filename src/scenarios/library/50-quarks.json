@@ -6,7 +6,6 @@
   "folder": "Color charge",
   "added": "2026-10-24T00:37:21-03:00",
   "description": "Quarks and antiquarks with 120° color charge under a Casimir-scaled Cornell potential: they pair into color-neutral mesons and baryons.",
-  "seed": 5,
   "view": { "cameraDistance": 900, "particleRadius": 3, "colorMode": "color" },
   "settings": { "timeStep": 0.1, "mode2D": true, "friction": 0.02, "boundary": "box", "boundarySize": 400 },
   "forces": [{ "preset": "color" }],

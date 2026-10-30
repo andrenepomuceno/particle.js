@@ -29,7 +29,7 @@ v1's quadratic friction (`v /= 1 + c·dt·|v|/m`) is the `quadraticDrag` setting
 | `id`, `name` | yes | unique id (used in `?scenario=`) and display name |
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
 | `added` | no | ISO 8601 date (`"2026-10-30"`, optionally with time and offset) the scenario joined the library; orders the scenario list's *newest* view. Every bundled scenario has one |
-| `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |
+| `seed` | no | RNG seed, integer ≥ 0. Omitted (as in every bundled scenario), each start (load or R) draws a new one, so every run is unique; set, the same seed always rebuilds the same particles. Information shows the seed of the current run, to paste here and repeat it |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`), `field`: `true` or `{ "columns", "logScale", "probe" }` shows the force field on load (`probe` overrides fields of the default test particle: `mass`, `charge`, `charge2`, `spin`, `isospin`, `parity`, `nuclearCharge`, `color`); the next scenario without it restores the user's field settings |
 | `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`), `metric` (`galilean` default, `minkowski`; see [forces](forces.md#spacetime-metric)), `lightSpeed` (c, default 10); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |

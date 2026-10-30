@@ -276,7 +276,6 @@ function welcome() {
       `v1's opening scene: ${count} pixels of text, each a nucleus of six colored quarks (uud + udd) with two electrons, ` +
       "held by v1's force map 2 (Yukawa pull minus a linear push) and its constant color force inside 3 fm. " +
       "v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass. v1's random force noise and the text font are not reproduced; gravity (G ≈ 9e-38) is negligible and omitted.",
-    seed: 1,
     view: { cameraDistance: 800000, particleRadius: 600, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, maxSpeed: sig(299792458 * (M / S) * 100), friction: sig(1e-6 / ((u.up + u.down) / 2)) },
     forces: [
@@ -328,7 +327,6 @@ function planetoidFormation() {
       "the text into planetoids. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass (8). " +
       "Scripted like v1 (times are v1's seconds × 60, drags its c / 8): the drag drops at t = 180, rises again from t = 4320, " +
       'gravity doubles four times from t = 5400 and halves back from t = 7560, then the camera pulls back at t = 9000.',
-    seed: 1,
     view: { cameraDistance: PLANETOID_CAMERA, particleRadius: 300, colorMode: 'charge' },
     timeline: planetoidScript(),
     settings: { timeStep: 1, mode2D: true, friction: 0.125 },
@@ -391,7 +389,6 @@ function air() {
       `v1's quark-model air: a ${g}×${g} lattice of atoms by abundance (${mix}); each atom is 3Z up + 3Z down quarks ` +
       "and Z electrons, bound by v1's powAXv3 nuclear force (pull below 0.22 of the 3 fm range) and Coulomb; about 1% of nuclei " +
       'carry negative nuclear charge as in v1. Gravity (G ≈ 7e-39) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 45000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 20 * range, restitution: 0.9 },
     forces: [powAXv3(range, u.nuclear), coulomb(u.coulomb, 6)],
@@ -427,7 +424,6 @@ function water2() {
       `v1's quark-model water: a ${g}×${g} lattice of H2O molecules, oxygen as 24 up + 24 down quarks with 8 electrons and ` +
       "each hydrogen as a uud triplet 2.85 fm away at ±30° with its electron around it, bound by v1's powAXv3 nuclear force and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 140000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100 * range, restitution: 0.9 },
     forces: [powAXv3(range, u.nuclear), coulomb(u.coulomb, 6)],
@@ -476,7 +472,6 @@ function essentialElements() {
       `v1's quark-model mix of life's elements scattered at random (${mix}); ${anti} of them are antimatter ` +
       "(charges and nuclear charge flipped). Each atom is 3Z up + 3Z down quarks and Z electrons under v1's powAXv2 nuclear force and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 115000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: half, restitution: 0.9 },
     forces: [powAXv2(range, u.nuclear), coulomb(u.coulomb, 6)],
@@ -500,7 +495,6 @@ function periodicTable() {
       "v1's electron-proton-neutron model: elements Z = 1 to 64 on an 8×8 grid, each Z protons + Z neutrons with Z electrons, " +
       "bound by v1's powAXv3 nuclear force (nuclear charge 1 for nucleons, -1/3 for electrons) and Coulomb. " +
       'Gravity (G ≈ 7e-39) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 60000, particleRadius: 120, colorMode: 'charge' },
     settings: { timeStep: sig(1 / 3), mode2D: true, boundary: 'box', boundarySize: 40 * range, restitution: 0.9 },
     forces: [powAXv3(range, u.nuclear), coulomb(u.coulomb, 6)],
@@ -589,7 +583,6 @@ function hexagon1() {
       `v1's Hexagon 1: a honeycomb of ${vertices.length} tiny nuclei (4 up + 2 down quarks, nuclear charge alternating ±1 around each hexagon), ` +
       "tilted 20°, bound by v1's sine nuclear force (range 500) against Coulomb (k = 1/60). Three rows of 500 electrons " +
       'with alternating nuclear charge fly in from the left at speed 200 and hit the lattice from t ≈ 75. Gravity (G = 1e-6) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 13000, particleRadius: 50, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true },
     forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
@@ -617,7 +610,6 @@ function hexagon2() {
       `v1's Hexagon 2: two honeycomb crystals of ${vertices.length} atoms each (6 up + 6 down quarks and 2 electrons, nuclear charge alternating ±1 ` +
       "around each hexagon) collide head-on at a closing speed of 4, under v1's sine nuclear force (range 500) and Coulomb (k = 1/60), " +
       'inside a sphere of radius 1e5 that keeps half the normal speed on a bounce. Gravity (G = 1e-3) is negligible here and omitted.',
-    seed: 1,
     view: { cameraDistance: 10000, particleRadius: 50, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 100000, restitution: 0.5 },
     forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
@@ -654,7 +646,6 @@ function hexagon3() {
       `v1's Hexagon 3: a tilted honeycomb of ${vertices.length} nuclei (6 up + 6 down quarks, nuclear charge alternating ±1 around each hexagon) ` +
       `under v1's sine nuclear force (range 500) and Coulomb (k = 1/60), shot by a beam of ${electrons} electrons in 500 bunches ` +
       'flying in from the left at speed 250 (they arrive from t ≈ 60). Gravity (G = 1e-6) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 13000, particleRadius: 50, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true },
     forces: [v1Sine(range), v0Coulomb(1 / 60, 0.5)],
@@ -677,7 +668,6 @@ function hexagonalCrystal() {
       `v1's Hexagonal Crystal (Experiments 1): ${vertices.length} neutral atoms (6 up + 6 down quarks, 2 electrons) on the vertices of a honeycomb, ` +
       "nuclear charge alternating ±1 around each hexagon, under v1's powAX nuclear force (pull below 0.25 of the 1000 range, push beyond) " +
       'and Coulomb, inside a reflecting circle of radius 5e4. Gravity (G = 1e-3) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 14000, particleRadius: 50, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 50000, restitution: 0.9 },
     forces: [powAX(range), v0Coulomb(1, 1)],
@@ -699,7 +689,6 @@ function tetragonalCrystal() {
       `v1's Tetragonal Crystal: a ${size}×${size} square lattice (spacing 500) of neutral atoms (6 up + 6 down quarks, 2 electrons), ` +
       "nuclear charge ±1 in a checkerboard, under v1's powAX nuclear force (range 1000) and Coulomb, inside a reflecting circle of radius 5e4. " +
       'Gravity (G = 1e-3) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 15000, particleRadius: 50, colorMode: 'charge' },
     settings: { timeStep: 1, mode2D: true, boundary: 'sphere', boundarySize: 50000, restitution: 0.9 },
     forces: [powAX(range), v0Coulomb(1, 1)],
@@ -726,7 +715,6 @@ function hexagonalCrystalQuarks() {
       "of 2 fm cells, under v1's eight-step force map (f0…f7 over eighths of the 3 fm range, positive values attract; editable) and Coulomb, " +
       "in a box of half-size 1e5. v1's quadratic drag (v /= 1 + c·dt·|v|/m) is the quadraticDrag setting, c = 1e-3 lowered to " +
       '1e-4 at t = 33. Gravity (G ≈ 1e-39) is negligible and omitted.',
-    seed: 1,
     view: { cameraDistance: 25000, particleRadius: 90, colorMode: 'charge' },
     timeline: [{ at: 33, set: { 'settings.quadraticDrag': 1e-4 } }],
     settings: { timeStep: 1, mode2D: true, boundary: 'box', boundarySize: 100000, restitution: 0.9, quadraticDrag: 1e-3, integrator: 'euler' },

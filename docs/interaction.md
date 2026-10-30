@@ -92,7 +92,9 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 
 Information, Forces, Expressions, Parameters, Spacetime, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
 
-**Information** has three tabs. *Overview* has the scenario select, the particle total and the status.
+**Information** has three tabs. *Overview* has the scenario select, the particle total and the status,
+including the run's seed: scenarios lay out their particles anew on every start unless their file
+fixes a `seed` (add the shown seed in the JSON tab to repeat a run).
 *Scenarios* browses the library. *Order* is `suggested` (the library's curated order, the default),
 `name` (A–Z) or `newest` (by the date each scenario was added). *Group by folder* shows collapsible
 folders, whose expanded state is remembered, or a flat list. Click a name to load it; hover for its

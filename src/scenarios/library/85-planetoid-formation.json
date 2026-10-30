@@ -6,7 +6,6 @@
   "folder": "Record",
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's recording scene (commented out in v1): 382 text pixels, each a deuteron-like pair of nucleons (12 quarks) with four electrons, under v1's step force map (pull inside half the 3 fm range, push outside), 1/d Coulomb and strong 1/d gravity that collapses the text into planetoids. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass (8). Scripted like v1 (times are v1's seconds × 60, drags its c / 8): the drag drops at t = 180, rises again from t = 4320, gravity doubles four times from t = 5400 and halves back from t = 7560, then the camera pulls back at t = 9000.",
-  "seed": 1,
   "view": {
     "cameraDistance": 140000,
     "particleRadius": 300,

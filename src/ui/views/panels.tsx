@@ -80,6 +80,7 @@ function OverviewTab() {
   const edited = useAppState((s) => s.scenarioSource !== undefined && s.scenarioSource.text !== s.scenarioSource.original);
   const target = useAppState((s) => s.particleTarget);
   const defaultCount = SCENARIOS.find((s) => s.id === scenarioId)?.defaultCount;
+  const seed = useAppState((s) => s.seed);
   const order = useAppState((s) => s.scenarioOrder);
   // Re-renders with the grouping too, since the listed order depends on it.
   useAppState((s) => s.scenariosByFolder);
@@ -122,6 +123,7 @@ function OverviewTab() {
         <dt>Time</dt><dd>{time}</dd>
         <dt>Mean speed</dt><dd>{format(averageSpeed)}</dd>
         <dt>FPS</dt><dd>{fps}</dd>
+        {seed && <><dt>Seed</dt><dd title={seed.fixed ? 'fixed by the scenario file' : 'drawn for this start; add "seed" to the JSON to repeat it'}>{seed.value} ({seed.fixed ? 'fixed' : 'random'})</dd></>}
         {timeline.total > 0 && (
           <><dt>Script</dt><dd>{timeline.fired} / {timeline.total} events{timeline.nextAt !== undefined ? ` · next at t = ${timeline.nextAt}` : ''}</dd></>
         )}

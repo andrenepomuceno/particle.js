@@ -6,7 +6,6 @@
   "folder": "Experiments 0",
   "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Hexagon 3: a tilted honeycomb of 466 nuclei (6 up + 6 down quarks, nuclear charge alternating ±1 around each hexagon) under v1's sine nuclear force (range 500) and Coulomb (k = 1/60), shot by a beam of 1230 electrons in 500 bunches flying in from the left at speed 250 (they arrive from t ≈ 60). Gravity (G = 1e-6) is negligible and omitted.",
-  "seed": 1,
   "view": {
     "cameraDistance": 13000,
     "particleRadius": 50,

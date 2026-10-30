@@ -60,7 +60,7 @@ describe('scaling a slab scene', () => {
     expect(isPlanar({ mode2D: false, boundary: 'box', boundaryDepth: 10 })).toBe(true);
     expect(isPlanar({ mode2D: false, boundary: 'box', boundaryDepth: 0 })).toBe(false);
     const slab = findScenario('crystal-slab');
-    const { particles } = slab.build(createRng(slab.seed), 4 * slab.defaultCount);
+    const { particles } = slab.build(createRng(slab.seed ?? 1), 4 * slab.defaultCount);
     expect(particles.length).toBe(4 * slab.defaultCount);
     expect(new Set(particles.map((p) => p.position[2])).size).toBe(2);
     expect(Math.max(...particles.map((p) => Math.abs(p.position[2])))).toBeLessThanOrEqual(10);

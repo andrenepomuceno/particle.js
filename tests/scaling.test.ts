@@ -23,7 +23,7 @@ function overshoot({ position }: Particle, settings: SimulationSettings): number
 /** Builds a scenario at each particle total as the controller does and checks every particle starts inside the scaled boundary. */
 function expectInside(s: Scenario, targets: readonly number[]): void {
   for (const target of targets) {
-    const { particles, linearScale } = s.build(createRng(s.seed), target);
+    const { particles, linearScale } = s.build(createRng(s.seed ?? 1), target);
     const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...s.settings }, linearScale);
     const outside = particles.filter((p) => overshoot(p, settings) > 1e-9 * settings.boundarySize);
     const worst = Math.max(0, ...outside.map((p) => overshoot(p, settings)));
@@ -42,7 +42,7 @@ describe('scaling scenarios to a particle total', () => {
   it.each(SCENARIOS.map((s) => [s.id, s] as const))('never builds %s past the requested total, even at the capacity', (_, s) => {
     for (const target of [MAX_CAPACITY, 15001, 1001]) {
       if (target < s.defaultCount) continue;
-      expect(s.build(createRng(s.seed), target).particles.length).toBeLessThanOrEqual(target);
+      expect(s.build(createRng(s.seed ?? 1), target).particles.length).toBeLessThanOrEqual(target);
     }
   });
 

@@ -6,7 +6,6 @@
   "folder": "Experiments",
   "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Tetragonal Crystal: a 25×25 square lattice (spacing 500) of neutral atoms (6 up + 6 down quarks, 2 electrons), nuclear charge ±1 in a checkerboard, under v1's powAX nuclear force (range 1000) and Coulomb, inside a reflecting circle of radius 5e4. Gravity (G = 1e-3) is negligible and omitted.",
-  "seed": 1,
   "view": {
     "cameraDistance": 15000,
     "particleRadius": 50,

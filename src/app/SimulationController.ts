@@ -113,6 +113,8 @@ export interface AppState {
   scenarioId: string;
   /** The scenario file behind the current world (Information → JSON); undefined for a snapshot. */
   scenarioSource: ScenarioSource | undefined;
+  /** Seed of the current scenario's layout: fixed by its file, or drawn for this start; undefined for a snapshot. */
+  seed: { value: number; fixed: boolean } | undefined;
   description: string;
   name: string;
   settings: SimulationSettings;
@@ -246,7 +248,7 @@ export class SimulationController {
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
-      scenarioId: '', scenarioSource: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
+      scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
@@ -326,10 +328,12 @@ export class SimulationController {
   private startScenario(scenario: Scenario, scenarioId: string, source: ScenarioSource): void {
     // An empty scenario (sandbox) has nothing to scale; the target only resizes populated ones.
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
-    const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
+    // A scenario without a seed is laid out anew on every start (load or reset), so each run is unique.
+    const seed = scenario.seed ?? crypto.getRandomValues(new Uint32Array(1))[0]!;
+    const { particles, linearScale } = scenario.build(createRng(seed), target);
     const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...scenario.settings }, linearScale);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId, scenarioSource: source, description: scenario.description, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, scenarioSource: source, seed: { value: seed, fixed: scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
@@ -416,7 +420,7 @@ export class SimulationController {
     const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '', scenarioSource: undefined, description: `Snapshot imported from ${fileName}` });
+      this.store.set({ scenarioId: '', scenarioSource: undefined, seed: undefined, description: `Snapshot imported from ${fileName}` });
       // A snapshot has no view.field: like a scenario without one, it ends a scenario's hold on the field.
       this.showScenarioField(undefined);
     };

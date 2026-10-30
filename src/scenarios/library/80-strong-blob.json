@@ -6,7 +6,6 @@
   "folder": "Experiments",
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's Strong Blob 0 in 3D: 1100 particles with random ±50 charge and ±1 nuclear charge in a 2000 ball, under v1's default nuclear sine (equal nuclear charges pull inside half of the 2000 range and push in the outer half; opposite ones the reverse) and weak 1/d Coulomb (k = 1/137). Gravity (G = 1e-6) is negligible and omitted.",
-  "seed": 1,
   "view": { "cameraDistance": 10000, "particleRadius": 50, "colorMode": "nuclear" },
   "settings": { "timeStep": 1 },
   "forces": [

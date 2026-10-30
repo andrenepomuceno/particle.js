@@ -6,7 +6,6 @@
   "folder": "Electromagnetism",
   "added": "2026-10-24T00:37:21-03:00",
   "description": "Equal numbers of positive (m = 10) and negative (m = 1) charges in a reflecting sphere, with electric and magnetic pair forces: Coulomb plus the magnetic force between moving charges (Biot–Savart with μ₀/4π = k/c², so parallel currents attract; the Darwin corrections and retardation are left out), under special relativity (Minkowski metric, c = 20) instead of a speed clamp. At these speeds magnetism is a few percent of the electric force. Lower c in the Spacetime dialog (try 6): the magnetic coupling k/c² grows with it, speeds saturate below c and the largest γ climbs past 2 (Spacetime shows it).",
-  "seed": 2,
   "view": { "cameraDistance": 1100, "particleRadius": 3, "colorMode": "charge" },
   "settings": { "timeStep": 0.2, "boundary": "sphere", "boundarySize": 400, "integrator": "euler", "metric": "minkowski", "lightSpeed": 20 },
   "forces": [

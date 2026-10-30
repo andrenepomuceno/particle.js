@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Scenarios no longer have fixed seeds: every start (load or R) lays the particles out anew, so each run
+  is unique; a scenario file that sets `seed` still repeats exactly. Information shows the run's seed.
 - `c_light`, `rand`, `randn` and `randv` are now variable names: a force parameter with one of these names must
   be renamed.
 - Expressions read the configured speed of light as `c_light`; new preset *Magnetic* (Biot–Savart with

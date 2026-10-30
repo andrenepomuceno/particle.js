@@ -6,7 +6,6 @@
   "folder": "Experiments",
   "added": "2026-10-24T05:26:10-03:00",
   "description": "v1's Standard Model 1: 9999 electrons and up and down quarks (m 0.511, 3, 6) with random ±1 nuclear charge start in a disk of radius 1, burst out under Coulomb (k = 1) and spread over v1's powAX nuclear range of 1e6, inside a reflecting circle of radius 1e7. Gravity (G = 1e-3) is negligible and omitted.",
-  "seed": 1,
   "view": { "cameraDistance": 5000000, "particleRadius": 10000, "colorMode": "charge" },
   "settings": { "timeStep": 1, "mode2D": true, "boundary": "sphere", "boundarySize": 10000000, "restitution": 0.9 },
   "forces": [

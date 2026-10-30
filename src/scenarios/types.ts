@@ -24,7 +24,8 @@ export interface Scenario {
   /** When the scenario joined the library (ISO 8601); orders the "newest" view. */
   added: string | undefined;
   description: string;
-  seed: number;
+  /** Fixed seed of the random layout, when the file asks for one; otherwise every start draws its own. */
+  seed: number | undefined;
   settings: Partial<SimulationSettings>;
   forces: () => ForceDefinition[];
   /** Particle total as written in the file. */

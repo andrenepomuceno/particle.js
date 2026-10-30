@@ -6,7 +6,6 @@
   "folder": "Quark Model",
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's quark-model air: a 13×13 lattice of atoms by abundance (143 N, 25 O, 1 Ar); each atom is 3Z up + 3Z down quarks and Z electrons, bound by v1's powAXv3 nuclear force (pull below 0.22 of the 3 fm range) and Coulomb; about 1% of nuclei carry negative nuclear charge as in v1. Gravity (G ≈ 7e-39) is negligible and omitted.",
-  "seed": 1,
   "view": {
     "cameraDistance": 45000,
     "particleRadius": 120,

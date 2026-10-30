@@ -6,7 +6,6 @@
   "folder": "Force Map",
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's opening scene: 788 pixels of text, each a nucleus of six colored quarks (uud + udd) with two electrons, held by v1's force map 2 (Yukawa pull minus a linear push) and its constant color force inside 3 fm. v1 damped velocities by exp(-c·dt/m); the drag here is c divided by the mean quark mass. v1's random force noise and the text font are not reproduced; gravity (G ≈ 9e-38) is negligible and omitted.",
-  "seed": 1,
   "view": {
     "cameraDistance": 800000,
     "particleRadius": 600,

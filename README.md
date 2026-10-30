@@ -20,6 +20,9 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   exactly by [shader-autodiff](https://github.com/andrenepomuceno/shader-autodiff).
 - **Vectors and velocity**: expressions may be vectors (`cross(v_i, B)`, `d`, `s_j`, …); a vector force
   is applied as written, and velocity-dependent ones (v × B) get an exact implicit step.
+- **Random numbers**: `rand`, `randn` and `randv` give every pair new numbers each step, identical on
+  GPU and CPU and shared by both particles, so a central noise conserves momentum (dissipative
+  particle dynamics thermostats).
 - **Vector forces**: a potential of the relative position (`dx`, `dy`, `dz`, or the spin projections)
   gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
 - **Special relativity**: the Spacetime dialog switches the metric from Galilean to Minkowski with

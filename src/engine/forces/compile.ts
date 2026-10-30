@@ -3,6 +3,7 @@ import { CONSTANTS, FUNCTION_ARITY, VECTOR_FUNCTIONS, bin, call, collectVariable
 import { lowerVectors, VectorTypeError, type Lowered } from '../expr/vector';
 import { colorDot, colorPlane } from '../colorCharge';
 import type { CompiledFn } from '../expr/evaluate';
+import type { PairNoise } from '../noise';
 import type { Vec3 } from '../particles';
 import { ExprError, parseExpr } from '../expr/parser';
 import { simplify } from '../expr/simplify';
@@ -27,6 +28,8 @@ const VELOCITY_I_COMPONENTS = ['vx_i', 'vy_i', 'vz_i'] as const;
 const VELOCITY_I = new Set<string>(VELOCITY_I_COMPONENTS);
 /** Names that depend on velocity (catalogue flag), refused in potential mode. */
 const VELOCITY = new Set(PAIR_VARIABLES.filter((v) => v.velocity).map((v) => v.name));
+/** Random numbers (catalogue flag), refused in potential mode. */
+const RANDOM = new Set(PAIR_VARIABLES.filter((v) => v.random).map((v) => v.name));
 // 'soft2' and 'cutoff' become uniforms uF<k>_<name>; '__' is reserved in GLSL, so names may not start with '_'.
 // 'dtrue' is the unsoftened distance the Plummer factor of softened potentials uses.
 const RESERVED = new Set([...PAIR_VARIABLE_NAMES, ...Object.keys(CONSTANTS), ...Object.keys(FUNCTION_ARITY), ...Object.keys(VECTOR_FUNCTIONS), 'soft2', 'cutoff', 'dtrue']);
@@ -53,6 +56,8 @@ export interface CompiledForce {
   jacobian: boolean;
   /** Reads any velocity (v_i or v_j): Verlet's position-only assumption does not hold. */
   velocity: boolean;
+  /** Reads rand, randn or randv: the pair loops hash them (field probes and plots use their mean). */
+  random: boolean;
   /** Signed force magnitude as a function of r; positive pushes the pair apart (radial part for vector forces). */
   evaluate: CompiledFn;
   /** The full force on i (−∇_{Δx} V for gradient forces). */
@@ -124,6 +129,8 @@ export function compileForce(def: ForceDefinition): CompiledForce {
   if (parsed && def.mode === 'potential') {
     const velocity = [...collectVariables(parsed)].filter((name) => VELOCITY.has(name));
     if (velocity.length > 0) problems.push(`${velocity.join(', ')} depend on velocity, which a potential cannot (F = −∇V); use force mode`);
+    const random = [...collectVariables(parsed)].filter((name) => RANDOM.has(name));
+    if (random.length > 0) problems.push(`${random.join(', ')} are random numbers, which a potential cannot hold (F = −∇V needs a V of the positions); use force mode`);
   }
   // Type errors are reported with the other problems, all at once.
   let lowered: Lowered | undefined;
@@ -159,13 +166,15 @@ export function compileForce(def: ForceDefinition): CompiledForce {
       : buildCentral(def, inR, names);
   const { program, potential } = built;
   const vectorJs = kind === 'central' ? undefined : forceJs(program, built.force, built.jacobian);
+  const reads = readNames(program, [...built.force, ...(built.jacobian ?? [])], built.parameters);
   const compiled: CompiledForce = {
     definition: def,
     kind,
     vector: kind !== 'central',
     jacobian: built.jacobian !== undefined,
     velocity: names.some((name) => VELOCITY.has(name)),
-    reads: readNames(program, [...built.force, ...(built.jacobian ?? [])], built.parameters),
+    random: [...reads].some((name) => RANDOM.has(name)),
+    reads,
     potentialReads: potential === undefined ? new Set<string>() : readNames(program, [potential], built.parameters),
     evaluate: jsFunction(program, built.radial),
     evaluateVector: vectorJs && ((scope) => vectorJs(scope).F),
@@ -344,7 +353,7 @@ function glslFunction(
 
 function unknownVariables(def: ForceDefinition, expr: Expr): string[] {
   const params = new Set(def.params.map((p) => p.name));
-  const allowed = PAIR_VARIABLES.filter((v) => def.range === 'short' || !v.shortRangeOnly).map((v) => v.name);
+  const allowed = PAIR_VARIABLES.filter((v) => !v.internal && (def.range === 'short' || !v.shortRangeOnly)).map((v) => v.name);
   const allowedSet = new Set(allowed);
   return [...collectVariables(expr)]
     .filter((name) => !allowedSet.has(name) && !params.has(name) && !(name in CONSTANTS))
@@ -391,7 +400,8 @@ export function forceUniformName(forceIndex: number, name: string): string {
   return `uF${forceIndex}_${name}`;
 }
 
-export interface PairScope {
+/** A pair's variables, random numbers included (pairScope hashes them; probes and plots use the mean). */
+export interface PairScope extends PairNoise {
   r: number;
   m_i: number; m_j: number;
   q_i: number; q_j: number;

@@ -1,5 +1,6 @@
 import { acts, pairVariables, setForceVariables, type CompiledForce, type PairScope } from '../forces/compile';
 import type { FieldProbe } from '../field';
+import { MEAN_NOISE, pairNoise, type PairNoise } from '../noise';
 import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
 
 type Pair = Omit<PairScope, 'r'>;
@@ -13,9 +14,16 @@ function inverseGamma(v: Float32Array, o: number, k: number): number {
   return k > 0 ? 1 / Math.sqrt(1 + (v[o]! ** 2 + v[o + 1]! ** 2 + v[o + 2]! ** 2) * k) : 1;
 }
 
-/** Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. */
-export function pairScope(set: ParticleSet, i: number, j: number, time: number): Pair {
+/** Unhashed random numbers: NaN, so a force that reads them in a loop that skipped the hashing fails loudly. */
+const UNSAMPLED_NOISE: Readonly<PairNoise> = { rand: NaN, randn: NaN, randvx: NaN, randvy: NaN, randvz: NaN };
+
+/**
+ * Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. The random
+ * numbers are hashed from {i, j} and `time` only with `noise` (some force reads them, as on the GPU).
+ */
+export function pairScope(set: ParticleSet, i: number, j: number, time: number, noise: boolean): Pair {
   const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
+  const n = noise ? pairNoise(i, j, time) : UNSAMPLED_NOISE;
   const oi = i * TEXEL;
   const oj = j * TEXEL;
   const dx = x[oi]! - x[oj]!;
@@ -33,10 +41,14 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number):
     cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
     t_i: v[oi + 3]!, t_j: v[oj + 3]!, time,
     vx_i: v[oi]! * gi, vy_i: v[oi + 1]! * gi, vz_i: v[oi + 2]! * gi, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
+    rand: n.rand, randn: n.randn, randvx: n.randvx, randvy: n.randvy, randvz: n.randvz,
   };
 }
 
-/** Same as pairScope with the field's test particle (clock 0) at `probe.position` receiving the force from j. */
+/**
+ * Same as pairScope with the field's test particle (clock 0) at `probe.position` receiving the force
+ * from j; random numbers take their mean, as in the GPU field pass.
+ */
 export function probeScope(probe: Probe, set: ParticleSet, j: number, time: number): Pair {
   const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
   const oj = j * TEXEL;
@@ -55,6 +67,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     t_i: 0, t_j: v[oj + 3]!, time,
     // The test particle is at rest: velocity-dependent forces on it vanish.
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
+    ...MEAN_NOISE,
   };
 }
 

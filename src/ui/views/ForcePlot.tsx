@@ -91,7 +91,7 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       const d = (maxDistance * (k + 1)) / SAMPLES;
       return { d, y: appliedForce(force, d) };
     });
-    return { points, maxDistance, kind: force.kind, velocity: force.velocity };
+    return { points, maxDistance, kind: force.kind, velocity: force.velocity, random: force.random };
   }, [definition]);
   if (!curve) return null;
   return (
@@ -100,6 +100,7 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       {curve.kind === 'gradient' && ' Vector force (−∇V): the curve is its radial part for this orientation only; it also has a transverse part and changes with the spins’ angle to r̂.'}
       {curve.kind === 'vector' && ' Vector force: the curve is its radial part only.'}
       {curve.velocity && ' It depends on velocity and is plotted for particles at rest.'}
+      {curve.random && ' Random numbers are plotted at their mean (rand = ½, randn = randv = 0).'}
     </>} />
   );
 }

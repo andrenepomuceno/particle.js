@@ -30,6 +30,11 @@
   follows a grid's outer sites (not just the ideal root of the count factor), a box in a slab keeps
   its thickness, and a sphere or shell in a slab fails loudly instead of growing through it.
   *Dipole Crystal* started 45 particles outside its box (26 columns now, same count and box).
+- Random numbers in force expressions: `rand` (uniform in [0, 1)), `randn` (standard normal) and
+  `randv` (vector of three normals), new for every pair at every step. A hash of the pair, the
+  float32 time and a stream makes them deterministic, bit-identical on GPU and CPU and the same for
+  both particles, so a central noise such as `sigma * randn` conserves momentum (DPD). Force mode
+  only; field probes and plots use the mean.
 
 ## 2.1.1 — 2026-10-24
 

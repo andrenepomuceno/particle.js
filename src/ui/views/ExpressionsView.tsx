@@ -10,12 +10,14 @@ const GROUPS: readonly [title: string, bases: readonly string[]][] = [
   ['Nuclear charge and parity', ['n', 'p']],
   ['Velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
   ['Time', ['t', 'time']],
+  ['Random (force mode)', ['rand', 'randn', 'randv']],
 ];
 
 /** Collapses each per-particle pair (m_i, m_j) into one row keyed by its base name (m). */
 function rows(): Map<string, { names: string[]; variable: PairVariable }> {
   const byBase = new Map<string, { names: string[]; variable: PairVariable }>();
   for (const variable of PAIR_VARIABLES) {
+    if (variable.internal) continue;
     const base = /^(.*)_[ij]$/.exec(variable.name)?.[1] ?? variable.name;
     const row = byBase.get(base);
     if (row) row.names.push(variable.name);
@@ -63,9 +65,11 @@ export function ExpressionsView() {
         <p className="mono" style={{ margin: 0 }}>{Object.entries(FUNCTION_ARITY).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
         <p className="mono" style={{ margin: '4px 0 0' }}>{Object.entries(VECTOR_FUNCTIONS).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
         <p className="muted" style={{ margin: '4px 0 0' }}>
-          Vectors (d, rhat, s_i, s_j, v_i, v_j, vec(·, ·, ·)) combine with + − between vectors, × and ÷ by numbers,
+          Vectors (d, rhat, s_i, s_j, v_i, v_j, randv, vec(·, ·, ·)) combine with + − between vectors, × and ÷ by numbers,
           cross, dot, length and normalize. In force mode a vector result is applied as the force itself (e.g.
           q_i * cross(v_i, B)); a force that reads v_i is stepped with an implicit velocity update that keeps v × B rotations exact.
+          Random numbers are drawn anew each step, the same for both particles of a pair, so sigma * randn pushes
+          the pair apart or together equally (momentum is conserved); the field and the plots show their mean.
         </p>
         <p className="mono" style={{ margin: '4px 0 0' }}>+ - * / ^ (or **) · constants pi, e · any other name must be a parameter of the force</p>
       </section>

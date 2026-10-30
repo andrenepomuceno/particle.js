@@ -11,6 +11,7 @@ const pair: PairScope = {
   sx_i: 1, sy_i: 0, sz_i: 0.5, sx_j: 0, sy_j: 2, sz_j: -0.5, ux: 0.6, uy: 0.8, uz: 0,
   cr_i: 1, cg_i: 0, cb_i: 0, cr_j: 0.5, cg_j: 1, cb_j: 0, t_i: 4, t_j: 5, time: 9,
   vx_i: 1, vy_i: -2, vz_i: 0.5, vx_j: 0, vy_j: 3, vz_j: -1,
+  rand: 0.25, randn: -1.5, randvx: 0.5, randvy: -1, randvz: 2,
 };
 
 describe('compileForce', () => {

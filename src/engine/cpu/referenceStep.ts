@@ -118,6 +118,8 @@ function totalForce(
   const pos = set.position;
   const oi = i * TEXEL;
   const force: [number, number, number] = [0, 0, 0];
+  // Random numbers are hashed from the pair and `time`, the time the GPU pass sets as uTime.
+  const noise = forces.some((f) => f.random);
   for (let j = 0; j < set.count; j++) {
     if (j === i) continue;
     const oj = j * TEXEL;
@@ -133,7 +135,7 @@ function totalForce(
     // other overlaps feel it evaluated at the contact distance.
     if (trueDist < collisionDistance && approaching) continue;
     const dist = Math.max(trueDist, collisionDistance);
-    const pair = pairScope(set, i, j, time);
+    const pair = pairScope(set, i, j, time, noise);
     if (clockShifts) {
       pair.t_i += clockShifts[i]!;
       pair.t_j += clockShifts[j]!;

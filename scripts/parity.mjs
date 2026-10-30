@@ -36,6 +36,21 @@ const CASES = [
       { name: 'biot-savart', mode: 'force', range: 'long', softening: 0.5, expression: 'k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))', params: [{ name: 'k', value: 2 }] },
       { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
     ] },
+  // Random numbers: GPU and CPU hash the same pair, float32 time and stream (Verlet's second pass at t + dt).
+  { name: 'random forces (rand, randn, randv)', settings: { timeStep: 0.02 }, steps: 200, tolerance: 1e-3,
+    forces: [
+      { name: 'pair noise', mode: 'force', range: 'short', cutoff: 3, expression: 'sigma * (1 - x) * randn + k * (rand - 0.5) + 2 * (1 - x)', params: [{ name: 'sigma', value: 3 }, { name: 'k', value: 1 }] },
+      { name: 'source noise', mode: 'force', range: 'long', expression: 'c * n_j * randv', params: [{ name: 'c', value: 0.5 }] },
+      { preset: 'gravity', softening: 1, params: { G: 2 } },
+    ] },
+  // DPD: pair drag (implicit kick) and pair noise along the line of centers.
+  { name: 'DPD thermostat (noise + pair drag)', settings: { timeStep: 0.02 }, steps: 200, tolerance: 1e-3,
+    forces: [
+      { name: 'soft', mode: 'force', range: 'short', cutoff: 1, expression: '10 * (1 - x)' },
+      { name: 'drag', mode: 'force', range: 'short', cutoff: 1, expression: '-gamma * (1 - x)^2 * v_dot', params: [{ name: 'gamma', value: 4.5 }] },
+      { name: 'noise', mode: 'force', range: 'short', cutoff: 1, expression: 'sigma * (1 - x) * randn', params: [{ name: 'sigma', value: 15 }] },
+      { name: 'trap', mode: 'potential', range: 'long', expression: '0.5 * k * r^2', params: [{ name: 'k', value: 0.05 }] },
+    ] },
   // A slab box (boundaryDepth): the per-axis half-sizes of the GPU reflection and clamping.
   { name: 'collisions + gravity, box', settings: { timeStep: 0.02, boundary: 'box', boundarySize: 30, boundaryDepth: 1.5, collisionDistance: 2, collisionRestitution: 0.8 }, steps: 200, tolerance: 1e-3,
     forces: [
@@ -83,6 +98,13 @@ const GROUPS = {
   'collisions + gravity, box': [
     { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, mass: { cycle: [1, 2] }, charge: { cycle: [1, -1, 1, 1] }, velocity: { type: 'random', speed: 1 } },
   ],
+  'random forces (rand, randn, randv)': [
+    { count: 1, kind: 'fixed', shape: { type: 'point', center: [0, 6, 0] }, nuclearCharge: 1 },
+    { count: 12, shape: { type: 'grid', spacing: 1.5, columns: 4, rows: 3, layers: 1 }, velocity: { type: 'random', speed: 0.3 } },
+  ],
+  'DPD thermostat (noise + pair drag)': [
+    { count: 16, shape: { type: 'grid', spacing: 0.6, columns: 4, rows: 4 } },
+  ],
   'short-range LJ + Coulomb, box': [
     { count: 16, shape: { type: 'grid', spacing: 5, columns: 4, rows: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: 0.5 } },
   ],
@@ -112,8 +134,12 @@ const failures = await withBrowser(async ({ browser, base }) => {
         cpu.setInverseLightSpeed2(inverseLightSpeed2(settings));
         cpu.addAll(start);
         const state = {};
-        const t0 = c.state.time;
-        for (let k = 0; k < steps; k++) referenceStep(cpu, c.compiledForces, settings, t0 + k * settings.timeStep, state);
+        // Accumulated as advance() does: random forces hash the exact float32 time.
+        let time = c.state.time;
+        for (let k = 0; k < steps; k++) {
+          referenceStep(cpu, c.compiledForces, settings, time, state);
+          time += settings.timeStep;
+        }
         c.advance(steps);
         const gpu = c.readParticles();
         let worst = 0;
@@ -129,36 +155,39 @@ const failures = await withBrowser(async ({ browser, base }) => {
       console.log(`${ok ? 'PASS' : 'FAIL'} ${testCase.name} / ${integrator}: max |Δx|, |Δt| = ${deviation.toExponential(2)} (tolerance ${testCase.tolerance})`);
     }
   }
-  const field = await page.evaluate(async ({ scenario }) => {
-    const { referenceField } = await import('/src/engine/cpu/field.ts');
-    const { ParticleSet } = await import('/src/engine/particles.ts');
-    const c = globalThis.particleController;
-    c.importFile(scenario, 'field.json');
-    c.store.set({ paused: true });
-    const particles = c.readParticles();
-    const cpu = new ParticleSet(particles.length);
-    cpu.addAll(particles);
-    const positions = new Float32Array(Array.from({ length: 300 * 3 }, (_, k) => (k % 3 === 2 ? 0.5 : ((k * 7919) % 97) - 48)));
-    const probe = { mass: 1.5, charge: -2, charge2: 0.5, spin: [0.3, 0, 1], isospin: 0.5, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
-    // GpuCompute is private to the controller; the probe pass is driven directly, bypassing the view.
-    c.gpu.setProbes(positions);
-    c.gpu.computeField(c.state.time, probe);
-    const gpu = c.gpu.readFieldMagnitudes();
-    const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time);
-    const exact = Array.from(gpu, (_, p) => Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]));
-    // Per-probe relative error, floored at the median |F| so near-zero probes do not dominate
-    // and a single 1/r^2 spike cannot hide errors on the typical probes.
-    const median = [...exact].sort((a, b) => a - b)[Math.floor(exact.length / 2)];
-    let worst = 0;
-    gpu.forEach((m, p) => (worst = Math.max(worst, Math.abs(m - exact[p]) / Math.max(exact[p], median))));
-    return { relative: worst, largest: Math.max(...exact) };
-  }, { scenario: JSON.stringify({
-    format: 'particle.js-v2/scenario', version: 2, id: 'field', name: 'field', seed: 1,
-    forces: CASES[1].forces, groups: GROUPS['short-range LJ + Coulomb, box'],
-  }) });
-  const fieldOk = field.relative <= 1e-4 && field.largest > 0;
-  if (!fieldOk) failed++;
-  console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes vs referenceField: max per-probe |Δ|F|| / max(|F|, median) = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
+  // Field probes; with random forces the test particle sees their mean on both sides.
+  for (const fieldCase of [CASES[1], CASES.find((c) => c.name.startsWith('random forces'))]) {
+    const field = await page.evaluate(async ({ scenario }) => {
+      const { referenceField } = await import('/src/engine/cpu/field.ts');
+      const { ParticleSet } = await import('/src/engine/particles.ts');
+      const c = globalThis.particleController;
+      c.importFile(scenario, 'field.json');
+      c.store.set({ paused: true });
+      const particles = c.readParticles();
+      const cpu = new ParticleSet(particles.length);
+      cpu.addAll(particles);
+      const positions = new Float32Array(Array.from({ length: 300 * 3 }, (_, k) => (k % 3 === 2 ? 0.5 : ((k * 7919) % 97) - 48)));
+      const probe = { mass: 1.5, charge: -2, charge2: 0.5, spin: [0.3, 0, 1], isospin: 0.5, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
+      // GpuCompute is private to the controller; the probe pass is driven directly, bypassing the view.
+      c.gpu.setProbes(positions);
+      c.gpu.computeField(c.state.time, probe);
+      const gpu = c.gpu.readFieldMagnitudes();
+      const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time);
+      const exact = Array.from(gpu, (_, p) => Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]));
+      // Per-probe relative error, floored at the median |F| so near-zero probes do not dominate
+      // and a single 1/r^2 spike cannot hide errors on the typical probes.
+      const median = [...exact].sort((a, b) => a - b)[Math.floor(exact.length / 2)];
+      let worst = 0;
+      gpu.forEach((m, p) => (worst = Math.max(worst, Math.abs(m - exact[p]) / Math.max(exact[p], median))));
+      return { relative: worst, largest: Math.max(...exact) };
+    }, { scenario: JSON.stringify({
+      format: 'particle.js-v2/scenario', version: 2, id: 'field', name: 'field', seed: 1,
+      forces: fieldCase.forces, groups: GROUPS[fieldCase.name],
+    }) });
+    const fieldOk = field.relative <= 1e-4 && field.largest > 0;
+    if (!fieldOk) failed++;
+    console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes (${fieldCase.name}) vs referenceField: max per-probe |Δ|F|| / max(|F|, median) = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
+  }
   if (problems.length) console.log(JSON.stringify({ problems }));
   return failed + problems.length;
 });

@@ -28,7 +28,7 @@ const B = defaultParticle({ position: [2.8, 1.8, -1], spin: [1, 0, 0.2], charge:
 
 const forceOn = (set: ParticleSet, i: number, j: number) => {
   const out: [number, number, number] = [0, 0, 0];
-  const pair = pairScope(set, i, j, 0);
+  const pair = pairScope(set, i, j, 0, false);
   const d = [0, 1, 2].map((k) => set.position[i * 4 + k]! - set.position[j * 4 + k]!);
   addPairForce([DIPOLE], pair, Math.hypot(...d), out);
   return out;
@@ -37,7 +37,7 @@ const forceOn = (set: ParticleSet, i: number, j: number) => {
 describe('vector forces from V(Δx)', () => {
   it('is the exact gradient: −∇V matches central differences of V', () => {
     const set = setOf(A, B);
-    const pair = pairScope(set, 0, 1, 0);
+    const pair = pairScope(set, 0, 1, 0, false);
     const dist = Math.hypot(...[0, 1, 2].map((k) => A.position[k]! - B.position[k]!));
     const scope = forceScope(DIPOLE, pair, dist);
     const force = DIPOLE.evaluateVector!(scope);
@@ -56,7 +56,7 @@ describe('vector forces from V(Δx)', () => {
     const vector = compileForce(makeForce({ mode: 'potential', softening: 0.5, expression: 'k * q_i * q_j / sqrt(dx^2 + dy^2 + dz^2 + 0.25)' }));
     expect([central.vector, vector.vector]).toEqual([false, true]);
     const set = setOf(A, B);
-    const pair = pairScope(set, 0, 1, 0);
+    const pair = pairScope(set, 0, 1, 0, false);
     for (const dist of [0.4, 1.7, 6]) {
       const c: [number, number, number] = [0, 0, 0];
       const v: [number, number, number] = [0, 0, 0];

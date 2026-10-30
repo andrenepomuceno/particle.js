@@ -7,6 +7,7 @@ export const VECTOR_VARIABLES: Readonly<Record<string, readonly [string, string,
   s_i: ['sx_i', 'sy_i', 'sz_i'],
   s_j: ['sx_j', 'sy_j', 'sz_j'],
   d: ['dx', 'dy', 'dz'],
+  randv: ['randvx', 'randvy', 'randvz'],
 };
 
 export type Vector = readonly [Expr, Expr, Expr];

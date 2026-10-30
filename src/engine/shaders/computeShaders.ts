@@ -2,6 +2,7 @@ import { GLSL_COLOR_HELPERS } from '../colorCharge';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import { PAIR_VARIABLES } from '../forces/variables';
 import { GLSL_METRIC } from '../metric';
+import { GLSL_NOISE_HELPERS, MEAN_NOISE, NOISE_STREAMS, type PairNoise } from '../noise';
 
 export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
 
@@ -60,8 +61,8 @@ function forceUniforms(force: CompiledForce, index: number): string {
     .join('\n');
 }
 
-const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2';
-const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2';
+const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2, vec2 noise, vec3 noiseVec';
+const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2, noise, noiseVec';
 /** Variables whose GLSL reads the other particle's texel; derived so new variables cannot be missed. */
 const readersOf = (glslName: string) => PAIR_VARIABLES.filter((v) => v.glsl.includes(glslName)).map((v) => v.name);
 const SPIN_J_VARIABLES = readersOf('spin2');
@@ -75,6 +76,33 @@ function reads(forces: readonly CompiledForce[], names: readonly string[]): bool
 
 function readsPotential(forces: readonly CompiledForce[], names: readonly string[]): boolean {
   return forces.some((f) => names.some((name) => f.potentialReads.has(name)));
+}
+
+const glslFloat = (x: number) => (Number.isInteger(x) ? x.toFixed(1) : String(x));
+
+/** The pair's random numbers (`noise` = (rand, randn), `noiseVec` = randv) at their means. */
+const MEAN_NOISE_DECLARATIONS = `vec2 noise = vec2(${glslFloat(MEAN_NOISE.rand)}, ${glslFloat(MEAN_NOISE.randn)});
+    vec3 noiseVec = vec3(${glslFloat(MEAN_NOISE.randvx)}, ${glslFloat(MEAN_NOISE.randvy)}, ${glslFloat(MEAN_NOISE.randvz)});`;
+
+/**
+ * Hashes the random numbers the forces read (each value on its own, see NOISE_STREAMS) from the pair
+ * and uTime, only for pairs inside the range of a force that reads them. Empty when none does.
+ */
+function noiseSampling(forces: readonly CompiledForce[]): string {
+  const readers = forces.flatMap((f, index) => (f.random ? [{ f, index }] : []));
+  if (readers.length === 0) return '';
+  const assignments = PAIR_VARIABLES.filter((v) => v.random && !v.lowered && reads(forces, [v.name])).map((v) => {
+    if (!(v.name in NOISE_STREAMS)) throw new Error(`no hash stream for random variable '${v.name}'`);
+    const { stream, normal } = NOISE_STREAMS[v.name as keyof PairNoise];
+    return `${v.glsl} = ${normal ? 'hashNormal' : 'hashUniform'}(seed, ${stream}u);`;
+  });
+  const inRange = readers.some(({ f }) => f.definition.range === 'long')
+    ? ''
+    : `if (${readers.map(({ index }) => `dist < ${forceUniformName(index, 'cutoff')}`).join(' || ')}) `;
+  return `${inRange}{
+      uint seed = pairSeed(uint(min(index1, index2)), uint(max(index1, index2)), floatBitsToUint(uTime));
+      ${assignments.join('\n      ')}
+    }`;
 }
 
 const FINITE3 = `bool finite3(vec3 v) {
@@ -189,15 +217,17 @@ vec3 confinePosition(vec3 pos) {
 
 /**
  * Σ_j F_ij on particle index1. Clocks are read from textureVelocity and shifted by uClockShift,
- * because Verlet evaluates forces after positions advanced but before clocks are written.
+ * because Verlet evaluates forces after positions advanced but before clocks are written. Random
+ * numbers are hashed per pair ('sampled'), or kept at their means for the field's test particle ('mean').
  */
-function totalForceFunction(forces: readonly CompiledForce[]): string {
+function totalForceFunction(forces: readonly CompiledForce[], noise: 'sampled' | 'mean'): string {
   const fetchTau2 = reads(forces, TAU_J_VARIABLES) ? 'shiftedClock(coord2, texelFetch(textureVelocity, coord2, 0))' : '0.0';
   const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
   const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'coordinateVelocity(texelFetch(textureVelocity, coord2, 0).xyz)' : 'vec3(0.0)';
+  const sampling = noise === 'sampled' ? noiseSampling(forces) : '';
   return `${SIGNED_POW}
 ${FINITE3}
-${GLSL_COLOR_HELPERS}
+${GLSL_COLOR_HELPERS}${sampling ? GLSL_NOISE_HELPERS : ''}
 ${forces.map(forceFunction).join('\n')}
 
 vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance, out mat3 jacobian) {
@@ -229,6 +259,8 @@ vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, ve
     // Δx at the (possibly contact-clamped) distance: what direction-aware forces are evaluated at.
     vec3 contact = dir * dist;
     vec3 vel2 = ${fetchVel2};
+    ${MEAN_NOISE_DECLARATIONS}${sampling ? `
+    ${sampling}` : ''}
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}
     force += magnitude * dir;
@@ -251,7 +283,7 @@ export function generateVelocityShader(forces: readonly CompiledForce[]): string
   return `${COMMON_UNIFORMS}
 ${VELOCITY_HELPERS}
 ${COLLISION_HELPERS}
-${totalForceFunction(forces)}
+${totalForceFunction(forces, 'sampled')}
 
 void main() {
 ${PARTICLE_HEADER}
@@ -286,7 +318,7 @@ ${PARTICLE_HEADER}
 /** Velocity Verlet, force half: a(x) = F(x)/m at the current positions, clocks shifted by uClockShift. */
 export function generateAccelerationShader(forces: readonly CompiledForce[]): string {
   return `${COMMON_UNIFORMS}
-${totalForceFunction(forces)}
+${totalForceFunction(forces, 'sampled')}
 
 void main() {
 ${PARTICLE_HEADER}
@@ -393,10 +425,11 @@ void main() {
     float tau2 = ${needsTau2 ? 'texelFetch(textureVelocity, coord2, 0).w' : '0.0'};
     vec4 spin2 = ${fetchSpin2};
     vec3 dir = delta / dist;
-    // Potentials read no velocity; these satisfy the shared pair signature.
+    // Potentials read no velocity or random numbers; these satisfy the shared pair signature.
     vec3 contact = delta;
     vec3 vel1 = vec3(0.0);
     vec3 vel2 = vec3(0.0);
+    ${MEAN_NOISE_DECLARATIONS}
     ${forces.map(potentialTerm).filter(Boolean).join('\n    ')}
   }
   gl_FragColor = vec4(energy, 0.0, 0.0, 0.0);
@@ -405,9 +438,9 @@ void main() {
 }
 
 /**
- * Field probes: the net force on a test particle (uniform attributes, clock 0) at each probe
- * position, written as (F, |F|). Calls the same generated totalForce with index1 = -1, so it
- * matches no real particle; probes never enter the particle textures.
+ * Field probes: the net force on a test particle (uniform attributes, clock 0, random numbers at
+ * their means) at each probe position, written as (F, |F|). Calls the same generated totalForce
+ * with index1 = -1, so it matches no real particle; probes never enter the particle textures.
  */
 export function generateFieldShader(forces: readonly CompiledForce[]): string {
   return `${COMMON_UNIFORMS}
@@ -417,7 +450,7 @@ uniform int uProbeCount;
 uniform vec4 uProbeAttributes;
 uniform vec4 uProbeColor;
 uniform vec4 uProbeSpin;
-${totalForceFunction(forces)}
+${totalForceFunction(forces, 'mean')}
 
 void main() {
   ivec2 coord = ivec2(gl_FragCoord.xy);

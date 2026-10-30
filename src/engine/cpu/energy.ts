@@ -87,7 +87,8 @@ export function referencePotentials(set: ParticleSet, forces: readonly CompiledF
       if (j === i) continue;
       const r2 = [0, 1, 2].reduce((acc, k) => acc + (pos[i * TEXEL + k]! - pos[j * TEXEL + k]!) ** 2, 0);
       if (r2 === 0) continue;
-      const pair = pairScope(set, i, j, time);
+      // Potentials cannot read random numbers (compileForce refuses them).
+      const pair = pairScope(set, i, j, time, false);
       sum += pairPotential(forces, pair, Math.sqrt(r2));
     }
     result[i] = sum;

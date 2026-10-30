@@ -9,6 +9,10 @@ export interface PairVariable {
   velocity?: boolean;
   /** A vector or a shorthand expanded by lowerVectors; it never reaches a backend (`glsl` unused). */
   lowered?: boolean;
+  /** Random (hashed from the pair and the time, see noise.ts): force mode only; probes and plots use the mean. */
+  random?: boolean;
+  /** A component of a vector variable (randv's): bound for the backends, not written in expressions. */
+  internal?: boolean;
 }
 
 const perParticle = (
@@ -61,6 +65,12 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   { name: 'c_dot', description: 'color factor C_i·C_j: same +1, different −½, anticolor −1', glsl: 'colorDot(color1, color2)' },
   ...perParticle('t', 'particle clock (age)', (k) => `tau${k}`),
   { name: 'time', description: 'global simulation time', glsl: 'uTime' },
+  { name: 'rand', description: 'uniform random number in [0, 1), the same for both particles of the pair (probes and plots: ½)', glsl: 'noise.x', random: true },
+  { name: 'randn', description: 'standard normal random number, the same for both particles of the pair (probes and plots: 0)', glsl: 'noise.y', random: true },
+  { name: 'randv', description: 'vector of three independent standard normals, the same for both particles of the pair (probes and plots: 0)', glsl: '', random: true, lowered: true },
+  { name: 'randvx', description: 'randv, x component', glsl: 'noiseVec.x', random: true, internal: true },
+  { name: 'randvy', description: 'randv, y component', glsl: 'noiseVec.y', random: true, internal: true },
+  { name: 'randvz', description: 'randv, z component', glsl: 'noiseVec.z', random: true, internal: true },
 ];
 
 export const PAIR_VARIABLE_NAMES = new Set(PAIR_VARIABLES.map((v) => v.name));

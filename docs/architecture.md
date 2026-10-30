@@ -10,6 +10,7 @@ src/
     render/          ParticlePoints (spherow/flat sprites) and FieldArrows, drawn straight from GPU textures
     cpu/             referenceStep, energy, field: float64 mirrors of the shaders (the spec)
     particles.ts     ParticleSet, struct-of-arrays mirroring the textures
+    noise.ts         rand/randn/randv: the pair hash in JS and GLSL (bit-identical, tested)
     field.ts         field probe grid placement, color reference, test particle
     settings.ts      SimulationSettings + validation
     snapshot.ts      JSON export/import with path-precise validation

@@ -101,6 +101,9 @@ Variables:
 | `c_dot` | color factor `C_i · C_j` (see below) |
 | `t_i`, `t_j` | particle clocks (proper times under Minkowski) |
 | `time` | global simulation time |
+| `rand` | uniform random number in [0, 1), new each step, shared by the pair (force mode; see *Random numbers*) |
+| `randn` | standard normal random number, new each step, shared by the pair |
+| `randv` | vector of three independent standard normals, new each step, shared by the pair |
 
 `_i` is the particle receiving the force, `_j` the one exerting it. Any other name must be
 declared as a parameter of the force. Parameters are GPU uniforms: editing their values
@@ -113,10 +116,10 @@ non-positive cutoff, …). A force with errors is skipped; the others keep runni
 ## Vectors and velocity
 
 Expressions may mix numbers and vectors. Vectors: `d` (Δx = x_i − x_j), `rhat` (d / |d|), `s_i`,
-`s_j` (spins), `v_i`, `v_j` (velocities) and `vec(a, b, c)`; scalar components `vx_i`… are also
-available. Vectors combine with `+`/`−` between vectors, `*`/`/` by numbers, and `cross`, `dot`,
-`length`, `normalize`; anything else (vector × vector, `sin(d)`, a vector exponent) is rejected with
-a hint. Shorthands: `v_dot` = (v_i − v_j)·r̂ (negative while approaching), `v_rel` = |v_i − v_j|,
+`s_j` (spins), `v_i`, `v_j` (velocities), `randv` (random) and `vec(a, b, c)`; scalar components
+`vx_i`… are also available. Vectors combine with `+`/`−` between vectors, `*`/`/` by numbers, and
+`cross`, `dot`, `length`, `normalize`; anything else (vector × vector, `sin(d)`, a vector exponent)
+is rejected with a hint. Shorthands: `v_dot` = (v_i − v_j)·r̂ (negative while approaching), `v_rel` = |v_i − v_j|,
 `vv_dot` = v_i·v_j.
 
 In **force mode** a vector result is applied as the force on i itself, so non-central and
@@ -128,6 +131,7 @@ velocity-dependent laws can be written directly:
 | Field of a magnetic dipole s_j on a moving charge | `q_i * cross(v_i, k * (3 * dot(s_j, rhat) * rhat - s_j) / r^3)` |
 | Biot–Savart between moving charges (parallel currents attract) | `k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))` |
 | Pair drag (damps the closing speed) | `-c * v_dot` (a number: central) |
+| Pair noise (DPD random force, momentum-conserving) | `sigma * (1 - x) * randn` (short range) |
 
 Velocity is refused in potential mode (F = −∇V needs a V of positions). A force that reads `v_i`
 is integrated with an implicit-midpoint velocity update: shader-autodiff also yields ∂F/∂v_i, and
@@ -136,6 +140,40 @@ speeds stay constant and magnetic forces do no work. Any force that reads a velo
 runs with this Euler step, since Verlet assumes position-only forces (the force card says so).
 Biot–Savart violates
 Newton's third law, as it does classically without field momentum.
+
+## Random numbers
+
+`rand` (uniform in [0, 1)), `randn` (standard normal) and `randv` (three independent standard
+normals, a vector) give every pair new numbers at every force evaluation. They are variables, not
+calls: `randn` read twice, in one expression or in two forces of the pair, is the same number.
+
+- **Deterministic**: each value is a 32-bit integer hash of the unordered pair {i, j} (particle
+  indices), the evaluation time as float32 bits and a stream number per value: PCG's `pcg_hash`
+  (Jarzynski & Olano, *Hash Functions for GPU Rendering*, 2020) nested over the inputs. A uniform is
+  the hash's top 24 bits times 2⁻²⁴ (exact in float32), a normal comes from two uniforms by
+  Box–Muller (with 1 − u in the log, never 0, so |randn| ≤ 5.8). `src/engine/noise.ts` holds both
+  the JS and the GLSL version; they give the same bits, so the GPU and the float64 reference draw the
+  same numbers and a run replays exactly from the same state. Forces are evaluated at the step's time
+  t (Euler) and, in Verlet's second pass, at t + dt, so every step draws new numbers while the step
+  exceeds the float32 resolution of the time (t < dt·2²³, about 8 million steps).
+- **Symmetric in i and j**: both particles of a pair read the same numbers, so a central random
+  force such as `sigma * randn` is equal and opposite on the pair (r̂ flips) and conserves momentum,
+  like the random force of dissipative particle dynamics (DPD). With a pair drag `-gamma * v_dot` it
+  is a thermostat: drag and noise balance near T = sigma²·dt/(2·gamma) (k_B = 1), also with DPD's
+  weights `sigma * (1 - x) * randn` and `-gamma * (1 - x)^2 * v_dot`.
+  The noise is drawn once per step and not scaled by 1/√dt, so that temperature is proportional to dt.
+- `randv` is the same vector for both particles of the pair, so `k * randv` pushes them the same way
+  and does not conserve momentum. It suits a random field from one source particle marked with
+  `n_j` (as the *Cyclotron* scenario does for uniform fields): `c * n_j * randv`.
+- **Force mode only**: potential mode refuses them, as it refuses velocities (F = −∇V needs a V of
+  the positions). They do not depend on v_i, so the Jacobian ∂F/∂v_i treats them as constants.
+- **Field probes and plots use the mean**: `rand` = ½, `randn` = 0, `randv` = (0, 0, 0) for the
+  field's test particle (GPU and `referenceField`) and in the force plots, so they stay still.
+- The pair loop hashes only the values some force reads, and only for pairs inside the range of a
+  force that reads them.
+- A pair drag reads v_i, so it runs with the implicit Euler step, whose Jacobian is per particle
+  (∂F_i/∂v_i, not the partner's velocity): momentum is then exact for an isolated pair of equal
+  masses but drifts slightly, O(dt²) per step, among many neighbors.
 
 ## Examples
 

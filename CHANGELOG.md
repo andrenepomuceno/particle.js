@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Scenarios can show the force field on load (`view.field`, with grid columns, log scale and test
+  particle); *Hydrogen*, *Helium* and *Water* (Elements) now show their electric field.
 - Fix: a particle total at the maximum (65536) no longer fails for scenarios whose counts rounded up
   past it; scaled counts now round down to whole cycles, so the total never exceeds the one requested.
 - Information has a *Scenarios* tab: the library in collapsible folders (or a flat list), ordered

@@ -25,7 +25,7 @@ import { findScenario, SCENARIOS } from '../scenarios';
 import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import { scaleBoundary } from '../scenarios/scaling';
-import type { Scenario } from '../scenarios/types';
+import type { Scenario, ScenarioField } from '../scenarios/types';
 import { limitFrame } from './frameLimiter';
 import { Store } from './store';
 
@@ -202,6 +202,8 @@ export class SimulationController {
   private compiled: CompiledForce[] = [];
   private compiledKey = '';
   private cpuStale = false;
+  /** The user's field settings while a scenario's `view.field` holds the field (see showScenarioField). */
+  private fieldBeforeScenario: FieldSettings | undefined;
   private stepRequested = false;
   private running = false;
   private frameHandle = 0;
@@ -312,7 +314,31 @@ export class SimulationController {
     this.applyRadius();
     this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
     this.runTimeline();
+    this.showScenarioField(scenario.field);
     this.restart = () => this.startScenario(scenario, scenarioId);
+  }
+
+  /**
+   * A scenario with `view.field` shows the field with its options; the next scenario without one gives
+   * the user's own field settings back. Any field edit by the user ends the scenario's hold.
+   */
+  private showScenarioField(field: ScenarioField | undefined): void {
+    try {
+      if (field) {
+        const before = this.fieldBeforeScenario ?? this.state.field;
+        this.applyField({
+          ...before, enabled: true, lockScale: false,
+          columns: field.columns ?? DEFAULT_FIELD.columns, logScale: field.logScale ?? DEFAULT_FIELD.logScale, probe: field.probe ?? DEFAULT_PROBE,
+        });
+        this.fieldBeforeScenario = before;
+      } else if (this.fieldBeforeScenario) {
+        const before = this.fieldBeforeScenario;
+        this.fieldBeforeScenario = undefined;
+        this.applyField(before);
+      }
+    } catch (error) {
+      this.notify(`The scenario's field view could not be shown: ${(error as Error).message}`, 'error');
+    }
   }
 
   /** Recreates the current world from its source: bundled scenario, imported scenario or snapshot. */
@@ -685,6 +711,11 @@ export class SimulationController {
   /* Field */
 
   setField(patch: Partial<FieldSettings>): void {
+    this.fieldBeforeScenario = undefined;
+    this.applyField(patch);
+  }
+
+  private applyField(patch: Partial<FieldSettings>): void {
     const field = { ...this.state.field, ...patch };
     const problems = [validateColumns(field.columns), ...validateProbe(field.probe)].filter((p) => p !== undefined);
     if (problems.length > 0) throw new Error(problems.join('; '));

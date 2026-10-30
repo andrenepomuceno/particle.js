@@ -7,7 +7,7 @@
   "added": "2026-10-24T02:46:11-03:00",
   "description": "v1's first atom: a proton and a neutron bound by v1's force map 2 (pull inside ~52, push out to 200) and an electron held by 1/d Coulomb. v1 gave the electron a tangential speed of 16 with a random sense; here it starts on an orbit with that speed at the middle of its ring. Gravity (G = 1e-6) is negligible and omitted.",
   "seed": 1,
-  "view": { "cameraDistance": 3000, "particleRadius": 30, "colorMode": "charge" },
+  "view": { "cameraDistance": 3000, "particleRadius": 30, "colorMode": "charge", "field": { "logScale": true } },
   "settings": { "timeStep": 1, "mode2D": true },
   "forces": [
     {

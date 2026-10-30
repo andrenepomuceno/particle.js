@@ -106,7 +106,8 @@ particle at or above the new c. Under Minkowski the Particle dialog adds γ and 
 *Proper time*. The `clock` color mode spans the current clock spread: warm for clocks behind
 (moving fast, or created later), blue for the ones ahead.
 
-**Field** (<kbd>J</kbd>) draws a grid of arrows over the view showing the net force a test
+**Field** (<kbd>J</kbd>; some scenarios, such as the *Elements*, turn it on with their own options until
+another scenario is loaded or the field is changed by hand) draws a grid of arrows over the view showing the net force a test
 particle would feel there, using the enabled forces exactly as the integrator does. The grid
 lies in z = 0 in 2D mode and on the plane through the orbit target facing the camera in 3D;
 cells are square, *Grid columns* across (2 to 256). Arrows point along the force (a component

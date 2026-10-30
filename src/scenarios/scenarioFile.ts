@@ -1,3 +1,4 @@
+import { DEFAULT_PROBE, validateColumns, validateProbe, type FieldProbe } from '../engine/field';
 import { newForceId } from '../engine/forces/presets';
 import { migrateScalarSpin } from '../engine/forces/migrate';
 import { readForce } from '../engine/forces/readForce';
@@ -11,7 +12,7 @@ import { ParticleKind, type Particle, type Vec3 } from '../engine/particles';
 import { inDisk, inSphere, onSphere, pick, uniform, type Rng } from '../engine/random';
 import { COLOR_MODES } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, readSettings } from '../engine/settings';
-import type { Scenario } from './types';
+import type { Scenario, ScenarioField } from './types';
 
 export const SCENARIO_FORMAT = 'particle.js-v2/scenario';
 export const SCENARIO_VERSION = 2;
@@ -64,6 +65,37 @@ const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'added
 
 /** ISO 8601 date, optionally with a time and an offset: "2026-10-30" or "2026-10-30T17:18:57-03:00". */
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/;
+
+const PROBE_KEYS = ['mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
+
+/** `view.field`: true, or { columns, logScale, probe } with the test particle's fields over the default. */
+function readField(json: JsonReader, value: unknown): ScenarioField {
+  if (value === true) return {};
+  const o = json.object(value, 'view.field');
+  json.onlyKeys(o, ['columns', 'logScale', 'probe'], 'view.field');
+  const field: ScenarioField = {};
+  if (o.columns !== undefined) {
+    field.columns = json.finite(o.columns, 'view.field.columns');
+    const problem = validateColumns(field.columns);
+    if (problem) json.fail('view.field.columns', problem);
+  }
+  if (o.logScale !== undefined) field.logScale = json.boolean(o.logScale, 'view.field.logScale');
+  if (o.probe !== undefined) {
+    const p = json.object(o.probe, 'view.field.probe');
+    json.onlyKeys(p, PROBE_KEYS, 'view.field.probe');
+    const probe: FieldProbe = { ...DEFAULT_PROBE };
+    for (const key of PROBE_KEYS) {
+      if (p[key] === undefined) continue;
+      const path = `view.field.probe.${key}`;
+      if (key === 'spin' || key === 'color') probe[key] = json.vec3(p[key], path);
+      else probe[key] = json.finite(p[key], path);
+    }
+    const problems = validateProbe(probe);
+    if (problems.length > 0) json.fail('view.field.probe', problems.join('; '));
+    field.probe = probe;
+  }
+  return field;
+}
 
 function readAdded(json: JsonReader, value: unknown): string {
   const text = json.string(value, 'added');
@@ -377,7 +409,7 @@ export function readScenario(value: unknown, source: string): Scenario {
   const version = json.oneOf(o.version, [1, SCENARIO_VERSION] as const, 'version');
 
   const view = o.view === undefined ? {} : json.object(o.view, 'view');
-  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode'], 'view');
+  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode', 'field'], 'view');
   const settings = o.settings === undefined ? { ...DEFAULT_SETTINGS } : readSettings(json, o.settings, 'settings', { ...DEFAULT_SETTINGS });
   const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
   const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
@@ -403,6 +435,7 @@ export function readScenario(value: unknown, source: string): Scenario {
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),
     colorMode: view.colorMode === undefined ? 'charge' : json.oneOf(view.colorMode, COLOR_MODES, 'view.colorMode'),
+    field: view.field === undefined ? undefined : readField(json, view.field),
     timeline,
   };
 }

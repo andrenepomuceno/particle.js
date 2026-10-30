@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_PROBE } from '../src/engine/field';
 import { compileForce } from '../src/engine/forces/compile';
 import { inverseLightSpeed2 } from '../src/engine/metric';
 import { ParticleSet } from '../src/engine/particles';
@@ -78,6 +79,24 @@ describe('parseScenario', () => {
     [{ groups: [{ count: 5, shape: { type: 'grid', spacing: 1, columns: 2, rows: 2 } }] }, /5 grid sites needed, a 2×2×1 grid has 4/],
   ])('rejects %j with its path', (extra, message) => {
     expect(() => parse(extra)).toThrow(message);
+  });
+
+  it('reads view.field: true, or options over the defaults, and rejects bad ones with their path', () => {
+    expect(parse({ view: { field: true } }).field).toEqual({});
+    expect(parse({}).field).toBeUndefined();
+    expect(parse({ view: { field: { columns: 32, logScale: true, probe: { charge: -1, spin: [0, 0, 1] } } } }).field).toEqual({
+      columns: 32, logScale: true, probe: { ...DEFAULT_PROBE, charge: -1, spin: [0, 0, 1] },
+    });
+    expect(() => parse({ view: { field: { columns: 1 } } })).toThrow(/view.field.columns': field grid columns must be an integer in \[2, 256\]/);
+    expect(() => parse({ view: { field: { probe: { mass: 0 } } } })).toThrow(/view.field.probe': test particle mass must be > 0/);
+    expect(() => parse({ view: { field: { probe: { velocity: [1, 0, 0] } } } })).toThrow(/view.field.probe/);
+    expect(() => parse({ view: { field: false } })).toThrow(/view.field/);
+  });
+
+  it('shows the field in every Elements scenario', () => {
+    expect(SCENARIOS.filter((s) => s.folder === 'Elements').map((s) => [s.id, s.field !== undefined])).toEqual([
+      ['hydrogen', true], ['helium', true], ['water', true],
+    ]);
   });
 
   it('names the source file in errors', () => {

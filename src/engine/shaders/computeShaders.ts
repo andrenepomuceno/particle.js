@@ -73,7 +73,7 @@ function forceUniforms(force: CompiledForce, index: number): string {
 const PAIR_ARGS = 'vec4 attr1, vec4 attr2, vec4 color1, vec4 color2, vec4 spin1, vec4 spin2, vec3 dir, float tau1, float tau2, vec3 delta, vec3 vel1, vec3 vel2, vec2 noise, vec3 noiseVec, vec3 acc2, float delay';
 const PAIR_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dir, tau1, tau2, contact, vel1, vel2, noise, noiseVec, acc2, delay';
 /** The same pair seen on the light cone: j's retarded geometry, velocity, acceleration and delay. */
-const RETARDED_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dirR, tau1, tau2, deltaR, vel1, vel2R, noise, noiseVec, acc2R, delayR';
+const RETARDED_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dirR, tau1, tau2, contactR, vel1, vel2R, noise, noiseVec, acc2R, delayR';
 
 /**
  * j on the past light cone of pos1, c·(t − t_r) = |pos1 − x_j(t_r)| (mirrors cpu/history.ts). The gap
@@ -345,6 +345,12 @@ vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, ve
     float r2R = dot(deltaR, deltaR);
     float distR = sqrt(r2R);
     vec3 dirR = r2R > 0.0 ? deltaR / distR : dir;
+    // The contact radius bounds retarded forces as it does the others: an overlap is felt at its edge.
+    if (distR > 0.0 && distR < collisionDistance) {
+      distR = collisionDistance;
+      r2R = distR * distR;
+    }
+    vec3 contactR = dirR * distR;
     float magnitudeR = 0.0;` : ''}
     float magnitude = 0.0;
     ${forces.map(forceAccumulation).join('\n    ')}

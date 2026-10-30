@@ -168,7 +168,9 @@ function totalForce(
       const [ux, uy, uz] = source.delta.map((c) => c / distance);
       const [vx_j, vy_j, vz_j] = source.velocity;
       const [ax_j, ay_j, az_j] = source.acceleration;
-      addPairForce(retarded, { ...pair, ux: ux!, uy: uy!, uz: uz!, vx_j, vy_j, vz_j, ax_j, ay_j, az_j, t_ret: source.delay }, distance, force, jacobian);
+      // The contact radius bounds retarded forces as it does the others: an overlap is felt at its edge.
+      const contactDistance = Math.max(distance, collisionDistance);
+      addPairForce(retarded, { ...pair, ux: ux!, uy: uy!, uz: uz!, vx_j, vy_j, vz_j, ax_j, ay_j, az_j, t_ret: source.delay }, contactDistance, force, jacobian);
     }
   }
   return force;

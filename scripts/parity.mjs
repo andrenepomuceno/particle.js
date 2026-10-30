@@ -76,7 +76,7 @@ const CASES = [
   // for Liénard–Wiechert, the fallback beyond its reach (c·(K − 1)·dt = 3.1 against a disk of radius 6).
   { name: 'retarded Coulomb', settings: { timeStep: 0.02, metric: 'minkowski', lightSpeed: 2, historyDepth: 600 }, steps: 200, tolerance: 1e-3,
     forces: [{ preset: 'coulomb', softening: 0.5, params: { k: 0.5 }, retarded: true }] },
-  { name: 'retarded Liénard–Wiechert', settings: { timeStep: 0.05, metric: 'minkowski', lightSpeed: 2, historyDepth: 32 }, steps: 200, tolerance: 1e-3,
+  { name: 'retarded Liénard–Wiechert', settings: { timeStep: 0.05, metric: 'minkowski', lightSpeed: 2, historyDepth: 32, collisionDistance: 0.5 }, steps: 200, tolerance: 1e-3,
     forces: [{ preset: 'lienardWiechert', softening: 0.5, params: { k: 0.5 } }] },
 ];
 const GROUPS = {

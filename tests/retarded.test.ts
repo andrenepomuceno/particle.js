@@ -120,6 +120,19 @@ describe('retarded forces', () => {
     expect(a.toArray()).toEqual(b.toArray());
   });
 
+  it('feel an overlapping source at the contact radius, as instantaneous forces do', () => {
+    const settings = minkowski({ collisionDistance: 1, collisionRestitution: 1 });
+    const law = { expression: '-k * q_i * q_j / r^2', params: [{ name: 'k', value: 1 }] };
+    // At rest and overlapping (0.1 apart, inside the 1 contact radius): no impulse, the force at r = 1.
+    const particles = [defaultParticle({ charge: 1 }), defaultParticle({ charge: 1, position: [0.1, 0, 0] })];
+    const [a, b] = [setFor(settings, ...particles), setFor(settings, ...particles)];
+    referenceStep(a, [compileForce(makeForce({ ...law, retarded: true }))], settings, 0);
+    referenceStep(b, [compileForce(makeForce(law))], settings, 0);
+    expect(a.get(0).velocity[0]).toBeCloseTo(b.get(0).velocity[0], 9);
+    // |Δu| = F·dt/m = 1·dt at r = 1 (v = u/γ reads slightly less).
+    expect(Math.abs(a.velocity[0]!)).toBeCloseTo(settings.timeStep, 6);
+  });
+
   it('refuses a retarded potential', () => {
     expect(() => compileForce(makeForce({ mode: 'potential', expression: '1 / r', params: [], retarded: true }))).toThrow(/retarded force must be in force mode/);
   });

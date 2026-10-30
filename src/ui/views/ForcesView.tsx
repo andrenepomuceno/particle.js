@@ -77,7 +77,8 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
       ) : (
       <>
       <div className="grid">
-        <SelectField label="Mode" value={force.mode} options={['force', 'potential'] as const} onChange={(mode) => update({ mode })} />
+        {/* Potentials cannot be retarded, and the checkbox to undo it only shows in force mode. */}
+        <SelectField label="Mode" value={force.mode} options={['force', 'potential'] as const} onChange={(mode) => update(mode === 'potential' ? { mode, retarded: false } : { mode })} />
         <SelectField label="Range" value={force.range} options={['long', 'short'] as const} onChange={(range) => update({ range })} />
         {force.range === 'short' && <NumberField label="Cutoff" value={force.cutoff} validate={positive} onCommit={(cutoff) => update({ cutoff })} />}
         <NumberField label="Softening" value={force.softening} validate={nonNegative} onCommit={(softening) => update({ softening })} />

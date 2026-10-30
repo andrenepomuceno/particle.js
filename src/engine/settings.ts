@@ -41,7 +41,8 @@ export interface SimulationSettings {
   lightSpeed: number;
   /**
    * Steps of past positions and velocities kept for retarded forces (only while one is enabled under
-   * Minkowski): they reach pairs up to c·(historyDepth − 1)·dt apart; farther ones act instantaneously.
+   * Minkowski): they reach pairs up to c·(historyDepth − 1)·dt apart; farther ones extrapolate the oldest
+   * step in uniform motion.
    */
   historyDepth: number;
 }

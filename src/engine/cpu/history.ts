@@ -58,8 +58,23 @@ export interface RetardedSource {
   acceleration: Vec3;
   /** t − t_r */
   delay: number;
-  /** False when the light cone lies beyond the history: the source is then read as it is now. */
-  retarded: boolean;
+  /** The cone lies beyond the history: the oldest step moved back in uniform motion meets it. */
+  extrapolated: boolean;
+}
+
+/**
+ * How much earlier than t_old a source in uniform motion v from x_old meets the light cone of x1 at
+ * `time`: the s ≥ 0 with c·(D + s) = |w + v·s| (w = x1 − x_old, D = time − t_old), the positive root of
+ * (c² − v²)s² + 2(c²D − w·v)s + c²D² − |w|² = 0 (its constant term is negative when x_old is outside
+ * the cone, so the root is unique). Written to avoid cancellation, as the GLSL twin needs in float32.
+ */
+export function uniformConeOffset(w: Vec3, v: Vec3, far: number, lightSpeed: number): number {
+  const c2 = lightSpeed * lightSpeed;
+  const qa = c2 - (v[0] ** 2 + v[1] ** 2 + v[2] ** 2);
+  const qb = 2 * (c2 * far - (w[0] * v[0] + w[1] * v[1] + w[2] * v[2]));
+  const qc = c2 * far * far - (w[0] ** 2 + w[1] ** 2 + w[2] ** 2);
+  const root = Math.sqrt(qb * qb - 4 * qa * qc);
+  return qb >= 0 ? (-2 * qc) / (qb + root) : (root - qb) / (2 * qa);
 }
 
 /**
@@ -81,13 +96,15 @@ export function retardedSource(set: ParticleSet, history: History, j: number, x1
     const gap = lightSpeed * (time - t) - Math.hypot(x1[0] - x[0], x1[1] - x[1], x1[2] - x[2]);
     return { x, t, gap, v };
   };
-  const now = sample(0);
-  const instantaneous = (): RetardedSource => ({
-    delta: [x1[0] - now.x[0], x1[1] - now.x[1], x1[2] - now.x[2]], velocity: now.v, acceleration: [0, 0, 0], delay: 0, retarded: false,
-  });
-  let a = now;
+  let a = sample(0);
   let b = sample(history.depth);
-  if (history.depth < 2 || b.gap < 0) return instantaneous();
+  if (b.gap < 0) {
+    // Beyond the history: the oldest step moved back in uniform motion, as before a history starts.
+    const w: Vec3 = [x1[0] - b.x[0], x1[1] - b.x[1], x1[2] - b.x[2]];
+    const far = time - b.t;
+    const s = uniformConeOffset(w, b.v, far, lightSpeed);
+    return { delta: [w[0] + s * b.v[0], w[1] + s * b.v[1], w[2] + s * b.v[2]], velocity: b.v, acceleration: [0, 0, 0], delay: far + s, extrapolated: true };
+  }
   let lo = 0;
   let hi = history.depth;
   for (let step = 0; step < HISTORY_SEARCH_STEPS && hi - lo > 1; step++) {
@@ -108,6 +125,6 @@ export function retardedSource(set: ParticleSet, history: History, j: number, x1
     velocity: mix(a.v, b.v),
     acceleration: span > 0 ? [0, 1, 2].map((c) => (newer.v[c]! - older.v[c]!) / span) as Vec3 : [0, 0, 0],
     delay: time - (a.t + s * (b.t - a.t)),
-    retarded: true,
+    extrapolated: false,
   };
 }

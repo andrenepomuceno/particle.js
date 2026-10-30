@@ -84,8 +84,9 @@ const RETARDED_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dirR, ta
  * j on the past light cone of pos1, c·(t − t_r) = |pos1 − x_j(t_r)| (mirrors cpu/history.ts). The gap
  * g(k) = c·(t − t_k) − |pos1 − x_j(t_k)| grows into the past for |v| < c: bisect the history steps for
  * the interval holding the root, then interpolate linearly. Step 0 is the live state at uTime, step k ≥ 1
- * the k-th newest layer. Returns false, leaving delta and vel2 as given (the present), when there is no
- * history (Galilean, or no retarded force) or the cone lies beyond it.
+ * the k-th newest layer. Beyond the history the oldest step moves back in uniform motion to the cone.
+ * Returns false when the event does not come from the stored steps: without a history (Galilean, or no
+ * retarded force) delta and vel2 stay as given (the present); beyond it they are extrapolated.
  */
 const GLSL_RETARDED = /* glsl */ `
 int historyLayer(int k) {
@@ -121,7 +122,22 @@ bool retardedSource(ivec2 coord2, vec3 pos1, inout vec3 delta, inout vec3 vel2, 
   float tHi;
   historyStep(coord2, uHistoryCount, pHi, vHi, tHi);
   float gHi = coneGap(pos1, pHi, tHi);
-  if (gHi < 0.0) return false;
+  if (gHi < 0.0) {
+    // Beyond the history: the oldest step moved back in uniform motion meets the cone (cpu/history.ts,
+    // uniformConeOffset: the positive root of (c² − v²)s² + 2(c²D − w·v)s + c²D² − |w|² = 0).
+    vec3 w = pos1 - pHi;
+    float far = uHistoryNow - tHi;
+    float c2 = uLightSpeed * uLightSpeed;
+    float qa = c2 - dot(vHi, vHi);
+    float qb = 2.0 * (c2 * far - dot(w, vHi));
+    float qc = c2 * far * far - dot(w, w);
+    float root = sqrt(qb * qb - 4.0 * qa * qc);
+    float back = qb >= 0.0 ? -2.0 * qc / (qb + root) : (root - qb) / (2.0 * qa);
+    delta = w + back * vHi;
+    vel2 = vHi;
+    delay = far + back;
+    return false;
+  }
   int lo = 0;
   int hi = uHistoryCount;
   for (int iteration = 0; iteration < ${HISTORY_SEARCH_STEPS}; iteration++) {

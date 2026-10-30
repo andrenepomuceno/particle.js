@@ -902,7 +902,7 @@ export class SimulationController {
         const reach = settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep;
         span ??= this.particleSpan();
         if (span > reach) {
-          warnings.push(`retarded: pairs farther apart than c·(K − 1)·dt = ${reach.toPrecision(3)} act instantaneously, and the particles span about ${span.toPrecision(3)}; raise the history depth K or the time step (Spacetime, Parameters)`);
+          warnings.push(`retarded: pairs farther apart than c·(K − 1)·dt = ${reach.toPrecision(3)} see their sources' oldest stored step moved back in uniform motion (exact only if they moved uniformly), and the particles span about ${span.toPrecision(3)}; raise the history depth K or the time step (Spacetime, Parameters)`);
         }
       }
       if (warnings.length > 0) forceWarnings[force.definition.id] = warnings;

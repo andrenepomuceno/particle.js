@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createHistory, retardedSource } from '../src/engine/cpu/history';
+import { createHistory, pushHistory, retardedSource } from '../src/engine/cpu/history';
 import { pairScope } from '../src/engine/cpu/pairs';
 import { referenceStep, type ReferenceState } from '../src/engine/cpu/referenceStep';
 import { compileForce, forceScope } from '../src/engine/forces/compile';
@@ -40,7 +40,7 @@ describe('retarded source', () => {
     const source = retardedSource(set, history, 1, [3, 4, 0], 10, C);
     expect(source.delta.map((c) => +c.toFixed(9))).toEqual([3, 4, 0]);
     expect(source.delay).toBeCloseTo(5 / C, 9);
-    expect(source.retarded).toBe(true);
+    expect(source.extrapolated).toBe(false);
   });
 
   it('finds the exact retarded event of a uniformly moving source', () => {
@@ -56,12 +56,32 @@ describe('retarded source', () => {
     source.acceleration.forEach((c) => expect(c).toBeCloseTo(0, 9));
   });
 
-  it('falls back to the present beyond the history', () => {
-    const set = setFor(minkowski(), fixed([30, 0, 0]), defaultParticle({ velocity: [0.5, 0, 0] }));
-    // Reach: c·(depth − 1)·dt = 2·7·0.1 = 1.4, far short of 30.
-    const source = retardedSource(set, createHistory(set, 8, 0, 0.1), 1, [30, 0, 0], 0, C);
-    expect(source.retarded).toBe(false);
-    expect([source.delta, source.delay]).toEqual([[30, 0, 0], 0]);
+  it('beyond the history, moves the oldest step back uniformly to the exact cone', () => {
+    const v: Vec3 = [0.5, 1.2, 0];
+    const set = setFor(minkowski(), fixed([30, -4, 0]), defaultParticle({ velocity: v }));
+    // Reach: c·(depth − 1)·dt = 2·7·0.1 = 1.4, far short of 30; a uniform source is still exact.
+    const source = retardedSource(set, createHistory(set, 8, 0, 0.1), 1, [30, -4, 0], 0, C);
+    const tr = analyticRetarded([30, -4, 0], [0, 0, 0], v, 0);
+    expect(source.extrapolated).toBe(true);
+    // Exact but for the float32 storage of the velocity.
+    expect(source.delay).toBeCloseTo(-tr, 6);
+    source.delta.forEach((c, k) => expect(c).toBeCloseTo([30, -4, 0][k]! - v[k]! * tr, 6));
+  });
+
+  it('is continuous across the reach for a source that turned inside the history', () => {
+    const settings = minkowski({ timeStep: 0.1, historyDepth: 8 });
+    const set = setFor(settings, defaultParticle({ velocity: [0.8, 0, 0] }));
+    const history = createHistory(set, 8, 0, 0.1);
+    // Turn the source within the stored steps, then probe just inside and just outside the reach (1.4).
+    for (let n = 1; n <= 8; n++) {
+      set.velocity[1] = 0.1 * n;
+      pushHistory(history, set, n * 0.1);
+    }
+    const at = (x: number) => retardedSource(set, history, 0, [x, 0, 0], 0.8, C);
+    const [inside, outside] = [at(1.39 + set.position[0]!), at(1.41 + set.position[0]!)];
+    expect([inside.extrapolated, outside.extrapolated]).toEqual([false, true]);
+    expect(Math.abs(inside.delay - outside.delay)).toBeLessThan(0.02);
+    inside.delta.forEach((c, k) => expect(Math.abs(c - outside.delta[k]!)).toBeLessThan(0.03));
   });
 });
 

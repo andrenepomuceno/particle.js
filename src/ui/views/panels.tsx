@@ -344,8 +344,8 @@ export function SpacetimeView() {
       </div>
       <p className="muted">
         Retarded forces see each source on the light cone, read from the last K steps: they reach pairs up to
-        c·(K − 1)·dt = {format(settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep, 4)} apart (farther ones act
-        instantaneously, flagged on the force) and take {format(controller.historyBytes(settings.historyDepth) / 2 ** 20, 3)} MB of GPU memory
+        c·(K − 1)·dt = {format(settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep, 4)} apart (farther ones see the
+        oldest step moved back in uniform motion, flagged on the force) and take {format(controller.historyBytes(settings.historyDepth) / 2 ** 20, 3)} MB of GPU memory
         for the current particles, only while one is enabled under Minkowski (this GPU allows K up to {controller.maxHistoryDepth}).
       </p>
       <p className="muted">

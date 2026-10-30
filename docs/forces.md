@@ -83,8 +83,11 @@ the Galilean metric (c → ∞) it acts instantaneously, and the card says so.
 - Per pair, the gap g(k) = c·(t − t_k) − |x_i − x_j(t_k)| grows into the past while |v| < c: a
   bisection over the steps finds the one holding the root and a linear interpolation finds t_r (the
   trajectory is exact for uniform motion; the root carries an O(dt²) error).
-- The history reaches pairs up to c·(K − 1)·dt apart. Farther pairs act instantaneously, and the
-  force card warns when the particles spread beyond that reach.
+- The history reaches pairs up to c·(K − 1)·dt apart. Beyond it, the source's oldest stored step is
+  moved back in uniform motion until it meets the light cone (a quadratic with one positive root), the
+  same assumption as before a history starts: continuous at the reach, exact for sources that moved
+  uniformly, and a constant velocity (no acceleration) otherwise. The force card warns when the
+  particles spread beyond the reach.
 - The field view shows the retarded field (the test particle is a receiver at rest); the CPU field
   reference does the same given a run's history (`referenceField(…, history)`).
 - The *Liénard–Wiechert* preset is the Lorentz force of j's retarded fields on q_i: the velocity

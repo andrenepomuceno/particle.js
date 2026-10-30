@@ -153,9 +153,10 @@ calls: `randn` read twice, in one expression or in two forces of the pair, is th
   indices), the evaluation time as float32 bits and a stream number per value: PCG's `pcg_hash`
   (Jarzynski & Olano, *Hash Functions for GPU Rendering*, 2020) nested over the inputs. A uniform is
   the hash's top 24 bits times 2⁻²⁴ (exact in float32), a normal comes from two uniforms by
-  Box–Muller (with 1 − u in the log, never 0, so |randn| ≤ 5.8). `src/engine/noise.ts` holds both
-  the JS and the GLSL version; they give the same bits, so the GPU and the float64 reference draw the
-  same numbers and a run replays exactly from the same state. Forces are evaluated at the step's time
+  Box–Muller (with 1 − u in the log, never 0, so |randn| ≤ 5.8; the cosine is a shared polynomial, not
+  the GPU's `cos`, whose accuracy varies: SwiftShader's errs by ~2e-4). `src/engine/noise.ts` holds both
+  the JS and the GLSL version; the integers are bit-identical and the normals agree to float32 rounding,
+  so the GPU and the float64 reference draw the same numbers and a run replays exactly from the same state. Forces are evaluated at the step's time
   t (Euler) and, in Verlet's second pass, at t + dt, so every step draws new numbers while the step
   exceeds the float32 resolution of the time (t < dt·2²³, about 8 million steps).
 - **Symmetric in i and j**: both particles of a pair read the same numbers, so a central random

@@ -60,15 +60,37 @@ export function hashUniform(seed: number, stream: number): number {
   return (pcgHash((seed + stream) >>> 0) >>> 8) * UNIFORM_SCALE;
 }
 
+/** Taylor coefficients of cos(π·r) in z = (π·r)²: (−1)ⁿ/(2n)!, enough for |r| ≤ ½ (error < 1e-10). */
+const COS_COEFFICIENTS = [1, -1 / 2, 1 / 24, -1 / 720, 1 / 40320, -1 / 3628800, 1 / 479001600, -1 / 87178291200];
+
+/**
+ * cos(π·t) for t in [−1, 1] by a polynomial, the same arithmetic in JS and GLSL: a GPU's cos is not
+ * pinned down (SwiftShader's errs by ~2e-4), and chaotic runs amplify that between CPU and GPU.
+ * For |t| > ½, cos(π·s) = −cos(π·(1 − s)), and 1 − s is exact for the uniforms' 24-bit values.
+ */
+export function cosPi(t: number): number {
+  const s = Math.abs(t);
+  const r = s > 0.5 ? 1 - s : s;
+  const z = Math.PI ** 2 * r * r;
+  const c = COS_COEFFICIENTS.reduceRight((sum, coefficient) => coefficient + z * sum, 0);
+  return s > 0.5 ? -c : c;
+}
+
 /**
  * Standard normal by Box–Muller from streams `stream` and `stream + 1`. log sees 1 − u in
- * [2⁻²⁴, 1], never 0; the angle π(2u − 1) is exact in float32 and stays in [−π, π), where the
- * GPU's cos is most accurate (cos(π(2u − 1)) = −cos(2πu), the same distribution).
+ * [2⁻²⁴, 1], never 0; the angle π(2u − 1) is exact in float32 (cos(π(2u − 1)) = −cos(2πu), the same
+ * distribution) and its cosine comes from cosPi.
  */
 export function hashNormal(seed: number, stream: number): number {
   const radius = Math.sqrt(-2 * Math.log(1 - hashUniform(seed, stream)));
-  return radius * Math.cos(Math.PI * (2 * hashUniform(seed, stream + 1) - 1));
+  return radius * cosPi(2 * hashUniform(seed, stream + 1) - 1);
 }
+
+/** A float literal GLSL ES accepts (it has no implicit int to float conversion). */
+const glslFloat = (x: number): string => (Number.isInteger(x) ? x.toFixed(1) : String(x));
+
+const glslHorner = (coefficients: readonly number[]): string =>
+  coefficients.reduceRight((inner, c, k) => (k === coefficients.length - 1 ? glslFloat(c) : `${glslFloat(c)} + z * (${inner})`), '');
 
 /** Every random variable of the pair {i, j} at `time`, as the GPU computes them. */
 export function pairNoise(i: number, j: number, time: number): PairNoise {
@@ -101,8 +123,15 @@ uint pairSeed(uint lo, uint hi, uint timeBits) {
 float hashUniform(uint seed, uint stream) {
   return float(pcgHash(seed + stream) >> 8u) * 5.9604644775390625e-8;
 }
+float cosPi(float t) {
+  float s = abs(t);
+  float r = s > 0.5 ? 1.0 - s : s;
+  float z = ${glslFloat(Math.PI ** 2)} * r * r;
+  float c = ${glslHorner(COS_COEFFICIENTS)};
+  return s > 0.5 ? -c : c;
+}
 float hashNormal(uint seed, uint stream) {
   float radius = sqrt(-2.0 * log(1.0 - hashUniform(seed, stream)));
-  return radius * cos(${Math.PI} * (2.0 * hashUniform(seed, stream + 1u) - 1.0));
+  return radius * cosPi(2.0 * hashUniform(seed, stream + 1u) - 1.0);
 }
 `;

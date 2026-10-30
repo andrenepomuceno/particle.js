@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  float32Bits, GLSL_NOISE_HELPERS, hashNormal, hashUniform, MEAN_NOISE, NOISE_STREAMS, pairNoise, pairSeed, pcgHash, type PairNoise,
+  cosPi, float32Bits, GLSL_NOISE_HELPERS, hashNormal, hashUniform, MEAN_NOISE, NOISE_STREAMS, pairNoise, pairSeed, pcgHash, type PairNoise,
 } from '../src/engine/noise';
 
 const M32 = 0xffffffffn;
@@ -22,7 +22,7 @@ function glslHelpers(): Record<string, GlslFn> {
   const expression = (glsl: string) => glsl
     .replace(/\b(\d+)u\b/g, '$1n')
     .replace(/\bfloat\(/g, 'Number(')
-    .replace(/\b(sqrt|log|cos)\(/g, 'Math.$1(');
+    .replace(/\b(sqrt|log|abs)\(/g, 'Math.$1(');
   let returnsUint = false;
   const names: string[] = [];
   const body = GLSL_NOISE_HELPERS.trim().split('\n').map((line) => {
@@ -44,6 +44,12 @@ function glslHelpers(): Record<string, GlslFn> {
   }).join('\n');
   return new Function(`${body}\nreturn { ${names.join(', ')} };`)() as Record<string, GlslFn>;
 }
+
+describe('cosPi', () => {
+  it('matches cos(π·t) over [−1, 1], so no platform cos enters the normals', () => {
+    for (let k = -2000; k <= 2000; k++) expect(cosPi(k / 2000)).toBeCloseTo(Math.cos((Math.PI * k) / 2000), 9);
+  });
+});
 
 describe('pair noise hash', () => {
   it('matches the reference pcg_hash on edge and scattered inputs', () => {

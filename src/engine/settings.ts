@@ -7,8 +7,11 @@ export const METRICS = ['galilean', 'minkowski'] as const;
 export type Metric = (typeof METRICS)[number];
 /** c bounds: the GPU works with 1/c², which must stay a normal float32. */
 export const LIGHT_SPEED_RANGE = [1e-18, 1e18] as const;
-/** History layers for retarded forces: WebGL2 guarantees 256 texture array layers. */
-export const HISTORY_DEPTH_RANGE = [2, 256] as const;
+/**
+ * History steps for retarded forces. 2048 texture array layers is the common GPU limit (WebGL2
+ * guarantees 256); the GPU's own limit is checked when settings are applied.
+ */
+export const HISTORY_DEPTH_RANGE = [2, 2048] as const;
 
 export interface SimulationSettings {
   timeStep: number;
@@ -77,7 +80,7 @@ export function validateSettings(settings: SimulationSettings): string[] {
   );
   check(
     Number.isInteger(settings.historyDepth) && settings.historyDepth >= HISTORY_DEPTH_RANGE[0] && settings.historyDepth <= HISTORY_DEPTH_RANGE[1],
-    `historyDepth must be an integer within [${HISTORY_DEPTH_RANGE[0]}, ${HISTORY_DEPTH_RANGE[1]}] (WebGL2 guarantees 256 texture array layers), got ${settings.historyDepth}`,
+    `historyDepth must be an integer within [${HISTORY_DEPTH_RANGE[0]}, ${HISTORY_DEPTH_RANGE[1]}] (texture array layers on the GPU), got ${settings.historyDepth}`,
   );
   check(
     settings.metric !== 'minkowski' || settings.maxSpeed === 0,

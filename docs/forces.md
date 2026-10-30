@@ -74,10 +74,12 @@ the Galilean metric (c → ∞) it acts instantaneously, and the card says so.
 - `d`, `r`, `rhat`, `dx`… and `v_j` (with `v_dot`, `v_rel`, `vv_dot`) come from j's retarded event;
   `v_i` is i's present velocity. Two variables exist for these forces: `a_j`, j's acceleration at
   t_r (from its velocity history), and `t_ret` = t − t_r; both are 0 in instantaneous forces.
-- The GPU keeps the last K steps (Spacetime → *History depth K*) of every particle's position and
-  velocity, plus their times, in texture arrays, only while a retarded force is enabled under
-  Minkowski: 2·K·capacity·16 bytes (Spacetime shows it). Before the start, and after any particle
-  edit, the past is extrapolated as uniform motion.
+- The GPU keeps the last K steps (Spacetime → *History depth K*, up to 2048 or the GPU's texture
+  array layer limit) of every particle's position and velocity, plus their times, in texture arrays,
+  only while a retarded force is enabled under Minkowski: 2·K·16 bytes per texel row the particles
+  occupy (a few MB for a handful of particles, about 1 GB for 16k at K = 2048; Spacetime shows it).
+  Before the start, and after any particle edit, the past is extrapolated as uniform motion. If the
+  GPU cannot allocate it, retarded forces act instantaneously and a notice says why.
 - Per pair, the gap g(k) = c·(t − t_k) − |x_i − x_j(t_k)| grows into the past while |v| < c: a
   bisection over the steps finds the one holding the root and a linear interpolation finds t_r (the
   trajectory is exact for uniform motion; the root carries an O(dt²) error).

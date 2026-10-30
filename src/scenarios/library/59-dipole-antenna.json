@@ -7,7 +7,7 @@
   "added": "2026-10-30T20:00:01-03:00",
   "description": "A charge driven back and forth along x reaches 0.7 c (c = 1, Minkowski metric) and radiates. The arrows show its Liénard–Wiechert field on a resting test charge (retarded: read on the light cone): close by, the Coulomb field of where the charge was; farther out, the 1/r radiation term, proportional to its acceleration, strongest across the axis of motion and vanishing along it, travelling out at c in bands one wavelength (2πc/ω ≈ 63) apart. The drive comes from the fixed source below (n = 1) and acts only on the charge with q2 = 1. Beyond c·(K − 1)·dt the field would be instantaneous; the view stays inside.",
   "view": { "cameraDistance": 420, "particleRadius": 4, "colorMode": "charge", "field": { "logScale": true, "columns": 64 } },
-  "settings": { "timeStep": 1.8, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1, "historyDepth": 256 },
+  "settings": { "timeStep": 0.5, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1, "historyDepth": 2048 },
   "forces": [
     {
       "name": "Drive",

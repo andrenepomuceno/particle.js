@@ -3,8 +3,8 @@
 ## Unreleased
 
 - Retarded forces (light cone): a force-mode force marked `retarded` reads each source where it was
-  when its light left, from a GPU history of the last K steps (Spacetime → *History depth K*; reach
-  c·(K − 1)·dt, farther pairs act instantaneously with a warning). New variables `a_j` and `t_ret`,
+  when its light left, from a GPU history of the last K steps (Spacetime → *History depth K*, up to 2048, memory
+  proportional to the particles; reach c·(K − 1)·dt, farther pairs act instantaneously with a warning). New variables `a_j` and `t_ret`,
   a *Liénard–Wiechert* preset (retarded E + B, radiation included) and scenarios *Retarded Field* and
   *Dipole Antenna*. Snapshots are version 7 (adds `historyDepth`).
 

@@ -18,7 +18,7 @@ import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { ParticleTrail } from '../engine/render/ParticleTrail';
 import { inverseLightSpeed2 } from '../engine/metric';
-import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
+import { DEFAULT_SETTINGS, HISTORY_DEPTH_RANGE, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
@@ -500,6 +500,10 @@ export class SimulationController {
   setSettings(patch: Partial<SimulationSettings>): void {
     const settings = { ...this.state.settings, ...patch };
     const problems = validateSettings(settings);
+    // The static range covers the common limit; a GPU with fewer texture array layers refuses beyond its own.
+    if (problems.length === 0 && settings.historyDepth > this.gpu.maxHistoryDepth) {
+      problems.push(`historyDepth ${settings.historyDepth} exceeds this GPU's limit of ${this.gpu.maxHistoryDepth} history steps (texture array layers)`);
+    }
     if (problems.length > 0) throw new Error(problems.join('; '));
     const planeChanged = settings.mode2D !== this.state.settings.mode2D;
     // A new metric or c rewrites the stored velocities (u = γv under Minkowski), keeping each v; it
@@ -898,7 +902,18 @@ export class SimulationController {
   private syncHistory(): void {
     const { settings } = this.state;
     const needed = settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded);
-    this.gpu.setHistoryDepth(needed ? settings.historyDepth : 0, this.state.time);
+    try {
+      this.gpu.setHistoryDepth(needed ? settings.historyDepth : 0, this.state.time);
+    } catch (error) {
+      // Without a history retarded forces act instantaneously; say so instead of failing the edit.
+      this.gpu.setHistoryDepth(0, this.state.time);
+      this.notify(`Retarded forces act instantaneously: ${(error as Error).message}. Lower the history depth K (Spacetime).`, 'error');
+    }
+  }
+
+  /** Most history steps this GPU can hold (Spacetime dialog). */
+  get maxHistoryDepth(): number {
+    return Math.min(HISTORY_DEPTH_RANGE[1], this.gpu.maxHistoryDepth);
   }
 
   /** Bytes a history of `depth` steps takes on the GPU at the current capacity (Spacetime dialog). */

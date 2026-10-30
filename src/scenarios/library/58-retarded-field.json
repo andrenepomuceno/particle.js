@@ -7,7 +7,7 @@
   "added": "2026-10-30T20:00:00-03:00",
   "description": "A charge circles at 0.9 c (c = 1, Minkowski metric) in a uniform magnetic field from the fixed source at the center (the only particle with n = 1, and no charge). The arrows show the charge's retarded Coulomb field on a resting test charge: each point feels the charge where it was when the light now arriving left it, r/c ago, so the field lines bend into a spiral trailing the orbit. Clear Retarded on the Coulomb card (Forces) and every arrow snaps to the present position. Retarded Coulomb alone is not the full field of a moving charge: Dipole Antenna uses the Liénard–Wiechert preset.",
   "view": { "cameraDistance": 520, "particleRadius": 4, "colorMode": "charge", "field": { "logScale": true, "columns": 56 } },
-  "settings": { "timeStep": 2, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1, "historyDepth": 256 },
+  "settings": { "timeStep": 1, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1, "historyDepth": 2048 },
   "forces": [
     {
       "name": "Uniform B",

@@ -1,5 +1,6 @@
 import { coordinateVelocity } from '../metric';
 import { TEXEL, type ParticleSet, type Vec3 } from '../particles';
+import { HISTORY_DEPTH_RANGE } from '../settings';
 
 /**
  * The CPU mirror of the GPU history for retarded forces: `depth` past states (positions and stored
@@ -16,8 +17,8 @@ export interface History {
   times: Float64Array;
 }
 
-/** Iterations that bisect any depth up to 256 (2⁸) layers. */
-export const HISTORY_SEARCH_STEPS = 9;
+/** Iterations that bisect the deepest history allowed down to one step. */
+export const HISTORY_SEARCH_STEPS = Math.ceil(Math.log2(HISTORY_DEPTH_RANGE[1]));
 
 const layer = (history: History, k: number) => (history.head - (k - 1) + history.depth) % history.depth;
 

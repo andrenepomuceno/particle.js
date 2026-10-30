@@ -53,6 +53,8 @@ type PingPong = [WebGLRenderTarget, WebGLRenderTarget];
  */
 interface History {
   depth: number;
+  /** Texture rows the particles occupy: layers hold only these, so the cost follows the particle count. */
+  rows: number;
   head: number;
   position: WebGLArrayRenderTarget;
   velocity: WebGLArrayRenderTarget;
@@ -266,8 +268,9 @@ export class GpuCompute {
       source.dispose();
     }
     this.accelerationValid = false;
-    // Edits can renumber particles: the past is rebuilt from the new present.
-    this.resetHistory(time);
+    // Edits can renumber particles: the past is rebuilt from the new present, in layers sized for them.
+    if (this.history && this.history.rows !== this.historyRows()) this.setHistoryDepth(this.history.depth, time);
+    else this.resetHistory(time);
   }
 
   step(time: number): void {
@@ -282,24 +285,45 @@ export class GpuCompute {
    * from the present at `time`, as if every particle had moved uniformly before.
    */
   setHistoryDepth(depth: number, time: number): void {
-    if ((this.history?.depth ?? 0) === depth) return;
+    const rows = this.historyRows();
+    if ((this.history?.depth ?? 0) === depth && (depth === 0 || this.history!.rows === rows)) return;
+    if (depth > this.maxHistoryDepth) throw new Error(`a history of ${depth} steps exceeds this GPU's ${this.maxHistoryDepth} texture array layers`);
     this.disposeHistory();
     if (depth > 0) {
       const options = { type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false };
       this.history = {
-        depth, head: 0,
-        position: new WebGLArrayRenderTarget(this.width, this.width, depth, options),
-        velocity: new WebGLArrayRenderTarget(this.width, this.width, depth, options),
+        depth, rows, head: 0,
+        position: new WebGLArrayRenderTarget(this.width, rows, depth, options),
+        velocity: new WebGLArrayRenderTarget(this.width, rows, depth, options),
         times: new DataTexture(new Float32Array(depth * 4), depth, 1, RGBAFormat, FloatType),
       };
+      const gl = this.renderer.getContext();
+      while (gl.getError() !== gl.NO_ERROR);
       this.resetHistory(time);
+      if (gl.getError() === gl.OUT_OF_MEMORY) {
+        const megabytes = this.historyBytes(depth) / 2 ** 20;
+        this.disposeHistory();
+        this.bindHistory();
+        throw new Error(`the GPU ran out of memory allocating a history of ${depth} steps (${megabytes.toFixed(0)} MB)`);
+      }
     }
     this.bindHistory();
   }
 
-  /** Bytes the history of `depth` layers takes: positions and velocities, one RGBA float texel each. */
+  /** Most history steps this GPU holds: texture array layers, and the width of the times texture. */
+  get maxHistoryDepth(): number {
+    // The app requires WebGL2 (main.tsx checks it before creating the renderer).
+    const gl = this.renderer.getContext() as WebGL2RenderingContext;
+    return Math.min(gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS) as number, gl.getParameter(gl.MAX_TEXTURE_SIZE) as number);
+  }
+
+  /** Bytes a history of `depth` steps takes for the current particles: positions and velocities, RGBA floats. */
   historyBytes(depth: number): number {
-    return 2 * depth * this.width * this.width * 16;
+    return 2 * depth * this.width * this.historyRows() * 16;
+  }
+
+  private historyRows(): number {
+    return Math.max(1, Math.ceil(this.set.count / this.width));
   }
 
   // Step k (1 = newest) lives in layer head − (k − 1) of the ring.

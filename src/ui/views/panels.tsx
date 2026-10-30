@@ -339,14 +339,14 @@ export function SpacetimeView() {
         <SelectField<Metric> label="Metric" value={settings.metric} options={METRICS} onChange={(metric) => set({ metric })} />
         <NumberField label="Speed of light c" value={settings.lightSpeed} validate={positive} onCommit={(lightSpeed) => controller.setSettings({ lightSpeed })} />
         <NumberField label="History depth K (steps)" value={settings.historyDepth}
-          validate={(k) => (Number.isInteger(k) && k >= HISTORY_DEPTH_RANGE[0] && k <= HISTORY_DEPTH_RANGE[1] ? undefined : `an integer within [${HISTORY_DEPTH_RANGE[0]}, ${HISTORY_DEPTH_RANGE[1]}]`)}
+          validate={(k) => (Number.isInteger(k) && k >= HISTORY_DEPTH_RANGE[0] && k <= controller.maxHistoryDepth ? undefined : `an integer within [${HISTORY_DEPTH_RANGE[0]}, ${controller.maxHistoryDepth}] (this GPU's limit)`)}
           onCommit={(historyDepth) => controller.setSettings({ historyDepth })} />
       </div>
       <p className="muted">
         Retarded forces see each source on the light cone, read from the last K steps: they reach pairs up to
         c·(K − 1)·dt = {format(settings.lightSpeed * (settings.historyDepth - 1) * settings.timeStep, 4)} apart (farther ones act
-        instantaneously, flagged on the force) and take {format(controller.historyBytes(settings.historyDepth) / 2 ** 20, 3)} MB of GPU memory,
-        only while one is enabled under Minkowski.
+        instantaneously, flagged on the force) and take {format(controller.historyBytes(settings.historyDepth) / 2 ** 20, 3)} MB of GPU memory
+        for the current particles, only while one is enabled under Minkowski (this GPU allows K up to {controller.maxHistoryDepth}).
       </p>
       <p className="muted">
         {minkowski

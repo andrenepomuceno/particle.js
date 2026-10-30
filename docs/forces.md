@@ -160,7 +160,7 @@ calls: `randn` read twice, in one expression or in two forces of the pair, is th
   force such as `sigma * randn` is equal and opposite on the pair (r̂ flips) and conserves momentum,
   like the random force of dissipative particle dynamics (DPD). With a pair drag `-gamma * v_dot` it
   is a thermostat: drag and noise balance near T = sigma²·dt/(2·gamma) (k_B = 1), also with DPD's
-  weights `sigma * (1 - x) * randn` and `-gamma * (1 - x)^2 * v_dot`.
+  weights `sigma * (1 - x) * randn` and `-gamma * (1 - x)^2 * v_dot` (scenario *DPD Thermostat*).
   The noise is drawn once per step and not scaled by 1/√dt, so that temperature is proportional to dt.
 - `randv` is the same vector for both particles of the pair, so `k * randv` pushes them the same way
   and does not conserve momentum. It suits a random field from one source particle marked with

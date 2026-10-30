@@ -77,6 +77,7 @@ you can also load your own with <kbd>I</kbd>.
 | Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |
 | Crystal in a Slab | LJ potential, 3D box thin in z | semi-2D: a liquid in a plate two diameters thick cools into a stacked bilayer crystal |
+| DPD Thermostat | soft repulsion + pair drag + pair noise (`randn`) + all-pairs spring | a frozen square melts into a drop held at T = σ²·dt/(2γ) that does not drift |
 | Dipole Chains | spin dipole (vector force) + repulsive core | a 2D ferrofluid: in-plane dipoles join head to tail into chains |
 | Dipole Crystal | spin dipole (vector force) + repulsive core | perpendicular dipoles repel into a triangular lattice; flipped ones bind defects |
 | Radiation Belt | dipole magnetic field, q v × B | charges gyrate, mirror between the poles and drift around a magnetized planet |

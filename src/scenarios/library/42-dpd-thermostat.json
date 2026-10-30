@@ -1,0 +1,21 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "dpd-thermostat",
+  "name": "DPD Thermostat",
+  "folder": "Stochastic",
+  "added": "2026-10-30T17:36:48-03:00",
+  "description": "Dissipative particle dynamics in 2D: soft repulsion, a pair drag −gamma·(1 − x)²·v_dot and a pair noise sigma·(1 − x)·randn, all along the line of centers, plus a weak spring between every pair (½·k·r², a trap that follows the drop's own center of mass). The square starts frozen at T = 0; the noise melts it into a round drop, the temperature overshoots while it relaxes, then settles where drag balances noise, near T = sigma²·dt/(2·gamma) = 1 (Statistics). Every random kick is equal and opposite on its pair, so the noise adds no net momentum (the implicit drag step keeps it only approximately: the drop drifts very slowly). Try: disable Pair noise and it freezes; disable Pair drag and it heats without bound; double sigma for T = 4.",
+  "seed": 7,
+  "view": { "cameraDistance": 24, "particleRadius": 0.15, "colorMode": "speed" },
+  "settings": { "timeStep": 0.04, "mode2D": true, "integrator": "euler" },
+  "forces": [
+    { "name": "Soft repulsion", "mode": "force", "range": "short", "cutoff": 1, "expression": "a * (1 - x)", "params": [{ "name": "a", "value": 25 }] },
+    { "name": "Trap", "mode": "potential", "range": "long", "expression": "0.5 * k * r^2", "params": [{ "name": "k", "value": 0.002 }] },
+    { "name": "Pair drag", "mode": "force", "range": "short", "cutoff": 1, "expression": "-gamma * (1 - x)^2 * v_dot", "params": [{ "name": "gamma", "value": 4.5 }] },
+    { "name": "Pair noise", "mode": "force", "range": "short", "cutoff": 1, "expression": "sigma * (1 - x) * randn", "params": [{ "name": "sigma", "value": 15 }] }
+  ],
+  "groups": [
+    { "count": 400, "scale": false, "shape": { "type": "grid", "spacing": 0.5, "columns": 20, "rows": 20 } }
+  ]
+}

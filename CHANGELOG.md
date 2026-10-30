@@ -34,7 +34,7 @@
   `randv` (vector of three normals), new for every pair at every step. A hash of the pair, the
   float32 time and a stream makes them deterministic, bit-identical on GPU and CPU and the same for
   both particles, so a central noise such as `sigma * randn` conserves momentum (DPD). Force mode
-  only; field probes and plots use the mean.
+  only; field probes and plots use the mean. New scenario *DPD Thermostat*.
 
 ## 2.1.1 — 2026-10-24
 

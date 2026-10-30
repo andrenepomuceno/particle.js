@@ -1165,6 +1165,7 @@ export class SimulationController {
 
     private render(): void {
     this.fitDepthRange();
+    this.points.setTime(this.state.time);
     this.points.bind({
       position: this.gpu.positionTexture,
       velocity: this.gpu.velocityTexture,
@@ -1283,7 +1284,7 @@ export class SimulationController {
     if (energyError !== this.state.energyError) this.store.set({ energyError });
     const spacetime = summarizeSpacetime(this.set, velocity);
     this.points.setAverageSpeed(energy.meanSpeed);
-    this.points.setClockRange(spacetime.clockMin, spacetime.clockMax);
+    this.points.setClockRange(spacetime.clockMin, spacetime.clockMax, time);
     this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing, spacetime });
     if (!advanced || !this.statsActive) return;
     const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;

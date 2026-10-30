@@ -113,8 +113,9 @@ speed of light c; see [forces](forces.md#spacetime-metric)). It shows the larges
 speed as a fraction of c and the spread of the particle clocks, sampled once per second. A
 switch that cannot apply is refused with a notice: Minkowski with a speed clamp set, or a
 particle at or above the new c. Under Minkowski the Particle dialog adds γ and labels the clock
-*Proper time*. The `clock` color mode spans the current clock spread: warm for clocks behind
-(moving fast, or created later), blue for the ones ahead.
+*Proper time*. The `clock` color mode colors each clock as a fraction of the global time (proper
+time / t) across the current spread of that fraction: warm for clocks behind (moving fast, or created
+later), blue for the ones ahead.
 
 **Field** (<kbd>J</kbd>; some scenarios, such as the *Elements*, turn it on with their own options until
 another scenario is loaded or the field is changed by hand) draws a grid of arrows over the view showing the net force a test

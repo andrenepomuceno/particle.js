@@ -39,6 +39,7 @@ uniform float uRadius;
 uniform float uScale;
 uniform float uAverageSpeed;
 uniform vec2 uClockRange;
+uniform float uTime;
 uniform int uHighlight;
 out vec3 vColor;
 out vec3 vVelocity;
@@ -47,10 +48,13 @@ out float vHighlight;
 out float vPixels;
 ${COMMON}
 ${GLSL_METRIC}
-// Particle clocks across their current spread: behind (moved fast, or created later) warm, ahead cool.
+// Each clock as a fraction of the global time (proper time / t), across the sampled spread of that
+// fraction: behind (moved fast, or created later) warm, ahead cool. The fraction barely moves between
+// samples, where raw clocks would run past a range sampled a second ago.
 vec3 clockColor(float clock) {
   float span = uClockRange.y - uClockRange.x;
-  float f = span > 0.0 ? clamp((clock - uClockRange.x) / span, 0.0, 1.0) : 1.0;
+  float fraction = uTime > 0.0 ? clock / uTime : 1.0;
+  float f = span > 0.0 ? clamp((fraction - uClockRange.x) / span, 0.0, 1.0) : 1.0;
   return mix(vec3(1.0, 0.45, 0.15), vec3(0.3, 0.6, 1.0), f);
 }
 
@@ -275,6 +279,7 @@ export class ParticlePoints {
         uScale: { value: 400 },
         uAverageSpeed: { value: 1 },
         uClockRange: { value: new Vector2(0, 0) },
+        uTime: { value: 0 },
         uInverseLightSpeed2: { value: 0 },
         uHighlight: { value: -1 },
       },
@@ -316,9 +321,14 @@ export class ParticlePoints {
     this.material.uniforms.uAverageSpeed!.value = speed;
   }
 
-  /** Range of the clock palette: the earliest and latest particle clocks of the last sample. */
-  setClockRange(min: number, max: number): void {
-    (this.material.uniforms.uClockRange!.value as Vector2).set(min, max);
+  /** Clock palette: the clocks of the last sample, `min` and `max`, read at global time `time`. */
+  setClockRange(min: number, max: number, time: number): void {
+    (this.material.uniforms.uClockRange!.value as Vector2).set(time > 0 ? min / time : 1, time > 0 ? max / time : 1);
+  }
+
+  /** Global time, for the clock palette's proper-time fraction. */
+  setTime(time: number): void {
+    this.material.uniforms.uTime!.value = time;
   }
 
   /** k = 1/c² of the metric the velocity texture is written for (0: Galilean). */

@@ -260,6 +260,9 @@ await withBrowser(async ({ browser, base, glMode }) => {
   check('Every dialog in the menu opens', openDialogs === titles.length && !errors.some((e) => e.startsWith('pageerror')), { titles, openDialogs });
   await mkdir(path.dirname(out), { recursive: true });
   await page.screenshot({ path: out });
+  // Done with v2: with every dialog open (Statistics runs its potential pass) it keeps the CPU busy, and
+  // on CI's software renderer that starved the v1 page below past its load timeout.
+  await page.close();
   // The frozen v1 build served next to v2 (public/v1) must still start; its analytics are blocked
   // here because the sandboxed browser may not reach them.
   const classic = await browser.newPage();

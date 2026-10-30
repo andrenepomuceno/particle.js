@@ -4,6 +4,7 @@ import type { ParticleGroup } from '../../engine/particleGroups';
 import { SPECIES } from '../../engine/species';
 import { LineChart } from '../components/LineChart';
 import { useAppState, useController } from '../context';
+import { Tabs } from '../components/Tabs';
 
 const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'] as const;
 
@@ -21,11 +22,7 @@ export function StatsView() {
 
   return (
     <div className="stack">
-      <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
+      <Tabs tabs={TABS} value={tab} onChange={setTab} />
       {tab === 'Charts' ? <ChartsTab /> : <ParticlesTab />}
     </div>
   );

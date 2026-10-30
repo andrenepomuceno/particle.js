@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ANALYTICS_ENABLED } from '../../analytics';
+import { Tabs } from '../components/Tabs';
 
 const REPOSITORY_URL = 'https://github.com/andrenepomuceno/particle.js';
 
@@ -10,11 +11,7 @@ export function AboutView() {
   const [tab, setTab] = useState<Tab>('About');
   return (
     <div className="stack">
-      <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
+      <Tabs tabs={TABS} value={tab} onChange={setTab} />
       {tab === 'About' ? <AboutTab /> : <QuickGuide />}
     </div>
   );

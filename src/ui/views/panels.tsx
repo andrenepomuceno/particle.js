@@ -14,6 +14,7 @@ import type { Scenario } from '../../scenarios/types';
 import { ACTIONS, download, keyLabel, POINTER_GESTURES, type Action, type ActionContext } from '../actions';
 import { CheckField, NumberField, SelectField, Vec3Field, nonNegative, positive, unitInterval } from '../components/fields';
 import { useAppState, useController } from '../context';
+import { Tabs } from '../components/Tabs';
 
 const FOLLOW_KEY = ACTIONS.find((a) => a.id === 'follow')!.key!;
 const TRAIL_KEY = ACTIONS.find((a) => a.id === 'trail')!.key!;
@@ -53,11 +54,7 @@ export function InfoView() {
   if (draft.source !== source) setDraft(freshDraft(source));
   return (
     <div className="stack">
-      <div className="tabs" role="tablist">
-        {INFO_TABS.map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
-        ))}
-      </div>
+      <Tabs tabs={INFO_TABS} value={tab} onChange={setTab} />
       {tab === 'Overview' && <OverviewTab />}
       {tab === 'Scenarios' && <ScenariosTab />}
       {tab === 'JSON' && <JsonTab draft={draft} onChange={setDraft} />}

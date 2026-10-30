@@ -85,8 +85,8 @@ the Galilean metric (c → ∞) it acts instantaneously, and the card says so.
   trajectory is exact for uniform motion; the root carries an O(dt²) error).
 - The history reaches pairs up to c·(K − 1)·dt apart. Farther pairs act instantaneously, and the
   force card warns when the particles spread beyond that reach.
-- The field view shows the retarded field (the test particle is a receiver at rest). The CPU field
-  reference does not model retardation.
+- The field view shows the retarded field (the test particle is a receiver at rest); the CPU field
+  reference does the same given a run's history (`referenceField(…, history)`).
 - The *Liénard–Wiechert* preset is the Lorentz force of j's retarded fields on q_i: the velocity
   field k·q_j·(n − β)(1 − β²)/(κ³R²) and the radiation field k·q_j·n × ((n − β) × β̇)/(c·κ³R), with
   n = r̂, β = v_j/c, β̇ = a_j/c, κ = 1 − n·β and B = n × E/c. It is exact at all speeds (for a charge in

@@ -201,6 +201,43 @@ const failures = await withBrowser(async ({ browser, base }) => {
     if (!fieldOk) failed++;
     console.log(`${fieldOk ? 'PASS' : 'FAIL'} field probes (${fieldCase.name}) vs referenceField: max per-probe |Δ|F|| / max(|F|, median) = ${field.relative.toExponential(2)} (tolerance 1e-4)`);
   }
+  // Retarded field probes far into a run (t > 4096, so the GPU history has moved its time base), with the
+  // CPU stepping alongside to hold the same history.
+  const retarded = await page.evaluate(async () => {
+    const { referenceField } = await import('/src/engine/cpu/field.ts');
+    const { referenceStep } = await import('/src/engine/cpu/referenceStep.ts');
+    const { ParticleSet } = await import('/src/engine/particles.ts');
+    const c = globalThis.particleController;
+    c.loadScenario('retarded-field');
+    c.store.set({ paused: true });
+    const { settings } = c.state;
+    const start = c.readParticles();
+    const cpu = new ParticleSet(start.length);
+    cpu.setMetric(settings);
+    cpu.addAll(start);
+    const state = {};
+    let time = c.state.time;
+    const steps = 4200;
+    for (let k = 0; k < steps; k++) {
+      referenceStep(cpu, c.compiledForces, settings, time, state);
+      time += settings.timeStep;
+    }
+    c.advance(steps);
+    const positions = new Float32Array(Array.from({ length: 300 * 3 }, (_, k) => (k % 3 === 2 ? 0 : (((k * 7919) % 97) - 48) * 8)));
+    const probe = { mass: 1, charge: 1, charge2: 0, spin: [0, 0, 0], isospin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0] };
+    c.gpu.setProbes(positions);
+    c.gpu.computeField(c.state.time, probe);
+    const gpu = c.gpu.readFieldMagnitudes();
+    const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time, settings.lightSpeed, state.history);
+    const exact = Array.from(gpu, (_, p) => Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]));
+    const median = [...exact].sort((a, b) => a - b)[Math.floor(exact.length / 2)];
+    let worst = 0;
+    gpu.forEach((m, p) => (worst = Math.max(worst, Math.abs(m - exact[p]) / Math.max(exact[p], median))));
+    return { relative: worst, largest: Math.max(...exact), time: c.state.time };
+  });
+  const retardedOk = retarded.relative <= 1e-3 && retarded.largest > 0;
+  if (!retardedOk) failed++;
+  console.log(`${retardedOk ? 'PASS' : 'FAIL'} retarded field probes at t = ${retarded.time} vs referenceField: max per-probe |Δ|F|| / max(|F|, median) = ${retarded.relative.toExponential(2)} (tolerance 1e-3)`);
   if (problems.length) console.log(JSON.stringify({ problems }));
   return failed + problems.length;
 });

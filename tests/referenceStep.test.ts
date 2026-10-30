@@ -59,7 +59,7 @@ describe('referenceStep (Euler)', () => {
     const soft = compileForce(makeForce({ mode: 'potential', softening: 1, expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 1 }] }));
     // A near head-on pass at impact parameter 0.2, well inside the softening length.
     const set = setOf(defaultParticle({ position: [-5, 0.1, 0], velocity: [0.5, 0, 0] }), defaultParticle({ position: [5, -0.1, 0], velocity: [-0.5, 0, 0] }));
-    const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [soft], 0), [soft], false);
+    const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [soft], 0, DEFAULT_SETTINGS.lightSpeed), [soft], false);
     const start = energy();
     const state = {};
     for (let k = 0; k < 4000; k++) referenceStep(set, [soft], settings({ integrator: 'verlet', timeStep: 0.005 }), k * 0.005, state);
@@ -147,7 +147,7 @@ describe('referenceStep (velocity Verlet)', () => {
     const drift = (integrator: SimulationSettings['integrator']) => {
       const set = setOf(defaultParticle({ position: [-5, 0, 0], velocity: [0, -0.2, 0] }), defaultParticle({ position: [5, 0, 0], velocity: [0, 0.2, 0] }));
       const s = settings({ integrator, timeStep: 0.5 });
-      const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [gravity], 0), [gravity], false);
+      const energy = () => summarizeEnergy(set, set.velocity, referencePotentials(set, [gravity], 0, DEFAULT_SETTINGS.lightSpeed), [gravity], false);
       const start = energy();
       const state: ReferenceState = {};
       let worst = 0;

@@ -56,9 +56,9 @@ describe('random variables in expressions', () => {
     expect([force.jacobian, force.random]).toEqual([true, true]);
     const set = setOf(defaultParticle({ position: [0.3, -1, 0.2], velocity: [0.5, 0.1, -0.2] }), defaultParticle({ position: [-0.7, 0.4, 0], velocity: [-0.1, 0.3, 0.2] }));
     const dist = Math.hypot(1, -1.4, 0.2);
-    const expected = drag.evaluateWithJacobian!(forceScope(drag, pairScope(set, 0, 1, 0, false), dist)).J;
+    const expected = drag.evaluateWithJacobian!(forceScope(drag, pairScope(set, 0, 1, 0, false, DEFAULT_SETTINGS.lightSpeed), dist)).J;
     for (const time of [0, 0.5, 1.5]) {
-      const { F, J } = force.evaluateWithJacobian!(forceScope(force, pairScope(set, 0, 1, time, true), dist));
+      const { F, J } = force.evaluateWithJacobian!(forceScope(force, pairScope(set, 0, 1, time, true, DEFAULT_SETTINGS.lightSpeed), dist));
       expect(F.every(Number.isFinite)).toBe(true);
       J.forEach((row, k) => row.forEach((value, l) => expect(value).toBeCloseTo(expected[k]![l]!, 12)));
     }
@@ -68,11 +68,11 @@ describe('random variables in expressions', () => {
 describe('random numbers in the CPU pair loop', () => {
   it('hash the pair symmetrically, or stay NaN when no force reads them', () => {
     const set = setOf(defaultParticle({ position: [0, 0, 0] }), defaultParticle({ position: [1, 0, 0] }));
-    const ij = pairScope(set, 0, 1, 2.5, true);
-    const ji = pairScope(set, 1, 0, 2.5, true);
+    const ij = pairScope(set, 0, 1, 2.5, true, DEFAULT_SETTINGS.lightSpeed);
+    const ji = pairScope(set, 1, 0, 2.5, true, DEFAULT_SETTINGS.lightSpeed);
     expect({ rand: ij.rand, randn: ij.randn, randvx: ij.randvx, randvy: ij.randvy, randvz: ij.randvz }).toEqual(pairNoise(0, 1, 2.5));
     expect([ji.rand, ji.randn, ji.randvx]).toEqual([ij.rand, ij.randn, ij.randvx]);
-    expect(Number.isNaN(pairScope(set, 0, 1, 2.5, false).randn)).toBe(true);
+    expect(Number.isNaN(pairScope(set, 0, 1, 2.5, false, DEFAULT_SETTINGS.lightSpeed).randn)).toBe(true);
   });
 
   it('push a pair equally and oppositely with sigma * randn, but with the same vector with k * randv', () => {
@@ -81,7 +81,7 @@ describe('random numbers in the CPU pair loop', () => {
     const dist = Math.hypot(0.6, -0.8, -0.1);
     const on = (forces: typeof noise[], i: number, j: number) => {
       const out: [number, number, number] = [0, 0, 0];
-      addPairForce(forces, pairScope(set, i, j, 0.7, true), dist, out);
+      addPairForce(forces, pairScope(set, i, j, 0.7, true, DEFAULT_SETTINGS.lightSpeed), dist, out);
       return out;
     };
     const [fi, fj] = [on([noise], 0, 1), on([noise], 1, 0)];
@@ -154,8 +154,8 @@ describe('random numbers in field probes and plots', () => {
     expect(appliedForce(force, 2)).toBeCloseTo(1.5, 12);
     expect(PLOT_PAIR).toMatchObject(MEAN_NOISE);
     const set = setOf(defaultParticle({ position: [0, 0, 0] }), defaultParticle({ position: [3, 1, 0] }));
-    expect(probeScope({ ...DEFAULT_PROBE, position: [1, 1, 0] }, set, 0, 4)).toMatchObject(MEAN_NOISE);
-    const field = referenceField(set, [force], DEFAULT_PROBE, [1, 1, 0], 4);
+    expect(probeScope({ ...DEFAULT_PROBE, position: [1, 1, 0] }, set, 0, 4, DEFAULT_SETTINGS.lightSpeed)).toMatchObject(MEAN_NOISE);
+    const field = referenceField(set, [force], DEFAULT_PROBE, [1, 1, 0], 4, DEFAULT_SETTINGS.lightSpeed);
     // 1.5 from each particle along the unit vector from it to the probe.
     const expected = [1 / Math.SQRT2 - 2 / Math.sqrt(4), 1 / Math.SQRT2, 0].map((c) => 1.5 * c);
     expected.forEach((c, k) => expect(field[k]).toBeCloseTo(c, 12));

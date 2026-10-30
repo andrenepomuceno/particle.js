@@ -496,7 +496,7 @@ export class SimulationController {
     // throws, leaving everything as it was, when a particle would reach the new c.
     const inverseC2 = inverseLightSpeed2(settings);
     const metricChanged = inverseC2 !== this.set.inverseLightSpeed2;
-    if (metricChanged || settings.lightSpeed !== this.set.lightSpeed) {
+    if (metricChanged) {
       this.syncFromGpu();
       this.set.setMetric(settings);
     }

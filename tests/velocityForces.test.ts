@@ -24,7 +24,7 @@ describe('velocity-dependent vector forces', () => {
     expect([force.kind, force.jacobian]).toEqual(['vector', true]);
     const set = setOf(defaultParticle({ position: [0.4, -1, 0.3], velocity: [0.2, 0.5, -0.1], charge: 1.5 }),
       defaultParticle({ position: [-1, 0.8, 0], velocity: [-0.3, 0.1, 0.4], charge: -2 }));
-    const pair = pairScope(set, 0, 1, 0, false);
+    const pair = pairScope(set, 0, 1, 0, false, DEFAULT_SETTINGS.lightSpeed);
     const dist = Math.hypot(1.4, -1.8, 0.3);
     const scope = forceScope(force, pair, dist);
     const jacobian = force.evaluateWithJacobian!(scope).J;
@@ -76,7 +76,7 @@ describe('velocity-dependent vector forces', () => {
     const biotSavart = compileForce(makeForce({ expression: 'k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))', params: [{ name: 'k', value: 1 }] }));
     const set = setOf(defaultParticle({ position: [0, 1, 0], velocity: [1, 0, 0], charge: 1 }), defaultParticle({ position: [0, -1, 0], velocity: [1, 0, 0], charge: 1 }));
     const out: [number, number, number] = [0, 0, 0];
-    addPairForce([biotSavart], pairScope(set, 0, 1, 0, false), 2, out);
+    addPairForce([biotSavart], pairScope(set, 0, 1, 0, false, DEFAULT_SETTINGS.lightSpeed), 2, out);
     expect(out[1]).toBeLessThan(0);
     expect(out[1]).toBeCloseTo(-1 / 4, 12);
     expect([out[0], out[2]]).toEqual([0, 0]);

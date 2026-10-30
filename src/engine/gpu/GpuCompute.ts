@@ -7,7 +7,7 @@ import { forceUniformName, type CompiledForce } from '../forces/compile';
 import type { FieldProbe } from '../field';
 import type { ParticleSet } from '../particles';
 import { inverseLightSpeed2 } from '../metric';
-import type { SimulationSettings } from '../settings';
+import { DEFAULT_SETTINGS, type SimulationSettings } from '../settings';
 import {
   BOUNDARY_CODE, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
   VERLET_POSITION_SHADER, VERLET_VELOCITY_SHADER,
@@ -119,7 +119,7 @@ export class GpuCompute {
       uAccelerationNext: { value: null },
       uClockShift: { value: 0 },
       uInverseLightSpeed2: { value: 0 },
-      uLightSpeed: { value: 1 },
+      uLightSpeed: { value: DEFAULT_SETTINGS.lightSpeed },
     };
     this.positionMaterial = this.material(POSITION_SHADER, this.sharedUniforms);
     this.velocityMaterial = this.material(generateVelocityShader([]), this.sharedUniforms);
@@ -227,6 +227,8 @@ export class GpuCompute {
     u.uMode2D!.value = settings.mode2D;
     // The stored velocities must be rewritten with it (ParticleSet.setMetric, then upload).
     u.uInverseLightSpeed2!.value = inverseLightSpeed2(settings);
+    // c is an input of forces that read c_light, like their parameters: Verlet's stored a(x) goes stale.
+    if (u.uLightSpeed!.value !== settings.lightSpeed) this.accelerationValid = false;
     u.uLightSpeed!.value = settings.lightSpeed;
     this.integrator = settings.integrator;
   }

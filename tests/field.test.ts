@@ -40,7 +40,7 @@ describe('referenceField', () => {
     referenceStep(set, forces, { ...DEFAULT_SETTINGS, integrator: 'euler', timeStep: dt }, time);
     // Particle 0 has clock 0, the probe's clock, so its t_i matches.
     const p = particles[0]!;
-    const field = referenceField(setOf(particles), forces, probeOf(p), p.position, time);
+    const field = referenceField(setOf(particles), forces, probeOf(p), p.position, time, DEFAULT_SETTINGS.lightSpeed);
     const after = set.get(0).velocity;
     for (let k = 0; k < 3; k++) expect(field[k]!).toBeCloseTo((p.mass * after[k]!) / dt, 4);
     expect(Math.hypot(...field)).toBeGreaterThan(0.1);
@@ -49,14 +49,14 @@ describe('referenceField', () => {
   it('is linear in the test charge for a Coulomb force', () => {
     const set = setOf(particles);
     const positions = [2, 2, 0, -3, 1, 0];
-    const one = referenceField(set, [forces[0]!], DEFAULT_PROBE, positions, 0);
-    const minusTwo = referenceField(set, [forces[0]!], { ...DEFAULT_PROBE, charge: -2 }, positions, 0);
+    const one = referenceField(set, [forces[0]!], DEFAULT_PROBE, positions, 0, DEFAULT_SETTINGS.lightSpeed);
+    const minusTwo = referenceField(set, [forces[0]!], { ...DEFAULT_PROBE, charge: -2 }, positions, 0, DEFAULT_SETTINGS.lightSpeed);
     one.forEach((value, k) => expect(minusTwo[k]!).toBeCloseTo(-2 * value, 10));
   });
 
   it('is zero without forces or particles', () => {
-    expect([...referenceField(setOf(particles), [], DEFAULT_PROBE, [1, 1, 1], 0)]).toEqual([0, 0, 0]);
-    expect([...referenceField(new ParticleSet(1), forces, DEFAULT_PROBE, [1, 1, 1], 0)]).toEqual([0, 0, 0]);
+    expect([...referenceField(setOf(particles), [], DEFAULT_PROBE, [1, 1, 1], 0, DEFAULT_SETTINGS.lightSpeed)]).toEqual([0, 0, 0]);
+    expect([...referenceField(new ParticleSet(1), forces, DEFAULT_PROBE, [1, 1, 1], 0, DEFAULT_SETTINGS.lightSpeed)]).toEqual([0, 0, 0]);
   });
 });
 

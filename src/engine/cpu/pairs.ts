@@ -19,9 +19,10 @@ const UNSAMPLED_NOISE: Readonly<PairNoise> = { rand: NaN, randn: NaN, randvx: Na
 
 /**
  * Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. The random
- * numbers are hashed from {i, j} and `time` only with `noise` (some force reads them, as on the GPU).
+ * numbers are hashed from {i, j} and `time` only with `noise` (some force reads them, as on the GPU);
+ * `lightSpeed` is the configured c (c_light), a setting like `time`.
  */
-export function pairScope(set: ParticleSet, i: number, j: number, time: number, noise: boolean): Pair {
+export function pairScope(set: ParticleSet, i: number, j: number, time: number, noise: boolean, lightSpeed: number): Pair {
   const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
   const n = noise ? pairNoise(i, j, time) : UNSAMPLED_NOISE;
   const oi = i * TEXEL;
@@ -39,7 +40,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number, 
     i3_i: s[oi + 3]!, i3_j: s[oj + 3]!,
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
-    t_i: v[oi + 3]!, t_j: v[oj + 3]!, time, c_light: set.lightSpeed,
+    t_i: v[oi + 3]!, t_j: v[oj + 3]!, time, c_light: lightSpeed,
     vx_i: v[oi]! * gi, vy_i: v[oi + 1]! * gi, vz_i: v[oi + 2]! * gi, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     rand: n.rand, randn: n.randn, randvx: n.randvx, randvy: n.randvy, randvz: n.randvz,
   };
@@ -49,7 +50,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number, 
  * Same as pairScope with the field's test particle (clock 0) at `probe.position` receiving the force
  * from j; random numbers take their mean, as in the GPU field pass.
  */
-export function probeScope(probe: Probe, set: ParticleSet, j: number, time: number): Pair {
+export function probeScope(probe: Probe, set: ParticleSet, j: number, time: number, lightSpeed: number): Pair {
   const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
   const oj = j * TEXEL;
   const dx = probe.position[0] - x[oj]!;
@@ -64,7 +65,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     i3_i: probe.isospin, i3_j: s[oj + 3]!,
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: probe.color[0], cg_i: probe.color[1], cb_i: probe.color[2], cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
-    t_i: 0, t_j: v[oj + 3]!, time, c_light: set.lightSpeed,
+    t_i: 0, t_j: v[oj + 3]!, time, c_light: lightSpeed,
     // The test particle is at rest: velocity-dependent forces on it vanish.
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     ...MEAN_NOISE,

@@ -2,7 +2,7 @@ export const ParticleKind = { dynamic: 1, fixed: 2 } as const;
 export type ParticleKind = (typeof ParticleKind)[keyof typeof ParticleKind];
 
 import { coordinateVelocity, inverseLightSpeed2, properVelocity } from './metric';
-import { DEFAULT_SETTINGS, type SimulationSettings } from './settings';
+import type { SimulationSettings } from './settings';
 
 export type Vec3 = [number, number, number];
 
@@ -45,8 +45,6 @@ export class ParticleSet {
   count = 0;
   /** k = 1/c² the velocity array is written for (0: Galilean, it holds v). */
   private k = 0;
-  /** The configured c, which expressions read as c_light under either metric. */
-  private c = DEFAULT_SETTINGS.lightSpeed;
 
   constructor(readonly capacity: number) {
     if (!Number.isInteger(capacity) || capacity <= 0) {
@@ -63,13 +61,10 @@ export class ParticleSet {
     return this.k;
   }
 
-  get lightSpeed(): number {
-    return this.c;
-  }
-
   /**
-   * Adopts a metric and c: the stored velocities are rewritten for the new k = 1/c², keeping every
-   * coordinate velocity v. Throws without changing anything when a particle would reach the new c.
+   * Adopts a metric: the stored velocities are rewritten for its k = 1/c² (0 when Galilean, whatever
+   * c is), keeping every coordinate velocity v. Throws without changing anything when a particle
+   * would reach the new c.
    */
   setMetric(settings: Pick<SimulationSettings, 'metric' | 'lightSpeed'>): void {
     const k = inverseLightSpeed2(settings);
@@ -91,7 +86,6 @@ export class ParticleSet {
     }
     for (let index = 0; index < this.count; index++) this.velocity.set(rewritten.subarray(index * 3, index * 3 + 3), index * TEXEL);
     this.k = k;
-    this.c = settings.lightSpeed;
   }
 
   add(particle: Particle): number {

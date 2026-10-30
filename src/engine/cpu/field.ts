@@ -9,7 +9,7 @@ import { addPairForce, probeScope } from './pairs';
  * a probe exactly on a particle ignores it, as coincident particles do.
  */
 export function referenceField(
-  set: ParticleSet, forces: readonly CompiledForce[], probe: FieldProbe, positions: ArrayLike<number>, time: number,
+  set: ParticleSet, forces: readonly CompiledForce[], probe: FieldProbe, positions: ArrayLike<number>, time: number, lightSpeed: number,
 ): Float64Array {
   const count = positions.length / 3;
   const result = new Float64Array(count * 3);
@@ -24,7 +24,7 @@ export function referenceField(
       const r2 = dx * dx + dy * dy + dz * dz;
       if (r2 === 0 || forces.length === 0) continue;
       const dist = Math.sqrt(r2);
-      const pair = probeScope({ ...probe, position: [positions[p * 3]!, positions[p * 3 + 1]!, positions[p * 3 + 2]!] }, set, j, time);
+      const pair = probeScope({ ...probe, position: [positions[p * 3]!, positions[p * 3 + 1]!, positions[p * 3 + 2]!] }, set, j, time, lightSpeed);
       addPairForce(forces, pair, dist, force);
     }
     result.set(force, p * 3);

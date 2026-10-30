@@ -84,7 +84,7 @@ describe('ParticleSet under Minkowski', () => {
     set.setMetric(DEFAULT_SETTINGS);
     expect(set.velocity[0]).toBeCloseTo(1.5, 6);
     expect(() => set.setMetric(minkowski({ lightSpeed: 1 }))).toThrow(/1 particle\(s\) move at or above c = 1 \(fastest 1\.5/);
-    expect([set.inverseLightSpeed2, set.lightSpeed]).toEqual([0, DEFAULT_SETTINGS.lightSpeed]);
+    expect(set.inverseLightSpeed2).toBe(0);
     expect(set.velocity[0]).toBeCloseTo(1.5, 6);
   });
 
@@ -98,7 +98,7 @@ describe('ParticleSet under Minkowski', () => {
 
   it('refuses to step a set written for another metric', () => {
     const set = setFor(DEFAULT_SETTINGS, defaultParticle());
-    expect(() => referenceStep(set, [], minkowski(), 0)).toThrow(/set up for 1\/c² = 0 and c = 10, but the settings give 0.25 and 2/);
+    expect(() => referenceStep(set, [], minkowski(), 0)).toThrow(/stores velocities for 1\/c² = 0, but the settings' metric gives 0.25/);
   });
 });
 
@@ -200,10 +200,18 @@ describe('c_light', () => {
     const force = compileForce(makeForce({ expression: 'c_light', params: [] }));
     for (const settings of [minkowski({ lightSpeed: 3 }), { ...DEFAULT_SETTINGS, lightSpeed: 7 }]) {
       const set = setFor(settings, defaultParticle(), defaultParticle({ position: [1, 0, 0] }));
-      const pair = pairScope(set, 0, 1, 0, false);
+      const pair = pairScope(set, 0, 1, 0, false, settings.lightSpeed);
       expect(force.evaluate(forceScope(force, pair, 1))).toBe(settings.lightSpeed);
     }
     expect(generateVelocityShader([force])).toContain('uLightSpeed');
+  });
+
+  it('steps with the settings\' c: a Galilean set needs no setMetric when only c changes', () => {
+    const push = compileForce(makeForce({ expression: 'n_j * vec(c_light, 0, 0)', params: [] }));
+    const settings = { ...DEFAULT_SETTINGS, integrator: 'euler' as const, timeStep: 1, lightSpeed: 3 };
+    const set = setFor(DEFAULT_SETTINGS, defaultParticle(), source);
+    referenceStep(set, [push], settings, 0);
+    expect(set.get(0).velocity[0]).toBeCloseTo(3, 9);
   });
 
   it('couples the magnetic preset as k/c² times Biot–Savart', () => {
@@ -212,7 +220,7 @@ describe('c_light', () => {
     const set = setFor(minkowski({ lightSpeed: 4 }),
       defaultParticle({ position: [0.4, -1, 0.3], velocity: [0.2, 0.5, -0.1], charge: 1.5 }),
       defaultParticle({ position: [-1, 0.8, 0], velocity: [-0.3, 0.1, 0.4], charge: -2 }));
-    const pair = pairScope(set, 0, 1, 0, false);
+    const pair = pairScope(set, 0, 1, 0, false, 4);
     const dist = Math.hypot(1.4, -1.8, 0.3);
     const a = magnetic.evaluateVector!(forceScope(magnetic, pair, dist));
     const b = biotSavart.evaluateVector!(forceScope(biotSavart, pair, dist));

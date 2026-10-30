@@ -9,7 +9,7 @@ import { makeForce } from './helpers';
 const gravityPotential = compileForce(makeForce({ mode: 'potential', expression: '-G * m_i * m_j / r', params: [{ name: 'G', value: 1 }] }));
 
 function energy(set: ParticleSet, forces = [gravityPotential]) {
-  return summarizeEnergy(set, set.velocity, referencePotentials(set, forces, 0), forces, false);
+  return summarizeEnergy(set, set.velocity, referencePotentials(set, forces, 0, DEFAULT_SETTINGS.lightSpeed), forces, false);
 }
 
 describe('energy', () => {

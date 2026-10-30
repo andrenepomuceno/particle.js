@@ -78,7 +78,7 @@ export function summarizeSpacetime(set: ParticleSet, velocity: Float32Array): Sp
 }
 
 /** Float64 mirror of the GPU potential pass: Σ_j V(r_ij) per particle. */
-export function referencePotentials(set: ParticleSet, forces: readonly CompiledForce[], time: number): Float32Array {
+export function referencePotentials(set: ParticleSet, forces: readonly CompiledForce[], time: number, lightSpeed: number): Float32Array {
   const pos = set.position;
   const result = new Float32Array(set.count);
   for (let i = 0; i < set.count; i++) {
@@ -88,7 +88,7 @@ export function referencePotentials(set: ParticleSet, forces: readonly CompiledF
       const r2 = [0, 1, 2].reduce((acc, k) => acc + (pos[i * TEXEL + k]! - pos[j * TEXEL + k]!) ** 2, 0);
       if (r2 === 0) continue;
       // Potentials cannot read random numbers (compileForce refuses them).
-      const pair = pairScope(set, i, j, time, false);
+      const pair = pairScope(set, i, j, time, false, lightSpeed);
       sum += pairPotential(forces, pair, Math.sqrt(r2));
     }
     result[i] = sum;

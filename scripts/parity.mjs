@@ -173,7 +173,7 @@ const failures = await withBrowser(async ({ browser, base }) => {
       c.gpu.setProbes(positions);
       c.gpu.computeField(c.state.time, probe);
       const gpu = c.gpu.readFieldMagnitudes();
-      const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time);
+      const ref = referenceField(cpu, c.compiledForces, probe, positions, c.state.time, c.state.settings.lightSpeed);
       const exact = Array.from(gpu, (_, p) => Math.hypot(ref[p * 3], ref[p * 3 + 1], ref[p * 3 + 2]));
       // Per-probe relative error, floored at the median |F| so near-zero probes do not dominate
       // and a single 1/r^2 spike cannot hide errors on the typical probes.

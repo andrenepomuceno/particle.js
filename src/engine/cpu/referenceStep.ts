@@ -28,8 +28,8 @@ export function referenceStep(
   state: ReferenceState = {},
 ): void {
   const k = inverseLightSpeed2(settings);
-  if (set.inverseLightSpeed2 !== k || set.lightSpeed !== settings.lightSpeed) {
-    throw new Error(`the particle set is set up for 1/c² = ${set.inverseLightSpeed2} and c = ${set.lightSpeed}, but the settings give ${k} and ${settings.lightSpeed}; call setMetric first`);
+  if (set.inverseLightSpeed2 !== k) {
+    throw new Error(`the particle set stores velocities for 1/c² = ${set.inverseLightSpeed2}, but the settings' metric gives ${k}; call setMetric first`);
   }
   // Velocity-dependent forces break Verlet's position-only assumption; the Euler step (with the
   // implicit kick for forces reading v_i) handles them.
@@ -113,8 +113,9 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
 
 /** Σ_j F_ij on particle i; clocks are read advanced by `clockShifts` (Verlet evaluates before writing them). */
 function totalForce(
-  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShifts: Float64Array | undefined, collisionDistance: number, jacobian?: Float64Array,
+  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShifts: Float64Array | undefined, settings: SimulationSettings, jacobian?: Float64Array,
 ): Vec {
+  const { collisionDistance, lightSpeed } = settings;
   const pos = set.position;
   const oi = i * TEXEL;
   const force: [number, number, number] = [0, 0, 0];
@@ -135,7 +136,7 @@ function totalForce(
     // other overlaps feel it evaluated at the contact distance.
     if (trueDist < collisionDistance && approaching) continue;
     const dist = Math.max(trueDist, collisionDistance);
-    const pair = pairScope(set, i, j, time, noise);
+    const pair = pairScope(set, i, j, time, noise, lightSpeed);
     if (clockShifts) {
       pair.t_i += clockShifts[i]!;
       pair.t_j += clockShifts[j]!;
@@ -150,7 +151,7 @@ function accelerations(set: ParticleSet, forces: readonly CompiledForce[], setti
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, clockShifts, settings.collisionDistance);
+    const force = totalForce(set, i, forces, time, clockShifts, settings);
     result.set([force[0] / mass, force[1] / mass, settings.mode2D ? 0 : force[2] / mass], i * 3);
   }
   return result;
@@ -215,7 +216,7 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
     }
     const mass = set.attributes[i * TEXEL]!;
     const jacobian = implicit ? new Float64Array(9) : undefined;
-    const force = totalForce(set, i, forces, time, undefined, settings.collisionDistance, jacobian);
+    const force = totalForce(set, i, forces, time, undefined, settings, jacobian);
     if (jacobian && k > 0) toProperJacobian(jacobian, read(set.velocity, i), k);
     const kick = jacobian ? implicitKick(force, jacobian, mass, dt) : force.map((c) => (dt * c) / mass) as Vec;
     const u = read(set.velocity, i).map((c, axis) => c + kick[axis]! + impulses[i * 3 + axis]!) as Vec;

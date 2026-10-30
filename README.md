@@ -2,7 +2,8 @@
 
 ![Color confinement scenario](docs/img/quarks.png)
 
-A classical, non-relativistic n-body particle physics simulator that runs in the browser. You write the forces:
+An n-body particle physics simulator that runs in the browser: classical mechanics, with special
+relativity one switch away (Minkowski metric). You write the forces:
 each one is an expression such as `k * q_i * q_j / r^2` or a potential such as
 `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)`, short or long range. The expression is
 compiled to GLSL and every particle pair is evaluated in parallel on the GPU.
@@ -21,6 +22,9 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   is applied as written, and velocity-dependent ones (v × B) get an exact implicit step.
 - **Vector forces**: a potential of the relative position (`dx`, `dy`, `dz`, or the spin projections)
   gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
+- **Special relativity**: the Spacetime dialog switches the metric from Galilean to Minkowski with
+  a chosen c: forces change the momentum γmv, speeds stay below c, and each clock shows its proper
+  time (scenarios *Twin Clocks* and *Relativistic Cyclotron*).
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Statistics**: energy, speed, temperature and performance charts, and a table of the particles grouped by property.
@@ -51,7 +55,8 @@ limit (default 16384).
 
 ## Physics in one paragraph
 
-Classical mechanics. For every pair, each enabled force contributes a signed magnitude
+Classical mechanics, or special relativity under the Minkowski metric (momentum γmv, |v| < c,
+proper-time clocks). For every pair, each enabled force contributes a signed magnitude
 `F(r)` along the line joining the particles; **positive pushes them apart**. Short-range
 forces are zero beyond their cutoff; softening ε replaces `r` with `√(r² + ε²)` inside the
 expression. Particles advance with velocity Verlet (default) or semi-implicit Euler. Details: [docs/forces.md](docs/forces.md).

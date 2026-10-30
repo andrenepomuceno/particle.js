@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { compileForce } from '../src/engine/forces/compile';
+import { inverseLightSpeed2 } from '../src/engine/metric';
+import { ParticleSet } from '../src/engine/particles';
 import { createRng } from '../src/engine/random';
+import { DEFAULT_SETTINGS } from '../src/engine/settings';
 import { SCENARIOS } from '../src/scenarios';
 import { parseScenario } from '../src/scenarios/scenarioFile';
 
@@ -13,18 +17,22 @@ const build = (extra: object, seed = 1) => {
 describe('bundled scenario library', () => {
   it('parses every file with unique ids in file-name order', () => {
     expect(SCENARIOS.map((s) => s.id)).toEqual([
-      'galaxy', 'plasma', 'nuclei', 'crystal', 'crystal-slab', 'dipole-chains', 'dipole-crystal', 'radiation-belt', 'cyclotron', 'beam-pinch', 'quarks', 'hadrons', 'welcome', 'the-egg', 'gravity',
+      'galaxy', 'plasma', 'nuclei', 'crystal', 'crystal-slab', 'dipole-chains', 'dipole-crystal', 'radiation-belt', 'cyclotron', 'beam-pinch', 'quarks', 'hadrons', 'twin-clocks', 'relativistic-cyclotron', 'welcome', 'the-egg', 'gravity',
       'experiments-4', 'hexagonal-crystal-quarks', 'air', 'water-2', 'essential-elements', 'periodic-table', 'hexagonal-crystal', 'tetragonal-crystal', 'hydrogen', 'helium',
       'water', 'super-nucleus-3d', 'plasma-ball', 'strong-blob', 'standard-model', 'standard-model-1', 'wild-particles', 'planetoid-formation', 'hexagon-1', 'hexagon-2',
       'hexagon-3', 'terrarium', 'sandbox',
     ]);
   });
 
-  it.each(SCENARIOS.map((s) => [s.id, s] as const))('%s builds deterministically with valid forces', (_, scenario) => {
+  it.each(SCENARIOS.map((s) => [s.id, s] as const))('%s builds deterministically with valid forces, below its c', (_, scenario) => {
     const first = scenario.build(createRng(scenario.seed)).particles;
     const second = scenario.build(createRng(scenario.seed)).particles;
     expect(first).toEqual(second);
-    expect(scenario.forces().length).toBeGreaterThan(0);
+    scenario.forces().forEach((force) => expect(() => compileForce(force)).not.toThrow());
+    // Under Minkowski every particle must start below c (the set refuses it otherwise).
+    const set = new ParticleSet(Math.max(first.length, 1));
+    set.setInverseLightSpeed2(inverseLightSpeed2({ ...DEFAULT_SETTINGS, ...scenario.settings }));
+    expect(() => set.addAll(first)).not.toThrow();
   });
 });
 

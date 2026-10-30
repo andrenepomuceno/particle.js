@@ -38,6 +38,9 @@ Four RGBA float textures of `width × width` texels, one particle per texel, ind
 | --- | --- | --- | --- | --- |
 | position (ping-pong) | x | y | z | kind (1 dynamic, 2 fixed) |
 | velocity (ping-pong) | vx | vy | vz | particle clock |
+
+Under the Minkowski metric the velocity texture (and the `ParticleSet` mirror) holds the proper
+velocity u = γv; `Particle` objects, scenario files and snapshots always carry v (`src/engine/metric.ts`).
 | attributes (static) | mass | charge q | charge q2 | parity |
 | color (static) | red | green | blue | nuclear charge |
 | spin (static) | sx | sy | sz | isospin I₃ |

@@ -23,7 +23,7 @@ field; click the canvas to give focus back.
 | E | show / hide the boundary (sphere or box lines; also in Parameters) |
 | J | show / hide the force field |
 | F | re-fit the field grid to the current view |
-| Q | cycle color mode (charge, color, speed, mass, spin direction (each axis −1…1 → 0…1), parity, nuclear, isospin) |
+| Q | cycle color mode (charge, color, speed, mass, spin direction (each axis −1…1 → 0…1), parity, nuclear, isospin, clock) |
 | * | start / stop recording the canvas to a WebM video (downloaded when it stops) |
 | H | hide all overlays |
 | M | close all dialogs |
@@ -31,7 +31,7 @@ field; click the canvas to give focus back.
 | O | look at the selection (centers the camera on its centroid) |
 | X | copy selection to the clipboard |
 | D | delete selection |
-| B / T / Y | zero / halve / randomly kick all velocities |
+| B / T / Y | zero / halve / randomly kick all velocities (the momenta u = γv under Minkowski, so speeds stay below c) |
 | Escape | clear selection and inspection |
 | ? | shortcuts dialog |
 
@@ -89,7 +89,15 @@ scenarios rescale at constant density (see docs/scenarios.md). The GPU capacity 
 
 ## Dialogs
 
-Information, Forces, Expressions, Parameters, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
+Information, Forces, Expressions, Parameters, Spacetime, Controls, Particle, Selection, Generator, Field, Statistics, Shortcuts.
+
+**Spacetime** picks the metric: Galilean (classical) or Minkowski (special relativity, with the
+speed of light c; see [forces](forces.md#spacetime-metric)). It shows the largest γ, the fastest
+speed as a fraction of c and the spread of the particle clocks, sampled once per second. A
+switch that cannot apply is refused with a notice: Minkowski with a speed clamp set, or a
+particle at or above the new c. Under Minkowski the Particle dialog adds γ and labels the clock
+*Proper time*. The `clock` color mode spans the current clock spread: warm for clocks behind
+(moving fast, or created later), blue for the ones ahead.
 
 **Field** (<kbd>J</kbd>) draws a grid of arrows over the view showing the net force a test
 particle would feel there, using the enabled forces exactly as the integrator does. The grid

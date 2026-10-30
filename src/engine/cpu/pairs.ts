@@ -8,6 +8,11 @@ type Probe = FieldProbe & { position: Vec3 };
 // These run N² times per step in the CPU references, so they read the typed arrays directly
 // instead of building intermediate objects.
 
+/** 1/γ of the stored velocity at offset o: expressions see v = u/γ (1 when Galilean, k = 0). */
+function inverseGamma(v: Float32Array, o: number, k: number): number {
+  return k > 0 ? 1 / Math.sqrt(1 + (v[o]! ** 2 + v[o + 1]! ** 2 + v[o + 2]! ** 2) * k) : 1;
+}
+
 /** Variables of the pair (i receives, j exerts) except r, read from the ParticleSet layout. */
 export function pairScope(set: ParticleSet, i: number, j: number, time: number): Pair {
   const { position: x, velocity: v, attributes: a, color: c, spin: s } = set;
@@ -17,6 +22,8 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number):
   const dy = x[oi + 1]! - x[oj + 1]!;
   const dz = x[oi + 2]! - x[oj + 2]!;
   const length = Math.hypot(dx, dy, dz) || 1;
+  const gi = inverseGamma(v, oi, set.inverseLightSpeed2);
+  const gj = inverseGamma(v, oj, set.inverseLightSpeed2);
   return {
     m_i: a[oi]!, m_j: a[oj]!, q_i: a[oi + 1]!, q_j: a[oj + 1]!, q2_i: a[oi + 2]!, q2_j: a[oj + 2]!,
     p_i: a[oi + 3]!, p_j: a[oj + 3]!, n_i: c[oi + 3]!, n_j: c[oj + 3]!,
@@ -25,7 +32,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number):
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
     t_i: v[oi + 3]!, t_j: v[oj + 3]!, time,
-    vx_i: v[oi]!, vy_i: v[oi + 1]!, vz_i: v[oi + 2]!, vx_j: v[oj]!, vy_j: v[oj + 1]!, vz_j: v[oj + 2]!,
+    vx_i: v[oi]! * gi, vy_i: v[oi + 1]! * gi, vz_i: v[oi + 2]! * gi, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
   };
 }
 
@@ -37,6 +44,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
   const dy = probe.position[1] - x[oj + 1]!;
   const dz = probe.position[2] - x[oj + 2]!;
   const length = Math.hypot(dx, dy, dz) || 1;
+  const gj = inverseGamma(v, oj, set.inverseLightSpeed2);
   return {
     m_i: probe.mass, m_j: a[oj]!, q_i: probe.charge, q_j: a[oj + 1]!, q2_i: probe.charge2, q2_j: a[oj + 2]!,
     p_i: probe.parity, p_j: a[oj + 3]!, n_i: probe.nuclearCharge, n_j: c[oj + 3]!,
@@ -46,7 +54,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     cr_i: probe.color[0], cg_i: probe.color[1], cb_i: probe.color[2], cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
     t_i: 0, t_j: v[oj + 3]!, time,
     // The test particle is at rest: velocity-dependent forces on it vanish.
-    vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]!, vy_j: v[oj + 1]!, vz_j: v[oj + 2]!,
+    vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
   };
 }
 

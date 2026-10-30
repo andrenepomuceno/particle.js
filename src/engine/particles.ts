@@ -1,11 +1,14 @@
 export const ParticleKind = { dynamic: 1, fixed: 2 } as const;
 export type ParticleKind = (typeof ParticleKind)[keyof typeof ParticleKind];
 
+import { coordinateVelocity, properVelocity } from './metric';
+
 export type Vec3 = [number, number, number];
 
 export interface Particle {
   kind: ParticleKind;
   position: Vec3;
+  /** Coordinate velocity dx/dt, under either metric (the set stores u = γv under Minkowski). */
   velocity: Vec3;
   time: number;
   mass: number;
@@ -29,6 +32,8 @@ export const TEXEL = 4;
  * position = (x, y, z, kind), velocity = (vx, vy, vz, time),
  * attributes = (mass, charge, charge2, parity), color = (r, g, b, nuclear charge),
  * spin = (sx, sy, sz, isospin).
+ * Under the Minkowski metric the velocity array holds the proper velocity u = γv, as the textures
+ * do (see metric.ts); `get`, `set`, `add` and `toArray` convert, so Particle objects always carry v.
  */
 export class ParticleSet {
   readonly position: Float32Array;
@@ -37,6 +42,8 @@ export class ParticleSet {
   readonly color: Float32Array;
   readonly spin: Float32Array;
   count = 0;
+  /** k = 1/c² the velocity array is written for (0: Galilean, it holds v). */
+  private k = 0;
 
   constructor(readonly capacity: number) {
     if (!Number.isInteger(capacity) || capacity <= 0) {
@@ -49,11 +56,40 @@ export class ParticleSet {
     this.spin = new Float32Array(capacity * TEXEL);
   }
 
+  get inverseLightSpeed2(): number {
+    return this.k;
+  }
+
+  /**
+   * Rewrites the stored velocities for a new k = 1/c², keeping every coordinate velocity v.
+   * Throws without changing anything when a particle would reach the new c.
+   */
+  setInverseLightSpeed2(k: number): void {
+    if (!(Number.isFinite(k) && k >= 0)) throw new Error(`1/c² must be finite and >= 0, got ${k}`);
+    const rewritten = new Float32Array(this.count * 3);
+    const tooFast: number[] = [];
+    for (let index = 0; index < this.count; index++) {
+      const o = index * TEXEL;
+      const v = coordinateVelocity(this.velocity.subarray(o, o + 3), this.k);
+      try {
+        rewritten.set(properVelocity(v, k), index * 3);
+      } catch {
+        tooFast.push(index);
+      }
+    }
+    if (tooFast.length > 0) {
+      const fastest = Math.max(...tooFast.map((index) => Math.hypot(...coordinateVelocity(this.velocity.subarray(index * TEXEL, index * TEXEL + 3), this.k))));
+      throw new Error(`${tooFast.length} particle(s) move at or above c = ${1 / Math.sqrt(k)} (fastest ${fastest}); raise c or slow them down first`);
+    }
+    for (let index = 0; index < this.count; index++) this.velocity.set(rewritten.subarray(index * 3, index * 3 + 3), index * TEXEL);
+    this.k = k;
+  }
+
   add(particle: Particle): number {
     if (this.count >= this.capacity) {
       throw new Error(`particle capacity exceeded: ${this.capacity} slots, all in use`);
     }
-    assertValidParticle(particle, this.count);
+    this.assertWritable(particle, this.count);
     this.write(this.count, particle);
     return this.count++;
   }
@@ -64,7 +100,7 @@ export class ParticleSet {
         `cannot add ${particles.length} particles: ${this.count} in use, capacity ${this.capacity}`,
       );
     }
-    particles.forEach((particle, k) => assertValidParticle(particle, k));
+    particles.forEach((particle, k) => this.assertWritable(particle, k));
     particles.forEach((particle) => this.add(particle));
   }
 
@@ -75,7 +111,7 @@ export class ParticleSet {
     return {
       kind: p[o + 3] as ParticleKind,
       position: [p[o]!, p[o + 1]!, p[o + 2]!],
-      velocity: [v[o]!, v[o + 1]!, v[o + 2]!],
+      velocity: coordinateVelocity(v.subarray(o, o + 3), this.k),
       time: v[o + 3]!,
       mass: a[o]!,
       charge: a[o + 1]!,
@@ -90,8 +126,18 @@ export class ParticleSet {
 
   set(index: number, particle: Particle): void {
     this.assertIndex(index);
-    assertValidParticle(particle, index);
+    this.assertWritable(particle, index);
     this.write(index, particle);
+  }
+
+  /**
+   * velocity → velocity·factor + kick on the stored velocity: v when Galilean, the momentum per
+   * mass u = γv under Minkowski, so no amount of scaling or kicking reaches c.
+   */
+  scaleVelocity(index: number, factor: number, kick: Vec3): void {
+    this.assertIndex(index);
+    const o = index * TEXEL;
+    for (let axis = 0; axis < 3; axis++) this.velocity[o + axis] = this.velocity[o + axis]! * factor + kick[axis]!;
   }
 
   toArray(): Particle[] {
@@ -117,10 +163,20 @@ export class ParticleSet {
     this.count = 0;
   }
 
+  /** A valid particle whose speed stays below c, so it has a proper velocity to store. */
+  private assertWritable(particle: Particle, index: number): void {
+    assertValidParticle(particle, index);
+    try {
+      properVelocity(particle.velocity, this.k);
+    } catch (error) {
+      throw new Error(`particle #${index}: ${(error as Error).message}`, { cause: error });
+    }
+  }
+
   private write(index: number, particle: Particle): void {
     const o = index * TEXEL;
     this.position.set([...particle.position, particle.kind], o);
-    this.velocity.set([...particle.velocity, particle.time], o);
+    this.velocity.set([...properVelocity(particle.velocity, this.k), particle.time], o);
     this.attributes.set([particle.mass, particle.charge, particle.charge2, particle.parity], o);
     this.spin.set([...particle.spin, particle.isospin], o);
     this.color.set([...particle.color, particle.nuclearCharge], o);

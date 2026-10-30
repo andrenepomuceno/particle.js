@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Special relativity: a **Spacetime** dialog switches the metric from Galilean (classical, the
+  default) to Minkowski with a chosen speed of light c (`metric` and `lightSpeed` settings).
+  Forces change the momentum γmv, so speeds stay below c without a clamp. Each clock shows its
+  proper time dτ = dt/γ. Kinetic energy is (γ − 1)mc². Interactions stay instantaneous.
+  Expressions still see v = dx/dt, so the existing Lorentz forces are relativistic as written.
+- New color mode `clock` (the spread of particle clocks); the Particle dialog shows γ under Minkowski.
+- New scenarios in *Relativity*: *Twin Clocks* and *Relativistic Cyclotron*.
+- Snapshots are version 6 (adds `metric` and `lightSpeed`); versions 1–5 load as Galilean.
 - Fix: a random velocity's `speed` given as `{ "cycle": [...] }` now cycles per particle (every
   particle used to get the first value).
 - Statistics has a Particles tab: particles grouped by their properties (kind, mass, charges, spin,

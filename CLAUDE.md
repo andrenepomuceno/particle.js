@@ -1,6 +1,6 @@
 # CLAUDE.md — particle.js v2
 
-Simulador clássico de n-corpos no navegador (frontend only). Forças/potenciais são
+Simulador de n-corpos no navegador (frontend only), clássico ou com relatividade especial (Minkowski). Forças/potenciais são
 **expressões definidas pelo usuário**, compiladas para GLSL e executadas em paralelo
 na GPU. React + TypeScript + three.js, build com Vite.
 
@@ -8,8 +8,11 @@ Sucessor de `../particle.js` (v1, somente leitura: serve de inspiração, não d
 
 ## Modelo físico
 
-- Física **clássica**: nada de relatividade. `maxSpeed` é só um clamp numérico opcional.
-- Partícula: posição, velocidade, tempo próprio (relógio/idade, acumula `dt`), massa (> 0),
+- Física **clássica** por padrão (métrica galileana). A métrica de **Minkowski** (aba Spacetime, `metric`/`lightSpeed`)
+  liga a relatividade especial: as texturas guardam u = γv, du/dt = F/m, |v| < c, e os relógios dão o tempo próprio
+  (`src/engine/metric.ts`). As interações continuam instantâneas (sem cone de luz). `maxSpeed` é só um clamp numérico,
+  recusado sob Minkowski. Objetos `Particle`, cenários e snapshots sempre carregam v.
+- Partícula: posição, velocidade, tempo próprio (relógio: acumula `dt`, ou `dt/γ` sob Minkowski), massa (> 0),
   carga 2D (q, q2), spin vetorial fixo (sem torque), isospin I₃, paridade, carga de cor (quantidades r,g,b sobre 3 vetores-base a 120°;
   `c_dot` = C_i·C_j, ver `docs/forces.md`), carga nuclear (`n`, conceito do v1), tipo (`dynamic` | `fixed`).
 - Força de par: magnitude escalar `F(r)`, **positiva = repulsiva**, aplicada ao longo de

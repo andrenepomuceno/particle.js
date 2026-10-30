@@ -6,6 +6,7 @@ import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import type { FieldProbe } from '../field';
 import type { ParticleSet } from '../particles';
+import { inverseLightSpeed2 } from '../metric';
 import type { SimulationSettings } from '../settings';
 import {
   BOUNDARY_CODE, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
@@ -117,6 +118,7 @@ export class GpuCompute {
       uAcceleration: { value: null },
       uAccelerationNext: { value: null },
       uClockShift: { value: 0 },
+      uInverseLightSpeed2: { value: 0 },
     };
     this.positionMaterial = this.material(POSITION_SHADER, this.sharedUniforms);
     this.velocityMaterial = this.material(generateVelocityShader([]), this.sharedUniforms);
@@ -222,6 +224,8 @@ export class GpuCompute {
     // a(x) depends on positions and forces only; mode2D zeroes its z, and Euler leaves it stale.
     if (u.uMode2D!.value !== settings.mode2D || this.integrator !== settings.integrator) this.accelerationValid = false;
     u.uMode2D!.value = settings.mode2D;
+    // The stored velocities must be rewritten with it (ParticleSet.setInverseLightSpeed2, then upload).
+    u.uInverseLightSpeed2!.value = inverseLightSpeed2(settings);
     this.integrator = settings.integrator;
   }
 
@@ -408,7 +412,7 @@ export class GpuCompute {
     this.probes = undefined;
   }
 
-  /** Reads the current velocities (vx, vy, vz, clock per particle) without touching the ParticleSet. */
+  /** Reads the stored velocities (vx, vy, vz, clock per particle; u = γv under Minkowski) without touching the ParticleSet. */
   readVelocities(): Float32Array {
     const rows = Math.ceil(this.set.count / this.width);
     const buffer = new Float32Array(rows * this.width * 4);

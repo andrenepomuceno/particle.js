@@ -1,5 +1,6 @@
 import type { CompiledForce } from '../forces/compile';
 import { pairScope, addPairForce } from './pairs';
+import { coordinateVelocity, inverseLightSpeed2, lorentzFactor, velocityJacobian } from '../metric';
 import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
 import { boxHalfSize, type SimulationSettings } from '../settings';
 
@@ -16,7 +17,8 @@ export interface ReferenceState {
 
 /**
  * Float64 mirror of the GPU passes for both integrators. It pins down the integrator
- * semantics in unit tests and is the reference for cross-checking GPU output.
+ * semantics in unit tests and is the reference for cross-checking GPU output. Under the
+ * Minkowski metric the set's velocities are proper velocities u (see metric.ts).
  */
 export function referenceStep(
   set: ParticleSet,
@@ -25,6 +27,10 @@ export function referenceStep(
   time: number,
   state: ReferenceState = {},
 ): void {
+  const k = inverseLightSpeed2(settings);
+  if (set.inverseLightSpeed2 !== k) {
+    throw new Error(`the particle set stores velocities for 1/c² = ${set.inverseLightSpeed2}, but the settings' metric gives ${k}; call setInverseLightSpeed2 first`);
+  }
   // Velocity-dependent forces break Verlet's position-only assumption; the Euler step (with the
   // implicit kick for forces reading v_i) handles them.
   if (settings.integrator === 'verlet' && !forces.some((f) => f.velocity)) verletStep(set, forces, settings, time, state);
@@ -53,6 +59,24 @@ export function implicitKick(force: Vec, jacobian: ArrayLike<number>, mass: numb
 
 const isFixed = (set: ParticleSet, i: number) => set.position[i * TEXEL + 3] === ParticleKind.fixed;
 const read = (array: Float32Array, i: number): Vec => [array[i * TEXEL]!, array[i * TEXEL + 1]!, array[i * TEXEL + 2]!];
+
+/**
+ * x' − x of the coming drift from stored velocity u and acceleration a = F/m: v·dt + ½·a·dt² when
+ * Galilean; under Minkowski the same kick-drift-kick split moves with the half-kicked u, dt·v(u + ½·a·dt).
+ */
+function driftDisplacement(u: Vec, a: ArrayLike<number>, dt: number, k: number): Vec {
+  if (k > 0) return coordinateVelocity(halfKicked(u, a, dt), k).map((c) => dt * c) as Vec;
+  return [0, 1, 2].map((c) => dt * u[c]! + 0.5 * dt * dt * a[c]!) as Vec;
+}
+
+const halfKicked = (u: Vec, a: ArrayLike<number>, dt: number): Vec => [0, 1, 2].map((c) => u[c]! + 0.5 * dt * a[c]!) as Vec;
+
+/** ∂F/∂v (row-major, in place) → ∂F/∂u = ∂F/∂v · ∂v/∂u, for the implicit kick on u under Minkowski. */
+function toProperJacobian(jacobian: Float64Array, u: Vec, k: number): void {
+  const m = velocityJacobian(u, k);
+  const product = [0, 1, 2].flatMap((row) => [0, 1, 2].map((col) => [0, 1, 2].reduce((sum, l) => sum + jacobian[row * 3 + l]! * m[l * 3 + col]!, 0)));
+  jacobian.set(product);
+}
 
 /**
  * Impulses from approaching pairs closer than collisionDistance, all from the same pre-step
@@ -87,9 +111,9 @@ function collisionImpulses(set: ParticleSet, settings: SimulationSettings): Floa
   return result;
 }
 
-/** Σ_j F_ij on particle i; clocks are read shifted by `clockShift` (Verlet evaluates before writing them). */
+/** Σ_j F_ij on particle i; clocks are read advanced by `clockShifts` (Verlet evaluates before writing them). */
 function totalForce(
-  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShift: number, collisionDistance: number, jacobian?: Float64Array,
+  set: ParticleSet, i: number, forces: readonly CompiledForce[], time: number, clockShifts: Float64Array | undefined, collisionDistance: number, jacobian?: Float64Array,
 ): Vec {
   const pos = set.position;
   const oi = i * TEXEL;
@@ -110,27 +134,33 @@ function totalForce(
     if (trueDist < collisionDistance && approaching) continue;
     const dist = Math.max(trueDist, collisionDistance);
     const pair = pairScope(set, i, j, time);
-    pair.t_i += clockShift;
-    pair.t_j += clockShift;
+    if (clockShifts) {
+      pair.t_i += clockShifts[i]!;
+      pair.t_j += clockShifts[j]!;
+    }
     addPairForce(forces, pair, dist, force, jacobian);
   }
   return force;
 }
 
-function accelerations(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShift: number): Float64Array {
+function accelerations(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number, clockShifts: Float64Array | undefined): Float64Array {
   const result = new Float64Array(set.count * 3);
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
     const mass = set.attributes[i * TEXEL]!;
-    const force = totalForce(set, i, forces, time, clockShift, settings.collisionDistance);
+    const force = totalForce(set, i, forces, time, clockShifts, settings.collisionDistance);
     result.set([force[0] / mass, force[1] / mass, settings.mode2D ? 0 : force[2] / mass], i * 3);
   }
   return result;
 }
 
-/** Friction, 2D projection, speed clamp, then reflection if the coming drift (with `a`) would leave. */
+/**
+ * Friction, 2D projection, speed clamp, then reflection if the coming drift (with `a`) would leave.
+ * `v` is the stored velocity: under Minkowski, friction, drag and reflection act on u.
+ */
 function finishVelocity(v: Vec, pos: Vec, a: Vec, mass: number, settings: SimulationSettings): Vec {
   const dt = settings.timeStep;
+  const k = inverseLightSpeed2(settings);
   if (settings.friction > 0) v.forEach((c, k) => (v[k] = c * Math.exp(-settings.friction * dt)));
   if (settings.quadraticDrag > 0) {
     const damping = 1 + (settings.quadraticDrag * dt * Math.hypot(...v)) / mass;
@@ -139,7 +169,8 @@ function finishVelocity(v: Vec, pos: Vec, a: Vec, mass: number, settings: Simula
   if (settings.mode2D) v[2] = 0;
   const speed = Math.hypot(...v);
   if (settings.maxSpeed > 0 && speed > settings.maxSpeed) v.forEach((c, k) => (v[k] = (c * settings.maxSpeed) / speed));
-  const next = [0, 1, 2].map((k) => pos[k]! + dt * v[k]! + 0.5 * dt * dt * a[k]!) as Vec;
+  const drift = k > 0 ? driftDisplacement(v, a, dt, k) : undefined;
+  const next = [0, 1, 2].map((c) => (drift ? pos[c]! + drift[c]! : pos[c]! + dt * v[c]! + 0.5 * dt * dt * a[c]!)) as Vec;
   const size = settings.boundarySize;
   if (settings.boundary === 'sphere') {
     const len = Math.hypot(...next);
@@ -170,6 +201,7 @@ function confinePosition(p: Vec, settings: SimulationSettings): Vec {
 
 function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings: SimulationSettings, time: number): void {
   const dt = settings.timeStep;
+  const k = inverseLightSpeed2(settings);
   const nextVelocity = new Float64Array(set.count * TEXEL);
   const impulses = collisionImpulses(set, settings);
   const implicit = forces.some((f) => f.jacobian);
@@ -181,16 +213,19 @@ function eulerStep(set: ParticleSet, forces: readonly CompiledForce[], settings:
     }
     const mass = set.attributes[i * TEXEL]!;
     const jacobian = implicit ? new Float64Array(9) : undefined;
-    const force = totalForce(set, i, forces, time, 0, settings.collisionDistance, jacobian);
+    const force = totalForce(set, i, forces, time, undefined, settings.collisionDistance, jacobian);
+    if (jacobian && k > 0) toProperJacobian(jacobian, read(set.velocity, i), k);
     const kick = jacobian ? implicitKick(force, jacobian, mass, dt) : force.map((c) => (dt * c) / mass) as Vec;
-    const v = read(set.velocity, i).map((c, k) => c + kick[k]! + impulses[i * 3 + k]!) as Vec;
-    nextVelocity.set([...finishVelocity(v, read(set.position, i), [0, 0, 0], mass, settings), tau + dt], i * TEXEL);
+    const u = read(set.velocity, i).map((c, axis) => c + kick[axis]! + impulses[i * 3 + axis]!) as Vec;
+    const next = finishVelocity(u, read(set.position, i), [0, 0, 0], mass, settings);
+    // The clock runs at dτ/dt = 1/γ of the velocity the drift below uses.
+    nextVelocity.set([...next, tau + dt / lorentzFactor(next, k)], i * TEXEL);
   }
   set.velocity.set(nextVelocity);
   for (let i = 0; i < set.count; i++) {
     if (isFixed(set, i)) continue;
-    const v = read(set.velocity, i);
-    set.position.set(confinePosition(read(set.position, i).map((c, k) => c + dt * v[k]!) as Vec, settings), i * TEXEL);
+    const v = coordinateVelocity(read(set.velocity, i), k);
+    set.position.set(confinePosition(read(set.position, i).map((c, axis) => c + dt * v[axis]!) as Vec, settings), i * TEXEL);
   }
 }
 
@@ -199,18 +234,23 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
   if (state.acceleration && state.acceleration.length !== set.count * 3) {
     throw new Error(`stored acceleration covers ${state.acceleration.length / 3} particles but the set has ${set.count}; clear ReferenceState after edits`);
   }
-  const before = state.acceleration ?? accelerations(set, forces, settings, time, 0);
+  const k = inverseLightSpeed2(settings);
+  const before = state.acceleration ?? accelerations(set, forces, settings, time, undefined);
   const limit = settings.maxSpeed * dt;
+  // Each clock advances by dτ = dt/γ of the half-kicked u the drift moves with (dt when Galilean, or fixed).
+  const clockShifts = new Float64Array(set.count);
   for (let i = 0; i < set.count; i++) {
+    const a = before.subarray(i * 3, i * 3 + 3);
+    const u = read(set.velocity, i);
+    clockShifts[i] = dt / lorentzFactor(halfKicked(u, a, dt), k);
     if (isFixed(set, i)) continue;
-    const v = read(set.velocity, i);
-    const d = [0, 1, 2].map((k) => dt * v[k]! + 0.5 * dt * dt * before[i * 3 + k]!) as Vec;
+    const d = driftDisplacement(u, a, dt, k);
     const length = Math.hypot(...d);
     const scale = settings.maxSpeed > 0 && length > limit ? limit / length : 1;
-    const drift = read(set.position, i).map((c, k) => c + scale * d[k]!) as Vec;
+    const drift = read(set.position, i).map((c, axis) => c + scale * d[axis]!) as Vec;
     set.position.set(confinePosition(drift, settings), i * TEXEL);
   }
-  const after = accelerations(set, forces, settings, time + dt, dt);
+  const after = accelerations(set, forces, settings, time + dt, clockShifts);
   const impulses = collisionImpulses(set, settings);
   for (let i = 0; i < set.count; i++) {
     const tau = set.velocity[i * TEXEL + 3]!;
@@ -218,9 +258,9 @@ function verletStep(set: ParticleSet, forces: readonly CompiledForce[], settings
       set.velocity.set([0, 0, 0, tau + dt], i * TEXEL);
       continue;
     }
-    const v = read(set.velocity, i).map((c, k) => c + 0.5 * dt * (before[i * 3 + k]! + after[i * 3 + k]!) + impulses[i * 3 + k]!) as Vec;
+    const v = read(set.velocity, i).map((c, axis) => c + 0.5 * dt * (before[i * 3 + axis]! + after[i * 3 + axis]!) + impulses[i * 3 + axis]!) as Vec;
     const aNext: Vec = [after[i * 3]!, after[i * 3 + 1]!, after[i * 3 + 2]!];
-    set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, set.attributes[i * TEXEL]!, settings), tau + dt], i * TEXEL);
+    set.velocity.set([...finishVelocity(v, read(set.position, i), aNext, set.attributes[i * TEXEL]!, settings), tau + clockShifts[i]!], i * TEXEL);
   }
   state.acceleration = after;
 }

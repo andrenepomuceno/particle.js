@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
 import { DEFAULT_PROBE, validateColumns } from '../../engine/field';
 import { ProbeFields } from '../components/ProbeFields';
-import { INTEGRATORS, type BoundaryShape } from '../../engine/settings';
+import { INTEGRATORS, METRICS, type BoundaryShape, type Metric, type SimulationSettings } from '../../engine/settings';
 import { DEFAULT_GENERATOR, FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
 import { saveJson } from '../persist';
 import { PARTICLE_TARGET_KEY } from '../storageKeys';
@@ -169,12 +169,48 @@ export function ParametersView() {
   );
 }
 
+export function SpacetimeView() {
+  const controller = useController();
+  const settings = useAppState((s) => s.settings);
+  const { maxGamma, clockMin, clockMax } = useAppState((s) => s.spacetime);
+  const minkowski = settings.metric === 'minkowski';
+  // Switching metric can be refused (maxSpeed set, or a particle at or above c): say why.
+  const set = (patch: Partial<SimulationSettings>) => {
+    try {
+      controller.setSettings(patch);
+    } catch (error) {
+      controller.notify(`Spacetime: ${(error as Error).message}`, 'error');
+    }
+  };
+  return (
+    <div className="stack">
+      <div className="grid">
+        <SelectField<Metric> label="Metric" value={settings.metric} options={METRICS} onChange={(metric) => set({ metric })} />
+        <NumberField label="Speed of light c" value={settings.lightSpeed} validate={positive} onCommit={(lightSpeed) => controller.setSettings({ lightSpeed })} />
+      </div>
+      <p className="muted">
+        {minkowski
+          ? 'Minkowski, dτ² = dt² − |dx|²/c²: forces change the momentum γmv, so |v| < c, and each clock shows its proper time (moving clocks run slow). Pair forces still act instantaneously in the lab frame.'
+          : 'Galilean: classical mechanics, every clock advances by dt. Minkowski gives special relativity with the c above.'}
+      </p>
+      <dl className="stats">
+        <dt>Max γ</dt><dd>{format(maxGamma, 5)}</dd>
+        <dt>Max speed / c</dt><dd>{minkowski ? format(Math.sqrt(1 - 1 / maxGamma ** 2), 4) : '—'}</dd>
+        <dt>Clocks</dt><dd>{format(clockMin, 5)} to {format(clockMax, 5)}</dd>
+      </dl>
+    </div>
+  );
+}
+
 export function ParticleView() {
   const controller = useController();
   const inspected = useAppState((s) => s.inspected);
   const following = useAppState((s) => s.followInspected);
+  const settings = useAppState((s) => s.settings);
   if (!inspected) return <p className="muted">Click a particle to inspect it.</p>;
   const { index, particle } = inspected;
+  const minkowski = settings.metric === 'minkowski';
+  const speed = Math.hypot(...particle.velocity);
   const edit = (patch: Partial<typeof particle>) => controller.updateInspected(patch);
   const vector = (label: string, value: readonly number[]) => (
     <><dt>{label}</dt><dd>{value.map((v) => format(v, 4)).join(', ')}</dd></>
@@ -185,8 +221,9 @@ export function ParticleView() {
         <dt>Index</dt><dd>{index}</dd>
         {vector('Position', particle.position)}
         {vector('Velocity', particle.velocity)}
-        <dt>Speed</dt><dd>{format(Math.hypot(...particle.velocity), 4)}</dd>
-        <dt>Clock</dt><dd>{format(particle.time, 5)}</dd>
+        <dt>Speed</dt><dd>{format(speed, 4)}</dd>
+        {minkowski && <><dt>γ</dt><dd>{format(1 / Math.sqrt(1 - (speed / settings.lightSpeed) ** 2), 5)}</dd></>}
+        <dt>{minkowski ? 'Proper time' : 'Clock'}</dt><dd>{format(particle.time, 5)}</dd>
       </dl>
       <div className="grid">
         <CheckField label="Fixed" checked={particle.kind === 2} onChange={(fixed) => edit({ kind: fixed ? 2 : 1 })} />

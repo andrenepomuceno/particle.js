@@ -28,7 +28,7 @@ v1's quadratic friction (`v /= 1 + c·dt·|v|/m`) is the `quadraticDrag` setting
 | `folder`, `description` | no | grouping label (default `Custom`) and one-line description |
 | `seed` | no | RNG seed, integer ≥ 0 (default 1); the same seed always rebuilds the same particles |
 | `view` | no | `cameraDistance` (1000), `particleRadius` (3), `colorMode` (`charge`) |
-| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`); the rest keeps the defaults |
+| `settings` | no | any subset of `timeStep`, `friction`, `quadraticDrag` (v1's mass-scaled `v /= 1 + c·dt·|v|/m`), `maxSpeed`, `boundary`, `boundarySize`, `boundaryDepth` (box half-size in z, for slabs; 0 = `boundarySize`), `restitution`, `collisionDistance` (0 = off), `collisionRestitution`, `mode2D`, `integrator` (`verlet` default, `euler`), `metric` (`galilean` default, `minkowski`; see [forces](forces.md#spacetime-metric)), `lightSpeed` (c, default 10); the rest keeps the defaults |
 | `forces` | no | list of forces (below) |
 | `groups` | no | list of particle groups (below) |
 | `timeline` | no | scripted events in time order (below; v1's scenario actions) |
@@ -121,6 +121,8 @@ or the particles of one atom.
 | `random` | `speed` (sampled) | random direction (in-plane when `mode2D`) |
 | `orbit` | `centralMass`, `G`, `center` | circular speed `√(G·M/r)` around the z axis through `center` |
 
+Velocities are coordinate velocities dx/dt; under `metric: minkowski` every particle must start
+below `lightSpeed`, or loading fails with the particle's index.
 Fixed particles (`"kind": "fixed"`) always start with zero velocity. With `settings.mode2D`, every
 position is projected onto z = 0, so 3D shapes collapse into the plane.
 

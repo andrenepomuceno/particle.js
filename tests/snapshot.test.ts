@@ -53,6 +53,14 @@ describe('snapshots', () => {
     expect([settings.quadraticDrag, settings.boundaryDepth]).toEqual([0, 0]);
   });
 
+  it('migrates version 5, which had no metric, to Galilean', () => {
+    const v5 = { ...JSON.parse(JSON.stringify(snapshot())), version: 5 };
+    delete v5.settings.metric;
+    delete v5.settings.lightSpeed;
+    const { settings } = parseSnapshot(JSON.stringify(v5));
+    expect([settings.metric, settings.lightSpeed]).toEqual(['galilean', DEFAULT_SETTINGS.lightSpeed]);
+  });
+
   it('migrates version 1, which had no nuclear charge', () => {
     const v1 = legacy(1);
     delete v1.particles[0].nuclearCharge;
@@ -60,7 +68,8 @@ describe('snapshots', () => {
   });
 
   it.each([
-    [(s: Record<string, unknown>) => (s.version = 6), /at 'version': expected one of 1, 2, 3, 4, 5, got 6/],
+    [(s: Record<string, unknown>) => (s.version = 7), /at 'version': expected one of 1, 2, 3, 4, 5, 6, got 7/],
+    [(s: Record<string, unknown>) => delete (s.settings as Record<string, unknown>).metric, /settings.metric': is required/],
     [(s: Record<string, unknown>) => delete (s.settings as Record<string, unknown>).boundaryDepth, /settings.boundaryDepth': is required/],
     [(s: Record<string, unknown>) => delete (s.particles as Record<string, unknown>[])[0]!.nuclearCharge, /particles\[0\].nuclearCharge': expected a finite number/],
     [(s: Record<string, unknown>) => ((s.forces as Record<string, unknown>[])[0]!.expression = 'zz'), /forces\[0\]'.*unknown variable 'zz'/],

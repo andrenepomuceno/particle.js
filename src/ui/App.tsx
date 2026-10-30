@@ -9,7 +9,7 @@ import { AboutView } from './views/AboutView';
 import { ExpressionsView } from './views/ExpressionsView';
 import { ForcesView } from './views/ForcesView';
 import { StatsView } from './views/StatsView';
-import { ControlsView, FieldView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView } from './views/panels';
+import { ControlsView, FieldView, GeneratorView, HelpView, InfoView, ParametersView, ParticleView, SelectionView, SpacetimeView } from './views/panels';
 
 interface DialogSpec {
   id: string;
@@ -25,6 +25,7 @@ const DIALOGS: readonly DialogSpec[] = [
   { id: 'forces', title: 'Forces', position: right(470), render: (ctx) => <ForcesView onReference={() => ctx.openDialog('expressions')} /> },
   { id: 'expressions', title: 'Expressions', position: right(950), render: () => <ExpressionsView /> },
   { id: 'parameters', title: 'Parameters', position: { x: 8, y: 320 }, render: () => <ParametersView /> },
+  { id: 'spacetime', title: 'Spacetime', position: { x: 290, y: 520 }, render: () => <SpacetimeView /> },
   { id: 'controls', title: 'Controls', position: { x: 290, y: 56 }, render: (ctx) => <ControlsView ctx={ctx} /> },
   { id: 'particle', title: 'Particle', position: { x: 8, y: 520 }, render: () => <ParticleView /> },
   { id: 'selection', title: 'Selection', position: { x: 290, y: 320 }, render: (ctx) => <SelectionView ctx={ctx} /> },

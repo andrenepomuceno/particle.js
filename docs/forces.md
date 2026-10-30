@@ -2,8 +2,9 @@
 
 ## Model
 
-Classical mechanics only. For particles *i* and *j* at distance *d*, each enabled force
-contributes a signed scalar `F` along `(x_i − x_j) / d`:
+Classical mechanics by default; the Minkowski metric (Spacetime dialog, see
+[Spacetime metric](#spacetime-metric)) turns on special relativity. For particles *i* and *j* at
+distance *d*, each enabled force contributes a signed scalar `F` along `(x_i − x_j) / d`:
 
 - `F > 0` pushes the pair apart, `F < 0` pulls it together.
 - **Long range**: applied at every distance.
@@ -25,10 +26,39 @@ Two integrators (Parameters → Integrator), both one force evaluation per step:
 After the velocity update both apply friction `v *= e^(−friction·dt)`, v1's quadratic drag
 `v /= 1 + quadraticDrag·dt·|v|/m` (mass-scaled, 0 = off), the optional speed clamp,
 then boundary reflection (a sphere of radius `boundarySize`, or a box of half-size `boundarySize`
-in x and y and `boundaryDepth` in z — a slab when thinner; 0 = cubic). Fixed particles never move; every clock `t` advances by `dt`.
+in x and y and `boundaryDepth` in z — a slab when thinner; 0 = cubic). Fixed particles never move; every clock `t` advances by `dt`
+(by the proper time `dt/γ` under Minkowski).
 Measured on a gravitational binary over t = 200 (relative energy error): Euler 7.3e-3 / 1.4e-3,
 Verlet 2.3e-4 / 9.0e-6 at dt = 0.5 / 0.1. `src/engine/cpu/referenceStep.ts` is the executable
 specification of both, and `npm run parity` checks the GPU against it.
+
+## Spacetime metric
+
+Settings `metric` (`galilean`, the default, or `minkowski`) and `lightSpeed` (c), in the
+**Spacetime** dialog or a scenario's `settings`.
+
+- **Galilean**: classical mechanics as above. c is kept but nothing reads it.
+- **Minkowski**, dτ² = dt² − |dx|²/c²: special relativity. The velocity textures hold the proper
+  velocity u = dx/dτ = γv, with γ = √(1 + |u|²/c²). Forces change the momentum p = m·u: du/dt = F/m. Particles
+  move with v = u/γ, so |v| < c follows from the dynamics, and the speed clamp `maxSpeed` must be 0
+  (the combination is refused). Each clock `t` is the particle's proper time and advances by
+  dτ = dt/γ, so moving clocks run slow.
+- Verlet becomes kick-drift-kick on u: the drift is `dt·v(u + ½·a·dt)`, with a = F/m,
+  identical to `v·dt + ½·a·dt²` when Galilean. The implicit kick for velocity forces solves for Δu
+  with ∂F/∂u = ∂F/∂v · ∂v/∂u, where ∂v/∂u = (I − v·vᵀ/c²)/γ.
+- Expressions still see the coordinate velocity: `v_i`, `v_j` and the shorthands are dx/dt. The
+  Lorentz force q(E + v × B) written with them is already the relativistic one, because dp/dt = F
+  holds with p = γmv.
+- Friction, quadratic drag, boundary reflection, the B/T/Y keys and collisions act on u.
+  Collisions conserve momentum exactly, and two equal masses colliding head-on swap momenta,
+  which is the exact elastic result; otherwise the relativistic energy is only approximately
+  conserved.
+- The energy chart's kinetic energy is (γ − 1)·m·c², which equals ½·m·v² when Galilean. Speeds
+  are coordinate speeds.
+- Still instantaneous: pair forces act at equal lab time (Δt = 0), so distances are Euclidean.
+  The light cone (retarded interactions) is not modelled.
+- Changing the metric or c keeps every particle's v. If a particle would be at or above the new
+  c, the change is refused.
 
 ## Writing an expression
 
@@ -69,7 +99,7 @@ Variables:
 | `cr_*`, `cg_*`, `cb_*` | color charge amounts (r, g, b) as stored |
 | `cx_*`, `cy_*` | color vector in the 120° weight plane |
 | `c_dot` | color factor `C_i · C_j` (see below) |
-| `t_i`, `t_j` | particle clocks |
+| `t_i`, `t_j` | particle clocks (proper times under Minkowski) |
 | `time` | global simulation time |
 
 `_i` is the particle receiving the force, `_j` the one exerting it. Any other name must be

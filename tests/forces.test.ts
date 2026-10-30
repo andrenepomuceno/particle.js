@@ -182,7 +182,7 @@ describe('GLSL generation', () => {
     expect(shader).toContain('float force1(');
     expect(shader).toContain('uniform float uF0_k;');
     expect(shader).toContain('if (dist < uF1_cutoff) magnitude += force1(');
-    expect(shader).toContain('texelFetch(textureVelocity, coord2, 0).w');
+    expect(shader).toContain('shiftedClock(coord2, texelFetch(textureVelocity, coord2, 0))');
   });
 
   it('evaluates the field with the shared totalForce for a test particle that matches no index', () => {

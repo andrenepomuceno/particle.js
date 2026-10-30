@@ -1,6 +1,7 @@
 import { GLSL_COLOR_HELPERS } from '../colorCharge';
 import { forceUniformName, type CompiledForce } from '../forces/compile';
 import { PAIR_VARIABLES } from '../forces/variables';
+import { GLSL_METRIC } from '../metric';
 
 export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
 
@@ -30,6 +31,26 @@ uniform float uClockShift;
 // Box half-sizes: boundarySize in x and y, boundaryDepth (a slab) in z when set.
 vec3 boxHalfSize() {
   return vec3(uBoundarySize, uBoundarySize, uBoundaryDepth > 0.0 ? uBoundaryDepth : uBoundarySize);
+}
+${GLSL_METRIC}
+// Proper time dτ = dt/γ of one step for a particle moving with stored velocity u; dt when Galilean.
+float properTimeStep(vec3 u) {
+  return uTimeStep / lorentzFactor(u);
+}
+
+// x' − x of the coming drift from stored velocity u and acceleration a = F/m: v·dt + ½·a·dt² when
+// Galilean; under Minkowski the same kick-drift-kick split moves with the half-kicked u, dt·v(u + ½·a·dt).
+vec3 driftDisplacement(vec3 vel, vec3 acceleration) {
+  if (uInverseLightSpeed2 > 0.0) return uTimeStep * coordinateVelocity(vel + 0.5 * uTimeStep * acceleration);
+  return uTimeStep * vel + 0.5 * uTimeStep * uTimeStep * acceleration;
+}
+
+// A clock after Verlet's drift, which the force pass reads before the velocity pass writes it:
+// + uClockShift (dt) times dτ/dt = 1/γ of the half-kicked u the drift used. uClockShift is 0 outside Verlet.
+float shiftedClock(ivec2 coord, vec4 velocityTexel) {
+  if (uClockShift == 0.0 || uInverseLightSpeed2 == 0.0) return velocityTexel.w + uClockShift;
+  vec3 halfKicked = velocityTexel.xyz + 0.5 * uTimeStep * texelFetch(uAcceleration, coord, 0).xyz;
+  return velocityTexel.w + uClockShift / lorentzFactor(halfKicked);
 }
 `;
 
@@ -88,14 +109,16 @@ function forceAccumulation(force: CompiledForce, index: number): string {
 
 const VELOCITY_HELPERS = /* glsl */ `
 // Friction, 2D projection, speed clamp, then reflection if the coming drift would leave the
-// boundary. The drift is predicted with the acceleration it will use (zero for Euler).
+// boundary. The drift is predicted with the acceleration it will use (zero for Euler). vel is the
+// stored velocity: under Minkowski, friction, drag and reflection act on u.
 vec3 finishVelocity(vec3 vel, vec3 pos, vec3 acceleration, float mass) {
   if (uFriction > 0.0) vel *= exp(-uFriction * uTimeStep);
   if (uQuadraticDrag > 0.0) vel /= 1.0 + uQuadraticDrag * uTimeStep * length(vel) / mass;
   if (uMode2D) vel.z = 0.0;
   float speed = length(vel);
   if (uMaxSpeed > 0.0 && speed > uMaxSpeed) vel *= uMaxSpeed / speed;
-  vec3 next = pos + uTimeStep * vel + 0.5 * uTimeStep * uTimeStep * acceleration;
+  vec3 next = uInverseLightSpeed2 > 0.0 ? pos + driftDisplacement(vel, acceleration)
+    : pos + uTimeStep * vel + 0.5 * uTimeStep * uTimeStep * acceleration;
   if (uBoundary == ${BOUNDARY_CODE.sphere}) {
     float len = length(next);
     if (len > uBoundarySize) {
@@ -169,16 +192,18 @@ vec3 confinePosition(vec3 pos) {
  * because Verlet evaluates forces after positions advanced but before clocks are written.
  */
 function totalForceFunction(forces: readonly CompiledForce[]): string {
-  const fetchTau2 = reads(forces, TAU_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).w + uClockShift' : '0.0';
+  const fetchTau2 = reads(forces, TAU_J_VARIABLES) ? 'shiftedClock(coord2, texelFetch(textureVelocity, coord2, 0))' : '0.0';
   const fetchSpin2 = reads(forces, SPIN_J_VARIABLES) ? 'texelFetch(uSpin, coord2, 0)' : 'vec4(0.0)';
-  const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'texelFetch(textureVelocity, coord2, 0).xyz' : 'vec3(0.0)';
+  const fetchVel2 = reads(forces, VELOCITY_J_VARIABLES) ? 'coordinateVelocity(texelFetch(textureVelocity, coord2, 0).xyz)' : 'vec3(0.0)';
   return `${SIGNED_POW}
 ${FINITE3}
 ${GLSL_COLOR_HELPERS}
 ${forces.map(forceFunction).join('\n')}
 
-vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance, out mat3 jacobian) {
+vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, vec4 spin1, float tau1, float collisionDistance, out mat3 jacobian) {
   int width = TEXTURE_WIDTH;
+  // Expressions see coordinate velocities; the contact test compares stored ones, as collisionImpulse does.
+  vec3 vel1 = coordinateVelocity(stored1);
   vec3 force = vec3(0.0);
   jacobian = mat3(0.0);
   for (int index2 = 0; index2 < uCount; index2++) {
@@ -192,7 +217,7 @@ vec3 totalForce(int index1, vec3 pos1, vec3 vel1, vec4 attr1, vec4 color1, vec4 
     // collisionImpulse instead, and a resting or separating overlap feels the force evaluated at the
     // contact distance, so repulsion separates it while attraction stays bounded (no 1/r^2 blow-up).
     if (dist < collisionDistance) {
-      if (dot(vel1 - texelFetch(textureVelocity, coord2, 0).xyz, delta) < 0.0) continue;
+      if (dot(stored1 - texelFetch(textureVelocity, coord2, 0).xyz, delta) < 0.0) continue;
       r2 = collisionDistance * collisionDistance;
       dist = collisionDistance;
     }
@@ -244,12 +269,16 @@ ${PARTICLE_HEADER}
   vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), tau1, uCollisionDistance, jacobian);
   vec3 kick = uTimeStep * force / attr1.x;${forces.some((f) => f.jacobian) ? `
   // Implicit midpoint for velocity-dependent forces: (I − dt/2m·J)·Δv = dt/m·F (Boris for v × B).
+  // Under Minkowski the unknown is Δu, so J = ∂F/∂v becomes ∂F/∂u = ∂F/∂v·∂v/∂u.
   // A singular solve (dt/2m·J with an eigenvalue 1: the time step is too large for that force)
   // falls back to the explicit kick for this step, as the CPU reference does.
+  if (uInverseLightSpeed2 > 0.0) jacobian = jacobian * velocityJacobian(velocityTexel.xyz);
   vec3 implicitKick = inverse(mat3(1.0) - (0.5 * uTimeStep / attr1.x) * jacobian) * kick;
   if (finite3(implicitKick)) kick = implicitKick;` : ''}
   vec3 vel = velocityTexel.xyz + kick + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, attr1.x);
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, vec3(0.0), attr1.x), tau1 + uTimeStep);
+  vel = finishVelocity(vel, positionTexel.xyz, vec3(0.0), attr1.x);
+  // The clock runs at dτ/dt = 1/γ of the velocity the drift uses.
+  gl_FragColor = vec4(vel, tau1 + properTimeStep(vel));
 }
 `;
 }
@@ -267,7 +296,7 @@ ${PARTICLE_HEADER}
   }
   vec4 attr1 = texelFetch(uAttributes, coord1, 0);
   mat3 jacobian;
-  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), velocityTexel.w + uClockShift, uCollisionDistance, jacobian);
+  vec3 force = totalForce(index1, positionTexel.xyz, velocityTexel.xyz, attr1, texelFetch(uColor, coord1, 0), texelFetch(uSpin, coord1, 0), shiftedClock(coord1, velocityTexel), uCollisionDistance, jacobian);
   vec3 acceleration = force / attr1.x;
   if (uMode2D) acceleration.z = 0.0;
   gl_FragColor = vec4(acceleration, 0.0);
@@ -275,7 +304,7 @@ ${PARTICLE_HEADER}
 `;
 }
 
-/** Velocity Verlet, drift: x' = x + v·dt + ½·a·dt². */
+/** Velocity Verlet, drift: x' = x + v·dt + ½·a·dt² (Minkowski: dt·v(u + ½·a·dt)). */
 export const VERLET_POSITION_SHADER = `${COMMON_UNIFORMS}
 ${POSITION_HELPERS}
 void main() {
@@ -284,8 +313,7 @@ ${PARTICLE_HEADER}
     gl_FragColor = positionTexel;
     return;
   }
-  vec3 acceleration = texelFetch(uAcceleration, coord1, 0).xyz;
-  vec3 displacement = uTimeStep * velocityTexel.xyz + 0.5 * uTimeStep * uTimeStep * acceleration;
+  vec3 displacement = driftDisplacement(velocityTexel.xyz, texelFetch(uAcceleration, coord1, 0).xyz);
   gl_FragColor = vec4(confinePosition(positionTexel.xyz + limitDisplacement(displacement)), positionTexel.w);
 }
 `;
@@ -305,10 +333,13 @@ ${PARTICLE_HEADER}
     gl_FragColor = vec4(0.0, 0.0, 0.0, tau1 + uTimeStep);
     return;
   }
+  vec3 acceleration = texelFetch(uAcceleration, coord1, 0).xyz;
   vec3 accelerationNext = texelFetch(uAccelerationNext, coord1, 0).xyz;
-  vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (texelFetch(uAcceleration, coord1, 0).xyz + accelerationNext)
+  vec3 vel = velocityTexel.xyz + 0.5 * uTimeStep * (acceleration + accelerationNext)
     + collisionImpulse(index1, positionTexel.xyz, velocityTexel.xyz, texelFetch(uAttributes, coord1, 0).x);
-  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext, texelFetch(uAttributes, coord1, 0).x), tau1 + uTimeStep);
+  // dτ of the half-kicked u the drift moved with, as shiftedClock assumed.
+  float clock = tau1 + properTimeStep(velocityTexel.xyz + 0.5 * uTimeStep * acceleration);
+  gl_FragColor = vec4(finishVelocity(vel, positionTexel.xyz, accelerationNext, texelFetch(uAttributes, coord1, 0).x), clock);
 }
 `;
 
@@ -404,7 +435,7 @@ void main() {
 `;
 }
 
-/** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity. */
+/** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity (v = u/γ under Minkowski). */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}
 ${POSITION_HELPERS}
 void main() {
@@ -413,6 +444,6 @@ ${PARTICLE_HEADER}
     gl_FragColor = positionTexel;
     return;
   }
-  gl_FragColor = vec4(confinePosition(positionTexel.xyz + uTimeStep * velocityTexel.xyz), positionTexel.w);
+  gl_FragColor = vec4(confinePosition(positionTexel.xyz + uTimeStep * coordinateVelocity(velocityTexel.xyz)), positionTexel.w);
 }
 `;

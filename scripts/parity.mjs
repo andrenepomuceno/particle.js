@@ -43,8 +43,27 @@ const CASES = [
       // A softened central potential: its force carries the Plummer factor d/r (d = |Δx| on the GPU).
       { name: 'soft well', mode: 'potential', range: 'long', softening: 1.5, expression: '-k * q_i * q_j / r', params: [{ name: 'k', value: 2 }] },
     ] },
+  // Minkowski: u = γv in the textures, implicit kick with ∂F/∂u, clocks at dτ = dt/γ.
+  { name: 'minkowski: uniform E + B, Coulomb', settings: { timeStep: 0.01, metric: 'minkowski', lightSpeed: 1.5 }, steps: 300, tolerance: 1e-3,
+    forces: [
+      { name: 'E and B', mode: 'force', range: 'long', expression: 'n_j * q_i * (cross(v_i, vec(0, 0, 1)) + vec(0.4, 0, 0))' },
+      { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
+    ] },
+  // Verlet's per-particle clock shift (t_j read after the drift), boundary reflection and collisions on u.
+  { name: 'minkowski: clock-coupled force, box, collisions', settings: { timeStep: 0.02, metric: 'minkowski', lightSpeed: 2, boundary: 'box', boundarySize: 20, collisionDistance: 1 },
+    steps: 200, tolerance: 1e-3,
+    forces: [
+      { name: 'aging Coulomb', mode: 'force', range: 'long', softening: 1, expression: 'q_i * q_j * (1 + 0.2 * t_j) / r^2' },
+    ] },
 ];
 const GROUPS = {
+  'minkowski: uniform E + B, Coulomb': [
+    { count: 1, kind: 'fixed', shape: { type: 'point', center: [0, 0, 30] }, nuclearCharge: 1 },
+    { count: 10, shape: { type: 'shell', radius: 4 }, charge: { cycle: [1, -1] }, velocity: { type: 'random', speed: { cycle: [0.5, 1, 1.4] } } },
+  ],
+  'minkowski: clock-coupled force, box, collisions': [
+    { count: 16, shape: { type: 'grid', spacing: 3, columns: 4, rows: 4 }, charge: { cycle: [1, -1, 1, 1] }, velocity: { type: 'random', speed: { cycle: [0.5, 1.5, 1.9] } } },
+  ],
   'binary gravity': [
     { count: 1, shape: { type: 'point', center: [-5, 0, 0] }, velocity: { type: 'constant', value: [0, -0.2, 0] } },
     { count: 1, shape: { type: 'point', center: [5, 0, 0] }, velocity: { type: 'constant', value: [0, 0.2, 0] } },
@@ -82,26 +101,32 @@ const failures = await withBrowser(async ({ browser, base }) => {
       });
       const deviation = await page.evaluate(async ({ scenario, steps }) => {
         const { referenceStep } = await import('/src/engine/cpu/referenceStep.ts');
+        const { inverseLightSpeed2 } = await import('/src/engine/metric.ts');
         const { ParticleSet } = await import('/src/engine/particles.ts');
         const c = globalThis.particleController;
         c.importFile(scenario, 'parity.json');
         c.store.set({ paused: true });
         const start = c.readParticles();
-        const cpu = new ParticleSet(4 * Math.ceil(start.length / 4) || 4);
-        cpu.addAll(start);
         const { settings } = c.state;
+        const cpu = new ParticleSet(4 * Math.ceil(start.length / 4) || 4);
+        cpu.setInverseLightSpeed2(inverseLightSpeed2(settings));
+        cpu.addAll(start);
         const state = {};
         const t0 = c.state.time;
         for (let k = 0; k < steps; k++) referenceStep(cpu, c.compiledForces, settings, t0 + k * settings.timeStep, state);
         c.advance(steps);
         const gpu = c.readParticles();
         let worst = 0;
-        gpu.forEach((p, i) => p.position.forEach((v, k) => (worst = Math.max(worst, Math.abs(v - cpu.get(i).position[k])))));
+        // Positions and clocks (proper times under Minkowski).
+        gpu.forEach((p, i) => {
+          p.position.forEach((v, k) => (worst = Math.max(worst, Math.abs(v - cpu.get(i).position[k]))));
+          worst = Math.max(worst, Math.abs(p.time - cpu.get(i).time));
+        });
         return worst;
       }, { scenario, steps: Math.max(1, Math.round(testCase.steps * scale)) });
       const ok = deviation <= testCase.tolerance;
       if (!ok) failed++;
-      console.log(`${ok ? 'PASS' : 'FAIL'} ${testCase.name} / ${integrator}: max |Δx| = ${deviation.toExponential(2)} (tolerance ${testCase.tolerance})`);
+      console.log(`${ok ? 'PASS' : 'FAIL'} ${testCase.name} / ${integrator}: max |Δx|, |Δt| = ${deviation.toExponential(2)} (tolerance ${testCase.tolerance})`);
     }
   }
   const field = await page.evaluate(async ({ scenario }) => {

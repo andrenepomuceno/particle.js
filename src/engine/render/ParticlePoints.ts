@@ -1,10 +1,11 @@
 import {
-  BufferGeometry, Float32BufferAttribute, GLSL3, Points, ShaderMaterial,
+  BufferGeometry, Float32BufferAttribute, GLSL3, Points, ShaderMaterial, Vector2,
   type Texture,
 } from 'three';
+import { GLSL_METRIC } from '../metric';
 import { perspectiveScale, V1_PALETTE_GLSL } from './shared';
 
-export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear', 'isospin'] as const;
+export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear', 'isospin', 'clock'] as const;
 export type ColorMode = (typeof COLOR_MODES)[number];
 
 export const PARTICLE_STYLES = ['spherow', 'flat'] as const;
@@ -37,6 +38,7 @@ uniform int uStyle;
 uniform float uRadius;
 uniform float uScale;
 uniform float uAverageSpeed;
+uniform vec2 uClockRange;
 uniform int uHighlight;
 out vec3 vColor;
 out vec3 vVelocity;
@@ -44,6 +46,13 @@ out vec3 vCenter;
 out float vHighlight;
 out float vPixels;
 ${COMMON}
+${GLSL_METRIC}
+// Particle clocks across their current spread: behind (moved fast, or created later) warm, ahead cool.
+vec3 clockColor(float clock) {
+  float span = uClockRange.y - uClockRange.x;
+  float f = span > 0.0 ? clamp((clock - uClockRange.x) / span, 0.0, 1.0) : 1.0;
+  return mix(vec3(1.0, 0.45, 0.15), vec3(0.3, 0.6, 1.0), f);
+}
 
 // Anticolor shows as the complementary color: anti-red (-1, 0, 0) is cyan.
 vec3 displayColor(vec3 c) {
@@ -78,7 +87,9 @@ void main() {
   vec4 attr = texelFetch(uAttributes, coord, 0);
   vec4 color = texelFetch(uColor, coord, 0);
   vec4 spin = texelFetch(uSpin, coord, 0);
-  vVelocity = texelFetch(uVelocity, coord, 0).xyz;
+  vec4 velocity = texelFetch(uVelocity, coord, 0);
+  // Coordinate velocity (the texture holds u = γv under Minkowski): speed colors and arrows use v.
+  vVelocity = coordinateVelocity(velocity.xyz);
   vCenter = pos.xyz;
 
   if (uColorMode == 0) vColor = meaningfulColor(attr, color);
@@ -89,7 +100,8 @@ void main() {
   else if (uColorMode == 4) vColor = length(spin.xyz) > 0.0 ? 0.5 + 0.5 * normalize(spin.xyz) : vec3(0.5);
   else if (uColorMode == 5) vColor = signedColor(attr.w);
   else if (uColorMode == 6) vColor = signedColor(color.w);
-  else vColor = signedColor(spin.w);
+  else if (uColorMode == 7) vColor = signedColor(spin.w);
+  else vColor = clockColor(velocity.w);
   if (pos.w == 2.0) vColor *= 0.6;
   vHighlight = index == uHighlight ? 1.0 : 0.0;
 
@@ -262,6 +274,8 @@ export class ParticlePoints {
         uRadius: { value: 3 },
         uScale: { value: 400 },
         uAverageSpeed: { value: 1 },
+        uClockRange: { value: new Vector2(0, 0) },
+        uInverseLightSpeed2: { value: 0 },
         uHighlight: { value: -1 },
       },
     });
@@ -300,6 +314,16 @@ export class ParticlePoints {
   /** Reference for the speed palette, which saturates at 16x this value. */
   setAverageSpeed(speed: number): void {
     this.material.uniforms.uAverageSpeed!.value = speed;
+  }
+
+  /** Range of the clock palette: the earliest and latest particle clocks of the last sample. */
+  setClockRange(min: number, max: number): void {
+    (this.material.uniforms.uClockRange!.value as Vector2).set(min, max);
+  }
+
+  /** k = 1/c² of the metric the velocity texture is written for (0: Galilean). */
+  setInverseLightSpeed2(k: number): void {
+    this.material.uniforms.uInverseLightSpeed2!.value = k;
   }
 
   setHighlight(index: number | undefined): void {

@@ -3,6 +3,10 @@ import type { JsonReader } from './json';
 export type BoundaryShape = 'none' | 'sphere' | 'box';
 export const INTEGRATORS = ['verlet', 'euler'] as const;
 export type Integrator = (typeof INTEGRATORS)[number];
+export const METRICS = ['galilean', 'minkowski'] as const;
+export type Metric = (typeof METRICS)[number];
+/** c bounds: the GPU works with 1/c², which must stay a normal float32. */
+export const LIGHT_SPEED_RANGE = [1e-18, 1e18] as const;
 
 export interface SimulationSettings {
   timeStep: number;
@@ -10,7 +14,7 @@ export interface SimulationSettings {
   friction: number;
   /** v1's quadratic, mass-scaled drag: v /= 1 + quadraticDrag·dt·|v|/m; 0 disables it. */
   quadraticDrag: number;
-  /** Numerical speed clamp; 0 disables it. Not a relativistic limit. */
+  /** Numerical speed clamp; 0 disables it. Not a relativistic limit (that is the Minkowski metric). */
   maxSpeed: number;
   boundary: BoundaryShape;
   /** Sphere radius or box half-size. */
@@ -26,6 +30,10 @@ export interface SimulationSettings {
   mode2D: boolean;
   /** Velocity Verlet (2nd order, time-reversible) or semi-implicit Euler (1st order). */
   integrator: Integrator;
+  /** Spacetime metric: Galilean (classical mechanics) or Minkowski (special relativity, see metric.ts). */
+  metric: Metric;
+  /** Speed of light c of the Minkowski metric; validated but unused while Galilean. */
+  lightSpeed: number;
 }
 
 export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
@@ -41,6 +49,8 @@ export const DEFAULT_SETTINGS: Readonly<SimulationSettings> = {
   collisionRestitution: 1,
   mode2D: false,
   integrator: 'verlet',
+  metric: 'galilean',
+  lightSpeed: 10,
 };
 
 export function validateSettings(settings: SimulationSettings): string[] {
@@ -52,6 +62,15 @@ export function validateSettings(settings: SimulationSettings): string[] {
   check(Number.isFinite(settings.maxSpeed) && settings.maxSpeed >= 0, `maxSpeed must be >= 0, got ${settings.maxSpeed}`);
   check(['none', 'sphere', 'box'].includes(settings.boundary), `unknown boundary '${settings.boundary}'`);
   check(INTEGRATORS.includes(settings.integrator), `unknown integrator '${settings.integrator}'`);
+  check(METRICS.includes(settings.metric), `unknown metric '${settings.metric}'`);
+  check(
+    Number.isFinite(settings.lightSpeed) && settings.lightSpeed >= LIGHT_SPEED_RANGE[0] && settings.lightSpeed <= LIGHT_SPEED_RANGE[1],
+    `lightSpeed must be within [${LIGHT_SPEED_RANGE[0].toExponential()}, ${LIGHT_SPEED_RANGE[1].toExponential()}] (the GPU works with 1/c² in float32), got ${settings.lightSpeed}`,
+  );
+  check(
+    settings.metric !== 'minkowski' || settings.maxSpeed === 0,
+    `maxSpeed must be 0 with the Minkowski metric, where |v| < c already holds; got ${settings.maxSpeed}`,
+  );
   check(
     Number.isFinite(settings.boundarySize) && settings.boundarySize > 0,
     `boundarySize must be > 0, got ${settings.boundarySize}`,
@@ -73,7 +92,10 @@ export function validateSettings(settings: SimulationSettings): string[] {
   return problems;
 }
 
-const SETTING_KEYS = ['timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution', 'mode2D', 'integrator'] as const;
+const SETTING_KEYS = [
+  'timeStep', 'friction', 'quadraticDrag', 'maxSpeed', 'boundary', 'boundarySize', 'boundaryDepth', 'restitution', 'collisionDistance', 'collisionRestitution',
+  'mode2D', 'integrator', 'metric', 'lightSpeed',
+] as const;
 
 /** Reads settings from JSON; with `base`, missing keys keep the base value (scenario files). */
 export function readSettings(json: JsonReader, value: unknown, path: string, base?: SimulationSettings): SimulationSettings {
@@ -99,6 +121,8 @@ export function readSettings(json: JsonReader, value: unknown, path: string, bas
     collisionRestitution: read('collisionRestitution', (v, p) => json.finite(v, p), base?.collisionRestitution),
     mode2D: read('mode2D', (v, p) => json.boolean(v, p), base?.mode2D),
     integrator: read('integrator', (v, p) => json.oneOf(v, INTEGRATORS, p), base?.integrator),
+    metric: read('metric', (v, p) => json.oneOf(v, METRICS, p), base?.metric),
+    lightSpeed: read('lightSpeed', (v, p) => json.finite(v, p), base?.lightSpeed),
   };
   const problems = validateSettings(settings);
   if (problems.length > 0) json.fail(path, problems.join('; '));

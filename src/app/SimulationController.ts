@@ -1,7 +1,7 @@
 import { AxesHelper, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
-import { summarizeEnergy } from '../engine/cpu/energy';
+import { summarizeEnergy, summarizeSpacetime, type SpacetimeSample } from '../engine/cpu/energy';
 import {
   DEFAULT_PROBE, fieldGrid, fieldReference, fieldView, validateColumns, validateProbe, type FieldProbe,
 } from '../engine/field';
@@ -11,11 +11,12 @@ import type { ForceDefinition } from '../engine/forces/types';
 import { groupParticles, type ParticleGroup } from '../engine/particleGroups';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import type { SpeciesId } from '../engine/species';
-import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
+import { ParticleKind, ParticleSet, TEXEL, type Particle, type Vec3 } from '../engine/particles';
 import { createRng, inSphere, inDisk } from '../engine/random';
 import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
 import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { inverseLightSpeed2 } from '../engine/metric';
 import { DEFAULT_SETTINGS, validateSettings, type SimulationSettings } from '../engine/settings';
 import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
@@ -125,6 +126,8 @@ export interface AppState {
   particleStyle: ParticleStyle;
   fpsLimit: FpsLimit;
   averageSpeed: number;
+  /** Lorentz factors and clock spread from the once-per-second sample. */
+  spacetime: SpacetimeSample;
   physicsHistory: PhysicsSample[];
   performanceHistory: PerformanceSample[];
   /** Enabled forces written as F(r): their energy is not in the potential total. */
@@ -230,7 +233,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -390,10 +393,13 @@ export class SimulationController {
     this.loadedSettings = { ...settings };
     this.loadedForces = forces.map((f) => ({ ...f, params: f.params.map((p) => ({ ...p })) }));
     this.ensureCapacity(particles.length);
+    // The old world goes first: a new metric then has no velocities to convert, and the new
+    // particles are stored for it (their speeds checked against its c).
+    this.syncFromGpu();
+    this.set.clear();
     this.setSettings(settings);
     this.setForces(forces);
     this.points.setHighlight(undefined);
-    this.set.clear();
     this.set.addAll(particles);
     this.cpuStale = false;
     this.timelineEvents = [];
@@ -416,7 +422,17 @@ export class SimulationController {
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
     const planeChanged = settings.mode2D !== this.state.settings.mode2D;
+    // A new metric or c rewrites the stored velocities (u = γv under Minkowski), keeping each v; it
+    // throws, leaving everything as it was, when a particle would reach the new c.
+    const inverseC2 = inverseLightSpeed2(settings);
+    const metricChanged = inverseC2 !== this.set.inverseLightSpeed2;
+    if (metricChanged) {
+      this.syncFromGpu();
+      this.set.setInverseLightSpeed2(inverseC2);
+    }
     this.gpu.setSettings(settings);
+    this.points.setInverseLightSpeed2(inverseC2);
+    if (metricChanged) this.uploadParticles();
     const previous = this.state.settings;
     this.store.set({ settings });
     if (['boundary', 'boundarySize', 'boundaryDepth', 'mode2D'].some((key) => settings[key as keyof SimulationSettings] !== previous[key as keyof SimulationSettings]) || !this.boundaryDrawn) {
@@ -999,15 +1015,16 @@ export class SimulationController {
     this.editParticles((set) => set.addAll(particles));
   }
 
-  /** Applies v -> v * factor + random kick to every dynamic particle (v1's B/T/Y keys). */
+  /**
+   * Applies v -> v * factor + random kick to every dynamic particle (v1's B/T/Y keys). Under
+   * Minkowski it acts on the momentum per mass u = γv, so speeds stay below c.
+   */
   scaleVelocities(factor: number, kick = 0): void {
     const rng = createRng(Date.now());
     this.editParticles((set) => {
       for (let k = 0; k < set.count; k++) {
-        const p = set.get(k);
-        if (p.kind === ParticleKind.fixed) continue;
-        const noise = this.state.settings.mode2D ? inDisk(rng, kick) : inSphere(rng, kick);
-        set.set(k, { ...p, velocity: p.velocity.map((v, axis) => v * factor + noise[axis]!) as Vec3 });
+        if (set.position[k * TEXEL + 3] === ParticleKind.fixed) continue;
+        set.scaleVelocity(k, factor, this.state.settings.mode2D ? inDisk(rng, kick) : inSphere(rng, kick));
       }
     });
   }
@@ -1167,8 +1184,10 @@ export class SimulationController {
     }
     const energy = summarizeEnergy(this.set, velocity, potentials, this.compiled, settings.mode2D);
     if (energyError !== this.state.energyError) this.store.set({ energyError });
+    const spacetime = summarizeSpacetime(this.set, velocity);
     this.points.setAverageSpeed(energy.meanSpeed);
-    this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing });
+    this.points.setClockRange(spacetime.clockMin, spacetime.clockMax);
+    this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing, spacetime });
     if (!advanced || !this.statsActive) return;
     const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;
     this.store.set({

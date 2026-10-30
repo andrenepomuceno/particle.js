@@ -3,10 +3,10 @@ import { readForce } from './forces/readForce';
 import type { ForceDefinition } from './forces/types';
 import { JsonReader } from './json';
 import type { Particle, ParticleKind } from './particles';
-import { readSettings, type SimulationSettings } from './settings';
+import { DEFAULT_SETTINGS, readSettings, type SimulationSettings } from './settings';
 
 export const SNAPSHOT_FORMAT = 'particle.js-v2/snapshot';
-export const SNAPSHOT_VERSION = 5;
+export const SNAPSHOT_VERSION = 6;
 
 export interface Snapshot {
   format: typeof SNAPSHOT_FORMAT;
@@ -49,11 +49,18 @@ function parseParticle(value: unknown, index: number, version: number): Particle
 
 const migrateForce = (force: unknown, version: number) => (version >= 4 ? force : migrateScalarSpin(force));
 
-// Versions 1 and 2 predate the integrator choice and always ran semi-implicit Euler.
-/** v1–2 had only Euler; v3–4 predate quadraticDrag and boundaryDepth (neither existed: 0). */
+/**
+ * v1–2 had only Euler; v3–4 predate quadraticDrag and boundaryDepth (neither existed: 0); v1–5
+ * predate the metric (all Galilean, so c is unused and takes the default).
+ */
 function migrateSettings(settings: unknown, version: number): unknown {
-  if (version >= 5 || typeof settings !== 'object' || settings === null) return settings;
-  return { ...(version < 3 && { integrator: 'euler' }), quadraticDrag: 0, boundaryDepth: 0, ...settings };
+  if (version >= 6 || typeof settings !== 'object' || settings === null) return settings;
+  return {
+    ...(version < 3 && { integrator: 'euler' }),
+    ...(version < 5 && { quadraticDrag: 0, boundaryDepth: 0 }),
+    metric: 'galilean', lightSpeed: DEFAULT_SETTINGS.lightSpeed,
+    ...settings,
+  };
 }
 
 export function parseSnapshot(text: string): Snapshot {
@@ -64,7 +71,7 @@ export function parseSnapshot(text: string): Snapshot {
 export function readSnapshot(value: unknown): Snapshot {
   const o = json.object(value, '$');
   if (o.format !== SNAPSHOT_FORMAT) json.fail('format', `expected '${SNAPSHOT_FORMAT}', got ${JSON.stringify(o.format)}`);
-  const version = json.oneOf(o.version, [1, 2, 3, 4, SNAPSHOT_VERSION] as const, 'version');
+  const version = json.oneOf(o.version, [1, 2, 3, 4, 5, SNAPSHOT_VERSION] as const, 'version');
   return createSnapshot(
     json.string(o.name, 'name'),
     json.finite(o.time, 'time'),

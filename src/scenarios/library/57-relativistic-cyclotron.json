@@ -1,0 +1,35 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "relativistic-cyclotron",
+  "name": "Relativistic Cyclotron",
+  "folder": "Relativity",
+  "description": "Twelve charges leave the center together along x at speeds from 0.1 c to 0.95 c (c = 1, Minkowski metric), in a uniform magnetic field from the fixed source (the only particle with n = 1). Classically the cyclotron period 2πm/(qB) does not depend on speed, so all would come back to the center at the same time. Relativistically the period is 2πγm/(qB) and the radius γmv/(qB): the faster charges, carrying momentum γmv, swing on wider circles and fall behind, returning one after another. Speeds stay constant (the magnetic force does no work), and the clocks show the dilation too (colors: warm = behind). Switch the metric to Galilean in the Spacetime dialog to see them return in step.",
+  "seed": 3,
+  "view": { "cameraDistance": 260, "particleRadius": 2, "colorMode": "clock" },
+  "settings": { "timeStep": 0.1, "mode2D": true, "integrator": "euler", "metric": "minkowski", "lightSpeed": 1 },
+  "forces": [
+    {
+      "name": "Uniform B",
+      "mode": "force",
+      "range": "long",
+      "expression": "n_j * q_i * cross(v_i, vec(0, 0, Bz))",
+      "params": [{ "name": "Bz", "value": 0.05 }]
+    }
+  ],
+  "groups": [
+    { "count": 1, "kind": "fixed", "scale": false, "shape": { "type": "point", "center": [0, -150, 0] }, "nuclearCharge": 1 },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.1, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.2, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.3, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.4, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.5, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.6, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.7, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.8, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.85, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.9, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.93, 0, 0] } },
+    { "count": 1, "scale": false, "shape": { "type": "point" }, "charge": 1, "velocity": { "type": "constant", "value": [0.95, 0, 0] } }
+  ]
+}

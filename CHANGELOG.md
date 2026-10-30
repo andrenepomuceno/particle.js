@@ -1,47 +1,62 @@
 # Changelog
 
-## Unreleased
+## 2.2.0 — 2026-10-30
 
-- Scenarios no longer have fixed seeds: every start (load or R) lays the particles out anew, so each run
-  is unique; a scenario file that sets `seed` still repeats exactly. Information shows the run's seed.
-- `c_light`, `rand`, `randn` and `randv` are now variable names: a force parameter with one of these names must
-  be renamed.
-- Expressions read the configured speed of light as `c_light`; new preset *Magnetic* (Biot–Savart with
-  μ₀/4π = k/c²). *Neutral plasma* now has electric and magnetic forces (Coulomb + Magnetic) under the
-  Minkowski metric with c = 20, instead of a speed clamp.
-- Trail of the inspected particle (K, or *Trail* in the Particle dialog): its last 1000 steps as a line
-  that fades with age.
-- Scenarios can show the force field on load (`view.field`, with grid columns, log scale and test
-  particle); *Hydrogen*, *Helium* and *Water* (Elements) now show their electric field.
-- Fix: a particle total at the maximum (65536) no longer fails for scenarios whose counts rounded up
-  past it; scaled counts now round down to whole cycles, so the total never exceeds the one requested.
-- Information has a *JSON* tab: the current scenario's file as text. Edit it and *Apply (reset)* to
-  restart with other initial conditions (validated like an imported file; R restarts the edit),
-  *Revert* to the file as loaded, or *Download* it.
-- Information has a *Scenarios* tab: the library in collapsible folders (or a flat list), ordered
-  `suggested` (default), by `name` or `newest` first. The Overview select and PageDown/PageUp/Home follow it.
-  Scenario files gain an optional `added` date.
+### Physics
+
 - Special relativity: a **Spacetime** dialog switches the metric from Galilean (classical, the
   default) to Minkowski with a chosen speed of light c (`metric` and `lightSpeed` settings).
   Forces change the momentum γmv, so speeds stay below c without a clamp. Each clock shows its
   proper time dτ = dt/γ. Kinetic energy is (γ − 1)mc². Interactions stay instantaneous.
   Expressions still see v = dx/dt, so the existing Lorentz forces are relativistic as written.
-- New color mode `clock` (the spread of particle clocks); the Particle dialog shows γ under Minkowski.
-- New scenarios in *Relativity*: *Twin Clocks* and *Relativistic Cyclotron*.
-- Snapshots are version 6 (adds `metric` and `lightSpeed`); versions 1–5 load as Galilean.
-- Fix: a random velocity's `speed` given as `{ "cycle": [...] }` now cycles per particle (every
-  particle used to get the first value).
+  New scenarios in *Relativity*: *Twin Clocks* and *Relativistic Cyclotron*.
+- Expressions read the configured speed of light as `c_light`; new preset *Magnetic* (Biot–Savart with
+  μ₀/4π = k/c²). *Neutral plasma* now has electric and magnetic forces (Coulomb + Magnetic) under the
+  Minkowski metric with c = 20, instead of a speed clamp.
+- Random numbers in force expressions: `rand` (uniform in [0, 1)), `randn` (standard normal) and
+  `randv` (vector of three normals), new for every pair at every step. A hash of the pair, the
+  float32 time and a stream makes them deterministic, the same on GPU and CPU and the same for both
+  particles, so a central noise such as `sigma * randn` conserves momentum (DPD). Force mode only;
+  field probes and plots use the mean. New scenario *DPD Thermostat*.
+
+### Scenarios
+
+- No fixed seeds: every start (load or R) lays the particles out anew, so each run is unique; a
+  scenario file that sets `seed` still repeats exactly. Information shows the run's seed.
+- Information has a *Scenarios* tab: the library in collapsible folders (or a flat list), ordered
+  `suggested` (default), by `name` or `newest` first. The Overview select and PageDown/PageUp/Home follow it.
+  Scenario files gain an optional `added` date.
+- Information has a *JSON* tab: the current scenario's file as text. Edit it and *Apply (reset)* to
+  restart with other initial conditions (validated like an imported file; R restarts the edit),
+  *Revert* to the file as loaded, or *Download* it.
+- Scenarios can show the force field on load (`view.field`, with grid columns, log scale and test
+  particle); *Hydrogen*, *Helium* and *Water* (Elements) now show their electric field.
+
+### Interface
+
 - Statistics has a Particles tab: particles grouped by their properties (kind, mass, charges, spin,
   isospin, parity, nuclear and color charge), largest group first, with the matching species.
+- Trail of the inspected particle (K, or *Trail* in the Particle dialog): its last 1000 steps as a line
+  that fades with age.
+- New color mode `clock` (each clock as a fraction of the global time); the Particle dialog shows γ
+  under Minkowski.
+
+### Compatibility
+
+- Snapshots are version 6 (adds `metric` and `lightSpeed`); versions 1–5 load as Galilean.
+- `c_light`, `rand`, `randn` and `randv` are now variable names: a force parameter with one of these
+  names must be renamed.
+
+### Fixes
+
 - Scaling a scenario to a particle total keeps every particle inside the boundary: the boundary
   follows a grid's outer sites (not just the ideal root of the count factor), a box in a slab keeps
   its thickness, and a sphere or shell in a slab fails loudly instead of growing through it.
   *Dipole Crystal* started 45 particles outside its box (26 columns now, same count and box).
-- Random numbers in force expressions: `rand` (uniform in [0, 1)), `randn` (standard normal) and
-  `randv` (vector of three normals), new for every pair at every step. A hash of the pair, the
-  float32 time and a stream makes them deterministic, bit-identical on GPU and CPU and the same for
-  both particles, so a central noise such as `sigma * randn` conserves momentum (DPD). Force mode
-  only; field probes and plots use the mean. New scenario *DPD Thermostat*.
+- A particle total at the maximum (65536) no longer fails for scenarios whose counts rounded up past
+  it; scaled counts round down to whole cycles, so the total never exceeds the one requested.
+- A random velocity's `speed` given as `{ "cycle": [...] }` now cycles per particle (every particle
+  used to get the first value).
 
 ## 2.1.1 — 2026-10-24
 

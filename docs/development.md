@@ -26,7 +26,8 @@ meaningful on hardware.
 
 ## CI and release
 
-- `.github/workflows/ci.yml` runs on pushes and pull requests to `main`. Job `check`:
+- Day-to-day work is committed and pushed to `dev`; `main` only moves on a release.
+- `.github/workflows/ci.yml` runs on pushes to `dev` and `main` and on pull requests to `main`. Job `check`:
   `npm ci`, `npm run check`, `npm run build`. Job `browser`: installs Playwright's Chromium
   (`npx playwright install --with-deps chromium`) and runs `npm run smoke:all` on
   SwiftShader (no GPU); `reports/` is uploaded as an artifact on failure.
@@ -37,8 +38,9 @@ meaningful on hardware.
 - Both Pages jobs are gated by `github.repository == 'andrenepomuceno/particle.js'`, the
   repository the 2.0 code will move to; elsewhere the workflow does nothing. Pages must use
   "GitHub Actions" as its source in that repository.
-- To release: bump `version` in `package.json` (shown in the Information dialog as
-  `__APP_VERSION__`), add a `CHANGELOG.md` entry, commit, then tag `vX.Y.Z` and push the tag.
+- To release: on `dev`, bump `version` in `package.json` (shown in the Information dialog as
+  `__APP_VERSION__`), add a `CHANGELOG.md` entry and commit. Then merge `dev` into `main`,
+  tag `vX.Y.Z` on `main`, and push `main` and the tag.
 
 ## Analytics
 

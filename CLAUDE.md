@@ -71,7 +71,10 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
   e não versionado (pedido do usuário, `.gitignore`).
 - Commits pequenos, conventional commits em inglês, mensagem via `git commit -F`, stage explícito,
   sem trailers de coautoria. Suíte verde antes de cada commit.
-- **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/main` sempre que
+- **Branches** (pedido do usuário em 2026-10-30): o trabalho do dia a dia é commitado direto em `dev`,
+  sem branches de feature. `main` só avança ao publicar: `dev` entra em `main` e a tag `vX.Y.Z` é criada
+  lá (passos em `docs/development.md`).
+- **Push autorizado** (pedido do usuário em 2026-10-24): faça `git push` para `origin/dev` sempre que
   um lote estiver commitado, verde e revisado. Nunca force push nem reescreva histórico publicado.
 - **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados. **Um passe por lote**
   (pedido do usuário): as correções vão para o push sem novo review; nada de review de commits pequenos isolados.

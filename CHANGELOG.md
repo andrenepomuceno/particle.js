@@ -2,8 +2,10 @@
 
 ## Unreleased
 
+- `c_light`, `rand`, `randn` and `randv` are now variable names: a force parameter with one of these names must
+  be renamed.
 - Expressions read the configured speed of light as `c_light`; new preset *Magnetic* (Biot–Savart with
-  μ₀/4π = k/c²). *Neutral plasma* now has the full electromagnetic force (Coulomb + Magnetic) under the
+  μ₀/4π = k/c²). *Neutral plasma* now has electric and magnetic forces (Coulomb + Magnetic) under the
   Minkowski metric with c = 20, instead of a speed clamp.
 - Trail of the inspected particle (K, or *Trail* in the Particle dialog): its last 1000 steps as a line
   that fades with age.

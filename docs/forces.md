@@ -49,7 +49,10 @@ Settings `metric` (`galilean`, the default, or `minkowski`) and `lightSpeed` (c)
 - Expressions still see the coordinate velocity: `v_i`, `v_j` and the shorthands are dx/dt. The
   Lorentz force q(E + v × B) written with them is already the relativistic one, because dp/dt = F
   holds with p = γmv. `c_light` is the configured c, so a magnetic coupling k/c² (the *Magnetic*
-  preset) follows the dialog: Coulomb + Magnetic is the full electromagnetic pair force to order v²/c².
+  preset) follows the dialog. Coulomb + Magnetic is the quasi-static Lorentz force (E from Coulomb, B
+  from Biot–Savart), not the complete O(v²/c²) interaction: the Darwin corrections to E (velocity- and
+  acceleration-dependent) and retardation are left out, and the magnetic pair force breaks Newton's third
+  law, so total momentum drifts.
 - Friction, quadratic drag, boundary reflection, the B/T/Y keys and collisions act on u.
   Collisions conserve momentum exactly, and two equal masses colliding head-on swap momenta,
   which is the exact elastic result; otherwise the relativistic energy is only approximately

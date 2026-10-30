@@ -63,6 +63,8 @@ const CASES = [
     forces: [
       { name: 'E and B', mode: 'force', range: 'long', expression: 'n_j * q_i * (cross(v_i, vec(0, 0, 1)) + vec(0.4, 0, 0))' },
       { preset: 'coulomb', softening: 0.5, params: { k: 0.5 } },
+      // Reads c_light (the uLightSpeed uniform).
+      { preset: 'magnetic', softening: 0.5, params: { k: 0.5 } },
     ] },
   // Verlet's per-particle clock shift (t_j read after the drift), boundary reflection and collisions on u.
   { name: 'minkowski: clock-coupled force, box, collisions', settings: { timeStep: 0.02, metric: 'minkowski', lightSpeed: 2, boundary: 'box', boundarySize: 20, collisionDistance: 1 },
@@ -123,7 +125,6 @@ const failures = await withBrowser(async ({ browser, base }) => {
       });
       const deviation = await page.evaluate(async ({ scenario, steps }) => {
         const { referenceStep } = await import('/src/engine/cpu/referenceStep.ts');
-        const { inverseLightSpeed2 } = await import('/src/engine/metric.ts');
         const { ParticleSet } = await import('/src/engine/particles.ts');
         const c = globalThis.particleController;
         c.importFile(scenario, 'parity.json');
@@ -131,7 +132,7 @@ const failures = await withBrowser(async ({ browser, base }) => {
         const start = c.readParticles();
         const { settings } = c.state;
         const cpu = new ParticleSet(4 * Math.ceil(start.length / 4) || 4);
-        cpu.setInverseLightSpeed2(inverseLightSpeed2(settings));
+        cpu.setMetric(settings);
         cpu.addAll(start);
         const state = {};
         // Accumulated as advance() does: random forces hash the exact float32 time.

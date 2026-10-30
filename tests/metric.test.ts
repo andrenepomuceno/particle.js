@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { summarizeEnergy, summarizeSpacetime } from '../src/engine/cpu/energy';
 import { referenceStep, type ReferenceState } from '../src/engine/cpu/referenceStep';
-import { compileForce } from '../src/engine/forces/compile';
+import { pairScope } from '../src/engine/cpu/pairs';
+import { compileForce, forceScope } from '../src/engine/forces/compile';
+import { forceFromPreset } from '../src/engine/forces/presets';
+import { generateVelocityShader } from '../src/engine/shaders/computeShaders';
 import { JsonReader } from '../src/engine/json';
-import { coordinateVelocity, inverseLightSpeed2, kineticEnergy, lorentzFactor, properVelocity, velocityJacobian } from '../src/engine/metric';
+import { coordinateVelocity, kineticEnergy, lorentzFactor, properVelocity, velocityJacobian } from '../src/engine/metric';
 import { defaultParticle, ParticleKind, ParticleSet, type Particle } from '../src/engine/particles';
 import { DEFAULT_SETTINGS, readSettings, validateSettings, type SimulationSettings } from '../src/engine/settings';
 import { makeForce } from './helpers';
@@ -15,7 +18,7 @@ const minkowski = (overrides: Partial<SimulationSettings> = {}): SimulationSetti
 
 function setFor(settings: SimulationSettings, ...particles: Particle[]): ParticleSet {
   const set = new ParticleSet(Math.max(particles.length, 1));
-  set.setInverseLightSpeed2(inverseLightSpeed2(settings));
+  set.setMetric(settings);
   set.addAll(particles);
   return set;
 }
@@ -71,17 +74,17 @@ describe('ParticleSet under Minkowski', () => {
 
   it('rejects particles at or above c, naming them', () => {
     const set = new ParticleSet(2);
-    set.setInverseLightSpeed2(k);
+    set.setMetric(minkowski());
     expect(() => set.addAll([defaultParticle(), defaultParticle({ velocity: [0, 2.5, 0] })])).toThrow(/particle #1: speed 2.5 reaches the speed of light/);
     expect(set.count).toBe(0);
   });
 
   it('keeps each v when c changes, and refuses a c some particle would reach', () => {
     const set = setFor(minkowski(), defaultParticle({ velocity: [1.5, 0, 0] }), defaultParticle({ velocity: [0, 0.5, 0] }));
-    set.setInverseLightSpeed2(0);
+    set.setMetric(DEFAULT_SETTINGS);
     expect(set.velocity[0]).toBeCloseTo(1.5, 6);
-    expect(() => set.setInverseLightSpeed2(1)).toThrow(/1 particle\(s\) move at or above c = 1 \(fastest 1\.5/);
-    expect(set.inverseLightSpeed2).toBe(0);
+    expect(() => set.setMetric(minkowski({ lightSpeed: 1 }))).toThrow(/1 particle\(s\) move at or above c = 1 \(fastest 1\.5/);
+    expect([set.inverseLightSpeed2, set.lightSpeed]).toEqual([0, DEFAULT_SETTINGS.lightSpeed]);
     expect(set.velocity[0]).toBeCloseTo(1.5, 6);
   });
 
@@ -95,7 +98,7 @@ describe('ParticleSet under Minkowski', () => {
 
   it('refuses to step a set written for another metric', () => {
     const set = setFor(DEFAULT_SETTINGS, defaultParticle());
-    expect(() => referenceStep(set, [], minkowski(), 0)).toThrow(/stores velocities for 1\/c² = 0, but the settings' metric gives 0.25/);
+    expect(() => referenceStep(set, [], minkowski(), 0)).toThrow(/set up for 1\/c² = 0 and c = 10, but the settings give 0.25 and 2/);
   });
 });
 
@@ -189,5 +192,30 @@ describe('Minkowski energy and settings', () => {
     const settings = readSettings(new JsonReader('test'), { metric: 'minkowski', lightSpeed: 3 }, 'settings', { ...DEFAULT_SETTINGS });
     expect([settings.metric, settings.lightSpeed]).toEqual(['minkowski', 3]);
     expect(() => readSettings(new JsonReader('test'), { metric: 'curved' }, 'settings', { ...DEFAULT_SETTINGS })).toThrow(/settings.metric/);
+  });
+});
+
+describe('c_light', () => {
+  it('reads the configured c in expressions, under either metric', () => {
+    const force = compileForce(makeForce({ expression: 'c_light', params: [] }));
+    for (const settings of [minkowski({ lightSpeed: 3 }), { ...DEFAULT_SETTINGS, lightSpeed: 7 }]) {
+      const set = setFor(settings, defaultParticle(), defaultParticle({ position: [1, 0, 0] }));
+      const pair = pairScope(set, 0, 1, 0, false);
+      expect(force.evaluate(forceScope(force, pair, 1))).toBe(settings.lightSpeed);
+    }
+    expect(generateVelocityShader([force])).toContain('uLightSpeed');
+  });
+
+  it('couples the magnetic preset as k/c² times Biot–Savart', () => {
+    const magnetic = compileForce(forceFromPreset('magnetic', { softening: 0, params: [{ name: 'k', value: 2 }] }));
+    const biotSavart = compileForce(makeForce({ expression: 'k * q_i * q_j / r^3 * cross(v_i, cross(v_j, d))', params: [{ name: 'k', value: 2 }] }));
+    const set = setFor(minkowski({ lightSpeed: 4 }),
+      defaultParticle({ position: [0.4, -1, 0.3], velocity: [0.2, 0.5, -0.1], charge: 1.5 }),
+      defaultParticle({ position: [-1, 0.8, 0], velocity: [-0.3, 0.1, 0.4], charge: -2 }));
+    const pair = pairScope(set, 0, 1, 0, false);
+    const dist = Math.hypot(1.4, -1.8, 0.3);
+    const a = magnetic.evaluateVector!(forceScope(magnetic, pair, dist));
+    const b = biotSavart.evaluateVector!(forceScope(biotSavart, pair, dist));
+    a.forEach((c, axis) => expect(c).toBeCloseTo(b[axis]! / 16, 12));
   });
 });

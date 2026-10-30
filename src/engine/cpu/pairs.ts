@@ -39,7 +39,7 @@ export function pairScope(set: ParticleSet, i: number, j: number, time: number, 
     i3_i: s[oi + 3]!, i3_j: s[oj + 3]!,
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: c[oi]!, cg_i: c[oi + 1]!, cb_i: c[oi + 2]!, cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
-    t_i: v[oi + 3]!, t_j: v[oj + 3]!, time,
+    t_i: v[oi + 3]!, t_j: v[oj + 3]!, time, c_light: set.lightSpeed,
     vx_i: v[oi]! * gi, vy_i: v[oi + 1]! * gi, vz_i: v[oi + 2]! * gi, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     rand: n.rand, randn: n.randn, randvx: n.randvx, randvy: n.randvy, randvz: n.randvz,
   };
@@ -64,7 +64,7 @@ export function probeScope(probe: Probe, set: ParticleSet, j: number, time: numb
     i3_i: probe.isospin, i3_j: s[oj + 3]!,
     ux: dx / length, uy: dy / length, uz: dz / length,
     cr_i: probe.color[0], cg_i: probe.color[1], cb_i: probe.color[2], cr_j: c[oj]!, cg_j: c[oj + 1]!, cb_j: c[oj + 2]!,
-    t_i: 0, t_j: v[oj + 3]!, time,
+    t_i: 0, t_j: v[oj + 3]!, time, c_light: set.lightSpeed,
     // The test particle is at rest: velocity-dependent forces on it vanish.
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: v[oj]! * gj, vy_j: v[oj + 1]! * gj, vz_j: v[oj + 2]! * gj,
     ...MEAN_NOISE,

@@ -1,5 +1,6 @@
 import type { FieldProbe } from '../field';
 import { MEAN_NOISE } from '../noise';
+import { DEFAULT_SETTINGS } from '../settings';
 import { acts, forceScope, type CompiledForce, type PairScope } from './compile';
 import type { ForceRange } from './types';
 
@@ -16,13 +17,14 @@ export const DEFAULT_PLOT_PARTICLES: PlotParticles = {
   j: { mass: 1, charge: 1, charge2: 0, spin: [0, 0, 0.5], isospin: 0.5, parity: 1, nuclearCharge: 1, color: [-1, 0, 0] },
 };
 
-export function plotPair({ i, j }: PlotParticles): Pair {
+/** The plotted pair at rest; `lightSpeed` is the c that expressions read as c_light. */
+export function plotPair({ i, j }: PlotParticles, lightSpeed = DEFAULT_SETTINGS.lightSpeed): Pair {
   return {
     m_i: i.mass, m_j: j.mass, q_i: i.charge, q_j: j.charge, q2_i: i.charge2, q2_j: j.charge2, i3_i: i.isospin, i3_j: j.isospin,
     sx_i: i.spin[0], sy_i: i.spin[1], sz_i: i.spin[2], sx_j: j.spin[0], sy_j: j.spin[1], sz_j: j.spin[2],
     ux: 1, uy: 0, uz: 0, p_i: i.parity, p_j: j.parity, n_i: i.nuclearCharge, n_j: j.nuclearCharge,
     cr_i: i.color[0], cg_i: i.color[1], cb_i: i.color[2], cr_j: j.color[0], cg_j: j.color[1], cb_j: j.color[2],
-    t_i: 0, t_j: 0, time: 0,
+    t_i: 0, t_j: 0, time: 0, c_light: lightSpeed,
     vx_i: 0, vy_i: 0, vz_i: 0, vx_j: 0, vy_j: 0, vz_j: 0,
     // Random numbers at their mean, so the curves do not flicker.
     ...MEAN_NOISE,

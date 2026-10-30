@@ -48,7 +48,8 @@ Settings `metric` (`galilean`, the default, or `minkowski`) and `lightSpeed` (c)
   with ∂F/∂u = ∂F/∂v · ∂v/∂u, where ∂v/∂u = (I − v·vᵀ/c²)/γ.
 - Expressions still see the coordinate velocity: `v_i`, `v_j` and the shorthands are dx/dt. The
   Lorentz force q(E + v × B) written with them is already the relativistic one, because dp/dt = F
-  holds with p = γmv.
+  holds with p = γmv. `c_light` is the configured c, so a magnetic coupling k/c² (the *Magnetic*
+  preset) follows the dialog: Coulomb + Magnetic is the full electromagnetic pair force to order v²/c².
 - Friction, quadratic drag, boundary reflection, the B/T/Y keys and collisions act on u.
   Collisions conserve momentum exactly, and two equal masses colliding head-on swap momenta,
   which is the exact elastic result; otherwise the relativistic energy is only approximately
@@ -101,6 +102,7 @@ Variables:
 | `c_dot` | color factor `C_i · C_j` (see below) |
 | `t_i`, `t_j` | particle clocks (proper times under Minkowski) |
 | `time` | global simulation time |
+| `c_light` | speed of light c (Spacetime dialog), also while Galilean: e.g. the magnetic coupling k/c² |
 | `rand` | uniform random number in [0, 1), new each step, shared by the pair (force mode; see *Random numbers*) |
 | `randn` | standard normal random number, new each step, shared by the pair |
 | `randv` | vector of three independent standard normals, new each step, shared by the pair |
@@ -181,6 +183,7 @@ calls: `randn` read twice, in one expression or in two forces of the pair, is th
 | --- | --- | --- | --- |
 | Gravity | force | long | `-G * m_i * m_j / r^2` |
 | Coulomb | force | long | `k * q_dot / r^2` |
+| Magnetic (Biot–Savart) | force (vector) | long | `k * q_i * q_j / (c_light^2 * r^3) * cross(v_i, cross(v_j, d))` |
 | v1 nuclear | force | short | `k * n_i * n_j * sin(2 * pi * x)` |
 | Lennard-Jones | potential | short | `4 * epsilon * ((sigma / r)^12 - (sigma / r)^6)` |
 | Yukawa | potential | short | `-g^2 * exp(-r / lambda) / r` |

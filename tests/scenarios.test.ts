@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROBE } from '../src/engine/field';
 import { compileForce } from '../src/engine/forces/compile';
-import { inverseLightSpeed2 } from '../src/engine/metric';
 import { ParticleSet } from '../src/engine/particles';
 import { createRng } from '../src/engine/random';
 import { DEFAULT_SETTINGS } from '../src/engine/settings';
@@ -32,7 +31,7 @@ describe('bundled scenario library', () => {
     scenario.forces().forEach((force) => expect(() => compileForce(force)).not.toThrow());
     // Under Minkowski every particle must start below c (the set refuses it otherwise).
     const set = new ParticleSet(Math.max(first.length, 1));
-    set.setInverseLightSpeed2(inverseLightSpeed2({ ...DEFAULT_SETTINGS, ...scenario.settings }));
+    set.setMetric({ ...DEFAULT_SETTINGS, ...scenario.settings });
     expect(() => set.addAll(first)).not.toThrow();
   });
 });
@@ -91,6 +90,12 @@ describe('parseScenario', () => {
     expect(() => parse({ view: { field: { probe: { mass: 0 } } } })).toThrow(/view.field.probe': test particle mass must be > 0/);
     expect(() => parse({ view: { field: { probe: { velocity: [1, 0, 0] } } } })).toThrow(/view.field.probe/);
     expect(() => parse({ view: { field: false } })).toThrow(/view.field/);
+  });
+
+  it('runs Neutral plasma with the full electromagnetic force under Minkowski', () => {
+    const plasma = SCENARIOS.find((s) => s.id === 'plasma')!;
+    expect([plasma.settings.metric, plasma.settings.lightSpeed, plasma.settings.maxSpeed]).toEqual(['minkowski', 20, 0]);
+    expect(plasma.forces().map((f) => f.name)).toEqual(expect.arrayContaining(['Coulomb', 'Magnetic (Biot–Savart)']));
   });
 
   it('shows the field in every Elements scenario', () => {

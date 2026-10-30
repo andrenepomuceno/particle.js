@@ -26,6 +26,7 @@ uniform bool uMode2D;
 uniform sampler2D uAcceleration;
 uniform sampler2D uAccelerationNext;
 uniform float uClockShift;
+uniform float uLightSpeed;
 
 #define KIND_FIXED 2.0
 

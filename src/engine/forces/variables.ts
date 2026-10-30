@@ -65,6 +65,7 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
   { name: 'c_dot', description: 'color factor C_i·C_j: same +1, different −½, anticolor −1', glsl: 'colorDot(color1, color2)' },
   ...perParticle('t', 'particle clock (age)', (k) => `tau${k}`),
   { name: 'time', description: 'global simulation time', glsl: 'uTime' },
+  { name: 'c_light', description: 'speed of light c (Spacetime dialog); it has its value under either metric', glsl: 'uLightSpeed' },
   { name: 'rand', description: 'uniform random number in [0, 1), the same for both particles of the pair (probes and plots: ½)', glsl: 'noise.x', random: true },
   { name: 'randn', description: 'standard normal random number, the same for both particles of the pair (probes and plots: 0)', glsl: 'noise.y', random: true },
   { name: 'randv', description: 'vector of three independent standard normals, the same for both particles of the pair (probes and plots: 0)', glsl: '', random: true, lowered: true },

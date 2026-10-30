@@ -21,6 +21,16 @@ export const FORCE_PRESETS = {
     softening: 1,
     params: [{ name: 'k', value: 1 }],
   },
+  magnetic: {
+    name: 'Magnetic (Biot–Savart)',
+    mode: 'force',
+    // μ₀/4π = k/c²: the magnetic partner of a Coulomb force with the same k, between moving charges.
+    expression: 'k * q_i * q_j / (c_light^2 * r^3) * cross(v_i, cross(v_j, d))',
+    range: 'long',
+    cutoff: 1,
+    softening: 1,
+    params: [{ name: 'k', value: 1 }],
+  },
   nuclear: {
     name: 'Nuclear (v1 sine)',
     mode: 'force',

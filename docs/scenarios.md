@@ -44,7 +44,7 @@ Either a preset with overrides:
 { "preset": "lennardJones", "cutoff": 30, "softening": 0, "enabled": true, "params": { "epsilon": 5 } }
 ```
 
-Presets: `gravity`, `coulomb`, `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin` (the spin dipole)
+Presets: `gravity`, `coulomb`, `magnetic` (Biot–Savart with k/c², c = `c_light`), `nuclear`, `lennardJones`, `yukawa`, `spring`, `color`, `spinSpin` (the spin dipole)
 (definitions in `src/engine/forces/presets.ts`). Or a full definition:
 
 ```json

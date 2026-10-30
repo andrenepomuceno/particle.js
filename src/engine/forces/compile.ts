@@ -403,6 +403,8 @@ export function forceUniformName(forceIndex: number, name: string): string {
 /** A pair's variables, random numbers included (pairScope hashes them; probes and plots use the mean). */
 export interface PairScope extends PairNoise {
   r: number;
+  /** The configured speed of light (settings.lightSpeed). */
+  c_light: number;
   m_i: number; m_j: number;
   q_i: number; q_j: number;
   q2_i: number; q2_j: number;

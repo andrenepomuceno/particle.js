@@ -1,6 +1,7 @@
 import { useMemo, useState, type PointerEvent, type ReactNode } from 'react';
 import { compileForce, type CompiledForce } from '../../engine/forces/compile';
-import { appliedForce, plotDistance, resultantPotential, type PlotParticles, plotPair } from '../../engine/forces/resultant';
+import { appliedForce, DEFAULT_PLOT_PARTICLES, plotDistance, resultantPotential, type PlotParticles, plotPair } from '../../engine/forces/resultant';
+import { useAppState } from '../context';
 import type { ForceDefinition, ForceRange } from '../../engine/forces/types';
 
 const WIDTH = 400;
@@ -79,6 +80,8 @@ function CurvePlot({ points, maxDistance, symbol, label, caption }: {
 
 /** F(d) of one force as the integrator applies it. */
 export function ForcePlot({ definition }: { definition: ForceDefinition }) {
+  // c_light in an expression plots with the configured c.
+  const lightSpeed = useAppState((s) => s.settings.lightSpeed);
   const curve = useMemo(() => {
     let force: CompiledForce;
     try {
@@ -87,12 +90,13 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
       return undefined;
     }
     const maxDistance = plotDistance(force);
+    const pair = plotPair(DEFAULT_PLOT_PARTICLES, lightSpeed);
     const points = Array.from({ length: SAMPLES }, (_, k) => {
       const d = (maxDistance * (k + 1)) / SAMPLES;
-      return { d, y: appliedForce(force, d) };
+      return { d, y: appliedForce(force, d, pair) };
     });
     return { points, maxDistance, kind: force.kind, velocity: force.velocity, random: force.random };
-  }, [definition]);
+  }, [definition, lightSpeed]);
   if (!curve) return null;
   return (
     <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="F" label={`F(d) for ${definition.name}`} caption={<>
@@ -109,10 +113,11 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
 export function ResultantPotentialPlot({ forces, range, particles, maxDistance }: {
   forces: readonly CompiledForce[]; range: ForceRange; particles: PlotParticles; maxDistance: number | undefined;
 }) {
+  const lightSpeed = useAppState((s) => s.settings.lightSpeed);
   const curve = useMemo(() => {
-    const result = resultantPotential(forces, range, { pair: plotPair(particles), maxDistance, samples: SAMPLES });
+    const result = resultantPotential(forces, range, { pair: plotPair(particles, lightSpeed), maxDistance, samples: SAMPLES });
     return result && { ...result, points: result.points.map((p) => ({ d: p.d, y: p.v })) };
-  }, [forces, range, particles, maxDistance]);
+  }, [forces, range, particles, maxDistance, lightSpeed]);
   if (!curve) return null;
   const title = range === 'short' ? 'Short range' : 'Long range';
   return (

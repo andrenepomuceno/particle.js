@@ -119,6 +119,7 @@ export class GpuCompute {
       uAccelerationNext: { value: null },
       uClockShift: { value: 0 },
       uInverseLightSpeed2: { value: 0 },
+      uLightSpeed: { value: 1 },
     };
     this.positionMaterial = this.material(POSITION_SHADER, this.sharedUniforms);
     this.velocityMaterial = this.material(generateVelocityShader([]), this.sharedUniforms);
@@ -224,8 +225,9 @@ export class GpuCompute {
     // a(x) depends on positions and forces only; mode2D zeroes its z, and Euler leaves it stale.
     if (u.uMode2D!.value !== settings.mode2D || this.integrator !== settings.integrator) this.accelerationValid = false;
     u.uMode2D!.value = settings.mode2D;
-    // The stored velocities must be rewritten with it (ParticleSet.setInverseLightSpeed2, then upload).
+    // The stored velocities must be rewritten with it (ParticleSet.setMetric, then upload).
     u.uInverseLightSpeed2!.value = inverseLightSpeed2(settings);
+    u.uLightSpeed!.value = settings.lightSpeed;
     this.integrator = settings.integrator;
   }
 

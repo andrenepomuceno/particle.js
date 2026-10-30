@@ -28,8 +28,8 @@ export function referenceStep(
   state: ReferenceState = {},
 ): void {
   const k = inverseLightSpeed2(settings);
-  if (set.inverseLightSpeed2 !== k) {
-    throw new Error(`the particle set stores velocities for 1/c² = ${set.inverseLightSpeed2}, but the settings' metric gives ${k}; call setInverseLightSpeed2 first`);
+  if (set.inverseLightSpeed2 !== k || set.lightSpeed !== settings.lightSpeed) {
+    throw new Error(`the particle set is set up for 1/c² = ${set.inverseLightSpeed2} and c = ${set.lightSpeed}, but the settings give ${k} and ${settings.lightSpeed}; call setMetric first`);
   }
   // Velocity-dependent forces break Verlet's position-only assumption; the Euler step (with the
   // implicit kick for forces reading v_i) handles them.

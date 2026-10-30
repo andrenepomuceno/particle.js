@@ -9,7 +9,7 @@ import type { ParticleSet } from '../particles';
 import { inverseLightSpeed2 } from '../metric';
 import { DEFAULT_SETTINGS, type SimulationSettings } from '../settings';
 import {
-  BOUNDARY_CODE, EXTRAPOLATE_POSITION_SHADER, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
+  BOUNDARY_CODE, generateAccelerationShader, generateFieldShader, generatePotentialShader, generateVelocityShader, POSITION_SHADER,
   VERLET_POSITION_SHADER, VERLET_VELOCITY_SHADER,
 } from '../shaders/computeShaders';
 
@@ -64,6 +64,12 @@ interface History {
   /** Texture rows the particles occupy: layers hold only these, so the cost follows the particle count. */
   rows: number;
   head: number;
+  /** Stored steps; older ones extrapolate the oldest stored state by `resetDt` per step (a restart costs one copy). */
+  filled: number;
+  resetDt: number;
+  /** Times are stored as offsets from `base` (float32 keeps their differences); `exact` keeps them for rebasing. */
+  base: number;
+  exact: Float64Array;
   position: WebGLArrayRenderTarget;
   velocity: WebGLArrayRenderTarget;
   times: DataTexture;
@@ -103,7 +109,6 @@ export class GpuCompute {
   private readonly verletPositionMaterial: RawShaderMaterial;
   private readonly verletVelocityMaterial: RawShaderMaterial;
   private readonly copyMaterial: RawShaderMaterial;
-  private readonly extrapolateMaterial: RawShaderMaterial;
   private history: History | undefined;
   private forces: readonly CompiledForce[] = [];
   private readonly prelude: string;
@@ -147,6 +152,9 @@ export class GpuCompute {
       uHistoryTimes: { value: null },
       uHistoryHead: { value: 0 },
       uHistoryCount: { value: 0 },
+      uHistoryFilled: { value: 0 },
+      uHistoryResetDt: { value: 0 },
+      uHistoryNow: { value: 0 },
       uInverseLightSpeed2: { value: 0 },
       uLightSpeed: { value: DEFAULT_SETTINGS.lightSpeed },
     };
@@ -168,7 +176,6 @@ export class GpuCompute {
     this.fieldMaterial = this.material(generateFieldShader([]), { ...this.sharedUniforms, ...this.probeUniforms });
     this.forceUniforms = this.sharedUniforms;
     this.copyMaterial = this.material(COPY_SHADER, { uSource: { value: null } });
-    this.extrapolateMaterial = this.material(EXTRAPOLATE_POSITION_SHADER, { ...this.sharedUniforms, uHistoryOffset: { value: 0 } });
     for (const material of this.programs()) {
       this.validate(material.fragmentShader);
     }
@@ -304,7 +311,7 @@ export class GpuCompute {
     if (depth > 0) {
       const options = { type: FloatType, format: RGBAFormat, minFilter: NearestFilter, magFilter: NearestFilter, depthBuffer: false };
       this.history = {
-        depth, rows, head: 0,
+        depth, rows, head: 0, filled: 1, resetDt: 0, base: time, exact: new Float64Array(depth),
         position: new WebGLArrayRenderTarget(this.width, rows, depth, options),
         velocity: new WebGLArrayRenderTarget(this.width, rows, depth, options),
         times: new DataTexture(new Float32Array(depth * 4), depth, 1, RGBAFormat, FloatType),
@@ -338,38 +345,45 @@ export class GpuCompute {
     return Math.max(1, Math.ceil(this.set.count / this.width));
   }
 
-  // Step k (1 = newest) lives in layer head − (k − 1) of the ring.
+  // Step k (1 = newest) lives in layer head − (k − 1) of the ring. A restart stores only the present; the
+  // shader extrapolates the steps before it (cpu/history.ts does the same).
   private resetHistory(time: number): void {
     const history = this.history;
     if (!history) return;
-    const dt = this.sharedUniforms.uTimeStep!.value as number;
-    const u = this.sharedUniforms;
-    u.texturePosition!.value = this.position[this.current]!.texture;
-    u.textureVelocity!.value = this.velocity[this.current]!.texture;
-    this.copyMaterial.uniforms.uSource!.value = this.velocity[this.current]!.texture;
     history.head = 0;
-    const times = history.times.image.data as Float32Array;
-    for (let k = 1; k <= history.depth; k++) {
-      const layer = (history.depth - (k - 1)) % history.depth;
-      this.extrapolateMaterial.uniforms.uHistoryOffset!.value = (k - 1) * dt;
-      this.renderTo(this.extrapolateMaterial, history.position, layer);
-      this.renderTo(this.copyMaterial, history.velocity, layer);
-      times[layer * 4] = time - (k - 1) * dt;
-    }
-    history.times.needsUpdate = true;
-    this.bindHistory();
+    history.filled = 1;
+    history.resetDt = this.sharedUniforms.uTimeStep!.value as number;
+    history.base = time;
+    this.storeHistoryStep(time);
   }
 
   private pushHistory(time: number): void {
     const history = this.history!;
     history.head = (history.head + 1) % history.depth;
+    history.filled = Math.min(history.filled + 1, history.depth);
+    // Offsets stay small: past 4096 time units from the base, every stored time moves to a new one.
+    if (time - history.base > 4096) history.base = time;
+    this.storeHistoryStep(time);
+  }
+
+  /** Copies the present into the head layer and rewrites the time offsets. */
+  private storeHistoryStep(time: number): void {
+    const history = this.history!;
     this.copyMaterial.uniforms.uSource!.value = this.position[this.current]!.texture;
     this.renderTo(this.copyMaterial, history.position, history.head);
     this.copyMaterial.uniforms.uSource!.value = this.velocity[this.current]!.texture;
     this.renderTo(this.copyMaterial, history.velocity, history.head);
-    (history.times.image.data as Float32Array)[history.head * 4] = time;
+    history.exact[history.head] = time;
+    const times = history.times.image.data as Float32Array;
+    for (let layer = 0; layer < history.depth; layer++) times[layer * 4] = history.exact[layer]! - history.base;
     history.times.needsUpdate = true;
     this.bindHistory();
+  }
+
+  /** Sets the evaluation time of the coming passes (and its offset in the history's frame). */
+  private setTime(time: number): void {
+    this.sharedUniforms.uTime!.value = time;
+    this.sharedUniforms.uHistoryNow!.value = time - (this.history?.base ?? 0);
   }
 
   private bindHistory(): void {
@@ -379,6 +393,8 @@ export class GpuCompute {
     u.uHistoryTimes!.value = this.history?.times ?? null;
     u.uHistoryHead!.value = this.history?.head ?? 0;
     u.uHistoryCount!.value = this.history?.depth ?? 0;
+    u.uHistoryFilled!.value = this.history?.filled ?? 0;
+    u.uHistoryResetDt!.value = this.history?.resetDt ?? 0;
   }
 
   private disposeHistory(): void {
@@ -391,7 +407,7 @@ export class GpuCompute {
   private stepEuler(time: number): void {
     const next = 1 - this.current;
     const u = this.sharedUniforms;
-    u.uTime!.value = time;
+    this.setTime(time);
     u.uClockShift!.value = 0;
     u.texturePosition!.value = this.position[this.current]!.texture;
     u.textureVelocity!.value = this.velocity[this.current]!.texture;
@@ -408,7 +424,7 @@ export class GpuCompute {
     const now = this.current;
     const next = 1 - now;
     if (!this.accelerationValid) {
-      u.uTime!.value = time;
+      this.setTime(time);
       u.uClockShift!.value = 0;
       u.texturePosition!.value = this.position[now]!.texture;
       u.textureVelocity!.value = this.velocity[now]!.texture;
@@ -423,7 +439,7 @@ export class GpuCompute {
     u.uAcceleration!.value = this.acceleration[now]!.texture;
     this.renderTo(this.verletPositionMaterial, this.position[next]!);
 
-    u.uTime!.value = time + dt;
+    this.setTime(time + dt);
     u.uClockShift!.value = dt;
     u.texturePosition!.value = this.position[next]!.texture;
     this.renderTo(this.accelerationMaterial, this.acceleration[next]!);
@@ -451,7 +467,7 @@ export class GpuCompute {
     if (rows === 0) return result;
     this.buildPotentialPass();
     const u = this.sharedUniforms;
-    u.uTime!.value = time;
+    this.setTime(time);
     u.texturePosition!.value = this.position[this.current]!.texture;
     u.textureVelocity!.value = this.velocity[this.current]!.texture;
     this.renderTo(this.potentialMaterial, this.potentialTarget);
@@ -519,7 +535,7 @@ export class GpuCompute {
     (p.uProbeColor!.value as Vector4).set(...probe.color, probe.nuclearCharge);
     (p.uProbeSpin!.value as Vector4).set(...probe.spin, probe.isospin);
     const u = this.sharedUniforms;
-    u.uTime!.value = time;
+    this.setTime(time);
     u.uClockShift!.value = 0;
     u.texturePosition!.value = this.position[this.current]!.texture;
     u.textureVelocity!.value = this.velocity[this.current]!.texture;
@@ -584,7 +600,7 @@ export class GpuCompute {
   private programs(): RawShaderMaterial[] {
     return [
       this.positionMaterial, this.velocityMaterial, this.accelerationMaterial, this.verletPositionMaterial,
-      this.verletVelocityMaterial, this.potentialMaterial, this.fieldMaterial, this.copyMaterial, this.extrapolateMaterial,
+      this.verletVelocityMaterial, this.potentialMaterial, this.fieldMaterial, this.copyMaterial,
     ];
   }
 

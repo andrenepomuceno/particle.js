@@ -28,13 +28,18 @@ uniform sampler2D uAcceleration;
 uniform sampler2D uAccelerationNext;
 uniform float uClockShift;
 uniform float uLightSpeed;
-// Past states for retarded forces (see GpuCompute's history): layers of positions and stored velocities,
-// their times in a depth×1 texture, the newest at uHistoryHead; uHistoryCount is 0 without a history.
+// Past states for retarded forces (see GpuCompute's history): a ring of uHistoryCount layers of positions
+// and stored velocities, the newest at uHistoryHead, uHistoryFilled of them stored (older steps extrapolate
+// the oldest stored one by uHistoryResetDt each). Times are offsets from a base, as is uHistoryNow (the
+// evaluation time), so their difference keeps float32 resolution. uHistoryCount is 0 without a history.
 uniform highp sampler2DArray uHistoryPosition;
 uniform highp sampler2DArray uHistoryVelocity;
 uniform highp sampler2D uHistoryTimes;
 uniform int uHistoryHead;
 uniform int uHistoryCount;
+uniform int uHistoryFilled;
+uniform float uHistoryResetDt;
+uniform float uHistoryNow;
 
 #define KIND_FIXED 2.0
 
@@ -83,51 +88,72 @@ const RETARDED_CALL_ARGS = 'attr1, attr2, color1, color2, spin1, spin2, dirR, ta
  * history (Galilean, or no retarded force) or the cone lies beyond it.
  */
 const GLSL_RETARDED = /* glsl */ `
-float coneGap(ivec2 coord2, vec3 pos1, vec3 pos2Now, int k, out vec3 pos2, out float time2) {
-  if (k == 0) {
-    pos2 = pos2Now;
-    time2 = uTime;
-  } else {
-    int layer = (uHistoryHead - k + 1 + uHistoryCount) % uHistoryCount;
-    pos2 = texelFetch(uHistoryPosition, ivec3(coord2, layer), 0).xyz;
-    time2 = texelFetch(uHistoryTimes, ivec2(layer, 0), 0).x;
-  }
-  return uLightSpeed * (uTime - time2) - length(pos1 - pos2);
+int historyLayer(int k) {
+  return (uHistoryHead - min(k, uHistoryFilled) + 1 + uHistoryCount) % uHistoryCount;
 }
 
-vec3 historyVelocity(ivec2 coord2, vec3 stored2Now, int k) {
-  if (k == 0) return coordinateVelocity(stored2Now);
-  int layer = (uHistoryHead - k + 1 + uHistoryCount) % uHistoryCount;
-  return coordinateVelocity(texelFetch(uHistoryVelocity, ivec3(coord2, layer), 0).xyz);
+// Step k ≥ 1 of j: stored, or for k beyond the stored ones the oldest stored state moved back uniformly.
+void historyStep(ivec2 coord2, int k, out vec3 pos2, out vec3 vel2, out float time2) {
+  int layer = historyLayer(k);
+  pos2 = texelFetch(uHistoryPosition, ivec3(coord2, layer), 0).xyz;
+  vel2 = coordinateVelocity(texelFetch(uHistoryVelocity, ivec3(coord2, layer), 0).xyz);
+  time2 = texelFetch(uHistoryTimes, ivec2(layer, 0), 0).x;
+  float back = float(max(k - uHistoryFilled, 0)) * uHistoryResetDt;
+  pos2 -= back * vel2;
+  time2 -= back;
 }
 
-bool retardedSource(ivec2 coord2, vec3 pos1, vec3 stored2, inout vec3 delta, inout vec3 vel2, out vec3 acc2, out float delay) {
+float coneGap(vec3 pos1, vec3 pos2, float time2) {
+  return uLightSpeed * (uHistoryNow - time2) - length(pos1 - pos2);
+}
+
+bool retardedSource(ivec2 coord2, vec3 pos1, inout vec3 delta, inout vec3 vel2, out vec3 acc2, out float delay) {
   acc2 = vec3(0.0);
   delay = 0.0;
   if (uInverseLightSpeed2 == 0.0 || uHistoryCount < 2) return false;
-  vec3 pos2Now = pos1 - delta;
-  vec3 pLo;
+  // Step 0 is the live state at the evaluation time.
+  vec3 pLo = pos1 - delta;
+  vec3 vLo = vel2;
+  float tLo = uHistoryNow;
+  float gLo = coneGap(pos1, pLo, tLo);
   vec3 pHi;
-  float tLo;
+  vec3 vHi;
   float tHi;
-  if (coneGap(coord2, pos1, pos2Now, uHistoryCount, pHi, tHi) < 0.0) return false;
+  historyStep(coord2, uHistoryCount, pHi, vHi, tHi);
+  float gHi = coneGap(pos1, pHi, tHi);
+  if (gHi < 0.0) return false;
   int lo = 0;
   int hi = uHistoryCount;
   for (int iteration = 0; iteration < ${HISTORY_SEARCH_STEPS}; iteration++) {
     if (hi - lo <= 1) break;
     int mid = (lo + hi) / 2;
-    if (coneGap(coord2, pos1, pos2Now, mid, pHi, tHi) >= 0.0) hi = mid;
-    else lo = mid;
+    vec3 pMid;
+    vec3 vMid;
+    float tMid;
+    historyStep(coord2, mid, pMid, vMid, tMid);
+    float gMid = coneGap(pos1, pMid, tMid);
+    if (gMid >= 0.0) {
+      hi = mid; pHi = pMid; vHi = vMid; tHi = tMid; gHi = gMid;
+    } else {
+      lo = mid; pLo = pMid; vLo = vMid; tLo = tMid; gLo = gMid;
+    }
   }
-  float gLo = coneGap(coord2, pos1, pos2Now, lo, pLo, tLo);
-  float gHi = coneGap(coord2, pos1, pos2Now, hi, pHi, tHi);
   float s = gLo / (gLo - gHi);
-  vec3 vLo = historyVelocity(coord2, stored2, lo);
-  vec3 vHi = historyVelocity(coord2, stored2, hi);
   delta = pos1 - mix(pLo, pHi, s);
   vel2 = mix(vLo, vHi, s);
-  acc2 = tLo > tHi ? (vLo - vHi) / (tLo - tHi) : vec3(0.0);
-  delay = uTime - mix(tLo, tHi, s);
+  delay = uHistoryNow - mix(tLo, tHi, s);
+  // The acceleration comes from two stored steps: the live velocity is the previous step's in Verlet's
+  // second pass, so a bracket starting at the present uses steps 1 and 2.
+  vec3 vNewer = vLo;
+  float tNewer = tLo;
+  vec3 vOlder = vHi;
+  float tOlder = tHi;
+  if (lo == 0) {
+    vec3 unused;
+    historyStep(coord2, 1, unused, vNewer, tNewer);
+    historyStep(coord2, 2, unused, vOlder, tOlder);
+  }
+  acc2 = tNewer > tOlder ? (vNewer - vOlder) / (tNewer - tOlder) : vec3(0.0);
   return true;
 }
 `;
@@ -337,11 +363,11 @@ vec3 totalForce(int index1, vec3 pos1, vec3 stored1, vec4 attr1, vec4 color1, ve
     vec3 acc2 = vec3(0.0);
     float delay = 0.0;${retarded ? `
     // Retarded forces: j as pos1 sees it now, on its past light cone.
-    vec3 deltaR = pos1 - texelFetch(texturePosition, coord2, 0).xyz;
+    vec3 deltaR = delta;
     vec3 vel2R = coordinateVelocity(texelFetch(textureVelocity, coord2, 0).xyz);
     vec3 acc2R;
     float delayR;
-    retardedSource(coord2, pos1, texelFetch(textureVelocity, coord2, 0).xyz, deltaR, vel2R, acc2R, delayR);
+    retardedSource(coord2, pos1, deltaR, vel2R, acc2R, delayR);
     float r2R = dot(deltaR, deltaR);
     float distR = sqrt(r2R);
     vec3 dirR = r2R > 0.0 ? deltaR / distR : dir;
@@ -561,17 +587,6 @@ void main() {
 }
 `;
 }
-
-/** A history layer extrapolated back by uHistoryOffset in uniform motion: x − offset·v (v = u/γ). */
-export const EXTRAPOLATE_POSITION_SHADER = `${COMMON_UNIFORMS}
-uniform float uHistoryOffset;
-void main() {
-  ivec2 coord = ivec2(gl_FragCoord.xy);
-  vec4 positionTexel = texelFetch(texturePosition, coord, 0);
-  vec3 velocity = coordinateVelocity(texelFetch(textureVelocity, coord, 0).xyz);
-  gl_FragColor = vec4(positionTexel.xyz - uHistoryOffset * velocity, positionTexel.w);
-}
-`;
 
 /** Semi-implicit Euler, drift: x += v'·dt with the already-updated velocity (v = u/γ under Minkowski). */
 export const POSITION_SHADER = `${COMMON_UNIFORMS}

@@ -248,6 +248,16 @@ await withBrowser(async ({ browser, base, glMode }) => {
 
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
+  // Every dialog renders: a view that throws takes the whole UI down (Expressions once did, on a variable
+  // missing from its reference).
+  const menu = page.locator('nav[aria-label="Dialogs"] button');
+  const titles = await menu.allTextContents();
+  for (let k = 0; k < titles.length; k++) {
+    if ((await menu.nth(k).getAttribute('aria-pressed')) !== 'true') await menu.nth(k).click();
+  }
+  await page.waitForTimeout(300);
+  const openDialogs = await page.locator('[data-dialog]').count();
+  check('Every dialog in the menu opens', openDialogs === titles.length && !errors.some((e) => e.startsWith('pageerror')), { titles, openDialogs });
   await mkdir(path.dirname(out), { recursive: true });
   await page.screenshot({ path: out });
   // The frozen v1 build served next to v2 (public/v1) must still start; its analytics are blocked

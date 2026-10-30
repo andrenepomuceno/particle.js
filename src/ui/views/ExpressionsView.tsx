@@ -10,6 +10,7 @@ const GROUPS: readonly [title: string, bases: readonly string[]][] = [
   ['Nuclear charge and parity', ['n', 'p']],
   ['Velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
   ['Time', ['t', 'time']],
+  ['Spacetime', ['c_light']],
   ['Random (force mode)', ['rand', 'randn', 'randv']],
 ];
 
@@ -30,10 +31,15 @@ const describe = (variable: PairVariable, paired: boolean) =>
   (paired ? variable.description.replace(/ of the particle receiving the force$/, '') : variable.description)
   + (variable.shortRangeOnly ? ' (short range only)' : '');
 
+/** Variables (by base name) that no reference group lists; tests keep this empty. */
+export function ungroupedVariables(): string[] {
+  const grouped = new Set(GROUPS.flatMap(([, bases]) => bases));
+  return [...rows().keys()].filter((base) => !grouped.has(base));
+}
+
 export function ExpressionsView() {
   const byBase = rows();
-  const grouped = new Set(GROUPS.flatMap(([, bases]) => bases));
-  const ungrouped = [...byBase.keys()].filter((base) => !grouped.has(base));
+  const ungrouped = ungroupedVariables();
   if (ungrouped.length > 0) throw new Error(`variables missing from the reference groups: ${ungrouped.join(', ')}`);
 
   return (

@@ -34,10 +34,12 @@ export class ParticleTrail {
 
   /** Appends the newest position; once full, the oldest one drops off. */
   push(position: Vec3): void {
-    if (this.count === this.capacity) this.positions.copyWithin(0, 3);
+    const full = this.count === this.capacity;
+    if (full) this.positions.copyWithin(0, 3);
     else this.count++;
     this.positions.set(position, (this.count - 1) * 3);
-    this.recolor();
+    // The fade depends on each point's index among `count`, so it only changes while the trail grows.
+    if (!full) this.recolor();
     this.geometry.attributes.position!.needsUpdate = true;
     this.geometry.setDrawRange(0, this.count);
   }
@@ -61,7 +63,6 @@ export class ParticleTrail {
     this.material.dispose();
   }
 
-  // The fade depends on each point's age, which shifts by one with every push.
   private recolor(): void {
     for (let k = 0; k < this.count; k++) {
       const age = this.count === 1 ? 1 : k / (this.count - 1);

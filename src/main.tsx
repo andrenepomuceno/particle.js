@@ -44,10 +44,16 @@ function start(): void {
     return;
   }
   const controller = new SimulationController(readCapacity());
-  // A stale or hand-edited preference is ignored, not fatal: it only orders a list.
+  // A stale or hand-edited preference must not lock the page out: it is cleared, and the user told.
   const savedOrder = loadJson<{ order?: unknown; byFolder?: unknown } | null>(SCENARIO_ORDER_KEY, null);
-  if (SCENARIO_ORDERS.includes(savedOrder?.order as ScenarioOrder) && typeof savedOrder?.byFolder === 'boolean') {
-    controller.setScenarioOrder(savedOrder.order as ScenarioOrder, savedOrder.byFolder);
+  let invalidOrder: string | undefined;
+  if (savedOrder !== null) {
+    if (SCENARIO_ORDERS.includes(savedOrder?.order as ScenarioOrder) && typeof savedOrder?.byFolder === 'boolean') {
+      controller.setScenarioOrder(savedOrder.order as ScenarioOrder, savedOrder.byFolder);
+    } else {
+      saveJson(SCENARIO_ORDER_KEY, null);
+      invalidOrder = `The saved scenario order ${JSON.stringify(savedOrder)} is not valid (order: one of ${SCENARIO_ORDERS.join(', ')}; byFolder: true or false) and was cleared`;
+    }
   }
   const scenarioId = readScenario();
   const savedTarget = loadJson<number | null>(PARTICLE_TARGET_KEY, null);
@@ -62,6 +68,7 @@ function start(): void {
     controller.loadScenario(scenarioId);
     controller.notify(`The saved particle count ${savedTarget} could not be used and was cleared: ${(error as Error).message}`, 'error');
   }
+  if (invalidOrder) controller.notify(invalidOrder, 'error');
   Object.assign(window, { particleController: controller });
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

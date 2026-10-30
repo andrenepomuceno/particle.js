@@ -24,6 +24,7 @@ import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent }
 import { findScenario, SCENARIOS } from '../scenarios';
 import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
 import { readScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
+import { scaleBoundary } from '../scenarios/scaling';
 import type { Scenario } from '../scenarios/types';
 import { limitFrame } from './frameLimiter';
 import { Store } from './store';
@@ -303,9 +304,7 @@ export class SimulationController {
     // An empty scenario (sandbox) has nothing to scale; the target only resizes populated ones.
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
     const { particles, linearScale } = scenario.build(createRng(scenario.seed), target);
-    const base = { ...DEFAULT_SETTINGS, ...scenario.settings };
-    // A slab's depth is physical (a few diameters) and stays; planar scenes scale in x and y only.
-    const settings = { ...base, boundarySize: base.boundarySize * linearScale };
+    const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...scenario.settings }, linearScale);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
     this.store.set({ scenarioId, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);

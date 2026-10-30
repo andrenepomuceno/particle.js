@@ -14,6 +14,6 @@
     { "name": "Core", "mode": "potential", "range": "short", "cutoff": 4, "softening": 0.5, "expression": "eps * (sigma / r)^12", "params": [{ "name": "eps", "value": 1 }, { "name": "sigma", "value": 2 }] }
   ],
   "groups": [
-    { "count": 630, "shape": { "type": "grid", "spacing": 6, "columns": 28, "rows": 25 }, "spin": { "cycle": [[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1]] }, "velocity": { "type": "random", "speed": 3 } }
+    { "count": 630, "shape": { "type": "grid", "spacing": 6, "columns": 26, "rows": 25 }, "spin": { "cycle": [[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, -1]] }, "velocity": { "type": "random", "speed": 3 } }
   ]
 }

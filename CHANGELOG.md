@@ -17,6 +17,10 @@
   particle used to get the first value).
 - Statistics has a Particles tab: particles grouped by their properties (kind, mass, charges, spin,
   isospin, parity, nuclear and color charge), largest group first, with the matching species.
+- Scaling a scenario to a particle total keeps every particle inside the boundary: the boundary
+  follows a grid's outer sites (not just the ideal root of the count factor), a box in a slab keeps
+  its thickness, and a sphere or shell in a slab fails loudly instead of growing through it.
+  *Dipole Crystal* started 45 particles outside its box (26 columns now, same count and box).
 
 ## 2.1.1 — 2026-10-24
 

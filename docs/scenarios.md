@@ -79,9 +79,15 @@ multiple of `size`; with a `grid` shape each cluster takes one site.
 `scale` (optional, default `true`): when the user sets a particle total in the Information dialog,
 every group with `scale: true` grows or shrinks proportionally (whole clusters only) at **constant
 density** — disks, shells and flat boxes grow by √factor, spheres and 3D boxes by ∛factor, grids
-gain columns/rows/layers (only columns/rows in 2D and in a slab box, whose `boundaryDepth` is
-physical and never scales) — and the boundary size and camera distance follow the largest length
-factor. Scaled counts are rounded to whole cycles of the group's `{ "cycle" }` values (and its
+gain columns/rows/layers at their fixed spacing. In 2D and in a slab box, whose `boundaryDepth` is
+physical and never scales, only x and y grow: a box keeps its z size, a grid its layers, and a
+sphere or shell in a slab cannot grow (an error asks for a disk with a thickness, a box, a grid or
+`"scale": false`). The boundary size and camera distance follow the largest length factor over the
+groups, measured on what was built: for a grid, how far its outer sites moved, (n′ − 1)/(n − 1)
+for n sites in a row, a bit more than the root because the spacing is fixed and columns and rows
+round up. So a group that starts inside the boundary at the file count starts inside it at any
+total; keep the outer grid sites and cluster rings within `boundarySize` (and `boundaryDepth`).
+Scaled counts are rounded to whole cycles of the group's `{ "cycle" }` values (and its
 cluster size) so the mix stays balanced. Use `"scale": false` for groups whose count is part of the setup, such as a galaxy's core
 or the particles of one atom.
 

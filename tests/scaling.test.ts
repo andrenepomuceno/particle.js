@@ -1,11 +1,35 @@
 import { describe, expect, it } from 'vitest';
+import { MAX_CAPACITY } from '../src/app/SimulationController';
+import type { Particle } from '../src/engine/particles';
 import { createRng } from '../src/engine/random';
+import { boxHalfSize, DEFAULT_SETTINGS, type SimulationSettings } from '../src/engine/settings';
+import { SCENARIOS } from '../src/scenarios';
+import { scaleBoundary } from '../src/scenarios/scaling';
 import { parseScenario } from '../src/scenarios/scenarioFile';
+import type { Scenario } from '../src/scenarios/types';
 
 const scenario = (groups: object[], settings: object = {}) => parseScenario(
   JSON.stringify({ format: 'particle.js-v2/scenario', version: 1, id: 't', name: 'T', settings, groups }), 't.json',
 );
 const radius = (p: { position: number[] }) => Math.hypot(...p.position);
+
+/** How far a particle lies outside the boundary (≤ 0 inside): sphere radius, or box half-sizes per axis. */
+function overshoot({ position }: Particle, settings: SimulationSettings): number {
+  if (settings.boundary === 'sphere') return Math.hypot(...position) - settings.boundarySize;
+  const half = boxHalfSize(settings);
+  return Math.max(...position.map((c, k) => Math.abs(c) - half[k]!));
+}
+
+/** Builds a scenario at each particle total as the controller does and checks every particle starts inside the scaled boundary. */
+function expectInside(s: Scenario, targets: readonly number[]): void {
+  for (const target of targets) {
+    const { particles, linearScale } = s.build(createRng(s.seed), target);
+    const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...s.settings }, linearScale);
+    const outside = particles.filter((p) => overshoot(p, settings) > 1e-9 * settings.boundarySize);
+    const worst = Math.max(0, ...outside.map((p) => overshoot(p, settings)));
+    expect(outside.length, `target ${target}: ${outside.length} of ${particles.length} outside boundarySize ${settings.boundarySize}, worst by ${worst}`).toBe(0);
+  }
+}
 
 describe('scaling scenarios to a particle total', () => {
   it('keeps the file counts without a target', () => {
@@ -65,5 +89,44 @@ describe('scaling scenarios to a particle total', () => {
     const s = scenario([{ count: 5, scale: false, shape: { type: 'point' } }, { count: 5, shape: { type: 'point' } }]);
     expect(() => s.build(createRng(1), 5)).toThrow(/leaves no room: 5 particles are pinned/);
     expect(() => s.build(createRng(1), 0)).toThrow(/integer >= 1/);
+  });
+});
+
+describe('scaling inside a boundary', () => {
+  const lattice = (columns: number, rows: number, layers: number) => ({ type: 'grid', spacing: 6, columns, rows, layers });
+
+  it.each([
+    ['a 2D lattice whose outer sites touch the walls', [{ count: 630, shape: lattice(28, 25, 1) }], { mode2D: true, boundary: 'box', boundarySize: 81 }],
+    ['a 3D lattice in a box', [{ count: 1000, shape: lattice(10, 10, 10) }], { boundary: 'box', boundarySize: 27 }],
+    ['a 3D lattice in a sphere', [{ count: 1000, shape: lattice(10, 10, 10) }], { boundary: 'sphere', boundarySize: Math.hypot(27, 27, 27) }],
+    ['a lattice in a slab', [{ count: 128, shape: lattice(8, 8, 2) }], { boundary: 'box', boundarySize: 21, boundaryDepth: 3 }],
+    ['clustered disks off the center', [{ count: 90, cluster: { size: 3, radius: 2 }, shape: { type: 'disk', radius: 20, center: [30, 0, 0] } }], { mode2D: true, boundary: 'box', boundarySize: 52 }],
+    ['a box in a slab', [{ count: 200, shape: { type: 'box', size: [100, 100, 8] } }], { boundary: 'box', boundarySize: 50, boundaryDepth: 4 }],
+  ])('keeps %s inside the scaled boundary when it fits at the file count', (_, groups, settings) => {
+    const s = scenario(groups, settings);
+    expectInside(s, [s.defaultCount, 2 * s.defaultCount + 1, 15000, MAX_CAPACITY]);
+  });
+
+  it('grows a box in a slab in x and y only, at constant density', () => {
+    const { particles, linearScale } = scenario([{ count: 100, shape: { type: 'box', size: [100, 100, 8] } }], { boundary: 'box', boundarySize: 50, boundaryDepth: 4 }).build(createRng(1), 400);
+    expect(linearScale).toBeCloseTo(2, 12);
+    expect(Math.max(...particles.map((p) => Math.abs(p.position[2])))).toBeLessThanOrEqual(4);
+    expect(Math.max(...particles.map((p) => Math.abs(p.position[0])))).toBeGreaterThan(75);
+  });
+
+  it('fails loudly when a sphere or a shell would grow through a slab', () => {
+    for (const type of ['sphere', 'shell']) {
+      const s = scenario([{ count: 10, shape: { type, radius: 2 } }], { boundary: 'box', boundarySize: 50, boundaryDepth: 4 });
+      expect(() => s.build(createRng(1), 40)).toThrow(`groups[0]: a ${type} cannot grow in a slab box`);
+      expect(s.build(createRng(1), 5).particles).toHaveLength(5);
+    }
+  });
+});
+
+describe('scaled library scenarios', () => {
+  const bounded = SCENARIOS.filter((s) => s.settings.boundary !== 'none' && s.defaultCount > 0);
+
+  it.each(bounded.map((s) => [s.id, s] as const))('%s starts every particle inside its boundary at any particle total', (_, s) => {
+    expectInside(s, [s.defaultCount, 100, 1000, 5000, 15000, MAX_CAPACITY]);
   });
 });

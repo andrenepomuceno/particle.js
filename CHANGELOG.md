@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix: a random velocity's `speed` given as `{ "cycle": [...] }` now cycles per particle (every
+  particle used to get the first value).
 - Statistics has a Particles tab: particles grouped by their properties (kind, mass, charges, spin,
   isospin, parity, nuclear and color charge), largest group first, with the matching species.
 

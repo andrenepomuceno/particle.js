@@ -87,6 +87,11 @@ describe('particle groups', () => {
     expect(particles[0]).toMatchObject({ position: [1, 2, 3], color: [1, 0, 0], parity: 1, kind: 1 });
   });
 
+  it('cycles random speeds per particle', () => {
+    const particles = build({ groups: [{ count: 4, shape: { type: 'point' }, velocity: { type: 'random', speed: { cycle: [1, 2] } } }] });
+    particles.forEach((p, index) => expect(Math.hypot(...p.velocity)).toBeCloseTo([1, 2][index % 2]!, 9));
+  });
+
   it('places every particle on z = 0 in 2D mode', () => {
     const particles = build({ settings: { mode2D: true }, groups: [{ count: 50, shape: { type: 'sphere', radius: 10 } }] });
     expect(particles.every((p) => p.position[2] === 0)).toBe(true);

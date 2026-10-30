@@ -263,14 +263,15 @@ function samplePosition(shape: Shape, rng: Rng, index: number): Vec3 {
   }
 }
 
-function sampleVelocity(spec: VelocitySpec, position: Vec3, rng: Rng, mode2D: boolean): Vec3 {
+/** `index` picks `{ cycle }` speeds: the particle's index in its group, or the cluster's. */
+function sampleVelocity(spec: VelocitySpec, position: Vec3, rng: Rng, mode2D: boolean, index: number): Vec3 {
   switch (spec.type) {
     case 'still':
       return [0, 0, 0];
     case 'constant':
       return spec.value;
     case 'random': {
-      const speed = sample(spec.speed, rng, 0);
+      const speed = sample(spec.speed, rng, index);
       const direction = mode2D ? inDisk(rng, 1) : onSphere(rng);
       const length = Math.hypot(...direction) || 1;
       return direction.map((c) => (c / length) * speed) as Vec3;
@@ -326,7 +327,7 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
           axes = mode2D ? [[1, 0, 0], [0, 1, 0]] : randomPlane(rng);
           phase = uniform(rng, 0, 2 * Math.PI);
           // The whole cluster moves together; per-member velocities would tear it apart.
-          clusterVelocity = sampleVelocity(group.velocity, mode2D ? [center[0], center[1], 0] : center, rng, mode2D);
+          clusterVelocity = sampleVelocity(group.velocity, mode2D ? [center[0], center[1], 0] : center, rng, mode2D, index / size);
         }
         const angle = phase + (2 * Math.PI * member) / size;
         const ring = size === 1 ? 0 : radius;
@@ -338,7 +339,7 @@ export function buildParticles(groups: readonly ParticleGroup[], rng: Rng, mode2
       return {
         kind: group.kind === 'fixed' ? ParticleKind.fixed : ParticleKind.dynamic,
         position,
-        velocity: group.kind === 'fixed' ? [0, 0, 0] : group.cluster ? [...clusterVelocity] : sampleVelocity(group.velocity, position, rng, mode2D),
+        velocity: group.kind === 'fixed' ? [0, 0, 0] : group.cluster ? [...clusterVelocity] : sampleVelocity(group.velocity, position, rng, mode2D, index),
         time: 0,
         ...speciesAttributes(group, rng, index),
         charge2: sample(group.charge2, rng, index),

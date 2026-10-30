@@ -169,6 +169,10 @@ textarea { font-family: var(--mono); resize: vertical; min-height: 40px; }
 .tabs .tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 4px 10px; color: var(--ink-2); }
 .tabs .tab.active { color: var(--ink-1); border-bottom-color: var(--plot-line); }
 
+.groups { border-collapse: collapse; width: 100%; font: 12px var(--mono); }
+.groups th { text-align: left; color: var(--ink-2); font-weight: 500; padding: 2px 8px 2px 0; }
+.groups td { color: var(--ink-1); padding: 2px 8px 2px 0; }
+
 .reference { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 0; }
 .reference dt { color: var(--ink-1); }
 .reference dd { margin: 0; color: var(--ink-2); }

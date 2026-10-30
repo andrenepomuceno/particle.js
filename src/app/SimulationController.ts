@@ -8,6 +8,7 @@ import {
 import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
 import type { ForceDefinition } from '../engine/forces/types';
+import { groupParticles, type ParticleGroup } from '../engine/particleGroups';
 import { GpuCompute, ShaderCompileError, textureWidthFor } from '../engine/gpu/GpuCompute';
 import type { SpeciesId } from '../engine/species';
 import { ParticleKind, ParticleSet, type Particle, type Vec3 } from '../engine/particles';
@@ -116,6 +117,8 @@ export interface AppState {
   paused: boolean;
   time: number;
   particleCount: number;
+  /** Bumped on every particle upload (add, remove, edit), so views of particle properties refresh. */
+  particlesVersion: number;
   capacity: number;
   particleTarget: number | undefined;
   colorMode: ColorMode;
@@ -226,7 +229,7 @@ export class SimulationController {
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
       scenarioId: '', description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
-      shaderError: undefined, paused: false, time: 0, particleCount: 0, capacity: this.set.capacity, particleTarget: undefined,
+      shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
@@ -757,7 +760,7 @@ export class SimulationController {
   private uploadParticles(): void {
     this.gpu.upload();
     this.points.setCount(this.set.count);
-    this.store.set({ particleCount: this.set.count });
+    this.store.set({ particleCount: this.set.count, particlesVersion: this.state.particlesVersion + 1 });
     this.fieldDirty = true;
     this.refreshForceWarnings();
     this.refreshInspected();
@@ -1131,6 +1134,11 @@ export class SimulationController {
   /** Physics history (energy, temperature) is only sampled while the Statistics dialog is open. */
   setStatsActive(active: boolean): void {
     this.statsActive = active;
+  }
+
+  /** The particles grouped by their properties, largest group first; these live CPU-side, so no readback. */
+  particleGroups(): ParticleGroup[] {
+    return groupParticles(this.set);
   }
 
   clearHistory(): void {

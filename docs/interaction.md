@@ -110,6 +110,10 @@ screen; *Lock color scale* freezes it so such changes show as brighter or dimmer
 total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,
 frame CPU time, sampling cost). Hover a chart for the values at that sample. Potential energy
 comes from a GPU pass over all pairs that runs only while the dialog is open; forces written as
-F(r) have no known V(r) and are listed as missing from it.
+F(r) have no known V(r) and are listed as missing from it. The **Particles** tab groups the
+particles by kind, mass, charge, charge 2, spin, isospin, parity, nuclear charge and color (not
+position, velocity or clock), largest group first, with its share of the total and the species
+preset it matches (if any); columns identical in every group are folded into a note, and only the
+top 50 groups are listed. It refreshes whenever particles are added, removed or edited, even while paused.
 Toggle them from the top menu; drag them by the title bar. Positions and which dialogs
 are open persist in `localStorage` when the browser allows it.

@@ -23,7 +23,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   gives the full gradient −∇V, so non-central forces like the magnetic dipole are exact.
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
-- **Statistics**: energy, speed, temperature and performance charts.
+- **Statistics**: energy, speed, temperature and performance charts, and a table of the particles grouped by property.
 - **Force field view**: a grid of arrows showing the net force a configurable test particle
   would feel, computed on the GPU by the same generated force code (<kbd>J</kbd>, <kbd>F</kbd> to re-fit).
 - **Live plot** of each force as the integrator applies it (softening and cutoff included).

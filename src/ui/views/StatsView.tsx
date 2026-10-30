@@ -1,10 +1,37 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ParticleKind } from '../../engine/particles';
+import type { ParticleGroup } from '../../engine/particleGroups';
+import { SPECIES } from '../../engine/species';
 import { LineChart } from '../components/LineChart';
 import { useAppState, useController } from '../context';
 
 const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'] as const;
 
+const TABS = ['Charts', 'Particles'] as const;
+type Tab = (typeof TABS)[number];
+
 export function StatsView() {
+  const controller = useController();
+  const [tab, setTab] = useState<Tab>('Charts');
+
+  useEffect(() => {
+    controller.setStatsActive(true);
+    return () => controller.setStatsActive(false);
+  }, [controller]);
+
+  return (
+    <div className="stack">
+      <div className="tabs" role="tablist">
+        {TABS.map((t) => (
+          <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{t}</button>
+        ))}
+      </div>
+      {tab === 'Charts' ? <ChartsTab /> : <ParticlesTab />}
+    </div>
+  );
+}
+
+function ChartsTab() {
   const controller = useController();
   const physics = useAppState((s) => s.physicsHistory);
   const performance = useAppState((s) => s.performanceHistory);
@@ -14,11 +41,6 @@ export function StatsView() {
   const time = physics.map((p) => p.time);
   const wall = performance.map((p) => p.wall - (performance[0]?.wall ?? 0));
   const last = performance[performance.length - 1];
-
-  useEffect(() => {
-    controller.setStatsActive(true);
-    return () => controller.setStatsActive(false);
-  }, [controller]);
 
   return (
     <div className="stack">
@@ -68,6 +90,66 @@ export function StatsView() {
           : undefined}
       />
       <button className="outlined" onClick={() => controller.clearHistory()}>Clear history</button>
+    </div>
+  );
+}
+
+const MAX_ROWS = 50;
+
+interface Column {
+  title: string;
+  text: (g: ParticleGroup) => string;
+}
+
+const num = (x: number): string => String(Number(x.toPrecision(4)));
+const triple = (v: readonly number[]): string => v.map(num).join(', ');
+
+const COLUMNS: Column[] = [
+  { title: 'Kind', text: (g) => (g.kind === ParticleKind.fixed ? 'fixed' : 'dynamic') },
+  { title: 'Mass', text: (g) => num(g.mass) },
+  { title: 'Charge', text: (g) => num(g.charge) },
+  { title: 'Charge 2', text: (g) => num(g.charge2) },
+  { title: 'Spin', text: (g) => triple(g.spin) },
+  { title: 'Isospin', text: (g) => num(g.isospin) },
+  { title: 'Parity', text: (g) => num(g.parity) },
+  { title: 'Nuclear', text: (g) => num(g.nuclearCharge) },
+  { title: 'Color', text: (g) => triple(g.color) },
+];
+
+function ParticlesTab() {
+  const controller = useController();
+  const particleCount = useAppState((s) => s.particleCount);
+  // Regrouped on every render; the version re-renders this after every add, removal or edit (even paused).
+  useAppState((s) => s.particlesVersion);
+  const groups = controller.particleGroups();
+  if (groups.length === 0) return <p className="muted">No particles.</p>;
+  const shown = groups.slice(0, MAX_ROWS);
+  const columns = COLUMNS.filter((c) => groups.some((g) => c.text(g) !== c.text(groups[0]!)));
+  const constant = COLUMNS.filter((c) => !columns.includes(c));
+  return (
+    <div className="stack">
+      <table className="groups">
+        <thead>
+          <tr>
+            <th>Count</th><th>%</th><th>Species</th>
+            {columns.map((c) => <th key={c.title}>{c.title}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((g, k) => (
+            <tr key={k}>
+              <td>{g.count}</td>
+              <td>{((100 * g.count) / particleCount).toFixed(1)}</td>
+              <td>{g.species ? SPECIES[g.species].label : ''}</td>
+              {columns.map((c) => <td key={c.title}>{c.text(g)}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {groups.length > shown.length && <p className="chart-note">{groups.length - shown.length} more groups</p>}
+      {constant.length > 0 && (
+        <p className="chart-note">Same in every group: {constant.map((c) => `${c.title} ${c.text(groups[0]!)}`).join('; ')}.</p>
+      )}
     </div>
   );
 }

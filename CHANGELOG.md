@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Statistics has a Particles tab: particles grouped by their properties (kind, mass, charges, spin,
+  isospin, parity, nuclear and color charge), largest group first, with the matching species.
+
 ## 2.1.1 — 2026-10-24
 
 - Describes particle.js as a classical, non-relativistic n-body particle physics simulator.

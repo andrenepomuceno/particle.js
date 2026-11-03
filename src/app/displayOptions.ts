@@ -16,11 +16,12 @@ export interface DisplayOptions {
   background?: string;
   axes?: boolean;
   boundary?: boolean;
-  field?: { enabled: boolean; columns?: number; logScale?: boolean; lockScale?: boolean; probe?: FieldProbe };
-  /** Inspect this particle and draw its trail, or follow it with the camera. */
+  /** `probe` holds only the fields given; the others keep the scenario's test particle. */
+  field?: { enabled: boolean; columns?: number; logScale?: boolean; lockScale?: boolean; probe?: Partial<FieldProbe> };
+  /** Inspect this particle and draw its trail, or follow it with the camera (both name the same particle). */
   trail?: { particle: number };
   follow?: { particle: number };
-  /** Initial camera, before the timeline moves it. */
+  /** Initial camera; a timeline move at t = 0 starts from it. */
   camera?: { position: Vec3; target: Vec3 };
 }
 
@@ -64,11 +65,19 @@ export function readDisplayOptions(value: unknown, source = 'display options'): 
     }
     if (f.logScale !== undefined) field.logScale = json.boolean(f.logScale, 'field.logScale');
     if (f.lockScale !== undefined) field.lockScale = json.boolean(f.lockScale, 'field.lockScale');
-    if (f.probe !== undefined) field.probe = readProbe(json, f.probe, 'field.probe');
+    if (f.probe !== undefined) {
+      const probe = readProbe(json, f.probe, 'field.probe');
+      const given = Object.keys(json.object(f.probe, 'field.probe')) as (keyof FieldProbe)[];
+      field.probe = Object.fromEntries(given.map((key) => [key, probe[key]]));
+    }
     options.field = field;
   }
   if (o.trail !== undefined) options.trail = particleIndex(json, o.trail, 'trail');
   if (o.follow !== undefined) options.follow = particleIndex(json, o.follow, 'follow');
+  // The app inspects one particle at a time: its trail and the followed particle are the same one.
+  if (options.trail && options.follow && options.trail.particle !== options.follow.particle) {
+    json.fail('trail.particle', `must be the followed particle (follow.particle = ${options.follow.particle}), got ${options.trail.particle}`);
+  }
   if (o.camera !== undefined) {
     const c = json.object(o.camera, 'camera');
     json.onlyKeys(c, ['position', 'target'], 'camera');
@@ -91,5 +100,5 @@ export function applyDisplayOptions(controller: SimulationController, options: D
   if (inspected !== undefined) controller.inspect(inspected);
   if (options.follow && !controller.state.followInspected) controller.toggleFollow();
   if (options.trail && !controller.state.showTrail) controller.toggleTrail();
-  if (options.field) controller.setField({ ...options.field });
+  if (options.field) controller.setField({ ...options.field, probe: { ...controller.state.field.probe, ...options.field.probe } });
 }

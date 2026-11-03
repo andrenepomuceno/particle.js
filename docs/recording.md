@@ -21,17 +21,18 @@ timeline has captions, `reports/videos/galaxy.vtt`.
 | `--steps-per-frame n` | 1 | simulation steps between frames (0 freezes the simulation; the camera still moves) |
 | `--warmup-steps n` | 0 | steps run before frame 0 (e.g. to start just before a timeline event) |
 | `--size WxH` | 1080x1920 | canvas pixels, even; 1080x1920 / 2160x3840 for 9:16, 1920x1080 / 3840x2160 for 16:9 |
-| `--seed s` | random | the scenario's layout seed; record it to repeat a run. Without it, the seed used is written to the metadata |
+| `--seed s` | random | the scenario's layout seed, within [0, 4294967295]; record it to repeat a run. Without it, the seed drawn is written to the metadata (and used by `--verify`) |
 | `--particles n` | the scenario's | particle total, as in the app's Particles field |
 | `--capacity n` | the app's | GPU texture capacity (for totals above it) |
 | `--display json` | `{}` | display options: a JSON file or an inline object (below) |
-| `--out file.webm` | `reports/videos/<id>.webm` | output; the metadata, subtitles and frames take its name |
-| `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` |
+| `--out file.webm` | `reports/videos/<id>.webm` | output, ending in `.webm`; the metadata, subtitles and frames take its name. The video is written to `<out>.partial.webm` and renamed when complete, so a failed run leaves an earlier video in place |
+| `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` (frames of an earlier run there are removed first) |
 | `--no-video` | off | PNG frames only (needs `--png`; no ffmpeg needed) |
 | `--crf n`, `--speed n` | 24, 2 | VP9 quality (lower is better) and libvpx `-cpu-used` (0–8, higher is faster) |
 | `--verify k,…` | none | replays those frames' steps in a fresh page and checks the particles are identical; the script fails otherwise |
 
-`ffmpeg` with `libvpx-vp9` must be on the `PATH` for video output. The WebM is 4:2:0, so single-pixel
+`ffmpeg` with `libvpx-vp9` must be on the `PATH` for video output; it, `git` (for the commit in the metadata)
+and the options are checked before the browser starts. The WebM is 4:2:0, so single-pixel
 coloured particles lose some chroma; use `--png` for lossless frames.
 
 ## Display options
@@ -59,9 +60,9 @@ Unknown keys and invalid values fail with their path.
 | `particleStyle`, `colorMode`, `particleRadius` | as in the View dialog |
 | `background` | `#rrggbb` |
 | `axes`, `boundary` | show the axes, the boundary |
-| `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md)) |
-| `trail`, `follow` | inspect that particle and draw its trail, or follow it with the camera |
-| `camera` | the initial camera, before timeline moves |
+| `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md); the fields given replace the scenario's, the others stay) |
+| `trail`, `follow` | inspect that particle and draw its trail (a point per step, as in the app), or follow it with the camera; both must name the same particle |
+| `camera` | the initial camera; a timeline camera move at t = 0 starts from it |
 
 ## Time
 
@@ -72,6 +73,8 @@ The recorder stops the app's frame loop and drives everything from the frames:
   ease over `duration` seconds of **video**, not of wall clock: a 5 s move spans `5 × fps` frames.
 - The field is recomputed on every frame; its colour reference refreshes on the app's interval, in
   video time.
+- The speed and clock palettes are sampled on the first frame and then every video second, as the
+  app samples them every wall-clock second.
 - Captions are a page overlay, not canvas pixels: they go to the `.vtt` subtitle track (one cue per
   caption, at the frames where the timeline changes it) and to the metadata.
 

@@ -111,6 +111,8 @@ export interface Diagnostics {
   potential: number;
   total: number;
   potentialLeavesOut: string[];
+  /** Set when the potential pass failed to compile (potential and total are then NaN). */
+  energyError?: string;
   momentum: Vec3;
   temperature: number;
   meanSpeed: number;
@@ -200,6 +202,8 @@ const FIELD_INTERVAL_MS = 100;
 const FIELD_REFERENCE_INTERVAL_MS = 1000;
 /** While following a particle the camera moves without OrbitControls events; re-fit at this pace. */
 const FIELD_FOLLOW_REFIT_MS = 250;
+/** The palette's speed and clock ranges (and the frame-rate readout) are sampled this often. */
+const SAMPLE_INTERVAL_MS = 1000;
 
 function structureKey(forces: readonly CompiledForce[]): string {
   return JSON.stringify(forces.map(({ definition: d }) => [d.expression, d.mode, d.range, d.retarded === true, d.params.map((p) => p.name)]));
@@ -248,7 +252,7 @@ export class SimulationController {
   private captionTemplate: string | undefined;
   private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
   /** Set while an offline recorder drives the frames (beginCapture): its video clock, in milliseconds. */
-  private capture: { clock: number } | undefined;
+  private capture: { clock: number; sampledAt: number } | undefined;
   private restart: () => void = () => {
     throw new Error('no scenario loaded yet');
   };
@@ -282,6 +286,8 @@ export class SimulationController {
   mount(container: HTMLElement): () => void {
     container.appendChild(this.renderer.domElement);
     this.resize(container.clientWidth, container.clientHeight);
+    // A recorder owns time for the rest of the page's life; a remount (e.g. hot reload) must not restart the loop.
+    if (this.capture) return () => this.renderer.domElement.remove();
     this.running = true;
     this.fpsSince = performance.now();
     this.fpsFrames = 0;
@@ -328,7 +334,7 @@ export class SimulationController {
 
   /** Loads a bundled scenario; `seed` (an integer ≥ 0) fixes its layout for reproducible runs, R included. */
   loadScenario(id: string, seed?: number): void {
-    if (seed !== undefined && !(Number.isInteger(seed) && seed >= 0)) throw new Error(`seed must be an integer >= 0, got ${seed}`);
+    if (seed !== undefined && !(Number.isInteger(seed) && seed >= 0 && seed <= 0xffffffff)) throw new Error(`seed must be an integer within [0, 4294967295], got ${seed}`);
     const scenario = findScenario(id);
     this.startScenario(scenario, id, sourceOf(scenario), seed);
   }
@@ -665,35 +671,39 @@ export class SimulationController {
   beginCapture(): void {
     this.running = false;
     cancelAnimationFrame(this.frameHandle);
-    this.capture = { clock: 0 };
+    this.capture = { clock: 0, sampledAt: -Infinity };
+    // Throttles timed on the wall clock restart on the video clock.
+    this.fieldReferenceAt = -Infinity;
+    this.fieldFollowFitAt = -Infinity;
   }
 
   /**
-   * One video frame: `steps` simulation steps (timeline events fire on simulation time, as in advance),
-   * scripted camera moves eased by `seconds` of video time, trail and follow updated, the field
-   * recomputed (its colour reference on the app's interval, in video time), then a render. The canvas
+   * One video frame: `steps` simulation steps (timeline events fire on simulation time, as in advance;
+   * the trail gets a point per step, as in the app), then what the app's frame does after its step
+   * (present), on the video clock: camera moves eased by `seconds` of video time, the palette sampled
+   * every video second (and on the first frame), the field recomputed on every frame. The canvas
    * (preserveDrawingBuffer) then holds the frame, with no UI on it.
    */
   captureFrame(steps: number, seconds: number): void {
-    if (!this.capture) throw new Error('captureFrame needs beginCapture first');
+    const capture = this.capture;
+    if (!capture) throw new Error('captureFrame needs beginCapture first');
+    if (!(Number.isInteger(steps) && steps >= 0)) throw new Error(`steps must be an integer >= 0, got ${steps}`);
     if (!(Number.isFinite(seconds) && seconds >= 0)) throw new Error(`frame seconds must be a finite number >= 0, got ${seconds}`);
-    this.advance(steps);
-    this.capture.clock += seconds * 1000;
-    const now = this.capture.clock;
-    this.updateCameraMove(now);
-    const { inspected, followInspected, showTrail } = this.state;
-    const moved = steps > 0;
-    const position = inspected && (followInspected || (showTrail && moved)) ? this.gpu.readPosition(inspected.index) : undefined;
-    if (position && showTrail && moved) this.trail.push(position);
-    if (followInspected && position) {
-      this.centerOn(position);
-      this.autoFitField();
+    const { inspected, showTrail } = this.state;
+    for (let k = 0; k < steps; k++) {
+      this.advance(1);
+      // present() adds the last step's point.
+      if (inspected && showTrail && k < steps - 1) this.trail.push(this.gpu.readPosition(inspected.index));
     }
-    this.controls.update();
-    // Every frame gets its field; the app throttles it to the wall clock.
+    capture.clock += seconds * 1000;
+    const now = capture.clock;
+    if (now - capture.sampledAt >= SAMPLE_INTERVAL_MS) {
+      capture.sampledAt = now;
+      this.sampleState();
+    }
+    // Smooth video: every frame gets its field (the app recomputes it at most every FIELD_INTERVAL_MS).
     this.fieldComputedAt = -Infinity;
-    this.updateField(now);
-    this.render();
+    this.present(now, steps > 0);
   }
 
   /** The background behind the particles, as a CSS colour (e.g. '#000000'). */
@@ -708,7 +718,15 @@ export class SimulationController {
   diagnostics(): Diagnostics {
     this.syncFromGpu();
     const { time, settings } = this.state;
-    const potentials = this.set.count > 0 ? this.gpu.readPotentials(time) : new Float32Array();
+    let potentials: Float32Array = new Float32Array(this.set.count);
+    let energyError: string | undefined;
+    try {
+      if (this.set.count > 0) potentials = this.gpu.readPotentials(time);
+    } catch (error) {
+      if (!(error instanceof ShaderCompileError)) throw error;
+      energyError = `Potential-energy pass failed to compile; forces are unaffected.\n${error.log}`;
+      potentials.fill(NaN);
+    }
     const energy = summarizeEnergy(this.set, this.set.velocity, potentials, this.compiled, settings.mode2D);
     const momentum: Vec3 = [0, 0, 0];
     for (let k = 0; k < this.set.count; k++) {
@@ -719,6 +737,7 @@ export class SimulationController {
     return {
       time, particles: this.set.count, kinetic: energy.kinetic, potential: energy.potential, total: energy.kinetic + energy.potential,
       potentialLeavesOut: energy.missing, momentum, temperature: energy.temperature, meanSpeed: energy.meanSpeed, maxSpeed: energy.maxSpeed,
+      ...(energyError ? { energyError } : {}),
     };
   }
 
@@ -1149,12 +1168,15 @@ export class SimulationController {
   }
 
   /** Moves the orbit target to `point`, translating the camera with it (keeps the view direction). */
-  /** Puts the camera at `position` looking at `target` (a scripted move stops; the field re-fits). */
+  /**
+   * Puts the camera at `position` looking at `target`; the field re-fits. A scripted move under way
+   * (e.g. a timeline event at t = 0) carries on from here, as from an initial camera.
+   */
   setCamera(position: Vec3, target: Vec3): void {
     if (![...position, ...target].every(Number.isFinite)) throw new Error(`camera position and target must be finite, got ${JSON.stringify({ position, target })}`);
-    this.cancelCameraMove();
     this.camera.position.set(...position);
     this.controls.target.set(...target);
+    if (this.cameraMove) this.cameraMove.from = [this.camera.position.clone(), this.controls.target.clone()];
     this.controls.update();
     this.autoFitField();
   }
@@ -1373,7 +1395,7 @@ export class SimulationController {
     }
     this.scheduleFrame();
     const frameStart = performance.now();
-    const { paused, settings, inspected, followInspected, showTrail } = this.state;
+    const { paused, settings } = this.state;
     let stepped = false;
     if (!paused || this.stepRequested) {
       this.stepRequested = false;
@@ -1383,8 +1405,19 @@ export class SimulationController {
       this.runTimeline();
       stepped = true;
     }
+    this.present(now, stepped);
+    this.frameMsSinceSample += performance.now() - frameStart;
+    this.trackFps(now);
+  };
+
+  /**
+   * What a frame does after its steps, at `now` (wall clock in the app, video clock in captureFrame):
+   * camera move, trail (the last step's point) and follow, field, render.
+   */
+  private present(now: number, stepped: boolean): void {
+    const { inspected, followInspected, showTrail } = this.state;
     this.updateCameraMove(now);
-    // One texel read back per frame, shared by following and the trail (a point per step).
+    // One texel read back per frame, shared by following and the trail.
     const position = inspected && (followInspected || (showTrail && stepped)) ? this.gpu.readPosition(inspected.index) : undefined;
     if (position && showTrail && stepped) this.trail.push(position);
     if (followInspected && position) {
@@ -1397,13 +1430,11 @@ export class SimulationController {
     this.controls.update();
     this.updateField(now);
     this.render();
-    this.frameMsSinceSample += performance.now() - frameStart;
-    this.trackFps(now);
-  };
+  }
 
   private trackFps(now: number): void {
     this.fpsFrames++;
-    if (now - this.fpsSince < 1000) return;
+    if (now - this.fpsSince < SAMPLE_INTERVAL_MS) return;
     const seconds = (now - this.fpsSince) / 1000;
     const fps = this.fpsFrames / seconds;
     const frameMs = this.frameMsSinceSample / this.fpsFrames;

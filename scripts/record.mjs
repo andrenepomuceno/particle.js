@@ -7,7 +7,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
@@ -37,26 +37,27 @@ const fail = (message) => {
   console.error(`record: ${message}`);
   process.exit(2);
 };
-const integer = (name, min) => {
+const integer = (name, min, max = Number.MAX_SAFE_INTEGER) => {
   const value = Number(values[name]);
-  if (!Number.isInteger(value) || value < min) fail(`--${name} must be an integer >= ${min}, got '${values[name]}'`);
+  if (!Number.isInteger(value) || value < min || value > max) fail(`--${name} must be an integer within [${min}, ${max}], got '${values[name]}'`);
   return value;
 };
-const optionalInteger = (name, min) => (values[name] === undefined ? undefined : integer(name, min));
+const optionalInteger = (name, min, max) => (values[name] === undefined ? undefined : integer(name, min, max));
 
 if (!values.scenario) fail('--scenario <id> is required');
-const fps = integer('fps', 1);
+const fps = integer('fps', 1, 1000);
 const seconds = Number(values.seconds);
-if (!(seconds > 0)) fail(`--seconds must be > 0, got '${values.seconds}'`);
+if (!(Number.isFinite(seconds) && seconds > 0)) fail(`--seconds must be a finite number > 0, got '${values.seconds}'`);
 const frames = Math.round(seconds * fps);
+if (frames < 1) fail(`--seconds ${values.seconds} at --fps ${fps} rounds to 0 frames`);
 const stepsPerFrame = integer('steps-per-frame', 0);
 const warmupSteps = integer('warmup-steps', 0);
-const crf = integer('crf', 0);
+const crf = integer('crf', 0, 63);
 // libvpx-vp9 -cpu-used: 0 is ~3× slower than 2 for ~20 % fewer bytes at the same quality (docs/recording.md).
-const speed = integer('speed', 0);
-if (speed > 8) fail(`--speed must be an integer within [0, 8], got '${values.speed}'`);
+const speed = integer('speed', 0, 8);
 const particles = optionalInteger('particles', 1);
-const seed = optionalInteger('seed', 0);
+// createRng takes a 32-bit seed.
+const seed = optionalInteger('seed', 0, 0xffffffff);
 const capacity = optionalInteger('capacity', 1);
 const size = /^(\d+)x(\d+)$/.exec(values.size);
 if (!size) fail(`--size must be WIDTHxHEIGHT, got '${values.size}'`);
@@ -73,17 +74,87 @@ if (!video && !values.png) fail('--no-video needs --png, or nothing would be wri
 const display = values.display === undefined ? {}
   : JSON.parse(values.display.trim().startsWith('{') ? values.display : await readFile(values.display, 'utf8'));
 const out = values.out ?? path.join('reports', 'videos', `${values.scenario}.webm`);
-const base = out.replace(/\.webm$/, '');
+if (!out.endsWith('.webm')) fail(`--out must end in .webm (the metadata, subtitles and frames take its name), got '${out}'`);
+const base = out.slice(0, -'.webm'.length);
 const framesDir = `${base}-frames`;
+
+// Everything that can fail cheaply fails before the browser starts.
+const run = (command, ...args) => execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+const git = (...args) => {
+  try {
+    return run('git', ...args).trim();
+  } catch (error) {
+    return fail(`git ${args.join(' ')} failed (the metadata records the commit): ${error.message}`);
+  }
+};
+const source = {
+  version: JSON.parse(await readFile('package.json', 'utf8')).version,
+  commit: git('rev-parse', 'HEAD'),
+  dirty: git('status', '--porcelain', '--untracked-files=no') !== '',
+};
+if (video) {
+  let encoders = '';
+  try {
+    encoders = run('ffmpeg', '-hide_banner', '-encoders');
+  } catch (error) {
+    fail(`ffmpeg is needed for video output (or pass --png --no-video): ${error.message}`);
+  }
+  if (!/\blibvpx-vp9\b/.test(encoders)) fail('this ffmpeg has no libvpx-vp9 encoder (or pass --png --no-video)');
+}
 await mkdir(path.dirname(out), { recursive: true });
-if (values.png) await mkdir(framesDir, { recursive: true });
+// Frames and subtitles of an earlier run must not sit beside this one's.
+await rm(`${base}.vtt`, { force: true });
+if (values.png) {
+  await mkdir(framesDir, { recursive: true });
+  const stale = (await readdir(framesDir)).filter((name) => /^\d{5}\.png$/.test(name));
+  await Promise.all(stale.map((name) => rm(path.join(framesDir, name))));
+}
 
 const scriptStarted = performance.now();
-const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
 
+/** Frames queued for ffmpeg before capture waits: capture and encoding overlap, memory stays bounded. */
+const QUEUE_BYTES = 256 * 1024 * 1024;
+
+/**
+ * ffmpeg reading PNGs on stdin and writing VP9 WebM to a partial file that finish() renames over `out`,
+ * so a failed run never replaces an earlier video; abort() kills it and removes the partial file.
+ */
+function startEncoder() {
+  const partial = `${base}.partial.webm`;
+  const ffmpeg = spawn('ffmpeg', [
+    '-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
+    '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuv420p', '-crf', String(crf), '-b:v', '0', '-row-mt', '1', '-cpu-used', String(speed),
+    '-f', 'webm', partial,
+  ], { stdio: ['pipe', 'inherit', 'inherit'] });
+  const done = new Promise((resolve, reject) => {
+    ffmpeg.on('error', reject);
+    ffmpeg.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exited with ${code}`))));
+  });
+  // Observed here so an early exit surfaces through write() or finish(), not as an unhandled rejection.
+  done.catch(() => {});
+  // A dying ffmpeg breaks the pipe; `done` reports its exit code instead of an unhandled EPIPE.
+  ffmpeg.stdin.on('error', () => {});
+  return {
+    async write(buffer) {
+      if (ffmpeg.exitCode !== null) await done;
+      if (!ffmpeg.stdin.write(buffer) && ffmpeg.stdin.writableLength > QUEUE_BYTES) await Promise.race([once(ffmpeg.stdin, 'drain'), done]);
+    },
+    async finish() {
+      ffmpeg.stdin.end();
+      await done;
+      await rename(partial, out);
+    },
+    async abort() {
+      ffmpeg.kill('SIGKILL');
+      await done.catch(() => {});
+      await rm(partial, { force: true });
+    },
+  };
+}
+
 /** Loads the scenario as a recording does: seed, particle total and display options, the frame loop stopped. */
-async function openWorld(page, appBase) {
+async function openWorld(page, appBase, worldSeed) {
   const query = new URLSearchParams({ scenario: 'sandbox', ...(capacity ? { capacity: String(capacity) } : {}) });
   await page.route(/googletagmanager/, (route) => route.abort());
   await page.goto(`${appBase}?${query}`);
@@ -101,52 +172,19 @@ async function openWorld(page, appBase) {
       name: state.name, seed: state.seed, particles: state.particleCount, capacity: state.capacity, settings: state.settings,
       source: state.scenarioSource.text, notices: state.notices.map((n) => n.text),
     };
-  }, { scenario: values.scenario, seed, particles, display });
+  }, { scenario: values.scenario, seed: worldSeed, particles, display });
 }
 
-/** Frames queued for ffmpeg before capture waits: capture and encoding overlap, memory stays bounded. */
-const QUEUE_BYTES = 256 * 1024 * 1024;
-
-/** ffmpeg reading PNGs on stdin and writing VP9 WebM; `done` settles when it exits. */
-function startEncoder() {
-  const process = spawn('ffmpeg', [
-    '-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
-    '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuv420p', '-crf', String(crf), '-b:v', '0', '-row-mt', '1', '-cpu-used', String(speed), out,
-  ], { stdio: ['pipe', 'inherit', 'inherit'] });
-  const done = new Promise((resolve, reject) => {
-    process.on('error', reject);
-    process.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exited with ${code}`))));
-  });
-  // A dying ffmpeg breaks the pipe; `done` reports its exit code instead of an unhandled EPIPE.
-  process.stdin.on('error', () => {});
-  const write = async (buffer) => {
-    if (!process.stdin.write(buffer) && process.stdin.writableLength > QUEUE_BYTES) await Promise.race([once(process.stdin, 'drain'), done]);
-  };
-  return { write, done, end: () => process.stdin.end() };
-}
-let encoder;
-
-const report = await withBrowser(async ({ browser, base: appBase }) => {
-  const started = performance.now();
-  const page = await newAppPage(browser, { viewport: { width, height }, deviceScaleFactor: 1 });
-  const problems = collectProblems(page);
-  const world = await openWorld(page, appBase);
-  // A browser shrinks a drawing buffer past the GPU's limits without an error.
-  if (world.buffer[0] !== width || world.buffer[1] !== height) {
-    throw new Error(`the GPU gave a ${world.buffer.join('x')} drawing buffer for --size ${width}x${height}; use a smaller size`);
-  }
-  // Only now, so a failed setup leaves no empty video behind.
-  if (video) encoder = startEncoder();
+/** Captures every frame into the encoder and/or PNG files; returns what the metadata needs. */
+async function capture(page, encoder) {
   await page.evaluate((steps) => globalThis.particleController.advance(steps), warmupSteps);
-  const setupMs = performance.now() - started;
-
   const times = [];
   const hashes = [];
   const timeline = [];
   const states = new Map();
   let diagnosticsFirst;
   let previous = { fired: undefined, caption: undefined };
-  const recording = performance.now();
+  const started = performance.now();
   for (let frame = 0; frame < frames; frame++) {
     // Frame 0 is the state after the warm-up; each later one is stepsPerFrame steps and 1/fps s further.
     const grab = await page.evaluate(({ steps, seconds, keep }) => {
@@ -171,36 +209,60 @@ const report = await withBrowser(async ({ browser, base: appBase }) => {
     if (frame === 0) diagnosticsFirst = await page.evaluate(() => globalThis.particleController.diagnostics());
     if (frame % fps === 0) process.stdout.write(`\rrecord: frame ${frame + 1}/${frames}`);
   }
-  const msPerFrame = (performance.now() - recording) / frames;
+  const msPerFrame = (performance.now() - started) / frames;
   const diagnosticsLast = await page.evaluate(() => globalThis.particleController.diagnostics());
-  await page.close();
-
-  // Each verified frame is replayed in a fresh page straight to its step and compared particle by particle.
-  const checks = [];
-  for (const frame of verify) {
-    const replay = await newAppPage(browser, { viewport: { width: 320, height: 240 }, deviceScaleFactor: 1 });
-    await openWorld(replay, appBase);
-    const particles = await replay.evaluate((steps) => {
-      const c = globalThis.particleController;
-      c.advance(steps);
-      return JSON.stringify(c.readParticles());
-    }, warmupSteps + frame * stepsPerFrame);
-    checks.push({ frame, steps: warmupSteps + frame * stepsPerFrame, identical: particles === states.get(frame) });
-    await replay.close();
-  }
   process.stdout.write('\n');
-  return { world, setupMs, msPerFrame, times, hashes, timeline, diagnosticsFirst, diagnosticsLast, checks, problems };
-});
-
-if (encoder) {
-  encoder.end();
-  await encoder.done;
+  return { times, hashes, timeline, states, diagnosticsFirst, diagnosticsLast, msPerFrame };
 }
 
-const dirty = git('status', '--porcelain', '--untracked-files=no') !== '';
+/** Replays each verified frame in a fresh page straight to its step, with the recording's seed, and compares the particles. */
+async function replay(browser, appBase, worldSeed, states) {
+  const checks = [];
+  const problems = [];
+  for (const frame of verify) {
+    const page = await newAppPage(browser, { viewport: { width: 320, height: 240 }, deviceScaleFactor: 1 });
+    const pageProblems = collectProblems(page);
+    await openWorld(page, appBase, worldSeed);
+    const steps = warmupSteps + frame * stepsPerFrame;
+    const particles = await page.evaluate((n) => {
+      const c = globalThis.particleController;
+      c.advance(n);
+      return JSON.stringify(c.readParticles());
+    }, steps);
+    checks.push({ frame, steps, identical: particles === states.get(frame) });
+    problems.push(...pageProblems.map((problem) => `verify frame ${frame}: ${problem}`));
+    await page.close();
+  }
+  return { checks, problems };
+}
+
+const report = await withBrowser(async ({ browser, base: appBase }) => {
+  const started = performance.now();
+  const page = await newAppPage(browser, { viewport: { width, height }, deviceScaleFactor: 1 });
+  const problems = collectProblems(page);
+  const world = await openWorld(page, appBase, seed);
+  // A browser shrinks a drawing buffer past the GPU's limits without an error.
+  if (world.buffer[0] !== width || world.buffer[1] !== height) {
+    throw new Error(`the GPU gave a ${world.buffer.join('x')} drawing buffer for --size ${width}x${height}; use a smaller size`);
+  }
+  const setupMs = performance.now() - started;
+  const encoder = video ? startEncoder() : undefined;
+  try {
+    const captured = await capture(page, encoder);
+    await page.close();
+    // The scenario's own seed or the random one it drew: the replay must lay out the same world.
+    const verified = await replay(browser, appBase, world.seed.value, captured.states);
+    await encoder?.finish();
+    return { world, setupMs, ...captured, checks: verified.checks, problems: [...problems, ...verified.problems] };
+  } catch (error) {
+    await encoder?.abort();
+    throw error;
+  }
+});
+
 const metadata = {
   scenario: { id: values.scenario, name: report.world.name, sha256: sha256(report.world.source) },
-  particlejs: { version: JSON.parse(await readFile('package.json', 'utf8')).version, commit: git('rev-parse', 'HEAD'), dirty },
+  particlejs: source,
   seed: report.world.seed.value,
   particles: report.world.particles,
   capacity: report.world.capacity,
@@ -228,10 +290,13 @@ const cueTime = (frame) => {
   const pad = (n, w = 2) => String(n).padStart(w, '0');
   return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`;
 };
+/** Caption text as a WebVTT cue payload: no blank line (it ends a cue), no '-->', markup characters escaped. */
+const cueText = (caption) => caption.split('\n').map((line) => line.trim()).filter(Boolean).join('\n')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // Captions are a DOM overlay in the app, not canvas pixels: a subtitle track keeps them, in sync, off the frames.
 const cues = report.timeline.map((entry, k) => ({ ...entry, end: report.timeline[k + 1]?.frame ?? frames }))
-  .filter((entry) => entry.caption !== null && entry.end > entry.frame)
-  .map((entry) => `${cueTime(entry.frame)} --> ${cueTime(entry.end)}\n${entry.caption.replace(/\n\n+/g, '\n')}`);
+  .filter((entry) => entry.caption !== null && entry.end > entry.frame && cueText(entry.caption) !== '')
+  .map((entry) => `${cueTime(entry.frame)} --> ${cueTime(entry.end)}\n${cueText(entry.caption)}`);
 if (cues.length > 0) await writeFile(`${base}.vtt`, `WEBVTT\n\n${cues.join('\n\n')}\n`);
 const failed = report.checks.filter((c) => !c.identical);
 console.log(JSON.stringify({ frames, hash: metadata.hash, timing: metadata.timing, out: video ? out : framesDir, metadata: `${base}.json`, verify: report.checks, problems: report.problems }, null, 2));

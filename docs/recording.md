@@ -25,6 +25,7 @@ timeline has captions, `reports/videos/galaxy.vtt`.
 | `--particles n` | the scenario's | particle total, as in the app's Particles field |
 | `--capacity n` | the app's | GPU texture capacity (for totals above it) |
 | `--display json` | `{}` | display options: a JSON file or an inline object (below) |
+| `--lang en\|pt-BR` | en | language of the timeline captions (the `.vtt` and the metadata) |
 | `--out file.webm` | `reports/videos/<id>.webm` | output, ending in `.webm`; the metadata, subtitles and frames take its name. The video is written to `<out>.partial.webm` and renamed when complete, so a failed run leaves an earlier video in place |
 | `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` (frames of an earlier run there are removed first) |
 | `--no-video` | off | PNG frames only (needs `--png`; no ffmpeg needed) |
@@ -83,7 +84,7 @@ The recorder stops the app's frame loop and drives everything from the frames:
 `<out>.json` holds what is needed to reproduce and check the video: scenario id, name and the
 SHA-256 of its JSON; package version, git commit and whether the tree had uncommitted changes; seed,
 particle count, capacity and every simulation setting (dt, integrator, metric, …); steps per frame,
-warm-up, fps, size and display options; the simulation time of every frame (`frameTimes`) and the
+warm-up, fps, size, display options and caption language (`lang`); the simulation time of every frame (`frameTimes`) and the
 SHA-256 of every frame's PNG (`frameHashes`), and `hash`, a digest of them all that two runs of the
 same command share; timeline changes by frame (`eventsFired`, caption); diagnostics of the first and
 last frame (kinetic, potential and total energy, momentum Σ m·u, temperature, mean and maximum speed;

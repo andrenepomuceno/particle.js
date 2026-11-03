@@ -23,7 +23,9 @@ import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
-import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
+import { listedScenarios, SCENARIO_ORDERS, type ScenarioNaming, type ScenarioOrder } from '../scenarios/order';
+import { isLocale, LOCALES, messagesFor, type Locale, type Messages } from '../i18n';
+import { localizeCaption, localizeFolder, localizeScenario } from '../i18n/scenarios';
 import { parseScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import { parseEdit, sourceOf, type ScenarioSource } from '../scenarios/source';
 import { scaleBoundary } from '../scenarios/scaling';
@@ -126,6 +128,8 @@ export interface Notice {
 }
 
 export interface AppState {
+  /** Language of the interface, the notices and the bundled scenarios' texts. */
+  locale: Locale;
   /** The bundled scenario's id; '' for imported files, applied edits and snapshots. */
   scenarioId: string;
   /** The scenario file behind the current world (Information → JSON); undefined for a snapshot. */
@@ -269,7 +273,7 @@ export class SimulationController {
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
-      scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
+      locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
       colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
@@ -387,7 +391,7 @@ export class SimulationController {
         this.applyField(before);
       }
     } catch (error) {
-      this.notify(`The scenario's field view could not be shown: ${(error as Error).message}`, 'error');
+      this.notify(this.messages.notices.scenarioFieldFailed((error as Error).message), 'error');
     }
   }
 
@@ -398,7 +402,24 @@ export class SimulationController {
 
   /** The bundled scenarios as the list shows them (order and folder grouping). */
   listedScenarios(): Scenario[] {
-    return listedScenarios(SCENARIOS, this.state.scenarioOrder, this.state.scenariosByFolder);
+    return listedScenarios(SCENARIOS, this.state.scenarioOrder, this.state.scenariosByFolder, this.scenarioNaming());
+  }
+
+  /** Scenario and folder names in the interface language, which the name order sorts by. */
+  scenarioNaming(): ScenarioNaming {
+    const { locale } = this.state;
+    return { locale, name: (s) => localizeScenario(s, locale).name, folder: (f) => localizeFolder(f, locale) };
+  }
+
+  /** The interface text in the current language (notices, and the views through useMessages). */
+  get messages(): Messages {
+    return messagesFor(this.state.locale);
+  }
+
+  setLocale(locale: Locale): void {
+    if (!isLocale(locale)) throw new Error(`locale must be one of ${LOCALES.join(', ')}, got ${JSON.stringify(locale)}`);
+    this.store.set({ locale });
+    this.refreshCaption();
   }
 
   setScenarioOrder(scenarioOrder: ScenarioOrder, scenariosByFolder: boolean): void {
@@ -411,7 +432,7 @@ export class SimulationController {
     const listed = this.listedScenarios();
     const index = listed.findIndex((s) => s.id === this.state.scenarioId);
     if (index === -1) {
-      this.notify('The current world was imported and is not in the scenario list; press Home for the first scenario', 'error');
+      this.notify(this.messages.notices.notListed, 'error');
       return;
     }
     const next = Math.min(Math.max(index + offset, 0), listed.length - 1);
@@ -445,7 +466,7 @@ export class SimulationController {
     const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '', scenarioSource: undefined, seed: undefined, description: `Snapshot imported from ${fileName}` });
+      this.store.set({ scenarioId: '', scenarioSource: undefined, seed: undefined, description: this.messages.notices.snapshotFrom(fileName) });
       // A snapshot has no view.field: like a scenario without one, it ends a scenario's hold on the field.
       this.showScenarioField(undefined);
     };
@@ -497,7 +518,7 @@ export class SimulationController {
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
     if (settings.historyDepth < requested.historyDepth) {
-      this.notify(`${name} asks for a history of ${requested.historyDepth} steps; this GPU holds ${settings.historyDepth}, so its retarded forces reach less far`, 'error');
+      this.notify(this.messages.notices.historyLimited(name, requested.historyDepth, settings.historyDepth), 'error');
     }
     const inverseC2 = inverseLightSpeed2(settings);
     particles.forEach((particle, index) => assertStorableParticle(particle, index, inverseC2));
@@ -588,7 +609,7 @@ export class SimulationController {
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       shaderError = error.log;
-      this.notify(`Shader compile failed; previous forces stay active.\n${error.log}`, 'error');
+      this.notify(this.messages.notices.shaderFailed(error.log), 'error');
     }
     this.store.set({ forces, compiledForces: this.compiled, forceErrors, shaderError });
     this.refreshForceWarnings();
@@ -756,12 +777,12 @@ export class SimulationController {
   private fireEvent(event: TimelineEvent): void {
     if (event.changes.length > 0) {
       const { forces, settings, missing } = applyEvent(event, this.state.forces, this.state.settings);
-      if (missing.length > 0) this.notify(`Timeline at t = ${event.at}: ${missing.join(', ')} no longer exist (renamed or removed); skipped`, 'error');
+      if (missing.length > 0) this.notify(this.messages.notices.timelineMissing(event.at, missing.join(', ')), 'error');
       // Separately, so an invalid setting (e.g. a multiply past a limit) does not drop the force changes.
       try {
         this.setSettings(settings);
       } catch (error) {
-        this.notify(`Timeline at t = ${event.at}: settings not applied: ${(error as Error).message}`, 'error');
+        this.notify(this.messages.notices.timelineSettings(event.at, (error as Error).message), 'error');
       }
       this.setForces(forces);
     }
@@ -784,7 +805,7 @@ export class SimulationController {
 
   private refreshCaption(): void {
     const template = this.captionTemplate;
-    const caption = template === undefined ? undefined : formatCaption(template, this.state.forces, this.state.settings);
+    const caption = template === undefined ? undefined : formatCaption(localizeCaption(template, this.state.locale), this.state.forces, this.state.settings);
     if (caption !== this.state.caption) this.store.set({ caption });
   }
 
@@ -906,7 +927,7 @@ export class SimulationController {
   fitField(): void {
     const { field, settings } = this.state;
     if (!field.enabled) {
-      this.notify('The field is off: press J to show it', 'error');
+      this.notify(this.messages.notices.fieldOff, 'error');
       return;
     }
     this.camera.updateMatrixWorld();
@@ -929,7 +950,7 @@ export class SimulationController {
       this.fitField();
     } catch (error) {
       this.setField({ enabled: false });
-      this.notify(`The field was turned off: its grid could not be fitted (${(error as Error).message})`, 'error');
+      this.notify(this.messages.notices.fieldUnfitted((error as Error).message), 'error');
     }
   }
 
@@ -940,7 +961,7 @@ export class SimulationController {
     try {
       this.fitField();
     } catch (error) {
-      this.notify(`Field re-fit failed: ${(error as Error).message}`, 'error');
+      this.notify(this.messages.notices.fieldRefitFailed((error as Error).message), 'error');
     }
   }
 
@@ -962,7 +983,7 @@ export class SimulationController {
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       this.setField({ enabled: false });
-      const fieldError = `Field pass failed to compile; the simulation is unaffected.\n${error.log}`;
+      const fieldError = this.messages.notices.fieldCompileFailed(error.log);
       this.store.set({ fieldError });
       this.notify(fieldError, 'error');
     }
@@ -1034,7 +1055,7 @@ export class SimulationController {
   /** Without a history (freed by GpuCompute) retarded forces act instantaneously: say so, do not fail the edit. */
   private historyFailed(error: unknown): void {
     if (!(error instanceof HistoryAllocationError)) throw error;
-    this.notify(`Retarded forces act instantaneously: ${error.message}. Lower the history depth K (Spacetime).`, 'error');
+    this.notify(this.messages.notices.retardedInstant(error.message), 'error');
   }
 
   /** Most history steps this GPU can hold (Spacetime dialog). */
@@ -1149,14 +1170,14 @@ export class SimulationController {
       if (x >= left && x <= right && y >= top && y <= bottom) selection.push(k);
     });
     this.store.set({ selection });
-    this.notify(`Selected ${selection.length} particle(s)`);
+    this.notify(this.messages.notices.selected(selection.length));
   }
 
   /** Centers the orbit target on the selection's centroid, keeping the camera's offset (v1's Look At). */
   lookAtSelection(): void {
     const { selection } = this.state;
     if (selection.length === 0) {
-      this.notify('Nothing selected: shift+drag to select particles first', 'error');
+      this.notify(this.messages.notices.nothingSelected, 'error');
       return;
     }
     this.syncFromGpu();
@@ -1199,9 +1220,9 @@ export class SimulationController {
       if (this.recorder.state === 'recording') this.recorder.stop();
       return;
     }
-    if (typeof MediaRecorder === 'undefined') throw new Error('this browser has no MediaRecorder; recording is unavailable');
+    if (typeof MediaRecorder === 'undefined') throw new Error(this.messages.notices.noMediaRecorder);
     const mimeType = ['video/webm;codecs=vp9', 'video/webm'].find((type) => MediaRecorder.isTypeSupported(type));
-    if (!mimeType) throw new Error('this browser cannot record WebM video');
+    if (!mimeType) throw new Error(this.messages.notices.noWebM);
     const chunks: Blob[] = [];
     const recorder = new MediaRecorder(this.renderer.domElement.captureStream(60), { mimeType });
     recorder.ondataavailable = (event) => event.data.size > 0 && chunks.push(event.data);
@@ -1213,7 +1234,7 @@ export class SimulationController {
     recorder.start(1000);
     this.recorder = recorder;
     this.store.set({ recording: true });
-    this.notify('Recording… press * again to stop and save the video');
+    this.notify(this.messages.notices.recording);
   }
 
   clearSelection(): void {
@@ -1223,7 +1244,7 @@ export class SimulationController {
   copySelection(): void {
     const { selection } = this.state;
     if (selection.length === 0) {
-      this.notify('Nothing selected: shift+drag to select particles first', 'error');
+      this.notify(this.messages.notices.nothingSelected, 'error');
       return;
     }
     this.syncFromGpu();
@@ -1231,7 +1252,7 @@ export class SimulationController {
     const center = centroid(particles.map((p) => p.position));
     const clipboard = particles.map((p) => ({ ...p, position: p.position.map((c, k) => c - center[k]!) as Vec3 }));
     this.store.set({ clipboard });
-    this.notify(`Copied ${clipboard.length} particle(s); hold Z and click to place`);
+    this.notify(this.messages.notices.copied(clipboard.length));
   }
 
   /** Removal shifts indices, so the index-based selection and inspection are dropped with it. */
@@ -1244,11 +1265,11 @@ export class SimulationController {
   deleteSelection(): void {
     const { selection } = this.state;
     if (selection.length === 0) {
-      this.notify('Nothing selected: shift+drag to select particles first', 'error');
+      this.notify(this.messages.notices.nothingSelected, 'error');
       return;
     }
     this.removeParticles(selection);
-    this.notify(`Deleted ${selection.length} particle(s)`);
+    this.notify(this.messages.notices.deleted(selection.length));
   }
 
   deleteAll(): void {
@@ -1258,7 +1279,7 @@ export class SimulationController {
   placeClipboard(clientX: number, clientY: number): void {
     const { clipboard } = this.state;
     if (clipboard.length === 0) {
-      this.notify('Clipboard is empty: select particles and press X first', 'error');
+      this.notify(this.messages.notices.clipboardEmpty, 'error');
       return;
     }
     const at = this.worldAt(clientX, clientY);
@@ -1297,7 +1318,7 @@ export class SimulationController {
   addParticles(particles: Particle[]): void {
     const free = this.set.capacity - this.set.count;
     if (particles.length > free) {
-      this.notify(`Cannot add ${particles.length} particles: only ${free} of ${this.set.capacity} slots free`, 'error');
+      this.notify(this.messages.notices.noRoom(particles.length, free, this.set.capacity), 'error');
       return;
     }
     this.editParticles((set) => set.addAll(particles));

@@ -45,6 +45,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   and import it back with field-by-field validation.
 - **Adjustable particle count**: scenarios regenerate at the chosen size, keeping their density.
 - 2D and 3D modes, sphere or box boundaries, friction, optional speed clamp.
+- **English and Brazilian Portuguese** interface, scenario texts included (menu bar, or `?lang=pt-BR`).
 
 ## Quick start
 

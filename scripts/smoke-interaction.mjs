@@ -7,7 +7,8 @@ import { collectProblems, withBrowser } from './lib/browser.mjs';
 const out = process.argv[2] ?? 'reports/screenshots/interaction.png';
 let failures = 0;
 await withBrowser(async ({ browser, base, glMode }) => {
-  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+  // English whatever the machine's language: the checks below find controls by their English names.
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 }, locale: 'en-US' });
   const errors = collectProblems(page);
   const state = () => page.evaluate(() => {
     const s = globalThis.particleController.state;
@@ -260,6 +261,19 @@ await withBrowser(async ({ browser, base, glMode }) => {
   check('Every dialog in the menu opens', openDialogs === titles.length && !errors.some((e) => e.startsWith('pageerror')), { titles, openDialogs });
   await mkdir(path.dirname(out), { recursive: true });
   await page.screenshot({ path: out });
+
+  // The language menu re-renders every open dialog in Portuguese and remembers the choice.
+  await page.getByLabel('Language').selectOption('pt-BR');
+  await page.waitForTimeout(300);
+  const portuguese = await page.evaluate(() => ({
+    lang: globalThis.document.documentElement.lang,
+    saved: globalThis.localStorage.getItem('locale'),
+    menu: [...globalThis.document.querySelectorAll('nav.menu button')].map((b) => b.textContent),
+    help: globalThis.document.querySelector('[data-dialog="help"] .dialog-title span')?.textContent,
+  }));
+  check('Language menu switches to pt-BR', portuguese.lang === 'pt-BR' && portuguese.saved === '"pt-BR"'
+    && portuguese.menu.includes('Forças') && portuguese.help === 'Atalhos' && !errors.some((e) => e.startsWith('pageerror')), portuguese);
+  await page.screenshot({ path: out.replace(/\.png$/, '-pt-BR.png') });
   // Done with v2: with every dialog open (Statistics runs its potential pass) it keeps the CPU busy, and
   // on CI's software renderer that starved the v1 page below past its load timeout.
   await page.close();

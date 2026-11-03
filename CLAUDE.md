@@ -92,3 +92,7 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
 - Automação repetitiva de CLI vai para `scripts/`.
 - Fase atual: 2.x publicada. Próximos itens (reações, testes completos, grade de vizinhos) em `tasks/inbox/`.
 - Docs: `docs/README.md` é o índice; `docs/forces.md` descreve o modelo e a linguagem de expressões.
+- **Idiomas da UI** (en e pt-BR, `src/i18n/`): nenhum texto visível fica no componente; entra em `en.ts`
+  e `ptBR.ts` (o tipo `Messages` exige os dois). Cenário novo ou com texto alterado leva o texto pt-BR em
+  `src/i18n/ptBR.scenarios.ts` no mesmo commit (os testes cobram). Mensagens do motor e nomes de forças
+  ficam em inglês. Scripts de navegador abrem em inglês; `--lang pt-BR` no `snap` para ver em português.

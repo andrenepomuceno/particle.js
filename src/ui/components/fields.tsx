@@ -1,4 +1,5 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useMessages } from '../context';
 
 interface NumberFieldProps {
   label: string;
@@ -10,6 +11,7 @@ interface NumberFieldProps {
 
 /** Commits on blur or Enter; an invalid entry stays visible and flagged instead of being replaced. */
 export function NumberField({ label, value, onCommit, validate, inline = false }: NumberFieldProps) {
+  const t = useMessages();
   const [text, setText] = useState(String(value));
   const [error, setError] = useState<string>();
   const [synced, setSynced] = useState(value);
@@ -21,7 +23,7 @@ export function NumberField({ label, value, onCommit, validate, inline = false }
 
   const commit = () => {
     const parsed = text.trim() === '' ? NaN : Number(text);
-    const problem = Number.isFinite(parsed) ? validate?.(parsed) : `'${text}' is not a number`;
+    const problem = Number.isFinite(parsed) ? validate?.(parsed) : t.validation.notANumber(text);
     setError(problem);
     if (problem === undefined && parsed !== value) {
       try {
@@ -53,14 +55,16 @@ interface SelectFieldProps<T extends string> {
   value: T;
   options: readonly T[];
   onChange: (value: T) => void;
+  /** The text shown for an option (its value by default); the value is what onChange receives. */
+  optionLabel?: (value: T) => string;
 }
 
-export function SelectField<T extends string>({ label, value, options, onChange }: SelectFieldProps<T>) {
+export function SelectField<T extends string>({ label, value, options, onChange, optionLabel = (option) => option }: SelectFieldProps<T>) {
   return (
     <>
       <label>{label}</label>
       <select aria-label={label} value={value} onChange={(event) => onChange(event.target.value as T)}>
-        {options.map((option) => <option key={option} value={option}>{option}</option>)}
+        {options.map((option) => <option key={option} value={option}>{optionLabel(option)}</option>)}
       </select>
     </>
   );
@@ -81,11 +85,22 @@ export function CheckField({ label, checked, onChange }: CheckFieldProps) {
   );
 }
 
-export const positive = (v: number) => (v > 0 ? undefined : 'must be > 0');
-export const unitInterval = (v: number) => (v >= 0 && v <= 1 ? undefined : 'must be within [0, 1]');
-export const nonNegative = (v: number) => (v >= 0 ? undefined : 'must be >= 0');
-export const integerAtLeast = (min: number) => (v: number) =>
-  Number.isInteger(v) && v >= min ? undefined : `must be an integer >= ${min}`;
+type Validator = (value: number) => string | undefined;
+
+/** The common number checks, with their messages in the interface language. */
+export function useValidators(): {
+  positive: Validator; nonNegative: Validator; unitInterval: Validator;
+  integerAtLeast: (min: number) => Validator; integerWithin: (min: number, max: number) => Validator;
+} {
+  const { validation: m } = useMessages();
+  return useMemo(() => ({
+    positive: (v) => (v > 0 ? undefined : m.positive),
+    nonNegative: (v) => (v >= 0 ? undefined : m.nonNegative),
+    unitInterval: (v) => (v >= 0 && v <= 1 ? undefined : m.unitInterval),
+    integerAtLeast: (min) => (v) => (Number.isInteger(v) && v >= min ? undefined : m.integerAtLeast(min)),
+    integerWithin: (min, max) => (v) => (Number.isInteger(v) && v >= min && v <= max ? undefined : m.integerWithin(min, max)),
+  }), [m]);
+}
 
 interface Vec3FieldProps {
   label: string;

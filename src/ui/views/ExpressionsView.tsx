@@ -1,21 +1,26 @@
 import { Fragment } from 'react';
 import { FUNCTION_ARITY, VECTOR_FUNCTIONS } from '../../engine/expr/ast';
 import { PAIR_VARIABLES, type PairVariable } from '../../engine/forces/variables';
+import { variableTexts, type Messages } from '../../i18n';
+import { Rich } from '../components/Rich';
+import { useAppState, useMessages } from '../context';
 
-const GROUPS: readonly [title: string, bases: readonly string[]][] = [
-  ['Geometry', ['r', 'x', 'cutoff', 'dx', 'dy', 'dz', 'd', 'rhat']],
-  ['Mass and charge', ['m', 'q', 'q2', 'q_dot']],
-  ['Spin and isospin', ['sx', 'sy', 'sz', 's', 's_dot', 'si_r', 'sj_r', 'i3']],
-  ['Color charge', ['cr', 'cg', 'cb', 'cx', 'cy', 'c_dot']],
-  ['Nuclear charge and parity', ['n', 'p']],
-  ['Velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
-  ['Time', ['t', 'time']],
-  ['Spacetime (retarded forces)', ['c_light', 't_ret', 'ax', 'ay', 'az', 'a']],
-  ['Random (force mode)', ['rand', 'randn', 'randv']],
+type GroupId = keyof Messages['expressions']['groups'];
+
+const GROUPS: readonly [group: GroupId, bases: readonly string[]][] = [
+  ['geometry', ['r', 'x', 'cutoff', 'dx', 'dy', 'dz', 'd', 'rhat']],
+  ['massCharge', ['m', 'q', 'q2', 'q_dot']],
+  ['spin', ['sx', 'sy', 'sz', 's', 's_dot', 'si_r', 'sj_r', 'i3']],
+  ['color', ['cr', 'cg', 'cb', 'cx', 'cy', 'c_dot']],
+  ['nuclear', ['n', 'p']],
+  ['velocity', ['vx', 'vy', 'vz', 'v', 'v_dot', 'v_rel', 'vv_dot']],
+  ['time', ['t', 'time']],
+  ['spacetime', ['c_light', 't_ret', 'ax', 'ay', 'az', 'a']],
+  ['random', ['rand', 'randn', 'randv']],
 ];
 
 /** Collapses each per-particle pair (m_i, m_j) into one row keyed by its base name (m). */
-function rows(): Map<string, { names: string[]; variable: PairVariable }> {
+export function rows(): Map<string, { names: string[]; variable: PairVariable }> {
   const byBase = new Map<string, { names: string[]; variable: PairVariable }>();
   for (const variable of PAIR_VARIABLES) {
     if (variable.internal) continue;
@@ -27,9 +32,9 @@ function rows(): Map<string, { names: string[]; variable: PairVariable }> {
   return byBase;
 }
 
-const describe = (variable: PairVariable, paired: boolean) =>
-  (paired ? variable.description.replace(/ of the particle receiving the force$/, '') : variable.description)
-  + (variable.shortRangeOnly ? ' (short range only)' : '');
+/** A row's description: the translation keyed by its base name, else the engine's English one. */
+const describe = (base: string, variable: PairVariable, paired: boolean, translated: Record<string, string> | undefined) =>
+  (translated?.[base] ?? (paired ? variable.description.replace(/ of the particle receiving the force$/, '') : variable.description));
 
 /** Variables (by base name) that no reference group lists; tests keep this empty. */
 export function ungroupedVariables(): string[] {
@@ -38,20 +43,18 @@ export function ungroupedVariables(): string[] {
 }
 
 export function ExpressionsView() {
+  const { expressions: t } = useMessages();
+  const translated = variableTexts(useAppState((s) => s.locale));
   const byBase = rows();
   const ungrouped = ungroupedVariables();
   if (ungrouped.length > 0) throw new Error(`variables missing from the reference groups: ${ungrouped.join(', ')}`);
 
   return (
     <div className="stack">
-      <p className="muted" style={{ margin: 0 }}>
-        A force is a signed magnitude along the line between the pair: <b>F &gt; 0 pushes them apart</b>.
-        In potential mode you write V(r) and the engine uses F = −dV/dr, derived exactly. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> applies an expression.
-        Suffix <span className="mono">_i</span> is the particle receiving the force, <span className="mono">_j</span> the one exerting it.
-      </p>
-      {GROUPS.map(([title, bases]) => (
-        <section key={title}>
-          <h3 className="section-title">{title}</h3>
+      <p className="muted" style={{ margin: 0 }}><Rich text={t.intro} /></p>
+      {GROUPS.map(([group, bases]) => (
+        <section key={group}>
+          <h3 className="section-title">{t.groups[group]}</h3>
           <dl className="reference">
             {bases.map((base) => {
               const row = byBase.get(base);
@@ -59,7 +62,7 @@ export function ExpressionsView() {
               return (
                 <Fragment key={base}>
                   <dt className="mono">{row.names.join(', ')}</dt>
-                  <dd>{describe(row.variable, row.names.length > 1)}</dd>
+                  <dd>{describe(base, row.variable, row.names.length > 1, translated)}{row.variable.shortRangeOnly ? t.shortRangeOnly : ''}</dd>
                 </Fragment>
               );
             })}
@@ -67,25 +70,15 @@ export function ExpressionsView() {
         </section>
       ))}
       <section>
-        <h3 className="section-title">Functions and operators</h3>
+        <h3 className="section-title">{t.functions}</h3>
         <p className="mono" style={{ margin: 0 }}>{Object.entries(FUNCTION_ARITY).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
         <p className="mono" style={{ margin: '4px 0 0' }}>{Object.entries(VECTOR_FUNCTIONS).map(([name, arity]) => `${name}(${'·'.repeat(arity).split('').join(', ')})`).join('  ')}</p>
-        <p className="muted" style={{ margin: '4px 0 0' }}>
-          Vectors (d, rhat, s_i, s_j, v_i, v_j, randv, vec(·, ·, ·)) combine with + − between vectors, × and ÷ by numbers,
-          cross, dot, length and normalize. In force mode a vector result is applied as the force itself (e.g.
-          q_i * cross(v_i, B)); a force that reads v_i is stepped with an implicit velocity update that keeps v × B rotations exact.
-          Random numbers are drawn anew each step, the same for both particles of a pair, so sigma * randn pushes
-          the pair apart or together equally (momentum is conserved); the field and the plots show their mean.
-        </p>
-        <p className="mono" style={{ margin: '4px 0 0' }}>+ - * / ^ (or **) · constants pi, e · any other name must be a parameter of the force</p>
+        <p className="muted" style={{ margin: '4px 0 0' }}>{t.vectors}</p>
+        <p className="mono" style={{ margin: '4px 0 0' }}>{t.operators}</p>
       </section>
       <section>
-        <h3 className="section-title">Range and softening</h3>
-        <p className="muted" style={{ margin: 0 }}>
-          Short-range forces act only below their cutoff (x = r / cutoff). Softening ε replaces r with √(r² + ε²)
-          inside the expression; the direction still uses the true distance. A potential that reads dx, dy, dz,
-          si_r or sj_r is a vector potential: its force is the full gradient −∇V (non-central), not a magnitude along r̂.
-        </p>
+        <h3 className="section-title">{t.rangeTitle}</h3>
+        <p className="muted" style={{ margin: 0 }}>{t.range}</p>
       </section>
     </div>
   );

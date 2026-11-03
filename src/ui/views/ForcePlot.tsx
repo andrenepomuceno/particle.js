@@ -1,7 +1,7 @@
 import { useMemo, useState, type PointerEvent, type ReactNode } from 'react';
 import { compileForce, type CompiledForce } from '../../engine/forces/compile';
 import { appliedForce, DEFAULT_PLOT_PARTICLES, plotDistance, resultantPotential, type PlotParticles, plotPair } from '../../engine/forces/resultant';
-import { useAppState } from '../context';
+import { useAppState, useMessages } from '../context';
 import type { ForceDefinition, ForceRange } from '../../engine/forces/types';
 
 const WIDTH = 400;
@@ -9,8 +9,6 @@ const HEIGHT = 120;
 const PAD = { left: 44, right: 8, top: 8, bottom: 16 };
 const SAMPLES = 240;
 const SYMLOG_RATIO = 1e3;
-
-const SAMPLE_PAIR = 'Sample pair: m=1, q=+1/+1, spin ½ẑ each (r̂ along x), I3=+½, p=+1/+1, color red/anti-red.';
 
 function formatNumber(value: number): string {
   if (value === 0) return '0';
@@ -22,6 +20,7 @@ function formatNumber(value: number): string {
 function CurvePlot({ points, maxDistance, symbol, label, caption }: {
   points: readonly { d: number; y: number }[]; maxDistance: number; symbol: string; label: string; caption: ReactNode;
 }) {
+  const { plots: t } = useMessages();
   const [hover, setHover] = useState<number>();
   const plot = useMemo(() => {
     const finite = points.map((p) => p.y).filter(Number.isFinite);
@@ -58,7 +57,7 @@ function CurvePlot({ points, maxDistance, symbol, label, caption }: {
         <text x={PAD.left - 4} y={PAD.top + 8} textAnchor="end">{formatNumber(plot.hi)}</text>
         <text x={PAD.left - 4} y={HEIGHT - PAD.bottom} textAnchor="end">{formatNumber(plot.lo)}</text>
         <text x={WIDTH - PAD.right} y={HEIGHT - 3} textAnchor="end">d = {formatNumber(maxDistance)}</text>
-        <text x={PAD.left} y={HEIGHT - 3}>0{plot.symlog ? '  (symlog y)' : ''}</text>
+        <text x={PAD.left} y={HEIGHT - 3}>0{plot.symlog ? `  ${t.symlog}` : ''}</text>
         <path d={plot.path} fill="none" stroke="var(--plot-line)" strokeWidth={2} strokeLinejoin="round" />
         {hovered && Number.isFinite(hovered.y) && (
           <g>
@@ -72,7 +71,7 @@ function CurvePlot({ points, maxDistance, symbol, label, caption }: {
       </svg>
       <figcaption className="muted">
         {caption}
-        {plot.nonFinite && <span style={{ color: 'var(--danger)' }}> Non-finite values in range (check softening).</span>}
+        {plot.nonFinite && <span style={{ color: 'var(--danger)' }}> {t.nonFinite}</span>}
       </figcaption>
     </figure>
   );
@@ -82,6 +81,7 @@ function CurvePlot({ points, maxDistance, symbol, label, caption }: {
 export function ForcePlot({ definition }: { definition: ForceDefinition }) {
   // c_light in an expression plots with the configured c.
   const lightSpeed = useAppState((s) => s.settings.lightSpeed);
+  const { plots: t } = useMessages();
   const curve = useMemo(() => {
     let force: CompiledForce;
     try {
@@ -99,13 +99,13 @@ export function ForcePlot({ definition }: { definition: ForceDefinition }) {
   }, [definition, lightSpeed]);
   if (!curve) return null;
   return (
-    <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="F" label={`F(d) for ${definition.name}`} caption={<>
-      F &gt; 0 repels. {SAMPLE_PAIR}
-      {curve.kind === 'gradient' && ' Vector force (−∇V): the curve is its radial part for this orientation only; it also has a transverse part and changes with the spins’ angle to r̂.'}
-      {curve.kind === 'vector' && ' Vector force: the curve is its radial part only.'}
-      {curve.velocity && ' It depends on velocity and is plotted for particles at rest.'}
-      {curve.random && ' Random numbers are plotted at their mean (rand = ½, randn = randv = 0).'}
-    </>} />
+    <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="F" label={t.forceLabel(definition.name)} caption={[
+      t.repels, t.samplePair,
+      curve.kind === 'gradient' && t.gradient,
+      curve.kind === 'vector' && t.vector,
+      curve.velocity && t.velocity,
+      curve.random && t.random,
+    ].filter(Boolean).join(' ')} />
   );
 }
 
@@ -114,17 +114,18 @@ export function ResultantPotentialPlot({ forces, range, particles, maxDistance }
   forces: readonly CompiledForce[]; range: ForceRange; particles: PlotParticles; maxDistance: number | undefined;
 }) {
   const lightSpeed = useAppState((s) => s.settings.lightSpeed);
+  const { plots: t } = useMessages();
   const curve = useMemo(() => {
     const result = resultantPotential(forces, range, { pair: plotPair(particles, lightSpeed), maxDistance, samples: SAMPLES });
     return result && { ...result, points: result.points.map((p) => ({ d: p.d, y: p.v })) };
   }, [forces, range, particles, maxDistance, lightSpeed]);
   if (!curve) return null;
-  const title = range === 'short' ? 'Short range' : 'Long range';
+  const title = range === 'short' ? t.shortRange : t.longRange;
   return (
     <CurvePlot points={curve.points} maxDistance={curve.maxDistance} symbol="V"
-      label={`${title} resultant potential`} caption={<>
-        <b>{title}</b>: Σ V(d) of the enabled {range}-range forces for the pair below (r̂ along x, from j to i).
-        {curve.integrated.length > 0 && ` Integrated from the applied F (force mode, or softened): ${curve.integrated.join(', ')}.`}
+      label={t.resultantLabel(range === 'short')} caption={<>
+        <b>{title}</b>: {t.resultantCaption(range === 'short')}
+        {curve.integrated.length > 0 && ` ${t.integrated(curve.integrated.join(', '))}`}
       </>} />
   );
 }

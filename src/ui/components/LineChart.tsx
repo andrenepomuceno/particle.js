@@ -1,4 +1,5 @@
 import { useState, type PointerEvent } from 'react';
+import { useMessages } from '../context';
 
 export interface Series {
   label: string;
@@ -29,6 +30,7 @@ export function formatValue(value: number): string {
 }
 
 export function LineChart({ title, x, xLabel, series, zeroBased = false, note }: Props) {
+  const t = useMessages();
   const [hover, setHover] = useState<number>();
   const count = x.length;
   const values = series.flatMap((s) => s.values.filter(Number.isFinite));
@@ -37,7 +39,7 @@ export function LineChart({ title, x, xLabel, series, zeroBased = false, note }:
     return (
       <figure className="chart">
         <figcaption className="chart-title">{title}</figcaption>
-        <p className="muted">Collecting samples (one per second while the simulation runs)…</p>
+        <p className="muted">{t.stats.collecting}</p>
       </figure>
     );
   }

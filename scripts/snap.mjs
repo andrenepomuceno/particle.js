@@ -1,6 +1,6 @@
 // Boots the dev server, opens scenarios in headless Chromium and saves screenshots.
 // Usage: node scripts/snap.mjs [--scenario id,id|all] [--wait ms] [--capacity n] [--out dir] [--press key,key]
-// --press sends the keys (e.g. j for the force field) after loading, before waiting.
+// --press sends the keys (e.g. j for the force field) after loading, before waiting; --lang en|pt-BR picks the interface language.
 import { mkdir, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -22,6 +22,7 @@ const { values } = parseArgs({
     width: { type: 'string', default: '1400' },
     height: { type: 'string', default: '900' },
     press: { type: 'string', default: '' },
+    lang: { type: 'string', default: 'en' },
   },
 });
 
@@ -35,7 +36,7 @@ await withBrowser(async ({ browser, base }) => {
   for (const scenario of ids) {
     const page = await newAppPage(browser, { viewport: { width: Number(values.width), height: Number(values.height) } });
     const problems = collectProblems(page);
-    const query = new URLSearchParams({ scenario, ...(values.capacity ? { capacity: values.capacity } : {}) });
+    const query = new URLSearchParams({ scenario, lang: values.lang, ...(values.capacity ? { capacity: values.capacity } : {}) });
     await page.goto(`${base}?${query}`);
     const keys = values.press.split(',').filter(Boolean);
     if (keys.length > 0) await page.waitForTimeout(500);

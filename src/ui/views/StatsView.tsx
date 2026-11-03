@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { ParticleKind } from '../../engine/particles';
 import type { ParticleGroup } from '../../engine/particleGroups';
-import { SPECIES } from '../../engine/species';
 import { LineChart } from '../components/LineChart';
-import { useAppState, useController } from '../context';
+import { useAppState, useController, useMessages } from '../context';
+import type { Messages } from '../../i18n';
 import { Tabs } from '../components/Tabs';
 
 const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'] as const;
 
-const TABS = ['Charts', 'Particles'] as const;
+const TABS = ['charts', 'particles'] as const;
 type Tab = (typeof TABS)[number];
 
 export function StatsView() {
   const controller = useController();
-  const [tab, setTab] = useState<Tab>('Charts');
+  const t = useMessages();
+  const [tab, setTab] = useState<Tab>('charts');
 
   useEffect(() => {
     controller.setStatsActive(true);
@@ -22,14 +23,15 @@ export function StatsView() {
 
   return (
     <div className="stack">
-      <Tabs tabs={TABS} value={tab} onChange={setTab} />
-      {tab === 'Charts' ? <ChartsTab /> : <ParticlesTab />}
+      <Tabs tabs={TABS} labels={t.stats.tabs} value={tab} onChange={setTab} />
+      {tab === 'charts' ? <ChartsTab /> : <ParticlesTab />}
     </div>
   );
 }
 
 function ChartsTab() {
   const controller = useController();
+  const { stats: t } = useMessages();
   const physics = useAppState((s) => s.physicsHistory);
   const performance = useAppState((s) => s.performanceHistory);
   const missing = useAppState((s) => s.energyMissing);
@@ -43,50 +45,46 @@ function ChartsTab() {
     <div className="stack">
       {energyError && <pre className="errors">{energyError}</pre>}
       <LineChart
-        title="Energy"
+        title={t.energy}
         x={time}
         xLabel="t"
         series={[
-          { label: 'Kinetic', color: SERIES[0], values: physics.map((p) => p.kinetic) },
-          { label: 'Potential', color: SERIES[1], values: physics.map((p) => p.potential) },
-          { label: 'Total', color: SERIES[2], values: physics.map((p) => p.total) },
+          { label: t.kinetic, color: SERIES[0], values: physics.map((p) => p.kinetic) },
+          { label: t.potential, color: SERIES[1], values: physics.map((p) => p.potential) },
+          { label: t.total, color: SERIES[2], values: physics.map((p) => p.total) },
         ]}
-        note={missing.length > 0
-          ? `Potential energy leaves out forces written as F(r), whose V(r) is unknown: ${missing.join(', ')}. Rewrite them as potentials to include them.`
-          : 'Potential includes every enabled force. Short-range cutoffs make V jump at the cutoff, so the total is not exactly conserved.'}
+        note={missing.length > 0 ? t.energyMissing(missing.join(', ')) : t.energyComplete}
       />
       <LineChart
-        title="Speed"
+        title={t.speed}
         x={time}
         xLabel="t"
         zeroBased
         series={[
-          { label: 'Mean', color: SERIES[0], values: physics.map((p) => p.meanSpeed) },
-          { label: 'Max', color: SERIES[1], values: physics.map((p) => p.maxSpeed) },
+          { label: t.mean, color: SERIES[0], values: physics.map((p) => p.meanSpeed) },
+          { label: t.max, color: SERIES[1], values: physics.map((p) => p.maxSpeed) },
         ]}
       />
       <LineChart
-        title="Temperature"
+        title={t.temperature}
         x={time}
         xLabel="t"
         zeroBased
         series={[{ label: 'T', color: SERIES[0], values: physics.map((p) => p.temperature) }]}
-        note={`Equipartition with k_B = 1: T = ⟨KE⟩ / ${mode2D ? '1 (2D)' : '1.5 (3D)'} per dynamic particle.`}
+        note={t.temperatureNote(mode2D)}
       />
       <LineChart
-        title="Performance"
+        title={t.performance}
         x={wall}
-        xLabel="wall s"
+        xLabel={t.wallSeconds}
         zeroBased
         series={[
           { label: 'FPS', color: SERIES[0], values: performance.map((p) => p.fps) },
-          { label: 'Frame CPU ms', color: SERIES[1], values: performance.map((p) => p.frameMs) },
+          { label: t.frameMs, color: SERIES[1], values: performance.map((p) => p.frameMs) },
         ]}
-        note={last
-          ? `One simulation step per rendered frame, so steps/s = FPS while running. Frame CPU time excludes the asynchronous GPU work; sampling readback ${last.sampleMs.toFixed(1)} ms per second.`
-          : undefined}
+        note={last ? t.performanceNote(last.sampleMs.toFixed(1)) : undefined}
       />
-      <button className="outlined" onClick={() => controller.clearHistory()}>Clear history</button>
+      <button className="outlined" onClick={() => controller.clearHistory()}>{t.clearHistory}</button>
     </div>
   );
 }
@@ -94,42 +92,44 @@ function ChartsTab() {
 const MAX_ROWS = 50;
 
 interface Column {
-  title: string;
-  text: (g: ParticleGroup) => string;
+  id: keyof Messages['stats']['columns'];
+  text: (g: ParticleGroup, t: Messages) => string;
 }
 
 const num = (x: number): string => String(Number(x.toPrecision(4)));
 const triple = (v: readonly number[]): string => v.map(num).join(', ');
 
 const COLUMNS: Column[] = [
-  { title: 'Kind', text: (g) => (g.kind === ParticleKind.fixed ? 'fixed' : 'dynamic') },
-  { title: 'Mass', text: (g) => num(g.mass) },
-  { title: 'Charge', text: (g) => num(g.charge) },
-  { title: 'Charge 2', text: (g) => num(g.charge2) },
-  { title: 'Spin', text: (g) => triple(g.spin) },
-  { title: 'Isospin', text: (g) => num(g.isospin) },
-  { title: 'Parity', text: (g) => num(g.parity) },
-  { title: 'Nuclear', text: (g) => num(g.nuclearCharge) },
-  { title: 'Color', text: (g) => triple(g.color) },
+  { id: 'kind', text: (g, t) => (g.kind === ParticleKind.fixed ? t.options.kind.fixed : t.options.kind.dynamic) },
+  { id: 'mass', text: (g) => num(g.mass) },
+  { id: 'charge', text: (g) => num(g.charge) },
+  { id: 'charge2', text: (g) => num(g.charge2) },
+  { id: 'spin', text: (g) => triple(g.spin) },
+  { id: 'isospin', text: (g) => num(g.isospin) },
+  { id: 'parity', text: (g) => num(g.parity) },
+  { id: 'nuclear', text: (g) => num(g.nuclearCharge) },
+  { id: 'color', text: (g) => triple(g.color) },
 ];
 
 function ParticlesTab() {
   const controller = useController();
+  const t = useMessages();
+  const { stats: m } = t;
   const particleCount = useAppState((s) => s.particleCount);
   // Regrouped on every render; the version re-renders this after every add, removal or edit (even paused).
   useAppState((s) => s.particlesVersion);
   const groups = controller.particleGroups();
-  if (groups.length === 0) return <p className="muted">No particles.</p>;
+  if (groups.length === 0) return <p className="muted">{m.noParticles}</p>;
   const shown = groups.slice(0, MAX_ROWS);
-  const columns = COLUMNS.filter((c) => groups.some((g) => c.text(g) !== c.text(groups[0]!)));
+  const columns = COLUMNS.filter((c) => groups.some((g) => c.text(g, t) !== c.text(groups[0]!, t)));
   const constant = COLUMNS.filter((c) => !columns.includes(c));
   return (
     <div className="stack">
       <table className="groups">
         <thead>
           <tr>
-            <th>Count</th><th>%</th><th>Species</th>
-            {columns.map((c) => <th key={c.title}>{c.title}</th>)}
+            <th>{m.count}</th><th>%</th><th>{m.species}</th>
+            {columns.map((c) => <th key={c.id}>{m.columns[c.id]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -137,15 +137,15 @@ function ParticlesTab() {
             <tr key={k}>
               <td>{g.count}</td>
               <td>{((100 * g.count) / particleCount).toFixed(1)}</td>
-              <td>{g.species ? SPECIES[g.species].label : ''}</td>
-              {columns.map((c) => <td key={c.title}>{c.text(g)}</td>)}
+              <td>{g.species ? t.species[g.species] : ''}</td>
+              {columns.map((c) => <td key={c.id}>{c.text(g, t)}</td>)}
             </tr>
           ))}
         </tbody>
       </table>
-      {groups.length > shown.length && <p className="chart-note">{groups.length - shown.length} more groups</p>}
+      {groups.length > shown.length && <p className="chart-note">{m.moreGroups(groups.length - shown.length)}</p>}
       {constant.length > 0 && (
-        <p className="chart-note">Same in every group: {constant.map((c) => `${c.title} ${c.text(groups[0]!)}`).join('; ')}.</p>
+        <p className="chart-note">{m.sameEverywhere(constant.map((c) => `${m.columns[c.id]} ${c.text(groups[0]!, t)}`).join('; '))}</p>
       )}
     </div>
   );

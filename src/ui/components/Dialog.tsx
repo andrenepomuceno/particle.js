@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type PointerEvent } from 'react';
+import { useMessages } from '../context';
 import { loadJson, saveJson } from '../persist';
 
 interface Props {
@@ -19,6 +20,7 @@ function clampToViewport(position: { x: number; y: number }) {
 }
 
 export function Dialog({ id, title, defaultPosition, onClose, children }: Props) {
+  const t = useMessages();
   const [position, setPosition] = useState(() => clampToViewport(loadJson(keyFor(id), defaultPosition)));
   const drag = useRef<{ dx: number; dy: number } | null>(null);
 
@@ -41,7 +43,7 @@ export function Dialog({ id, title, defaultPosition, onClose, children }: Props)
     <section className="dialog" style={{ left: position.x, top: position.y }} aria-label={title} data-dialog={id}>
       <div className="dialog-title" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <span>{title}</span>
-        <button aria-label={`Close ${title}`} onClick={onClose}>✕</button>
+        <button aria-label={t.close(title)} onClick={onClose}>✕</button>
       </div>
       <div className="dialog-body">{children}</div>
     </section>

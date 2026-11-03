@@ -48,9 +48,12 @@ export async function withBrowser(body) {
   }
 }
 
-/** A page that behaves like a returning visitor, so the first-visit About dialog does not cover screenshots. */
+/**
+ * A page that behaves like a returning visitor, so the first-visit About dialog does not cover screenshots,
+ * in English whatever the machine's language (pass `locale`, or ?lang= in the URL, for another).
+ */
 export async function newAppPage(browser, options = {}) {
-  const page = await browser.newPage(options);
+  const page = await browser.newPage({ locale: 'en-US', ...options });
   await page.addInitScript(() => localStorage.setItem('about-seen', 'true'));
   return page;
 }

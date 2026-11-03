@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { validateProbe } from '../../engine/field';
 import type { CompiledForce } from '../../engine/forces/compile';
 import { DEFAULT_PLOT_PARTICLES, type PlotParticles } from '../../engine/forces/resultant';
-import { NumberField, nonNegative } from '../components/fields';
+import { NumberField, useValidators } from '../components/fields';
 import { ProbeFields } from '../components/ProbeFields';
-import { useController } from '../context';
+import { useController, useMessages } from '../context';
 import { loadJson, saveJson } from '../persist';
 import { RESULTANT_PLOT_KEY } from '../storageKeys';
 import { ResultantPotentialPlot } from './ForcePlot';
@@ -32,6 +32,8 @@ function problemsOf(saved: ResultantSettings): string[] {
 /** Resultant potential plots with their own sample pair and distance range, remembered for the session. */
 export function ResultantView({ forces }: { forces: readonly CompiledForce[] }) {
   const controller = useController();
+  const { plots: t } = useMessages();
+  const { nonNegative } = useValidators();
   const [loaded] = useState(() => {
     const saved = loadJson<ResultantSettings>(RESULTANT_PLOT_KEY, DEFAULTS, 'session');
     return { saved, problems: problemsOf(saved) };
@@ -39,7 +41,7 @@ export function ResultantView({ forces }: { forces: readonly CompiledForce[] }) 
   const [settings, setSettings] = useState<ResultantSettings>(loaded.problems.length === 0 ? loaded.saved : DEFAULTS);
   useEffect(() => {
     if (loaded.problems.length > 0) {
-      controller.notify(`Saved resultant plot settings were invalid and were reset (${loaded.problems.join('; ')})`, 'error');
+      controller.notify(controller.messages.plots.invalidSaved(loaded.problems.join('; ')), 'error');
     }
   }, [controller, loaded]);
   const update = (patch: Partial<ResultantSettings>) => {
@@ -53,16 +55,16 @@ export function ResultantView({ forces }: { forces: readonly CompiledForce[] }) 
       <ResultantPotentialPlot forces={forces} range="short" particles={settings.particles} maxDistance={auto(settings.shortDistance)} />
       <ResultantPotentialPlot forces={forces} range="long" particles={settings.particles} maxDistance={auto(settings.longDistance)} />
       <details>
-        <summary className="muted">Sample pair and range</summary>
+        <summary className="muted">{t.pairAndRange}</summary>
         <div className="grid">
-          <NumberField label="Short-range plot to (0 = auto)" value={settings.shortDistance} validate={nonNegative} onCommit={(shortDistance) => update({ shortDistance })} />
-          <NumberField label="Long-range plot to (0 = auto)" value={settings.longDistance} validate={nonNegative} onCommit={(longDistance) => update({ longDistance })} />
+          <NumberField label={t.shortTo} value={settings.shortDistance} validate={nonNegative} onCommit={(shortDistance) => update({ shortDistance })} />
+          <NumberField label={t.longTo} value={settings.longDistance} validate={nonNegative} onCommit={(longDistance) => update({ longDistance })} />
         </div>
-        <h4 className="section-title">Particle i (feels the force)</h4>
+        <h4 className="section-title">{t.particleI}</h4>
         <ProbeFields suffix="i" probe={settings.particles.i} onChange={(i) => update({ particles: { ...settings.particles, i } })} />
-        <h4 className="section-title">Particle j (exerts it)</h4>
+        <h4 className="section-title">{t.particleJ}</h4>
         <ProbeFields suffix="j" probe={settings.particles.j} onChange={(j) => update({ particles: { ...settings.particles, j } })} />
-        <button className="outlined" onClick={() => update(DEFAULTS)}>Restore defaults</button>
+        <button className="outlined" onClick={() => update(DEFAULTS)}>{t.restoreDefaults}</button>
       </details>
     </div>
   );

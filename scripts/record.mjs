@@ -23,6 +23,7 @@ const { values } = parseArgs({
     seed: { type: 'string' },
     'warmup-steps': { type: 'string', default: '0' },
     display: { type: 'string' },
+    lang: { type: 'string', default: 'en' },
     out: { type: 'string' },
     png: { type: 'boolean', default: false },
     'no-video': { type: 'boolean', default: false },
@@ -69,6 +70,8 @@ const verify = values.verify.split(',').filter(Boolean).map((k) => {
   if (!Number.isInteger(frame) || frame < 0 || frame >= frames) fail(`--verify frames must be integers within [0, ${frames - 1}], got '${k}'`);
   return frame;
 });
+const LANGS = ['en', 'pt-BR'];
+if (!LANGS.includes(values.lang)) fail(`--lang must be one of ${LANGS.join(', ')}, got '${values.lang}'`);
 const video = !values['no-video'];
 if (!video && !values.png) fail('--no-video needs --png, or nothing would be written');
 const display = values.display === undefined ? {}
@@ -155,7 +158,7 @@ function startEncoder() {
 
 /** Loads the scenario as a recording does: seed, particle total and display options, the frame loop stopped. */
 async function openWorld(page, appBase, worldSeed) {
-  const query = new URLSearchParams({ scenario: 'sandbox', ...(capacity ? { capacity: String(capacity) } : {}) });
+  const query = new URLSearchParams({ scenario: 'sandbox', lang: values.lang, ...(capacity ? { capacity: String(capacity) } : {}) });
   await page.route(/googletagmanager/, (route) => route.abort());
   await page.goto(`${appBase}?${query}`);
   return page.evaluate(async ({ scenario, seed, particles, display }) => {
@@ -269,6 +272,7 @@ const metadata = {
   settings: report.world.settings,
   stepsPerFrame, warmupSteps, fps, frames, size: [width, height],
   display,
+  lang: values.lang,
   output: { video: video ? out : null, png: values.png ? framesDir : null, crf, speed },
   // The frames' identity: two runs of the same command on the same GPU give the same value.
   hash: sha256(report.hashes.join('')),

@@ -7,7 +7,7 @@
 | `npm run dev` | Vite dev server |
 | `npm run check` | typecheck + lint + unit tests (`scripts/check.mjs`); run before every commit |
 | `npm test` | unit tests only (Vitest, Node, no GPU) |
-| `npm run snap -- --scenario a,b --wait ms [--press j]` | headless Chromium screenshots to `reports/screenshots/` (`--press` sends keys first, e.g. `j` for the force field); fails on console/shader errors or non-finite state |
+| `npm run snap -- --scenario a,b --wait ms [--press j] [--lang pt-BR]` | headless Chromium screenshots to `reports/screenshots/` (`--press` sends keys first, e.g. `j` for the force field; `--lang` picks the interface language, English by default); fails on console/shader errors or non-finite state |
 | `npm run smoke` | drives keyboard and mouse gestures headlessly, prints PASS/FAIL per gesture |
 | `npm run parity` | runs the same steps on the GPU and on the float64 `referenceStep` inside the page, and the field probe pass against `referenceField`; fails above a float32 tolerance |
 | `public/v1/` | the frozen v1 build served at `/v1/` (see its FROZEN.md); never edited, excluded from lint |
@@ -23,7 +23,32 @@ WSL2 that is Mesa over D3D12, preferring the NVIDIA adapter) and fail if they ge
 renderer instead. CI has no GPU and uses SwiftShader (software WebGL2, CPU-bound and orders of
 magnitude slower). Each run prints its renderer. `PARTICLE_GL=hardware|software` forces a backend
 and `PARTICLE_GPU_ADAPTER=<name>` picks another D3D12 adapter (e.g. `Intel`). Frame rates are only
-meaningful on hardware.
+meaningful on hardware. Pages open in English (`en-US`) whatever the machine's language, since the
+checks find controls by their English names; the smoke test then switches to Portuguese and checks
+every open dialog still renders.
+
+## Interface languages
+
+The interface is in English and Brazilian Portuguese (`src/i18n/`), with no i18n library:
+
+- `en.ts` is the source catalog and defines its type, `Messages`; `ptBR.ts` must have the same shape,
+  so a missing or extra entry fails the typecheck (`tests/i18n.test.ts` also checks the shape, empty
+  strings and markup). Entries that take values are functions (`selected: (n) => …`), which also
+  handle plurals. Help text may carry `<kbd>`, `<b>`, `<i>` and `<code>`, rendered by
+  `ui/components/Rich.tsx` (never as HTML).
+- The language is controller state (`state.locale`, `setLocale`), so the views read the catalog with
+  `useMessages()` and the controller's notices with `controller.messages`; there is no module-level
+  current language.
+- Bundled scenarios read in the interface language from `ptBR.scenarios.ts` (names and descriptions by
+  id, folders, and timeline captions by their English template); expression variables from
+  `ptBR.variables.ts`. Tests fail when a bundled scenario, folder, caption or variable lacks a
+  translation, so **a new or changed scenario needs its pt-BR text in the same commit**. Imported and
+  edited files show their own text.
+- Kept in English on purpose: engine and validation messages (they quote paths and expressions), force
+  names (data that timelines refer to), the repository docs and the frozen v1.
+
+Adding a language: a catalog of type `Messages`, an entry in `LOCALES`, `LOCALE_NAMES` and the
+catalog/scenario/variable tables in `src/i18n/`, and `matchLocale` for its tags.
 
 ## CI and release
 

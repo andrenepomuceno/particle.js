@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Interface in English and Brazilian Portuguese: a language menu in the menu bar (remembered; the
+  browser's preferred language until chosen; `?lang=en|pt-BR` for one visit). Menus, dialogs,
+  shortcuts, help, notices, timeline captions and the bundled scenarios' names, folders and
+  descriptions follow it; engine messages and force names stay in English. `snap` and `record` take
+  `--lang` (record: the captions' language, written to the metadata).
 - `npm run record`: renders a scenario offline into a deterministic video, frame by frame (VP9 WebM and/or
   lossless PNGs, 9:16 or 16:9 up to 4320×7680): each frame is a fixed number of steps, timeline camera
   moves run on the video clock, display options set the look, captions go to WebVTT, and a metadata JSON

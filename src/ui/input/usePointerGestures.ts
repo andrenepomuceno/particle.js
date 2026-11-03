@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type RefObject } from 'react';
 import type { SimulationController } from '../../app/SimulationController';
+import type { Messages } from '../../i18n';
 
 const CLICK_TOLERANCE_PX = 4;
 
@@ -36,11 +37,12 @@ export function usePointerGestures(
       setBox(next && { ...next, label: measure(next.from, next.to) });
     };
 
-    const run = (label: string, action: () => void) => {
+    const run = (label: keyof Messages['gestureActions'], action: () => void) => {
       try {
         action();
       } catch (error) {
-        controller.notify(`${label} failed: ${(error as Error).message}`, 'error');
+        const { messages } = controller;
+        controller.notify(messages.failed(messages.gestureActions[label], (error as Error).message), 'error');
       }
     };
 
@@ -58,7 +60,7 @@ export function usePointerGestures(
         controller.controls.enabled = false;
         updateBox({ from: at, to: at });
       } else if (zHeld) {
-        run('Place', () => controller.placeClipboard(at.x, at.y));
+        run('place', () => controller.placeClipboard(at.x, at.y));
       } else {
         down = at;
       }
@@ -68,12 +70,12 @@ export function usePointerGestures(
       if (current) {
         updateBox(undefined);
         controller.controls.enabled = true;
-        run('Select', () => controller.selectInRect(current.from.x, current.from.y, event.clientX, event.clientY));
+        run('select', () => controller.selectInRect(current.from.x, current.from.y, event.clientX, event.clientY));
         return;
       }
       if (down && Math.hypot(event.clientX - down.x, event.clientY - down.y) <= CLICK_TOLERANCE_PX) {
         const at = down;
-        run('Inspect', () => {
+        run('inspect', () => {
           const index = controller.pickAt(at.x, at.y);
           if (index !== undefined) controller.inspect(index);
         });

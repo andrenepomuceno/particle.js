@@ -1,8 +1,8 @@
 import { useState, type KeyboardEvent } from 'react';
 import { FORCE_PRESETS, newForceId, type ForcePresetId } from '../../engine/forces/presets';
 import type { ForceDefinition, ForceParam } from '../../engine/forces/types';
-import { CheckField, NumberField, SelectField, nonNegative, positive } from '../components/fields';
-import { useAppState, useController } from '../context';
+import { CheckField, NumberField, SelectField, useValidators } from '../components/fields';
+import { useAppState, useController, useMessages } from '../context';
 import { loadJson, saveJson } from '../persist';
 import { FORCES_EXPANDED_KEY } from '../storageKeys';
 import { ForcePlot } from './ForcePlot';
@@ -33,11 +33,12 @@ function TextCommit({ value, onCommit, label, multiline = false }: {
 function ParamRow({ param, onChange, onRemove }: {
   param: ForceParam; onChange: (param: ForceParam) => void; onRemove: () => void;
 }) {
+  const { forces: t } = useMessages();
   return (
     <>
-      <TextCommit label="parameter name" value={param.name} onCommit={(name) => onChange({ ...param, name })} />
-      <NumberField inline label={`value of ${param.name}`} value={param.value} onCommit={(value) => onChange({ ...param, value })} />
-      <button className="danger" aria-label={`Remove parameter ${param.name}`} onClick={onRemove}>✕</button>
+      <TextCommit label={t.parameterName} value={param.name} onCommit={(name) => onChange({ ...param, name })} />
+      <NumberField inline label={t.parameterValue(param.name)} value={param.value} onCommit={(value) => onChange({ ...param, value })} />
+      <button className="danger" aria-label={t.removeParameter(param.name)} onClick={onRemove}>✕</button>
     </>
   );
 }
@@ -47,6 +48,8 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
   collapsed: boolean; onToggle: () => void;
 }) {
   const controller = useController();
+  const { forces: t, options } = useMessages();
+  const { positive, nonNegative } = useValidators();
   const update = (patch: Partial<ForceDefinition>) => controller.updateForce(force.id, patch);
   const setParam = (index: number, param: ForceParam) =>
     update({ params: force.params.map((p, k) => (k === index ? param : p)) });
@@ -59,34 +62,34 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
   return (
     <article className={force.enabled ? 'force-card' : 'force-card disabled'} data-force={force.name}>
       <header>
-        <button className="collapse" aria-expanded={!collapsed} aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${force.name}`} onClick={onToggle}>
+        <button className="collapse" aria-expanded={!collapsed} aria-label={collapsed ? t.expand(force.name) : t.collapse(force.name)} onClick={onToggle}>
           {collapsed ? '▸' : '▾'}
         </button>
-        <input type="checkbox" aria-label={`Enable ${force.name}`} checked={force.enabled} onChange={(e) => update({ enabled: e.target.checked })} />
-        <TextCommit label="force name" value={force.name} onCommit={(name) => update({ name })} />
-        <button title="Duplicate" aria-label={`Duplicate ${force.name}`} onClick={() => controller.setForces([...controller.state.forces, { ...force, id: newForceId(), name: `${force.name} copy` }])}>⧉</button>
-        <button className="danger" title="Remove" aria-label={`Remove ${force.name}`} onClick={() => controller.removeForce(force.id)}>✕</button>
+        <input type="checkbox" aria-label={t.enable(force.name)} checked={force.enabled} onChange={(e) => update({ enabled: e.target.checked })} />
+        <TextCommit label={t.forceName} value={force.name} onCommit={(name) => update({ name })} />
+        <button title={t.duplicate} aria-label={t.duplicateForce(force.name)} onClick={() => controller.setForces([...controller.state.forces, { ...force, id: newForceId(), name: t.copyName(force.name) }])}>⧉</button>
+        <button className="danger" title={t.remove} aria-label={t.removeForce(force.name)} onClick={() => controller.removeForce(force.id)}>✕</button>
       </header>
       {collapsed ? (
         <p className="force-summary mono" title={force.expression}>
-          {errors && <span className="badge error">error</span>}
-          {warnings && <span className="badge warning">warning</span>}
+          {errors && <span className="badge error">{t.error}</span>}
+          {warnings && <span className="badge warning">{t.warning}</span>}
           {force.mode === 'potential' ? 'V' : 'F'} = {force.expression}
-          <span className="muted"> · {force.range}{force.range === 'short' ? ` < ${force.cutoff}` : ''}</span>
+          <span className="muted"> · {options.forceRange[force.range]}{force.range === 'short' ? ` < ${force.cutoff}` : ''}</span>
         </p>
       ) : (
       <>
       <div className="grid">
         {/* Potentials cannot be retarded, and the checkbox to undo it only shows in force mode. */}
-        <SelectField label="Mode" value={force.mode} options={['force', 'potential'] as const} onChange={(mode) => update(mode === 'potential' ? { mode, retarded: false } : { mode })} />
-        <SelectField label="Range" value={force.range} options={['long', 'short'] as const} onChange={(range) => update({ range })} />
-        {force.range === 'short' && <NumberField label="Cutoff" value={force.cutoff} validate={positive} onCommit={(cutoff) => update({ cutoff })} />}
-        <NumberField label="Softening" value={force.softening} validate={nonNegative} onCommit={(softening) => update({ softening })} />
+        <SelectField label={t.mode} value={force.mode} options={['force', 'potential'] as const} optionLabel={(m) => options.forceMode[m]} onChange={(mode) => update(mode === 'potential' ? { mode, retarded: false } : { mode })} />
+        <SelectField label={t.range} value={force.range} options={['long', 'short'] as const} optionLabel={(r) => options.forceRange[r]} onChange={(range) => update({ range })} />
+        {force.range === 'short' && <NumberField label={t.cutoff} value={force.cutoff} validate={positive} onCommit={(cutoff) => update({ cutoff })} />}
+        <NumberField label={t.softening} value={force.softening} validate={nonNegative} onCommit={(softening) => update({ softening })} />
         {force.mode === 'force' && (
-          <CheckField label="Retarded (light cone)" checked={force.retarded === true} onChange={(retarded) => update({ retarded })} />
+          <CheckField label={t.retarded} checked={force.retarded === true} onChange={(retarded) => update({ retarded })} />
         )}
         <label>{force.mode === 'potential' ? 'V(r) =' : 'F(r) ='}</label>
-        <TextCommit label="expression" multiline value={force.expression} onCommit={(expression) => update({ expression })} />
+        <TextCommit label={t.expression} multiline value={force.expression} onCommit={(expression) => update({ expression })} />
       </div>
       <div className="params">
         {force.params.map((param, index) => (
@@ -94,7 +97,7 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
             onRemove={() => update({ params: force.params.filter((_, k) => k !== index) })} />
         ))}
       </div>
-      <button className="outlined" style={{ marginTop: 4 }} onClick={addParam}>+ parameter</button>
+      <button className="outlined" style={{ marginTop: 4 }} onClick={addParam}>{t.addParameter}</button>
       {errors && <ul className="errors">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
       {warnings && <ul className="warnings">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
       {!errors && <ForcePlot definition={force} />}
@@ -109,6 +112,7 @@ const RESULTANT = 'resultant';
 
 export function ForcesView({ onReference }: { onReference: () => void }) {
   const controller = useController();
+  const { forces: t, forcePresets } = useMessages();
   const forces = useAppState((s) => s.forces);
   const forceErrors = useAppState((s) => s.forceErrors);
   const forceWarnings = useAppState((s) => s.forceWarnings);
@@ -132,11 +136,11 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
   return (
     <div className="stack">
       {shaderError && <pre className="errors">{shaderError}</pre>}
-      {forces.length === 0 && <p className="muted">No forces: particles move freely.</p>}
+      {forces.length === 0 && <p className="muted">{t.none}</p>}
       {forces.length > 1 && (
         <div className="row">
-          <button className="outlined" onClick={() => update(new Set([...expanded].filter((n) => n === RESULTANT)))}>Collapse all</button>
-          <button className="outlined" onClick={() => update(new Set([...expanded, ...forces.map((f) => f.id)]))}>Expand all</button>
+          <button className="outlined" onClick={() => update(new Set([...expanded].filter((n) => n === RESULTANT)))}>{t.collapseAll}</button>
+          <button className="outlined" onClick={() => update(new Set([...expanded, ...forces.map((f) => f.id)]))}>{t.expandAll}</button>
         </div>
       )}
       {active.length > 0 && (
@@ -144,7 +148,7 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
           onToggle={(e) => {
             if (e.currentTarget.open !== expanded.has(RESULTANT)) toggle(RESULTANT);
           }}>
-          <summary className="section-title">Resultant potential</summary>
+          <summary className="section-title">{t.resultant}</summary>
           <ResultantView forces={active} />
         </details>
       )}
@@ -153,13 +157,13 @@ export function ForcesView({ onReference }: { onReference: () => void }) {
           collapsed={!expanded.has(force.id)} onToggle={() => toggle(force.id)} />
       ))}
       <div className="row">
-        <select aria-label="Force preset" value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>
-          {Object.entries(FORCE_PRESETS).map(([id, p]) => <option key={id} value={id}>{p.name}</option>)}
+        <select aria-label={t.preset} value={preset} onChange={(e) => setPreset(e.target.value as ForcePresetId)} style={{ flex: 1 }}>
+          {(Object.keys(FORCE_PRESETS) as ForcePresetId[]).map((id) => <option key={id} value={id}>{forcePresets[id]}</option>)}
         </select>
-        <button className="primary" onClick={() => controller.addForce(preset)}>Add force</button>
-        <button className="outlined" onClick={onReference}>Reference</button>
+        <button className="primary" onClick={() => controller.addForce(preset)}>{t.add}</button>
+        <button className="outlined" onClick={onReference}>{t.reference}</button>
       </div>
-      <button className="outlined" onClick={() => controller.restoreForces()}>Restore scenario forces</button>
+      <button className="outlined" onClick={() => controller.restoreForces()}>{t.restore}</button>
     </div>
   );
 }

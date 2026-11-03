@@ -1,3 +1,6 @@
+/** localStorage: the interface language chosen in the menu (en, pt-BR). */
+export const LOCALE_KEY = 'locale';
+
 /** localStorage key for the particle total chosen in the Information dialog. */
 export const PARTICLE_TARGET_KEY = 'particle-target';
 

@@ -36,6 +36,17 @@ field; click the canvas to give focus back.
 | Escape | clear selection and inspection |
 | ? | shortcuts dialog |
 
+## Language
+
+The menu bar ends with the interface language: English or Português (Brasil). The choice is
+remembered by the browser; until one is made, the first supported language in the browser's
+preferences is used (any Portuguese reads as pt-BR), else English. A `?lang=en` or `?lang=pt-BR` link
+picks one for that visit without changing the saved choice. Everything the interface writes follows
+it: menus, dialogs, shortcuts, help, notices, timeline captions and the bundled scenarios' names,
+folders and descriptions. Engine messages stay in English (expression, JSON and shader errors, force
+warnings), and so do force names, which are scenario data that timelines refer to; numbers keep the
+decimal point that expressions use.
+
 ## About dialog
 
 The About entry in the top menu describes the project, how to start, the version and the

@@ -36,6 +36,18 @@ describe('scenario order', () => {
     expect(ids(listedScenarios(library, 'suggested', false))).toEqual(['c', 'a', 'b', 'd']);
   });
 
+  it('sorts by the names the interface shows', () => {
+    // Translated names reverse the English order; folders sort by their shown names too.
+    const naming = {
+      locale: 'pt-BR',
+      name: (s: Scenario) => ({ a: 'Zinco', b: 'Ar', c: 'Cometa', d: 'Poeira' })[s.id]!,
+      folder: (f: string) => ({ Gravity: 'Gravidade', Nuclear: 'Átomo' })[f]!,
+    };
+    expect(ids(orderScenarios(library, 'name', naming))).toEqual(['b', 'c', 'd', 'a']);
+    expect(scenarioFolders(library, 'name', naming).map((f) => f.folder)).toEqual(['Nuclear', 'Gravity']);
+    expect(ids(listedScenarios(library, 'name', true, naming))).toEqual(['d', 'a', 'b', 'c']);
+  });
+
   it('rejects an added value that is not an ISO 8601 date', () => {
     expect(() => scenario('x', 'X', 'F', '30/10/2026')).toThrow(/at 'added': expected an ISO 8601 date/);
   });

@@ -18,6 +18,7 @@ src/
   scenarios/         scenario JSON library + parser/builder (scenarioFile.ts)
   app/               SimulationController (owns everything at runtime) + Store
   ui/                React: dialogs, force editor, actions table, pointer gestures
+  i18n/              interface catalogs (en, pt-BR) and pt-BR texts of scenarios and variables
 ```
 
 ## One graph, every backend
@@ -98,4 +99,7 @@ The controller is created once in `main.tsx` and provided through React context.
 lives in a small `Store`; components subscribe to slices with `useAppState(selector)`
 (`useSyncExternalStore`), so the per-frame clock does not re-render unrelated panels.
 `src/ui/actions.ts` is the single table of actions and shortcuts used by the keyboard,
-the Controls/Selection dialogs and the Shortcuts dialog.
+the Controls/Selection dialogs and the Shortcuts dialog; their labels come from the language
+catalog by action id. Every visible string is in `src/i18n/` (see
+[development](development.md#interface-languages)): views call `useMessages()`, which follows
+`state.locale`.

@@ -13,7 +13,8 @@
 | `public/v1/` | the frozen v1 build served at `/v1/` (see its FROZEN.md); never edited, excluded from lint |
 | `npm run kpis` | scenario quality KPIs on the GPU (health, escapes, runaway speeds, clusters, framing); table + `reports/kpis.json`; `--scenario id,…` and `--steps n` |
 | `npm run snap:library` | every bundled scenario through `snap` (heavier: several have ~10k particles) |
-| `npm run smoke:all` | `parity`, every scenario through `snap`, then `smoke` |
+| `npm run smoke:all` | `parity`, every scenario through `snap`, `smoke`, then a short `record` of dipole-antenna replayed for determinism |
+| `npm run record -- --scenario id --seconds s --size WxH [--seed s] …` | offline, frame-locked video of a scenario (VP9 WebM and/or PNGs, metadata JSON, captions as WebVTT); see [recording.md](recording.md) |
 | `node scripts/cluster-stats.mjs --scenario id --link 5,30 --at 10,60` | runs a scenario headless and reports cluster sizes and color neutrality at each time; used to tune bound-state scenarios |
 | `npm run build` | typecheck + production bundle in `dist/` |
 

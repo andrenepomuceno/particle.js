@@ -15,9 +15,10 @@
     "test:coverage": "vitest run --coverage",
     "check": "node scripts/check.mjs",
     "snap": "node scripts/snap.mjs",
+    "record": "node scripts/record.mjs",
     "smoke": "node scripts/smoke-interaction.mjs",
     "parity": "node scripts/parity.mjs",
-    "smoke:all": "node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,crystal-slab,dipole-chains,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs",
+    "smoke:all": "node scripts/parity.mjs && node scripts/snap.mjs --scenario galaxy,plasma,nuclei,crystal,crystal-slab,dipole-chains,quarks,hadrons,hydrogen,water,strong-blob,sandbox && node scripts/smoke-interaction.mjs && node scripts/record.mjs --scenario dipole-antenna --seconds 0.5 --fps 20 --steps-per-frame 2 --size 270x480 --seed 1 --png --no-video --verify 9 --out reports/videos/smoke.webm",
     "cluster-stats": "node scripts/cluster-stats.mjs",
     "snap:library": "node scripts/snap.mjs --wait 2500 --scenario all",
     "kpis": "node scripts/scenario-kpis.mjs"

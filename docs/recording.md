@@ -1,0 +1,108 @@
+# Recording videos
+
+`npm run record` renders a scenario offline into a video, frame by frame, with no UI on it. Unlike the
+in-app recorder (<kbd>*</kbd>, which captures whatever the screen shows in real time), each frame is a
+fixed amount of simulation time: frame *k* is the state after `--warmup-steps + k × --steps-per-frame`
+steps, whatever the frame takes to compute. The same command on the same GPU gives the same frames.
+
+```
+npm run record -- --scenario galaxy --seconds 10 --fps 60 --steps-per-frame 1 --size 1080x1920 --seed 7
+```
+
+writes `reports/videos/galaxy.webm` (VP9), `reports/videos/galaxy.json` (metadata) and, when the
+timeline has captions, `reports/videos/galaxy.vtt`.
+
+## Options
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `--scenario id` | (required) | a bundled scenario id |
+| `--seconds s`, `--fps n` | 10, 60 | video length and rate: `round(s × fps)` frames |
+| `--steps-per-frame n` | 1 | simulation steps between frames (0 freezes the simulation; the camera still moves) |
+| `--warmup-steps n` | 0 | steps run before frame 0 (e.g. to start just before a timeline event) |
+| `--size WxH` | 1080x1920 | canvas pixels, even; 1080x1920 / 2160x3840 for 9:16, 1920x1080 / 3840x2160 for 16:9 |
+| `--seed s` | random | the scenario's layout seed; record it to repeat a run. Without it, the seed used is written to the metadata |
+| `--particles n` | the scenario's | particle total, as in the app's Particles field |
+| `--capacity n` | the app's | GPU texture capacity (for totals above it) |
+| `--display json` | `{}` | display options: a JSON file or an inline object (below) |
+| `--out file.webm` | `reports/videos/<id>.webm` | output; the metadata, subtitles and frames take its name |
+| `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` |
+| `--no-video` | off | PNG frames only (needs `--png`; no ffmpeg needed) |
+| `--crf n`, `--speed n` | 24, 2 | VP9 quality (lower is better) and libvpx `-cpu-used` (0–8, higher is faster) |
+| `--verify k,…` | none | replays those frames' steps in a fresh page and checks the particles are identical; the script fails otherwise |
+
+`ffmpeg` with `libvpx-vp9` must be on the `PATH` for video output. The WebM is 4:2:0, so single-pixel
+coloured particles lose some chroma; use `--png` for lossless frames.
+
+## Display options
+
+Every key is optional; unset ones keep the scenario's view, except the axes, which stay off unless asked.
+Unknown keys and invalid values fail with their path.
+
+```json
+{
+  "particleStyle": "flat",
+  "colorMode": "speed",
+  "particleRadius": 2,
+  "background": "#05070a",
+  "axes": false,
+  "boundary": true,
+  "field": { "enabled": true, "columns": 64, "logScale": true, "lockScale": false, "probe": { "charge": -1 } },
+  "trail": { "particle": 0 },
+  "follow": { "particle": 0 },
+  "camera": { "position": [0, 0, 1500], "target": [0, 0, 0] }
+}
+```
+
+| Key | Values |
+| --- | --- |
+| `particleStyle`, `colorMode`, `particleRadius` | as in the View dialog |
+| `background` | `#rrggbb` |
+| `axes`, `boundary` | show the axes, the boundary |
+| `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md)) |
+| `trail`, `follow` | inspect that particle and draw its trail, or follow it with the camera |
+| `camera` | the initial camera, before timeline moves |
+
+## Time
+
+The recorder stops the app's frame loop and drives everything from the frames:
+
+- Timeline events fire on simulation time, at the step where they fall, as in the app.
+- Timeline camera moves (`"camera": { "position", "target", "duration" }`, see [scenarios.md](scenarios.md))
+  ease over `duration` seconds of **video**, not of wall clock: a 5 s move spans `5 × fps` frames.
+- The field is recomputed on every frame; its colour reference refreshes on the app's interval, in
+  video time.
+- Captions are a page overlay, not canvas pixels: they go to the `.vtt` subtitle track (one cue per
+  caption, at the frames where the timeline changes it) and to the metadata.
+
+## Metadata
+
+`<out>.json` holds what is needed to reproduce and check the video: scenario id, name and the
+SHA-256 of its JSON; package version, git commit and whether the tree had uncommitted changes; seed,
+particle count, capacity and every simulation setting (dt, integrator, metric, …); steps per frame,
+warm-up, fps, size and display options; the simulation time of every frame (`frameTimes`) and the
+SHA-256 of every frame's PNG (`frameHashes`), and `hash`, a digest of them all that two runs of the
+same command share; timeline changes by frame (`eventsFired`, caption); diagnostics of the first and
+last frame (kinetic, potential and total energy, momentum Σ m·u, temperature, mean and maximum speed;
+`potentialLeavesOut` names force-mode forces the potential cannot include); `--verify` results;
+timing; and any notice or console problem.
+
+## Cost and limits
+
+Measured on an RTX 5060 Ti through WSL2 (galaxy, 3001 particles, `--speed 2`):
+
+| Size | ms per frame, total | 10 s at 60 fps | Peak memory added |
+| --- | --- | --- | --- |
+| 1080x1920 | ~60 | ~40 s | ~2.5 GB |
+| 2160x3840 | ~140 | ~1.5 min | ~2.5 GB |
+| 4320x7680 | ~460 | ~4.6 min | ~7 GB |
+
+A run also spends a few seconds starting the dev server, Chromium and ffmpeg.
+
+Simulating and rendering a frame takes ~2 ms here; the rest is PNG encoding in the page (~24 ms at
+1080x1920, ~85 ms at 2160x3840) and VP9 encoding, which overlaps the capture through a queue of up to
+256 MB of frames. `--speed 0` is ~3× slower to encode for ~20 % fewer bytes at the same PSNR.
+4320x7680 is the largest canvas Chromium gives on this machine; past it the browser shrinks the
+drawing buffer, and the recorder fails instead of recording a smaller video. Scenarios with heavy
+forces or the field add their own cost (dipole-antenna with field arrows and a 2048-step history:
+~100 ms per frame at 1080x1920).

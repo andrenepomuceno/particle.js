@@ -63,6 +63,7 @@ npm run lint
 npm run build
 npm run check       # typecheck + lint + test (rode antes de cada commit)
 npm run smoke:all   # Chromium headless: todos os cenários + gestos de interação
+npm run record      # vídeo offline determinístico de um cenário (docs/recording.md)
 ```
 
 Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/screenshots/`.
@@ -81,7 +82,7 @@ Validação visual: `npm run snap -- --scenario <id>` e leia o PNG em `reports/s
   um lote estiver commitado, verde e revisado. Nunca force push nem reescreva histórico publicado.
 - **Antes de fechar um lote de commits, rode `/code-review`** e trate os achados. **Um passe por lote**
   (pedido do usuário): as correções vão para o push sem novo review; nada de review de commits pequenos isolados.
-- **Testes de navegador na GPU** (`npm run snap|smoke|parity|smoke:all|cluster-stats`): falham se
+- **Testes de navegador na GPU** (`npm run snap|smoke|parity|smoke:all|cluster-stats|record`): falham se
   caírem em renderer de software; SwiftShader (CPU, lento) só no CI. O limite de CPU antigo foi
   removido a pedido do usuário (a carga vinha do Chromium sem GPU).
 - Subagentes: no máximo 3, sem filhos; os que escrevem usam worktree. Escolha o modelo mais adequado para a tarefa.

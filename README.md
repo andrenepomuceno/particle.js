@@ -114,6 +114,7 @@ you can also load your own with <kbd>I</kbd>.
 ```
 npm run check      # typecheck + lint + unit tests
 npm run smoke:all  # headless Chromium: every scenario + interaction smoke test
+npm run record -- --scenario galaxy --seconds 10 --size 1080x1920  # offline video, see docs/recording.md
 npm run build      # production bundle in dist/
 ```
 

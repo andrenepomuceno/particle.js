@@ -1,4 +1,4 @@
-import { AxesHelper, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { AxesHelper, Color, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
 import { summarizeEnergy, summarizeSpacetime, type SpacetimeSample } from '../engine/cpu/energy';
@@ -100,6 +100,21 @@ export interface FieldInfo {
   spacing: number;
   /** |F| at the top of the palette (90th percentile of the probes). */
   reference: number;
+}
+
+/** What diagnostics() reports (the recorder writes it for the first and last frames). */
+export interface Diagnostics {
+  time: number;
+  particles: number;
+  kinetic: number;
+  /** From potential-mode forces only; `potentialLeavesOut` names the force-mode ones it cannot include. */
+  potential: number;
+  total: number;
+  potentialLeavesOut: string[];
+  momentum: Vec3;
+  temperature: number;
+  meanSpeed: number;
+  maxSpeed: number;
 }
 
 export interface Notice {
@@ -232,6 +247,8 @@ export class SimulationController {
   /** Caption text with its `{path}` placeholders, re-formatted whenever forces or settings change. */
   private captionTemplate: string | undefined;
   private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
+  /** Set while an offline recorder drives the frames (beginCapture): its video clock, in milliseconds. */
+  private capture: { clock: number } | undefined;
   private restart: () => void = () => {
     throw new Error('no scenario loaded yet');
   };
@@ -309,9 +326,11 @@ export class SimulationController {
 
   /* Scenarios and snapshots */
 
-  loadScenario(id: string): void {
+  /** Loads a bundled scenario; `seed` (an integer ≥ 0) fixes its layout for reproducible runs, R included. */
+  loadScenario(id: string, seed?: number): void {
+    if (seed !== undefined && !(Number.isInteger(seed) && seed >= 0)) throw new Error(`seed must be an integer >= 0, got ${seed}`);
     const scenario = findScenario(id);
-    this.startScenario(scenario, id, sourceOf(scenario));
+    this.startScenario(scenario, id, sourceOf(scenario), seed);
   }
 
   /**
@@ -325,22 +344,22 @@ export class SimulationController {
     this.startScenario(scenario, '', source);
   }
 
-  private startScenario(scenario: Scenario, scenarioId: string, source: ScenarioSource): void {
+  private startScenario(scenario: Scenario, scenarioId: string, source: ScenarioSource, forcedSeed?: number): void {
     // An empty scenario (sandbox) has nothing to scale; the target only resizes populated ones.
     const target = scenario.defaultCount > 0 ? this.state.particleTarget : undefined;
-    // A scenario without a seed is laid out anew on every start (load or reset), so each run is unique.
-    const seed = scenario.seed ?? crypto.getRandomValues(new Uint32Array(1))[0]!;
+    // A scenario without a seed (and no seed asked for) is laid out anew on every start, so each run is unique.
+    const seed = forcedSeed ?? scenario.seed ?? crypto.getRandomValues(new Uint32Array(1))[0]!;
     const { particles, linearScale } = scenario.build(createRng(seed), target);
     const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...scenario.settings }, linearScale);
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId, scenarioSource: source, seed: { value: seed, fixed: scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
     this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
     this.runTimeline();
     this.showScenarioField(scenario.field);
-    this.restart = () => this.startScenario(scenario, scenarioId, source);
+    this.restart = () => this.startScenario(scenario, scenarioId, source, forcedSeed);
   }
 
   /**
@@ -637,6 +656,72 @@ export class SimulationController {
     this.stepRequested = true;
   }
 
+  /* Offline capture (scripts/record.mjs) */
+
+  /**
+   * Hands time to an offline recorder for the rest of the page's life: the frame loop stops, and
+   * captureFrame advances the simulation, scripted camera moves and the field explicitly.
+   */
+  beginCapture(): void {
+    this.running = false;
+    cancelAnimationFrame(this.frameHandle);
+    this.capture = { clock: 0 };
+  }
+
+  /**
+   * One video frame: `steps` simulation steps (timeline events fire on simulation time, as in advance),
+   * scripted camera moves eased by `seconds` of video time, trail and follow updated, the field
+   * recomputed (its colour reference on the app's interval, in video time), then a render. The canvas
+   * (preserveDrawingBuffer) then holds the frame, with no UI on it.
+   */
+  captureFrame(steps: number, seconds: number): void {
+    if (!this.capture) throw new Error('captureFrame needs beginCapture first');
+    if (!(Number.isFinite(seconds) && seconds >= 0)) throw new Error(`frame seconds must be a finite number >= 0, got ${seconds}`);
+    this.advance(steps);
+    this.capture.clock += seconds * 1000;
+    const now = this.capture.clock;
+    this.updateCameraMove(now);
+    const { inspected, followInspected, showTrail } = this.state;
+    const moved = steps > 0;
+    const position = inspected && (followInspected || (showTrail && moved)) ? this.gpu.readPosition(inspected.index) : undefined;
+    if (position && showTrail && moved) this.trail.push(position);
+    if (followInspected && position) {
+      this.centerOn(position);
+      this.autoFitField();
+    }
+    this.controls.update();
+    // Every frame gets its field; the app throttles it to the wall clock.
+    this.fieldComputedAt = -Infinity;
+    this.updateField(now);
+    this.render();
+  }
+
+  /** The background behind the particles, as a CSS colour (e.g. '#000000'). */
+  setBackground(color: string): void {
+    this.renderer.setClearColor(new Color(color));
+  }
+
+  /**
+   * Energy, momentum and temperature now: a readback and, for potential-mode forces, the potential
+   * pass (for scripts such as the recorder, not per frame). Momentum is Σ m·u (relativistic under Minkowski).
+   */
+  diagnostics(): Diagnostics {
+    this.syncFromGpu();
+    const { time, settings } = this.state;
+    const potentials = this.set.count > 0 ? this.gpu.readPotentials(time) : new Float32Array();
+    const energy = summarizeEnergy(this.set, this.set.velocity, potentials, this.compiled, settings.mode2D);
+    const momentum: Vec3 = [0, 0, 0];
+    for (let k = 0; k < this.set.count; k++) {
+      const o = k * TEXEL;
+      if (this.set.position[o + 3] === ParticleKind.fixed) continue;
+      for (let c = 0; c < 3; c++) momentum[c] = momentum[c]! + this.set.attributes[o]! * this.set.velocity[o + c]!;
+    }
+    return {
+      time, particles: this.set.count, kinetic: energy.kinetic, potential: energy.potential, total: energy.kinetic + energy.potential,
+      potentialLeavesOut: energy.missing, momentum, temperature: energy.temperature, meanSpeed: energy.meanSpeed, maxSpeed: energy.maxSpeed,
+    };
+  }
+
   /* Scenario timeline (v1's scripted actions) */
 
   /** Fires every pending event whose time has come, in order; a reset rewinds by reloading the scenario. */
@@ -671,10 +756,10 @@ export class SimulationController {
       this.cameraMove = {
         from: [this.camera.position.clone(), this.controls.target.clone()],
         to: [new Vector3(...position), new Vector3(...target)],
-        start: performance.now(),
+        start: this.now(),
         duration: duration * 1000,
       };
-      this.updateCameraMove(performance.now());
+      this.updateCameraMove(this.now());
     }
   }
 
@@ -689,7 +774,12 @@ export class SimulationController {
     this.cameraMove = undefined;
   }
 
-  /** v1's cameraTransition: eases the camera and orbit target over wall-clock time. */
+  /** Wall-clock milliseconds, or the video clock while an offline recorder drives the frames. */
+  private now(): number {
+    return this.capture ? this.capture.clock : performance.now();
+  }
+
+  /** v1's cameraTransition: eases the camera and orbit target over wall-clock (or video) time. */
   private updateCameraMove(now: number): void {
     const move = this.cameraMove;
     if (!move) return;
@@ -1059,6 +1149,16 @@ export class SimulationController {
   }
 
   /** Moves the orbit target to `point`, translating the camera with it (keeps the view direction). */
+  /** Puts the camera at `position` looking at `target` (a scripted move stops; the field re-fits). */
+  setCamera(position: Vec3, target: Vec3): void {
+    if (![...position, ...target].every(Number.isFinite)) throw new Error(`camera position and target must be finite, got ${JSON.stringify({ position, target })}`);
+    this.cancelCameraMove();
+    this.camera.position.set(...position);
+    this.controls.target.set(...target);
+    this.controls.update();
+    this.autoFitField();
+  }
+
   private centerOn(point: Vec3): void {
     const shift = new Vector3(...point).sub(this.controls.target);
     this.controls.target.add(shift);

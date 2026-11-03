@@ -1,22 +1,40 @@
 # Changelog
 
-## Unreleased
+## 2.3.0 — 2026-11-03
 
-- Interface in English and Brazilian Portuguese: a language menu in the menu bar (remembered; the
+### Physics
+
+- Retarded forces (light cone): a force-mode force marked `retarded` (*Retarded (light cone)* on its card)
+  reads each source where it was when its light left, from a GPU history of the last K steps
+  (Spacetime → *History depth K*, up to 2048, with memory proportional to the particles). The reach is
+  c·(K − 1)·dt; farther pairs see the oldest step extrapolated in uniform motion, with a warning on the
+  force. New variables `a_j` (the source's retarded acceleration) and `t_ret` (the light delay), and a
+  *Liénard–Wiechert* preset (retarded E + B, radiation included).
+- New scenarios in *Relativity*: *Retarded Field* (a charge circling at 0.9 c drags a spiral of field
+  lines) and *Dipole Antenna* (an oscillating charge radiates at c).
+
+### Interface
+
+- English and Brazilian Portuguese: a language menu at the end of the menu bar (remembered; the
   browser's preferred language until chosen; `?lang=en|pt-BR` for one visit). Menus, dialogs,
   shortcuts, help, notices, timeline captions and the bundled scenarios' names, folders and
-  descriptions follow it; engine messages and force names stay in English. `snap` and `record` take
-  `--lang` (record: the captions' language, written to the metadata).
-- `npm run record`: renders a scenario offline into a deterministic video, frame by frame (VP9 WebM and/or
-  lossless PNGs, 9:16 or 16:9 up to 4320×7680): each frame is a fixed number of steps, timeline camera
-  moves run on the video clock, display options set the look, captions go to WebVTT, and a metadata JSON
-  records what reproduces and checks the run (seed, settings, per-frame hashes, energy diagnostics).
-  `--verify` replays chosen frames in a fresh page. See docs/recording.md.
-- Retarded forces (light cone): a force-mode force marked `retarded` reads each source where it was
-  when its light left, from a GPU history of the last K steps (Spacetime → *History depth K*, up to 2048, memory
-  proportional to the particles; reach c·(K − 1)·dt; farther pairs extrapolate the oldest step in uniform motion, with a warning). New variables `a_j` and `t_ret`,
-  a *Liénard–Wiechert* preset (retarded E + B, radiation included) and scenarios *Retarded Field* and
-  *Dipole Antenna*. Snapshots are version 7 (adds `historyDepth`).
+  descriptions follow it; engine messages and force names stay in English.
+- The Generator's species list shows the species' names.
+
+### Tooling
+
+- `npm run record`: renders a scenario offline into a deterministic video, frame by frame (VP9 WebM
+  and/or lossless PNGs, 9:16 or 16:9 up to 4320×7680). Each frame is a fixed number of steps, timeline
+  camera moves run on the video clock, display options set the look, captions go to WebVTT (`--lang`
+  picks their language), and a metadata JSON records what reproduces and checks the run (seed,
+  settings, per-frame hashes, energy diagnostics). `--verify` replays chosen frames in a fresh page.
+  See docs/recording.md.
+- `snap` takes `--lang`; the browser scripts open pages in English whatever the machine's language.
+
+### Compatibility
+
+- Snapshots are version 7 (adds `historyDepth`); older ones still load. A world asking for a longer
+  history than the GPU holds loads with the GPU's limit and says so.
 
 ## 2.2.0 — 2026-10-30
 

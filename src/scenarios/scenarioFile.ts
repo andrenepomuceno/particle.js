@@ -1,4 +1,4 @@
-import { DEFAULT_PROBE, validateColumns, validateProbe, type FieldProbe } from '../engine/field';
+import { readProbe, validateColumns } from '../engine/field';
 import { newForceId } from '../engine/forces/presets';
 import { migrateScalarSpin } from '../engine/forces/migrate';
 import { readForce } from '../engine/forces/readForce';
@@ -66,8 +66,6 @@ const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'added
 /** ISO 8601 date, optionally with a time and an offset: "2026-10-30" or "2026-10-30T17:18:57-03:00". */
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/;
 
-const PROBE_KEYS = ['mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
-
 /** `view.field`: true, or { columns, logScale, probe } with the test particle's fields over the default. */
 function readField(json: JsonReader, value: unknown): ScenarioField {
   if (value === true) return {};
@@ -80,20 +78,7 @@ function readField(json: JsonReader, value: unknown): ScenarioField {
     if (problem) json.fail('view.field.columns', problem);
   }
   if (o.logScale !== undefined) field.logScale = json.boolean(o.logScale, 'view.field.logScale');
-  if (o.probe !== undefined) {
-    const p = json.object(o.probe, 'view.field.probe');
-    json.onlyKeys(p, PROBE_KEYS, 'view.field.probe');
-    const probe: FieldProbe = { ...DEFAULT_PROBE };
-    for (const key of PROBE_KEYS) {
-      if (p[key] === undefined) continue;
-      const path = `view.field.probe.${key}`;
-      if (key === 'spin' || key === 'color') probe[key] = json.vec3(p[key], path);
-      else probe[key] = json.finite(p[key], path);
-    }
-    const problems = validateProbe(probe);
-    if (problems.length > 0) json.fail('view.field.probe', problems.join('; '));
-    field.probe = probe;
-  }
+  if (o.probe !== undefined) field.probe = readProbe(json, o.probe, 'view.field.probe');
   return field;
 }
 

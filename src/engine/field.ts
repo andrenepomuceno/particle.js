@@ -1,3 +1,4 @@
+import type { JsonReader } from './json';
 import { cross, dot, normalize, scale, sub } from './vec3';
 import type { Vec3 } from './particles';
 
@@ -33,6 +34,23 @@ export function validateProbe(probe: FieldProbe): string[] {
   }
   if (!(probe.mass > 0)) problems.push(`test particle mass must be > 0, got ${probe.mass}`);
   return problems;
+}
+
+const PROBE_KEYS = ['mass', 'charge', 'charge2', 'spin', 'isospin', 'parity', 'nuclearCharge', 'color'] as const;
+
+/** A test particle from JSON: the fields given over DEFAULT_PROBE, validated (scenario views, recordings). */
+export function readProbe(json: JsonReader, value: unknown, path: string): FieldProbe {
+  const p = json.object(value, path);
+  json.onlyKeys(p, PROBE_KEYS, path);
+  const probe: FieldProbe = { ...DEFAULT_PROBE };
+  for (const key of PROBE_KEYS) {
+    if (p[key] === undefined) continue;
+    if (key === 'spin' || key === 'color') probe[key] = json.vec3(p[key], `${path}.${key}`);
+    else probe[key] = json.finite(p[key], `${path}.${key}`);
+  }
+  const problems = validateProbe(probe);
+  if (problems.length > 0) json.fail(path, problems.join('; '));
+  return probe;
 }
 
 export function validateColumns(columns: number): string | undefined {

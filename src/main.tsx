@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { startAnalytics } from './analytics';
 import { SimulationController } from './app/SimulationController';
 import { App } from './ui/App';
-import { loadJson, saveJson } from './ui/persist';
+import { loadJson, loadText, saveJson } from './ui/persist';
 import { LOCALE_KEY, PARTICLE_TARGET_KEY, SCENARIO_ORDER_KEY } from './ui/storageKeys';
 import { isLocale, LOCALES, messagesFor, preferredLocale, type Locale } from './i18n';
 import { SCENARIO_ORDERS, type ScenarioOrder } from './scenarios/order';
@@ -21,7 +21,8 @@ function readCapacity(): number | undefined {
 
 /**
  * The interface language: ?lang= (en or pt-BR) for this visit, else the one chosen in the menu, else the
- * browser's preferred languages. A bad ?lang= fails startup; a bad saved choice is cleared.
+ * browser's preferred languages. A bad ?lang= fails startup; a bad saved choice (not JSON, or not a
+ * language) is cleared and returned to be reported.
  */
 function readLocale(): { locale: Locale; invalidSaved: unknown } {
   const requested = new URLSearchParams(window.location.search).get('lang');
@@ -29,7 +30,15 @@ function readLocale(): { locale: Locale; invalidSaved: unknown } {
     if (!isLocale(requested)) throw new Error(`?lang must be one of ${LOCALES.join(', ')}, got '${requested}'`);
     return { locale: requested, invalidSaved: undefined };
   }
-  const saved = loadJson<unknown>(LOCALE_KEY, null);
+  const raw = loadText(LOCALE_KEY);
+  let saved: unknown = null;
+  if (raw !== null) {
+    try {
+      saved = JSON.parse(raw);
+    } catch {
+      saved = raw;
+    }
+  }
   if (isLocale(saved)) return { locale: saved, invalidSaved: undefined };
   if (saved !== null) saveJson(LOCALE_KEY, null);
   return { locale: preferredLocale(navigator.languages), invalidSaved: saved ?? undefined };
@@ -97,13 +106,18 @@ function start(locale: Locale, invalidLocale: unknown): void {
   );
 }
 
-let startupLocale: Locale = 'en';
-try {
-  startAnalytics();
-  const { locale, invalidSaved } = readLocale();
-  startupLocale = locale;
-  document.documentElement.lang = locale;
-  start(locale, invalidSaved);
-} catch (error) {
-  fail(messagesFor(startupLocale).startup.failed((error as Error).message));
+function main(): void {
+  // A failure after the language is known is reported in it.
+  let locale: Locale = 'en';
+  try {
+    startAnalytics();
+    const read = readLocale();
+    locale = read.locale;
+    document.documentElement.lang = locale;
+    start(locale, read.invalidSaved);
+  } catch (error) {
+    fail(messagesFor(locale).startup.failed((error as Error).message));
+  }
 }
+
+main();

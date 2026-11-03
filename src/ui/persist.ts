@@ -11,6 +11,15 @@ export function loadJson<T>(key: string, fallback: T, where: Area = 'local'): T 
   }
 }
 
+/** The text stored under `key`, or null when there is none or storage is unavailable. */
+export function loadText(key: string, where: Area = 'local'): string | null {
+  try {
+    return area(where).getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 export function saveJson(key: string, value: unknown, where: Area = 'local'): void {
   try {
     area(where).setItem(key, JSON.stringify(value));

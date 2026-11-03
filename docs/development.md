@@ -7,7 +7,7 @@
 | `npm run dev` | Vite dev server |
 | `npm run check` | typecheck + lint + unit tests (`scripts/check.mjs`); run before every commit |
 | `npm test` | unit tests only (Vitest, Node, no GPU) |
-| `npm run snap -- --scenario a,b --wait ms [--press j] [--lang pt-BR]` | headless Chromium screenshots to `reports/screenshots/` (`--press` sends keys first, e.g. `j` for the force field; `--lang` picks the interface language, English by default); fails on console/shader errors or non-finite state |
+| `npm run snap -- --scenario a,b --wait ms [--press j] [--lang pt-BR]` | headless Chromium screenshots to `reports/screenshots/` (`--press` sends keys first, e.g. `j` for the force field; `--lang` picks the interface language, English by default, and suffixes the file name); fails on console/shader errors or non-finite state |
 | `npm run smoke` | drives keyboard and mouse gestures headlessly, prints PASS/FAIL per gesture |
 | `npm run parity` | runs the same steps on the GPU and on the float64 `referenceStep` inside the page, and the field probe pass against `referenceField`; fails above a float32 tolerance |
 | `public/v1/` | the frozen v1 build served at `/v1/` (see its FROZEN.md); never edited, excluded from lint |
@@ -41,14 +41,16 @@ The interface is in English and Brazilian Portuguese (`src/i18n/`), with no i18n
   current language.
 - Bundled scenarios read in the interface language from `ptBR.scenarios.ts` (names and descriptions by
   id, folders, and timeline captions by their English template); expression variables from
-  `ptBR.variables.ts`. Tests fail when a bundled scenario, folder, caption or variable lacks a
-  translation, so **a new or changed scenario needs its pt-BR text in the same commit**. Imported and
-  edited files show their own text.
+  `ptBR.variables.ts`. Each scenario and variable translation carries `source`, a fingerprint of the
+  English it translates; tests fail when one is missing or its English has changed since (printing the
+  new fingerprint), and captions and folders are keyed by their English text, so **a new or changed
+  scenario needs its pt-BR text in the same commit**. Imported and edited files show their own text.
 - Kept in English on purpose: engine and validation messages (they quote paths and expressions), force
   names (data that timelines refer to), the repository docs and the frozen v1.
 
 Adding a language: a catalog of type `Messages`, an entry in `LOCALES`, `LOCALE_NAMES` and the
-catalog/scenario/variable tables in `src/i18n/`, and `matchLocale` for its tags.
+catalog/scenario/variable tables in `src/i18n/`, `matchLocale` for its tags, and `scripts/lib/langs.mjs`
+(the `--lang` values of `snap` and `record`; a test keeps it equal to `LOCALES`).
 
 ## CI and release
 

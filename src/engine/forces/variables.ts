@@ -80,3 +80,29 @@ export const PAIR_VARIABLES: readonly PairVariable[] = [
 ];
 
 export const PAIR_VARIABLE_NAMES = new Set(PAIR_VARIABLES.map((v) => v.name));
+
+/** One line of the Expressions reference: a variable, or a pair of them (m_i, m_j) under its base name (m). */
+export interface VariableRow {
+  base: string;
+  names: string[];
+  variable: PairVariable;
+  /** In English; a pair's describes the quantity itself ("mass"). */
+  description: string;
+}
+
+/** The variables an expression can name, a pair per row; translations are keyed by `base`. */
+export function variableRows(): VariableRow[] {
+  const byBase = new Map<string, VariableRow>();
+  for (const variable of PAIR_VARIABLES) {
+    if (variable.internal) continue;
+    const base = /^(.*)_[ij]$/.exec(variable.name)?.[1] ?? variable.name;
+    const row = byBase.get(base);
+    if (row) {
+      row.names.push(variable.name);
+      row.description = variable.description.replace(/ of the particle (receiving|exerting) the force$/, '');
+    } else {
+      byBase.set(base, { base, names: [variable.name], variable, description: variable.description });
+    }
+  }
+  return [...byBase.values()];
+}

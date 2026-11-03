@@ -157,7 +157,7 @@ await withBrowser(async ({ browser, base, glMode }) => {
 
   const fieldState = () => page.evaluate(() => {
     const s = globalThis.particleController.state;
-    return { enabled: s.field.enabled, info: s.fieldInfo, count: s.particleCount, error: s.fieldError };
+    return { enabled: s.field.enabled, info: s.fieldInfo, count: s.particleCount, error: s.fieldErrorLog };
   });
   await page.mouse.move(700, 600);
   await page.keyboard.press('j');

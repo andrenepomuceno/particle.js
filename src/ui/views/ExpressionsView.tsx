@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { FUNCTION_ARITY, VECTOR_FUNCTIONS } from '../../engine/expr/ast';
-import { PAIR_VARIABLES, type PairVariable } from '../../engine/forces/variables';
+import { variableRows } from '../../engine/forces/variables';
 import { variableTexts, type Messages } from '../../i18n';
 import { Rich } from '../components/Rich';
 import { useAppState, useMessages } from '../context';
@@ -19,22 +19,7 @@ const GROUPS: readonly [group: GroupId, bases: readonly string[]][] = [
   ['random', ['rand', 'randn', 'randv']],
 ];
 
-/** Collapses each per-particle pair (m_i, m_j) into one row keyed by its base name (m). */
-export function rows(): Map<string, { names: string[]; variable: PairVariable }> {
-  const byBase = new Map<string, { names: string[]; variable: PairVariable }>();
-  for (const variable of PAIR_VARIABLES) {
-    if (variable.internal) continue;
-    const base = /^(.*)_[ij]$/.exec(variable.name)?.[1] ?? variable.name;
-    const row = byBase.get(base);
-    if (row) row.names.push(variable.name);
-    else byBase.set(base, { names: [variable.name], variable });
-  }
-  return byBase;
-}
-
-/** A row's description: the translation keyed by its base name, else the engine's English one. */
-const describe = (base: string, variable: PairVariable, paired: boolean, translated: Record<string, string> | undefined) =>
-  (translated?.[base] ?? (paired ? variable.description.replace(/ of the particle receiving the force$/, '') : variable.description));
+const rows = () => new Map(variableRows().map((row) => [row.base, row]));
 
 /** Variables (by base name) that no reference group lists; tests keep this empty. */
 export function ungroupedVariables(): string[] {
@@ -62,7 +47,7 @@ export function ExpressionsView() {
               return (
                 <Fragment key={base}>
                   <dt className="mono">{row.names.join(', ')}</dt>
-                  <dd>{describe(base, row.variable, row.names.length > 1, translated)}{row.variable.shortRangeOnly ? t.shortRangeOnly : ''}</dd>
+                  <dd>{translated?.[base]?.text ?? row.description}{row.variable.shortRangeOnly ? t.shortRangeOnly : ''}</dd>
                 </Fragment>
               );
             })}

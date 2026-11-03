@@ -35,7 +35,7 @@ function ChartsTab() {
   const physics = useAppState((s) => s.physicsHistory);
   const performance = useAppState((s) => s.performanceHistory);
   const missing = useAppState((s) => s.energyMissing);
-  const energyError = useAppState((s) => s.energyError);
+  const energyErrorLog = useAppState((s) => s.energyErrorLog);
   const mode2D = useAppState((s) => s.settings.mode2D);
   const time = physics.map((p) => p.time);
   const wall = performance.map((p) => p.wall - (performance[0]?.wall ?? 0));
@@ -43,7 +43,7 @@ function ChartsTab() {
 
   return (
     <div className="stack">
-      {energyError && <pre className="errors">{energyError}</pre>}
+      {energyErrorLog !== undefined && <pre className="errors">{t.energyFailed(energyErrorLog)}</pre>}
       <LineChart
         title={t.energy}
         x={time}

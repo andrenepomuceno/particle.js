@@ -67,7 +67,7 @@ function ForceCard({ force, errors, warnings, collapsed, onToggle }: {
         </button>
         <input type="checkbox" aria-label={t.enable(force.name)} checked={force.enabled} onChange={(e) => update({ enabled: e.target.checked })} />
         <TextCommit label={t.forceName} value={force.name} onCommit={(name) => update({ name })} />
-        <button title={t.duplicate} aria-label={t.duplicateForce(force.name)} onClick={() => controller.setForces([...controller.state.forces, { ...force, id: newForceId(), name: t.copyName(force.name) }])}>⧉</button>
+        <button title={t.duplicate} aria-label={t.duplicateForce(force.name)} onClick={() => controller.setForces([...controller.state.forces, { ...force, id: newForceId(), name: `${force.name} copy` }])}>⧉</button>
         <button className="danger" title={t.remove} aria-label={t.removeForce(force.name)} onClick={() => controller.removeForce(force.id)}>✕</button>
       </header>
       {collapsed ? (

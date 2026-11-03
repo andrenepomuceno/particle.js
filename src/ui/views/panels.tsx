@@ -1,6 +1,6 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { COLOR_MODES, PARTICLE_STYLES } from '../../engine/render/ParticlePoints';
-import { DEFAULT_PROBE, FIELD_COLUMNS_MAX, FIELD_COLUMNS_MIN, validateColumns } from '../../engine/field';
+import { DEFAULT_PROBE, FIELD_COLUMNS_MAX, FIELD_COLUMNS_MIN } from '../../engine/field';
 import { ProbeFields } from '../components/ProbeFields';
 import { HISTORY_DEPTH_RANGE, INTEGRATORS, METRICS, type BoundaryShape, type Metric, type SimulationSettings } from '../../engine/settings';
 import { DEFAULT_GENERATOR, FPS_LIMITS, MAX_CAPACITY } from '../../app/SimulationController';
@@ -8,11 +8,11 @@ import { loadJson, saveJson } from '../persist';
 import { PARTICLE_TARGET_KEY, SCENARIO_FOLDERS_KEY, SCENARIO_ORDER_KEY } from '../storageKeys';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../../engine/species';
 import { SCENARIOS } from '../../scenarios';
-import { orderScenarios, SCENARIO_ORDERS, scenarioFolders, type ScenarioOrder } from '../../scenarios/order';
+import { listedScenarios, orderScenarios, SCENARIO_ORDERS, scenarioFolders, type ScenarioOrder } from '../../scenarios/order';
 import type { ScenarioSource } from '../../scenarios/source';
 import type { Scenario } from '../../scenarios/types';
 import { ACTIONS, download, keyLabel, type Action, type ActionContext } from '../actions';
-import { localizeFolder, localizeScenario } from '../../i18n/scenarios';
+import { localizeFolder, localizeScenario, scenarioNaming } from '../../i18n/scenarios';
 import type { Locale, Messages } from '../../i18n';
 import { Rich } from '../components/Rich';
 import { CheckField, NumberField, SelectField, Vec3Field, useValidators } from '../components/fields';
@@ -74,9 +74,10 @@ const scenarioLabel = (s: Scenario, order: ScenarioOrder, locale: Locale) => {
 function OverviewTab() {
   const controller = useController();
   const t = useMessages();
-  const { validation: v } = t;
+  const { integerWithin } = useValidators();
   const locale = useAppState((s) => s.locale);
   const fileName = useAppState((s) => s.name);
+  const snapshotFile = useAppState((s) => s.snapshotFile);
   const scenarioId = useAppState((s) => s.scenarioId);
   const count = useAppState((s) => s.particleCount);
   const capacity = useAppState((s) => s.capacity);
@@ -92,11 +93,13 @@ function OverviewTab() {
   const bundled = SCENARIOS.find((s) => s.id === scenarioId);
   const defaultCount = bundled?.defaultCount;
   // A bundled scenario reads in the interface language; imported and edited files keep their own text.
-  const { name, description } = bundled ? localizeScenario(bundled, locale) : { name: fileName, description: fileDescription };
+  const { name, description } = bundled ? localizeScenario(bundled, locale)
+    : { name: fileName, description: snapshotFile !== undefined ? t.info.snapshotFrom(snapshotFile) : fileDescription };
   const seed = useAppState((s) => s.seed);
   const order = useAppState((s) => s.scenarioOrder);
-  // Re-renders with the grouping too, since the listed order depends on it.
-  useAppState((s) => s.scenariosByFolder);
+  const byFolder = useAppState((s) => s.scenariosByFolder);
+  // This tab re-renders with the clock; the list only changes with the order, grouping or language.
+  const listed = useMemo(() => listedScenarios(SCENARIOS, order, byFolder, scenarioNaming(locale)), [order, byFolder, locale]);
   const applyTarget = (value: number | undefined) => {
     controller.setParticleTarget(value);
     saveJson(PARTICLE_TARGET_KEY, value ?? null);
@@ -113,7 +116,7 @@ function OverviewTab() {
     <div className="stack">
       <select aria-label={t.info.scenario} value={scenarioId} onChange={(e) => attempt(t.info.loadingScenario, () => controller.loadScenario(e.target.value))}>
         {scenarioId === '' && <option value="">{name} ({edited ? t.info.edited : t.info.imported})</option>}
-        {controller.listedScenarios().map((s) => <option key={s.id} value={s.id}>{scenarioLabel(s, order, locale)}</option>)}
+        {listed.map((s) => <option key={s.id} value={s.id}>{scenarioLabel(s, order, locale)}</option>)}
       </select>
       {description && <p className="muted" style={{ margin: 0 }}>{description}</p>}
       {defaultCount === 0 && target === undefined ? (
@@ -121,7 +124,7 @@ function OverviewTab() {
       ) : (
       <div className="grid">
         <NumberField label={t.info.particleTarget} value={target ?? defaultCount ?? count}
-          validate={(n) => (Number.isInteger(n) && n >= 1 && n <= MAX_CAPACITY ? undefined : v.integerWithin(1, MAX_CAPACITY))}
+          validate={integerWithin(1, MAX_CAPACITY)}
           onCommit={(v) => applyTarget(v)} />
       </div>
       )}
@@ -151,7 +154,7 @@ function ScenariosTab() {
   const controller = useController();
   const t = useMessages();
   const locale = useAppState((s) => s.locale);
-  const naming = controller.scenarioNaming();
+  const naming = scenarioNaming(locale);
   const scenarioId = useAppState((s) => s.scenarioId);
   const order = useAppState((s) => s.scenarioOrder);
   const byFolder = useAppState((s) => s.scenariosByFolder);
@@ -448,7 +451,7 @@ export function SelectionView({ ctx }: { ctx: ActionContext }) {
 
 export function GeneratorView() {
   const controller = useController();
-  const { generator: t, attributes: a, options } = useMessages();
+  const { generator: t, attributes: a, options, species } = useMessages();
   const { positive, nonNegative, integerAtLeast } = useValidators();
   const g = useAppState((s) => s.generator);
   const set = (patch: Partial<typeof g>) => {
@@ -459,7 +462,7 @@ export function GeneratorView() {
     <div className="stack">
       <div className="grid">
         <SelectField<SpeciesId | 'custom'> label={t.species} value={g.species} options={['custom', ...SPECIES_IDS]}
-          optionLabel={(id) => (id === 'custom' ? options.customSpecies : id)}
+          optionLabel={(id) => (id === 'custom' ? options.customSpecies : species[id])}
           onChange={(id) => controller.setGenerator(id === 'custom' ? { species: id } : speciesTemplate(id))} />
         <NumberField label={t.count} value={g.count} validate={integerAtLeast(1)} onCommit={(count) => set({ count })} />
         <NumberField label={t.cloudRadius} value={g.cloudRadius} validate={nonNegative} onCommit={(cloudRadius) => set({ cloudRadius })} />
@@ -488,21 +491,21 @@ export function FieldView() {
   const controller = useController();
   const messages = useMessages();
   const { field: t } = messages;
+  const { integerWithin } = useValidators();
   const field = useAppState((s) => s.field);
   const info = useAppState((s) => s.fieldInfo);
-  const error = useAppState((s) => s.fieldError);
+  const errorLog = useAppState((s) => s.fieldErrorLog);
   const set = (patch: Partial<typeof field>) => controller.setField(patch);
   const probe = field.probe;
   return (
     <div className="stack">
-      {error && <pre className="errors">{error}</pre>}
+      {errorLog !== undefined && <pre className="errors">{messages.notices.fieldCompileFailed(errorLog)}</pre>}
       <div className="grid">
         <CheckField label={t.show} checked={field.enabled} onChange={(enabled) => set({ enabled })} />
         <CheckField label={t.autoRefresh} checked={field.autoRefresh} onChange={(autoRefresh) => set({ autoRefresh })} />
         <CheckField label={t.logScale} checked={field.logScale} onChange={(logScale) => set({ logScale })} />
         <CheckField label={t.lockScale} checked={field.lockScale} onChange={(lockScale) => set({ lockScale })} />
-        <NumberField label={t.columns} value={field.columns} validate={(c) => (validateColumns(c) === undefined ? undefined : t.columnsInvalid(FIELD_COLUMNS_MIN, FIELD_COLUMNS_MAX))}
-          onCommit={(columns) => set({ columns })} />
+        <NumberField label={t.columns} value={field.columns} validate={integerWithin(FIELD_COLUMNS_MIN, FIELD_COLUMNS_MAX)} onCommit={(columns) => set({ columns })} />
       </div>
       <h3 className="section-title">{t.testParticle}</h3>
       <ProbeFields probe={probe} onChange={(next) => set({ probe: next })} />

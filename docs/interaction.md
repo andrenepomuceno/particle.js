@@ -38,7 +38,7 @@ field; click the canvas to give focus back.
 
 ## Language
 
-The menu bar ends with the interface language: English or Português (Brasil). The choice is
+The menu bar ends with the interface language: English or Português (Brazilian Portuguese). The choice is
 remembered by the browser; until one is made, the first supported language in the browser's
 preferences is used (any Portuguese reads as pt-BR), else English. A `?lang=en` or `?lang=pt-BR` link
 picks one for that visit without changing the saved choice. Everything the interface writes follows

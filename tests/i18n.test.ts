@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { variableRows } from '../src/engine/forces/variables';
 import { FORCE_PRESETS } from '../src/engine/forces/presets';
 import { LOCALES, matchLocale, messagesFor, preferredLocale, variableTexts } from '../src/i18n';
 import { en } from '../src/i18n/en';
@@ -7,9 +8,15 @@ import { SCENARIOS } from '../src/scenarios';
 import { parseScenario } from '../src/scenarios/scenarioFile';
 import { ACTIONS } from '../src/ui/actions';
 import { richParts } from '../src/ui/components/Rich';
-import { rows } from '../src/ui/views/ExpressionsView';
+// @ts-expect-error: a plain .mjs module shared by the browser scripts, without type declarations.
+import { LANGS } from '../scripts/lib/langs.mjs';
 
 const TRANSLATED = LOCALES.filter((l) => l !== 'en');
+/** A translation's `source`: the first 8 hex digits of the SHA-256 of the English it translates. */
+async function fingerprint(english: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(english));
+  return [...new Uint8Array(digest).slice(0, 4)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 /** Every leaf of a catalog as [path, value]; functions are called with placeholder arguments. */
 function leaves(value: unknown, path = ''): [string, string][] {
@@ -32,6 +39,10 @@ describe('language choice', () => {
     expect(['pt-BR', 'pt', 'pt-PT', 'PT_br'].map(matchLocale)).toEqual(['pt-BR', 'pt-BR', 'pt-BR', 'pt-BR']);
     expect(['en', 'en-US', 'en-GB'].map(matchLocale)).toEqual(['en', 'en', 'en']);
     expect(matchLocale('fr-FR')).toBeUndefined();
+  });
+
+  it('offers the browser scripts the same languages', () => {
+    expect(LANGS).toEqual([...LOCALES]);
   });
 
   it('takes the first supported preferred language, else English', () => {
@@ -76,13 +87,17 @@ describe('scenario texts', () => {
   const folders = new Set(SCENARIOS.map((s) => s.folder));
   const placeholders = (text: string) => [...text.matchAll(/\{([^{}]+)\}/g)].map((m) => m[1]).sort();
 
-  it.each(TRANSLATED)('%s translates every bundled scenario, folder and caption, and nothing else', (locale) => {
+  it.each(TRANSLATED)('%s translates every bundled scenario, folder and caption, and nothing else, from the current English', async (locale) => {
     const texts = scenarioTexts(locale)!;
     expect(Object.keys(texts.scenarios).sort()).toEqual(SCENARIOS.map((s) => s.id).sort());
     for (const [id, { name, description }] of Object.entries(texts.scenarios)) {
       expect(name.trim(), id).not.toBe('');
       expect(description.trim(), id).not.toBe('');
     }
+    // An English name or description edited since the translation: update the text, then its source.
+    const sources = await Promise.all(SCENARIOS.map(async (s) => ({ id: s.id, source: await fingerprint(`${s.name}\n${s.description}`) })));
+    const stale = sources.filter(({ id, source }) => texts.scenarios[id]!.source !== source);
+    expect(stale, 'scenarios whose English changed since their translation (new source shown)').toEqual([]);
     expect(Object.keys(texts.folders).sort()).toEqual([...folders].sort());
     expect(Object.keys(texts.captions).sort()).toEqual([...captions].sort());
     // A translated caption shows the same values.
@@ -102,7 +117,12 @@ describe('scenario texts', () => {
 });
 
 describe('expression variables', () => {
-  it.each(TRANSLATED)('%s describes every row of the Expressions reference, and only those', (locale) => {
-    expect(Object.keys(variableTexts(locale)!).sort()).toEqual([...rows().keys()].sort());
+  it.each(TRANSLATED)('%s describes every row of the Expressions reference, and only those, from the current English', async (locale) => {
+    const texts = variableTexts(locale)!;
+    const rows = variableRows();
+    expect(Object.keys(texts).sort()).toEqual(rows.map((r) => r.base).sort());
+    const sources = await Promise.all(rows.map(async (r) => ({ base: r.base, source: await fingerprint(r.description) })));
+    const stale = sources.filter(({ base, source }) => texts[base]!.source !== source);
+    expect(stale, 'variables whose English changed since their translation (new source shown)').toEqual([]);
   });
 });

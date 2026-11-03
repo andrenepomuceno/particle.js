@@ -11,6 +11,7 @@ import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promise
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
+import { LANGS } from './lib/langs.mjs';
 
 const { values } = parseArgs({
   options: {
@@ -70,7 +71,6 @@ const verify = values.verify.split(',').filter(Boolean).map((k) => {
   if (!Number.isInteger(frame) || frame < 0 || frame >= frames) fail(`--verify frames must be integers within [0, ${frames - 1}], got '${k}'`);
   return frame;
 });
-const LANGS = ['en', 'pt-BR'];
 if (!LANGS.includes(values.lang)) fail(`--lang must be one of ${LANGS.join(', ')}, got '${values.lang}'`);
 const video = !values['no-video'];
 if (!video && !values.png) fail('--no-video needs --png, or nothing would be written');

@@ -1,3 +1,4 @@
+import type { ScenarioNaming } from '../scenarios/order';
 import type { Scenario } from '../scenarios/types';
 import type { Locale } from './index';
 import { PT_BR_SCENARIOS } from './ptBR.scenarios';
@@ -10,7 +11,16 @@ import { PT_BR_SCENARIOS } from './ptBR.scenarios';
 export interface ScenarioTexts {
   folders: Record<string, string>;
   captions: Record<string, string>;
-  scenarios: Record<string, { name: string; description: string }>;
+  scenarios: Record<string, { source: string; name: string; description: string }>;
+}
+
+/**
+ * A text translated from English, with `source`: the first 8 hex digits of the SHA-256 of the English text
+ * (a scenario's `name + '\n' + description`), so tests catch a translation the English has moved past.
+ */
+export interface Translation {
+  source: string;
+  text: string;
 }
 
 const TEXTS: Record<Locale, ScenarioTexts | undefined> = { en: undefined, 'pt-BR': PT_BR_SCENARIOS };
@@ -32,6 +42,11 @@ export function localizeScenario(scenario: Scenario, locale: Locale): { name: st
 
 export function localizeFolder(folder: string, locale: Locale): string {
   return TEXTS[locale]?.folders[folder] ?? folder;
+}
+
+/** Scenario and folder names as the list shows them in `locale`, which the name order sorts by. */
+export function scenarioNaming(locale: Locale): ScenarioNaming {
+  return { locale, name: (s) => localizeScenario(s, locale).name, folder: (f) => localizeFolder(f, locale) };
 }
 
 /** A timeline caption template in `locale`, when that exact caption is translated. */

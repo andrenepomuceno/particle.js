@@ -23,9 +23,9 @@ import { JsonReader } from '../engine/json';
 import { createSnapshot, readSnapshot, SNAPSHOT_FORMAT, type Snapshot } from '../engine/snapshot';
 import { applyEvent, formatCaption, reached, scaleTimeline, type TimelineEvent } from '../scenarios/timeline';
 import { findScenario, SCENARIOS } from '../scenarios';
-import { listedScenarios, SCENARIO_ORDERS, type ScenarioNaming, type ScenarioOrder } from '../scenarios/order';
+import { listedScenarios, SCENARIO_ORDERS, type ScenarioOrder } from '../scenarios/order';
 import { isLocale, LOCALES, messagesFor, type Locale, type Messages } from '../i18n';
-import { localizeCaption, localizeFolder, localizeScenario } from '../i18n/scenarios';
+import { localizeCaption, localizeScenario, scenarioNaming } from '../i18n/scenarios';
 import { parseScenario, SCENARIO_FORMAT } from '../scenarios/scenarioFile';
 import { parseEdit, sourceOf, type ScenarioSource } from '../scenarios/source';
 import { scaleBoundary } from '../scenarios/scaling';
@@ -138,6 +138,8 @@ export interface AppState {
   seed: { value: number; fixed: boolean } | undefined;
   description: string;
   name: string;
+  /** The file a snapshot world was imported from (Information words it in the interface language). */
+  snapshotFile: string | undefined;
   settings: SimulationSettings;
   forces: ForceDefinition[];
   /** The enabled forces that compiled, in order: what the GPU runs (the plots reuse them). */
@@ -165,7 +167,8 @@ export interface AppState {
   performanceHistory: PerformanceSample[];
   /** Enabled forces written as F(r): their energy is not in the potential total. */
   energyMissing: string[];
-  energyError: string | undefined;
+  /** Compile log of a failed potential pass (Statistics words it in the interface language). */
+  energyErrorLog: string | undefined;
   particleRadius: number;
   showAxes: boolean;
   /** The user's choice to draw the boundary (E); nothing is drawn while the boundary is 'none'. */
@@ -179,7 +182,8 @@ export interface AppState {
   generator: GeneratorTemplate;
   field: FieldSettings;
   fieldInfo: FieldInfo | undefined;
-  fieldError: string | undefined;
+  /** Compile log of a failed field pass (the Field dialog words it in the interface language). */
+  fieldErrorLog: string | undefined;
   fps: number;
   recording: boolean;
   notices: Notice[];
@@ -273,11 +277,11 @@ export class SimulationController {
     this.controls.addEventListener('start', () => this.cancelCameraMove());
     this.controls.addEventListener('end', () => this.autoFitField());
     this.store = new Store<AppState>({
-      locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
+      locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', snapshotFile: undefined, settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyError: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
+      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
-      fieldInfo: undefined, fieldError: undefined, fps: 0, recording: false, notices: [],
+      fieldInfo: undefined, fieldErrorLog: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
     });
   }
@@ -361,8 +365,10 @@ export class SimulationController {
     const seed = forcedSeed ?? scenario.seed ?? crypto.getRandomValues(new Uint32Array(1))[0]!;
     const { particles, linearScale } = scenario.build(createRng(seed), target);
     const settings = scaleBoundary({ ...DEFAULT_SETTINGS, ...scenario.settings }, linearScale);
-    this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0);
-    this.store.set({ scenarioId, scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
+    // Notices name a bundled scenario as the list does, in the interface language.
+    const shownName = scenarioId === '' ? scenario.name : localizeScenario(scenario, this.state.locale).name;
+    this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0, shownName);
+    this.store.set({ scenarioId, snapshotFile: undefined, scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
@@ -402,13 +408,7 @@ export class SimulationController {
 
   /** The bundled scenarios as the list shows them (order and folder grouping). */
   listedScenarios(): Scenario[] {
-    return listedScenarios(SCENARIOS, this.state.scenarioOrder, this.state.scenariosByFolder, this.scenarioNaming());
-  }
-
-  /** Scenario and folder names in the interface language, which the name order sorts by. */
-  scenarioNaming(): ScenarioNaming {
-    const { locale } = this.state;
-    return { locale, name: (s) => localizeScenario(s, locale).name, folder: (f) => localizeFolder(f, locale) };
+    return listedScenarios(SCENARIOS, this.state.scenarioOrder, this.state.scenariosByFolder, scenarioNaming(this.state.locale));
   }
 
   /** The interface text in the current language (notices, and the views through useMessages). */
@@ -466,7 +466,7 @@ export class SimulationController {
     const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '', scenarioSource: undefined, seed: undefined, description: this.messages.notices.snapshotFrom(fileName) });
+      this.store.set({ scenarioId: '', snapshotFile: fileName, scenarioSource: undefined, seed: undefined, description: '' });
       // A snapshot has no view.field: like a scenario without one, it ends a scenario's hold on the field.
       this.showScenarioField(undefined);
     };
@@ -509,7 +509,7 @@ export class SimulationController {
     this.store.set({ capacity: this.set.capacity });
   }
 
-  private replaceWorld(name: string, requested: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number): void {
+  private replaceWorld(name: string, requested: SimulationSettings, forces: ForceDefinition[], particles: Particle[], time: number, shownName = name): void {
     // A scenario or snapshot made on a GPU with more texture array layers loads here with the history this
     // one holds, and says so (a shorter reach for its retarded forces), rather than not loading at all.
     const settings = { ...requested, historyDepth: Math.min(requested.historyDepth, this.maxHistoryDepth) };
@@ -518,7 +518,7 @@ export class SimulationController {
     const problems = validateSettings(settings);
     if (problems.length > 0) throw new Error(problems.join('; '));
     if (settings.historyDepth < requested.historyDepth) {
-      this.notify(this.messages.notices.historyLimited(name, requested.historyDepth, settings.historyDepth), 'error');
+      this.notify(this.messages.notices.historyLimited(shownName, requested.historyDepth, settings.historyDepth), 'error');
     }
     const inverseC2 = inverseLightSpeed2(settings);
     particles.forEach((particle, index) => assertStorableParticle(particle, index, inverseC2));
@@ -745,7 +745,7 @@ export class SimulationController {
       if (this.set.count > 0) potentials = this.gpu.readPotentials(time);
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
-      energyError = `Potential-energy pass failed to compile; forces are unaffected.\n${error.log}`;
+      energyError = this.messages.stats.energyFailed(error.log);
       potentials.fill(NaN);
     }
     const energy = summarizeEnergy(this.set, this.set.velocity, potentials, this.compiled, settings.mode2D);
@@ -805,7 +805,9 @@ export class SimulationController {
 
   private refreshCaption(): void {
     const template = this.captionTemplate;
-    const caption = template === undefined ? undefined : formatCaption(localizeCaption(template, this.state.locale), this.state.forces, this.state.settings);
+    // A bundled scenario's captions read in the interface language; imported and edited files keep their own.
+    const shown = template !== undefined && this.state.scenarioId !== '' ? localizeCaption(template, this.state.locale) : template;
+    const caption = shown === undefined ? undefined : formatCaption(shown, this.state.forces, this.state.settings);
     if (caption !== this.state.caption) this.store.set({ caption });
   }
 
@@ -896,7 +898,7 @@ export class SimulationController {
     const problems = [validateColumns(field.columns), ...validateProbe(field.probe)].filter((p) => p !== undefined);
     if (problems.length > 0) throw new Error(problems.join('; '));
     const previous = this.state.field;
-    this.store.set({ field, fieldError: undefined });
+    this.store.set({ field, fieldErrorLog: undefined });
     this.arrows.setVisible(field.enabled);
     this.arrows.setLogScale(field.logScale);
     // The color scale is a draw-time uniform: no need to recompute the O(probes·N) field.
@@ -983,9 +985,8 @@ export class SimulationController {
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       this.setField({ enabled: false });
-      const fieldError = this.messages.notices.fieldCompileFailed(error.log);
-      this.store.set({ fieldError });
-      this.notify(fieldError, 'error');
+      this.store.set({ fieldErrorLog: error.log });
+      this.notify(this.messages.notices.fieldCompileFailed(error.log), 'error');
     }
     this.fieldDirty = false;
     this.fieldTime = time;
@@ -1500,18 +1501,18 @@ export class SimulationController {
     const velocity = retarded ? this.set.velocity : this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
     // The potential pass is a full O(N²) sweep plus a readback, so it only runs while someone is looking.
     let potentials: Float32Array = new Float32Array(this.set.count);
-    let energyError: string | undefined;
+    let energyErrorLog: string | undefined;
     if (advanced && this.statsActive && this.set.count > 0) {
       try {
         potentials = this.gpu.readPotentials(time);
       } catch (error) {
         if (!(error instanceof ShaderCompileError)) throw error;
-        energyError = `Potential-energy pass failed to compile; forces are unaffected.\n${error.log}`;
+        energyErrorLog = error.log;
         potentials.fill(NaN);
       }
     }
     const energy = summarizeEnergy(this.set, velocity, potentials, this.compiled, settings.mode2D);
-    if (energyError !== this.state.energyError) this.store.set({ energyError });
+    if (energyErrorLog !== this.state.energyErrorLog) this.store.set({ energyErrorLog });
     const spacetime = summarizeSpacetime(this.set, velocity);
     this.points.setAverageSpeed(energy.meanSpeed);
     this.points.setClockRange(spacetime.clockMin, spacetime.clockMax, time);

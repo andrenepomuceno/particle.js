@@ -1,6 +1,7 @@
 import { en, type Messages } from './en';
 import { ptBR } from './ptBR';
 import { PT_BR_VARIABLES } from './ptBR.variables';
+import type { Translation } from './scenarios';
 
 export type { Messages } from './en';
 
@@ -37,9 +38,9 @@ export function preferredLocale(languages: readonly string[]): Locale {
   return 'en';
 }
 
-const VARIABLES: Record<Locale, Record<string, string> | undefined> = { en: undefined, 'pt-BR': PT_BR_VARIABLES };
+const VARIABLES: Record<Locale, Record<string, Translation> | undefined> = { en: undefined, 'pt-BR': PT_BR_VARIABLES };
 
 /** Expression variable descriptions in `locale`, by the Expressions reference's row key; English is the engine's own. */
-export function variableTexts(locale: Locale): Record<string, string> | undefined {
+export function variableTexts(locale: Locale): Record<string, Translation> | undefined {
   return VARIABLES[locale];
 }

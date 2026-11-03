@@ -14,8 +14,9 @@ An invalid bundled file stops the app at startup.
 
 A bundled scenario's `name`, `description`, `folder` and timeline `caption`s are the English text; the
 Portuguese interface reads them from `src/i18n/ptBR.scenarios.ts` (captions keyed by their English
-template, with the same `{path}` placeholders). The unit tests fail until a new or changed bundled
-scenario has its pt-BR text there; imported files always show their own text.
+template, with the same `{path}` placeholders). Each translation records a fingerprint (`source`) of the
+English it translates, so the unit tests fail until a new or changed bundled scenario has its pt-BR text
+there; imported and edited files always show their own text, captions included.
 
 The v1 ports laid out per atom or per text pixel (`60-welcome`, `64-hexagonal-crystal-quarks`, `65-air`,
 `66-water-2`, `67-essential-elements`, `70-periodic-table`, `71-hexagonal-crystal`, `72-tetragonal-crystal`,

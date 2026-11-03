@@ -1,10 +1,12 @@
 // Boots the dev server, opens scenarios in headless Chromium and saves screenshots.
 // Usage: node scripts/snap.mjs [--scenario id,id|all] [--wait ms] [--capacity n] [--out dir] [--press key,key]
-// --press sends the keys (e.g. j for the force field) after loading, before waiting; --lang en|pt-BR picks the interface language.
+// --press sends the keys (e.g. j for the force field) after loading, before waiting; --lang en|pt-BR picks the
+// interface language (screenshots in another language than English are named <id>-<lang>.png).
 import { mkdir, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { collectProblems, newAppPage, withBrowser } from './lib/browser.mjs';
+import { LANGS } from './lib/langs.mjs';
 
 /** Every bundled scenario id, in library (file-name) order. */
 async function libraryIds() {
@@ -26,6 +28,7 @@ const { values } = parseArgs({
   },
 });
 
+if (!LANGS.includes(values.lang)) throw new Error(`--lang must be one of ${LANGS.join(', ')}, got '${values.lang}'`);
 const wait = Number(values.wait);
 if (!Number.isFinite(wait) || wait < 0) throw new Error(`--wait must be a number of ms >= 0, got '${values.wait}'`);
 
@@ -50,7 +53,7 @@ await withBrowser(async ({ browser, base }) => {
       const { time, particleCount, fps, shaderError, forceErrors } = c.state;
       return { time, particleCount, fps: Math.round(fps), finite, shaderError, forceErrors };
     });
-    const file = path.join(values.out, `${scenario}.png`);
+    const file = path.join(values.out, values.lang === 'en' ? `${scenario}.png` : `${scenario}-${values.lang}.png`);
     await page.screenshot({ path: file });
     const ok = state && state.finite && !state.shaderError && problems.length === 0;
     if (!ok) failures++;

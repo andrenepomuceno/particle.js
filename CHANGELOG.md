@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `npm run record`: renders a scenario offline into a deterministic video, frame by frame (VP9 WebM and/or
+  lossless PNGs, 9:16 or 16:9 up to 4320×7680): each frame is a fixed number of steps, timeline camera
+  moves run on the video clock, display options set the look, captions go to WebVTT, and a metadata JSON
+  records what reproduces and checks the run (seed, settings, per-frame hashes, energy diagnostics).
+  `--verify` replays chosen frames in a fresh page. See docs/recording.md.
 - Retarded forces (light cone): a force-mode force marked `retarded` reads each source where it was
   when its light left, from a GPU history of the last K steps (Spacetime → *History depth K*, up to 2048, memory
   proportional to the particles; reach c·(K − 1)·dt; farther pairs extrapolate the oldest step in uniform motion, with a warning). New variables `a_j` and `t_ret`,

@@ -1,5 +1,5 @@
 import {
-  BufferGeometry, Float32BufferAttribute, GLSL3, Points, ShaderMaterial, Vector2,
+  AdditiveBlending, BufferGeometry, Float32BufferAttribute, GLSL3, Group, Points, ShaderMaterial, Vector2,
   type Texture,
 } from 'three';
 import { GLSL_METRIC } from '../metric';
@@ -12,6 +12,8 @@ export type ColorMode = (typeof COLOR_MODES)[number];
 export const PARTICLE_STYLES = ['spherow', 'flat'] as const;
 /** Size by mass scales the radius by ∛m, clamped to this range (an electron and a galaxy core both stay visible). */
 export const MASS_SIZE_RANGE = [0.5, 8] as const;
+/** The glow's diameter as a multiple of the particle's sprite. */
+const GLOW_SPREAD = 3;
 export type ParticleStyle = (typeof PARTICLE_STYLES)[number];
 
 /** Sphere radius inside the raymarched sprite, as a fraction of the sprite's half-size. */
@@ -45,11 +47,14 @@ uniform float uAverageSpeed;
 uniform vec2 uClockRange;
 uniform float uTime;
 uniform int uHighlight;
+uniform float uFog;
+uniform float uFocus;
 out vec3 vColor;
 out vec3 vVelocity;
 out vec3 vCenter;
 out float vHighlight;
 out float vPixels;
+out float vFade;
 ${COMMON}
 ${GLSL_METRIC}
 // Each clock as a fraction of the global time (proper time / t), across the sampled spread of that
@@ -115,11 +120,17 @@ void main() {
 
   vec4 mvPosition = modelViewMatrix * vec4(pos.xyz, 1.0);
   gl_Position = projectionMatrix * mvPosition;
+  // Depth fog: particles beyond the orbit target darken as (target distance / distance)^(4·fog).
+  vFade = uFog > 0.0 ? pow(clamp(uFocus / -mvPosition.z, 0.0, 1.0), 4.0 * uFog) : 1.0;
   float diameter = 2.0 * uRadius * uScale / -mvPosition.z;
   // Size by mass: a ball of constant density, ∛m times the radius (mass 1 = the set radius).
   if (uSizeByMass) diameter *= clamp(pow(attr.x, 1.0 / 3.0), ${glslFloat(MASS_SIZE_RANGE[0])}, ${glslFloat(MASS_SIZE_RANGE[1])});
   if (uStyle == 0) diameter /= ${SPHERE_FRACTION};
+#ifdef GLOW
+  gl_PointSize = max(diameter * ${glslFloat(GLOW_SPREAD)}, 6.0);
+#else
   gl_PointSize = max(diameter * (vHighlight > 0.0 ? 1.6 : 1.0), 2.0);
+#endif
   vPixels = max(diameter, 2.0);
 }
 `;
@@ -130,6 +141,7 @@ in vec3 vVelocity;
 in vec3 vCenter;
 in float vHighlight;
 in float vPixels;
+in float vFade;
 uniform int uStyle;
 uniform float uAverageSpeed;
 out vec4 fragmentColor;
@@ -256,12 +268,31 @@ void main() {
   // the sprite), so distant particles would vanish; draw them as v1 did, as plain discs.
   if (uStyle == 0 && vPixels >= ${MIN_SPHEROW_PIXELS}) spherow();
   else flatDisc();
+  fragmentColor.rgb *= vFade;
+}
+`;
+
+/** A soft halo in the particle's color, added to whatever is behind it (drawn before the particles). */
+const GLOW_FRAGMENT = /* glsl */ `
+in vec3 vColor;
+in float vFade;
+uniform float uGlow;
+out vec4 fragmentColor;
+
+void main() {
+  vec2 p = gl_PointCoord * 2.0 - 1.0;
+  float d = dot(p, p);
+  if (d > 1.0) discard;
+  fragmentColor = vec4(vColor * vFade, uGlow * exp(-4.0 * d) * (1.0 - d));
 }
 `;
 
 export class ParticlePoints {
-  readonly object: Points;
+  /** The particles, and their glow behind them while `setGlow` is above 0. */
+  readonly object = new Group();
   private readonly material: ShaderMaterial;
+  private readonly glowMaterial: ShaderMaterial;
+  private readonly glow: Points;
   private readonly geometry = new BufferGeometry();
 
   constructor(width: number) {
@@ -289,10 +320,28 @@ export class ParticlePoints {
         uTime: { value: 0 },
         uInverseLightSpeed2: { value: 0 },
         uHighlight: { value: -1 },
+        uFog: { value: 0 },
+        uFocus: { value: 1 },
+        uGlow: { value: 0 },
       },
     });
-    this.object = new Points(this.geometry, this.material);
-    this.object.frustumCulled = false;
+    // Same uniforms object: every setter reaches both passes.
+    this.glowMaterial = new ShaderMaterial({
+      glslVersion: GLSL3,
+      vertexShader: VERTEX,
+      fragmentShader: GLOW_FRAGMENT,
+      defines: { GLOW: '' },
+      uniforms: this.material.uniforms,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    const points = new Points(this.geometry, this.material);
+    this.glow = new Points(this.geometry, this.glowMaterial);
+    // Opaque pass, before the particles: the halos sit behind the cores.
+    this.glow.renderOrder = -1;
+    this.glow.visible = false;
+    for (const object of [points, this.glow]) object.frustumCulled = false;
+    this.object.add(this.glow, points);
     this.setCount(0);
   }
 
@@ -311,6 +360,21 @@ export class ParticlePoints {
 
   setColorMode(mode: ColorMode): void {
     this.material.uniforms.uColorMode!.value = COLOR_MODES.indexOf(mode);
+  }
+
+  /** Halo strength in [0, 1]; 0 skips the pass. */
+  setGlow(glow: number): void {
+    this.material.uniforms.uGlow!.value = glow;
+    this.glow.visible = glow > 0;
+  }
+
+  /** Depth fog in [0, 1], and the distance at which it starts (the camera's orbit target). */
+  setFog(fog: number): void {
+    this.material.uniforms.uFog!.value = fog;
+  }
+
+  setFocus(distance: number): void {
+    this.material.uniforms.uFocus!.value = distance;
   }
 
   /** Draws each particle ∛(mass) times the radius, within MASS_SIZE_RANGE. */
@@ -355,5 +419,6 @@ export class ParticlePoints {
   dispose(): void {
     this.geometry.dispose();
     this.material.dispose();
+    this.glowMaterial.dispose();
   }
 }

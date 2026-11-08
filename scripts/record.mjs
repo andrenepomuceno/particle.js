@@ -30,6 +30,7 @@ const { values } = parseArgs({
     'no-video': { type: 'boolean', default: false },
     crf: { type: 'string', default: '24' },
     speed: { type: 'string', default: '2' },
+    supersample: { type: 'string', default: '1' },
     capacity: { type: 'string' },
     verify: { type: 'string', default: '' },
   },
@@ -57,6 +58,8 @@ const warmupSteps = integer('warmup-steps', 0);
 const crf = integer('crf', 0, 63);
 // libvpx-vp9 -cpu-used: 0 is ~3× slower than 2 for ~20 % fewer bytes at the same quality (docs/recording.md).
 const speed = integer('speed', 0, 8);
+// Renders at s× the size and averages down to it: cleaner edges for s² the pixels.
+const supersample = integer('supersample', 1, 4);
 const particles = optionalInteger('particles', 1);
 // createRng takes a 32-bit seed.
 const seed = optionalInteger('seed', 0, 0xffffffff);
@@ -192,17 +195,27 @@ async function capture(page, encoder) {
   const started = performance.now();
   for (let frame = 0; frame < frames; frame++) {
     // Frame 0 is the state after the warm-up; each later one is stepsPerFrame steps and 1/fps s further.
-    const grab = await page.evaluate(({ steps, seconds, keep }) => {
+    const grab = await page.evaluate(({ steps, seconds, keep, factor }) => {
       const c = globalThis.particleController;
       c.captureFrame(steps, seconds);
       const { time, timeline, caption } = c.state;
       // The picture first: diagnostics render the potential pass offscreen.
-      const png = c.renderer.domElement.toDataURL('image/png');
+      let picture = c.renderer.domElement;
+      if (factor > 1) {
+        // Supersampled: the browser's high-quality resampling averages the frame down to the output size.
+        const small = globalThis.recorderCanvas ??= Object.assign(globalThis.document.createElement('canvas'), { width: picture.width / factor, height: picture.height / factor });
+        const context = small.getContext('2d');
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(picture, 0, 0, small.width, small.height);
+        picture = small;
+      }
+      const png = picture.toDataURL('image/png');
       return {
         png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(),
         particles: keep ? JSON.stringify(c.readParticles()) : undefined,
       };
-    }, { steps: frame === 0 ? 0 : stepsPerFrame, seconds: frame === 0 ? 0 : 1 / fps, keep: verify.includes(frame) });
+    }, { steps: frame === 0 ? 0 : stepsPerFrame, seconds: frame === 0 ? 0 : 1 / fps, keep: verify.includes(frame), factor: supersample });
     const png = Buffer.from(grab.png.slice(grab.png.indexOf(',') + 1), 'base64');
     times.push(grab.time);
     hashes.push(sha256(png));
@@ -247,12 +260,12 @@ async function replay(browser, appBase, worldSeed, states) {
 
 const report = await withBrowser(async ({ browser, base: appBase }) => {
   const started = performance.now();
-  const page = await newAppPage(browser, { viewport: { width, height }, deviceScaleFactor: 1 });
+  const page = await newAppPage(browser, { viewport: { width, height }, deviceScaleFactor: supersample });
   const problems = collectProblems(page);
   const world = await openWorld(page, appBase, seed);
   // A browser shrinks a drawing buffer past the GPU's limits without an error.
-  if (world.buffer[0] !== width || world.buffer[1] !== height) {
-    throw new Error(`the GPU gave a ${world.buffer.join('x')} drawing buffer for --size ${width}x${height}; use a smaller size`);
+  if (world.buffer[0] !== width * supersample || world.buffer[1] !== height * supersample) {
+    throw new Error(`the GPU gave a ${world.buffer.join('x')} drawing buffer for --size ${width}x${height} at --supersample ${supersample}; use a smaller size or factor`);
   }
   const setupMs = performance.now() - started;
   const encoder = video ? startEncoder() : undefined;
@@ -279,7 +292,7 @@ const metadata = {
   stepsPerFrame, warmupSteps, fps, frames, size: [width, height],
   display,
   lang: values.lang,
-  output: { video: video ? out : null, png: values.png ? framesDir : null, crf, speed },
+  output: { video: video ? out : null, png: values.png ? framesDir : null, crf, speed, supersample },
   // The frames' identity: two runs of the same command on the same GPU give the same value.
   hash: sha256(report.hashes.join('')),
   frameTimes: report.times,

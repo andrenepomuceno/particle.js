@@ -30,6 +30,7 @@ timeline has captions, `reports/videos/galaxy.vtt`.
 | `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` (frames of an earlier run there are removed first) |
 | `--no-video` | off | PNG frames only (needs `--png`; no ffmpeg needed) |
 | `--crf n`, `--speed n` | 24, 2 | VP9 quality (lower is better) and libvpx `-cpu-used` (0–8, higher is faster) |
+| `--supersample s` | 1 | renders each frame at s× the size (1–4) and averages it down, for clean edges on discs, spheres and arrows; the picture is otherwise the same (point sizes follow the drawing buffer). The canvas limit below applies to the s× size |
 | `--verify k,…` | none | replays those frames' steps in a fresh page and checks the particles are identical; the script fails otherwise |
 
 `ffmpeg` with `libvpx-vp9` must be on the `PATH` for video output; it, `git` (for the commit in the metadata)
@@ -47,7 +48,9 @@ Unknown keys and invalid values fail with their path.
   "colorMode": "speed",
   "particleRadius": 2,
   "sizeByMass": true,
-  "background": "#05070a",
+  "glow": 0.5,
+  "fog": 0,
+  "background": { "center": "#0d1424", "edge": "#000000" },
   "axes": false,
   "boundary": true,
   "field": { "enabled": true, "columns": 64, "logScale": true, "lockScale": false, "probe": { "charge": -1 } },
@@ -59,8 +62,8 @@ Unknown keys and invalid values fail with their path.
 
 | Key | Values |
 | --- | --- |
-| `particleStyle`, `colorMode`, `particleRadius`, `sizeByMass` | as in the Controls dialog |
-| `background` | `#rrggbb` |
+| `particleStyle`, `colorMode`, `particleRadius`, `sizeByMass`, `glow`, `fog` | as in the Controls dialog |
+| `background` | `#rrggbb`, or `{ "center", "edge" }` (both `#rrggbb`) for a radial gradient from the middle of the view to its corners |
 | `axes`, `boundary` | show the axes, the boundary |
 | `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md); the fields given replace the scenario's, the others stay) |
 | `trail`, `follow` | inspect that particle and draw its trail (a point per step, as in the app), or follow it with the camera; both must name the same particle |
@@ -113,6 +116,11 @@ Measured on an RTX 5060 Ti through WSL2 (galaxy, 3001 particles, `--speed 2`):
 | 4320x7680 | ~460 | ~4.6 min | ~7 GB |
 
 A run also spends a few seconds starting the dev server, Chromium and ffmpeg.
+
+The looks cost mostly PNG encoding, which grows as fewer pixels are black (hadrons, 1920x1080, ms per
+frame in total): plain ~30; `fog` ~32; `--supersample 2` ~50; `glow: 0.5` ~50; a gradient `background`
+~60 (every pixel non-black); glow, gradient and `--supersample 2` together ~90. The gradient has 8-bit
+steps, which a dark one shows as faint rings (VP9 keeps them).
 
 Simulating and rendering a frame takes ~2 ms here, and the per-frame `series` (a readback and the
 potential pass) adds little (galaxy measured ~45 ms per frame in total with it, at 1080x1920); the rest is PNG encoding in the page (~24 ms at

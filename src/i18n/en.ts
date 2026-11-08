@@ -211,6 +211,8 @@ export const en = {
     colorBy: 'Color by',
     particleRadius: 'Particle radius',
     sizeByMass: 'Size by mass (∛m)',
+    glow: 'Glow (0–1)',
+    fog: 'Depth fog (0–1)',
   },
   parameters: {
     integrator: 'Integrator',

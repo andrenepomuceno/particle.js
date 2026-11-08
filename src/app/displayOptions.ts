@@ -1,6 +1,7 @@
 import { readProbe, validateColumns, type FieldProbe } from '../engine/field';
 import { JsonReader } from '../engine/json';
 import type { Vec3 } from '../engine/particles';
+import type { RadialBackground } from '../engine/render/background';
 import { COLOR_MODES, PARTICLE_STYLES, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import type { SimulationController } from './SimulationController';
 
@@ -14,8 +15,11 @@ export interface DisplayOptions {
   particleRadius?: number;
   /** Each particle ∛(mass) times the radius; unset keeps the scenario's. */
   sizeByMass?: boolean;
-  /** `#rrggbb`; the app's is black. */
-  background?: string;
+  /** Soft halo behind each particle and darkening with depth, both 0 (off) to 1. */
+  glow?: number;
+  fog?: number;
+  /** `#rrggbb`, or `{ center, edge }` for a radial gradient; the app's is black. */
+  background?: string | RadialBackground;
   axes?: boolean;
   boundary?: boolean;
   /** `probe` holds only the fields given; the others keep the scenario's test particle. */
@@ -27,8 +31,20 @@ export interface DisplayOptions {
   camera?: { position: Vec3; target: Vec3 };
 }
 
-const KEYS = ['particleStyle', 'colorMode', 'particleRadius', 'sizeByMass', 'background', 'axes', 'boundary', 'field', 'trail', 'follow', 'camera'] as const;
+const KEYS = ['particleStyle', 'colorMode', 'particleRadius', 'sizeByMass', 'glow', 'fog', 'background', 'axes', 'boundary', 'field', 'trail', 'follow', 'camera'] as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+function hexColor(json: JsonReader, value: unknown, path: string): string {
+  const color = json.string(value, path);
+  if (!HEX_COLOR.test(color)) json.fail(path, `expected a #rrggbb colour, got ${JSON.stringify(color)}`);
+  return color;
+}
+
+function gradient(json: JsonReader, value: unknown): RadialBackground {
+  const o = json.object(value, 'background');
+  json.onlyKeys(o, ['center', 'edge'], 'background');
+  return { center: hexColor(json, o.center, 'background.center'), edge: hexColor(json, o.edge, 'background.edge') };
+}
 
 function particleIndex(json: JsonReader, value: unknown, path: string): { particle: number } {
   const o = json.object(value, path);
@@ -51,10 +67,13 @@ export function readDisplayOptions(value: unknown, source = 'display options'): 
     if (!(options.particleRadius > 0)) json.fail('particleRadius', `must be > 0, got ${options.particleRadius}`);
   }
   if (o.sizeByMass !== undefined) options.sizeByMass = json.boolean(o.sizeByMass, 'sizeByMass');
-  if (o.background !== undefined) {
-    options.background = json.string(o.background, 'background');
-    if (!HEX_COLOR.test(options.background)) json.fail('background', `expected a #rrggbb colour, got ${JSON.stringify(options.background)}`);
+  for (const key of ['glow', 'fog'] as const) {
+    if (o[key] === undefined) continue;
+    const value = json.finite(o[key], key);
+    if (!(value >= 0 && value <= 1)) json.fail(key, `must be within [0, 1], got ${value}`);
+    options[key] = value;
   }
+  if (o.background !== undefined) options.background = typeof o.background === 'string' ? hexColor(json, o.background, 'background') : gradient(json, o.background);
   if (o.axes !== undefined) options.axes = json.boolean(o.axes, 'axes');
   if (o.boundary !== undefined) options.boundary = json.boolean(o.boundary, 'boundary');
   if (o.field !== undefined) {
@@ -96,6 +115,8 @@ export function applyDisplayOptions(controller: SimulationController, options: D
   if (options.colorMode !== undefined) controller.setColorMode(options.colorMode);
   if (options.particleRadius !== undefined) controller.setParticleRadius(options.particleRadius);
   if (options.sizeByMass !== undefined) controller.setSizeByMass(options.sizeByMass);
+  if (options.glow !== undefined) controller.setGlow(options.glow);
+  if (options.fog !== undefined) controller.setFog(options.fog);
   if (options.background !== undefined) controller.setBackground(options.background);
   if ((options.axes ?? false) !== state.showAxes) controller.toggleAxes();
   if (options.boundary !== undefined && options.boundary !== controller.state.showBoundary) controller.toggleBoundary();

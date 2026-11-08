@@ -8,6 +8,9 @@
 - *Noether* scenarios: the same 300-body cluster under pairwise gravity, free (P, L and E kept), with a
   fixed sun (P changes, L about the sun kept), with two suns (L changes too) and with a gravity growing in
   time (E changes, P and L kept); tests measure each on the reference integrator.
+- Looks for recordings, all off by default: *Glow* (a soft halo in each particle's color) and *Depth fog*
+  (Controls, display options `glow`, `fog`), a radial gradient `background: { center, edge }` (display
+  option), and `npm run record -- --supersample 2` (render at 2× and average down).
 - *Size by mass* (Controls, `view.sizeByMass`, display option `sizeByMass`): each particle ∛m times the
   radius.
 

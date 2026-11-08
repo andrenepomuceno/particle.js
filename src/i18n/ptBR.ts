@@ -204,6 +204,8 @@ export const ptBR: Messages = {
     colorBy: 'Cor por',
     particleRadius: 'Raio das partículas',
     sizeByMass: 'Tamanho pela massa (∛m)',
+    glow: 'Brilho (0–1)',
+    fog: 'Névoa de profundidade (0–1)',
   },
   parameters: {
     integrator: 'Integrador',

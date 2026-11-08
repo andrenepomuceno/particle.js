@@ -281,11 +281,13 @@ function ActionButtons({ group, ctx }: { group: Action['group']; ctx: ActionCont
 export function ControlsView({ ctx }: { ctx: ActionContext }) {
   const controller = useController();
   const t = useMessages();
-  const { positive } = useValidators();
+  const { positive, unitInterval } = useValidators();
   const colorMode = useAppState((s) => s.colorMode);
   const radius = useAppState((s) => s.particleRadius);
   const style = useAppState((s) => s.particleStyle);
   const sizeByMass = useAppState((s) => s.sizeByMass);
+  const glow = useAppState((s) => s.glow);
+  const fog = useAppState((s) => s.fog);
   const fpsLimit = useAppState((s) => s.fpsLimit);
   return (
     <div>
@@ -302,6 +304,8 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
         <SelectField label={t.controls.colorBy} value={colorMode} options={COLOR_MODES} optionLabel={(m) => t.options.colorMode[m]} onChange={(m) => controller.setColorMode(m)} />
         <NumberField label={t.controls.particleRadius} value={radius} validate={positive} onCommit={(r) => controller.setParticleRadius(r)} />
         <CheckField label={t.controls.sizeByMass} checked={sizeByMass} onChange={(on) => controller.setSizeByMass(on)} />
+        <NumberField label={t.controls.glow} value={glow} validate={unitInterval} onCommit={(g) => controller.setGlow(g)} />
+        <NumberField label={t.controls.fog} value={fog} validate={unitInterval} onCommit={(f) => controller.setFog(f)} />
       </div>
     </div>
   );

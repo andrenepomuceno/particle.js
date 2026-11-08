@@ -1,4 +1,4 @@
-import { AxesHelper, Color, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { AxesHelper, Color, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer, type CanvasTexture } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
 import { summarizeEnergy, summarizeMomentum, summarizeSpacetime, type MomentumSample, type SpacetimeSample } from '../engine/cpu/energy';
@@ -17,6 +17,7 @@ import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
 import { MASS_SIZE_RANGE, ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { perspectiveScale } from '../engine/render/shared';
+import { radialBackgroundTexture, type RadialBackground } from '../engine/render/background';
 import { ParticleTrail } from '../engine/render/ParticleTrail';
 import { inverseLightSpeed2 } from '../engine/metric';
 import { DEFAULT_SETTINGS, HISTORY_DEPTH_RANGE, validateSettings, type SimulationSettings } from '../engine/settings';
@@ -165,6 +166,10 @@ export interface AppState {
   particleStyle: ParticleStyle;
   /** Draw each particle ∛(mass) times the radius (a sun stands out among planets). */
   sizeByMass: boolean;
+  /** Soft halo behind each particle, 0 (off) to 1. */
+  glow: number;
+  /** Darkening of particles beyond the camera's orbit target, 0 (off) to 1. */
+  fog: number;
   fpsLimit: FpsLimit;
   averageSpeed: number;
   /** Lorentz factors and clock spread from the once-per-second sample. */
@@ -267,6 +272,8 @@ export class SimulationController {
   /** Caption text with its `{path}` placeholders, re-formatted whenever forces or settings change. */
   private captionTemplate: string | undefined;
   private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
+  /** A gradient background (setBackground), released when replaced. */
+  private backgroundTexture: CanvasTexture | undefined;
   /** Set while an offline recorder drives the frames (beginCapture): its video clock, in milliseconds. */
   private capture: { clock: number; sampledAt: number } | undefined;
   private restart: () => void = () => {
@@ -287,7 +294,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', snapshotFile: undefined, settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
-      colorMode: 'charge', particleStyle: 'spherow', sizeByMass: false, fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], angularPivot: [0, 0, 0], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
+      colorMode: 'charge', particleStyle: 'spherow', sizeByMass: false, glow: 0, fog: 0, fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], angularPivot: [0, 0, 0], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldErrorLog: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -327,6 +334,7 @@ export class SimulationController {
     this.arrows.dispose();
     this.boundaryLines.dispose();
     this.trail.dispose();
+    this.backgroundTexture?.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -512,6 +520,8 @@ export class SimulationController {
     this.points.setStyle(this.state.particleStyle);
     this.points.setColorMode(this.state.colorMode);
     this.points.setSizeByMass(this.state.sizeByMass);
+    this.points.setGlow(this.state.glow);
+    this.points.setFog(this.state.fog);
     this.scene.add(this.points.object);
     this.compiledKey = '';
     this.cpuStale = false;
@@ -737,9 +747,17 @@ export class SimulationController {
     this.present(now, steps > 0);
   }
 
-  /** The background behind the particles, as a CSS colour (e.g. '#000000'). */
-  setBackground(color: string): void {
-    this.renderer.setClearColor(new Color(color));
+  /** The background behind the particles: a CSS colour (e.g. '#000000'), or a radial gradient. */
+  setBackground(background: string | RadialBackground): void {
+    this.backgroundTexture?.dispose();
+    this.backgroundTexture = undefined;
+    if (typeof background === 'string') {
+      this.scene.background = null;
+      this.renderer.setClearColor(new Color(background));
+      return;
+    }
+    this.backgroundTexture = radialBackgroundTexture(background);
+    this.scene.background = this.backgroundTexture;
   }
 
   /**
@@ -857,6 +875,18 @@ export class SimulationController {
   setAngularPivot(angularPivot: Vec3): void {
     if (!angularPivot.every(Number.isFinite)) throw new Error(`the angular momentum point must be finite, got ${JSON.stringify(angularPivot)}`);
     this.store.set({ angularPivot: [...angularPivot] });
+  }
+
+  setGlow(glow: number): void {
+    if (!(glow >= 0 && glow <= 1)) throw new Error(`glow must be within [0, 1], got ${glow}`);
+    this.points.setGlow(glow);
+    this.store.set({ glow });
+  }
+
+  setFog(fog: number): void {
+    if (!(fog >= 0 && fog <= 1)) throw new Error(`fog must be within [0, 1], got ${fog}`);
+    this.points.setFog(fog);
+    this.store.set({ fog });
   }
 
   setSizeByMass(sizeByMass: boolean): void {
@@ -1412,6 +1442,7 @@ export class SimulationController {
     private render(): void {
     this.fitDepthRange();
     this.points.setTime(this.state.time);
+    this.points.setFocus(this.camera.position.distanceTo(this.controls.target));
     this.points.bind({
       position: this.gpu.positionTexture,
       velocity: this.gpu.velocityTexture,

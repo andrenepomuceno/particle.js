@@ -14,6 +14,8 @@ describe('display options', () => {
       trail: { particle: 3 }, follow: { particle: 3 }, camera: { position: [0, 0, 500], target: [0, 0, 0] },
     });
     expect(readDisplayOptions({})).toEqual({});
+    const looks = { glow: 0.5, fog: 1, background: { center: '#0d1424', edge: '#000000' } };
+    expect(readDisplayOptions(looks)).toEqual(looks);
   });
 
   it.each([
@@ -22,6 +24,10 @@ describe('display options', () => {
     [{ background: 'black' }, /at 'background': expected a #rrggbb colour/],
     [{ particleRadius: 0 }, /at 'particleRadius': must be > 0/],
     [{ sizeByMass: 'yes' }, /at 'sizeByMass'/],
+    [{ glow: 1.5 }, /at 'glow': must be within \[0, 1\], got 1.5/],
+    [{ fog: -0.1 }, /at 'fog': must be within \[0, 1\]/],
+    [{ background: { center: '#000000' } }, /at 'background.edge'/],
+    [{ background: { center: '#000000', edge: '#ffffff', angle: 3 } }, /unknown key/],
     [{ field: { columns: 1 } }, /at 'field.enabled'/],
     [{ field: { enabled: true, columns: 1 } }, /at 'field.columns': field grid columns must be an integer/],
     [{ field: { enabled: true, probe: { mass: 0 } } }, /at 'field.probe': test particle mass must be > 0/],

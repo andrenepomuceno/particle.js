@@ -151,8 +151,12 @@ scale follows the field, so scaling the test particle (charge ×5, mass ×10) ch
 screen; *Lock color scale* freezes it so such changes show as brighter or dimmer arrows.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
-total), mean and max speed, temperature (equipartition, k_B = 1) and performance (FPS, steps/s,
-frame CPU time, sampling cost). Hover a chart for the values at that sample. Potential energy
+total), momentum P = Σ m·u and angular momentum L = Σ m·(r − Q) × u of the dynamic particles
+(u = γv under Minkowski; in 2D P has x and y and L only z), mean and max speed, temperature
+(equipartition, k_B = 1) and performance (FPS, steps/s, frame CPU time, sampling cost). The point Q
+(the origin whenever a world loads) is set under the angular momentum chart; changing it recomputes the
+whole history (L_Q = L_O − Q × P). The P and L axes span at least 1 % of what they could reach
+(Σ m·|u|, Σ m·|r − Q|·|u|), so a conserved one draws flat rather than as float32 noise. Hover a chart for the values at that sample. Potential energy
 comes from a GPU pass over all pairs that runs only while the dialog is open; forces written as
 F(r) have no known V(r) and are listed as missing from it. The **Particles** tab groups the
 particles by kind, mass, charge, charge 2, spin, isospin, parity, nuclear charge and color (not

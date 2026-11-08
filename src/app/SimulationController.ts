@@ -1,7 +1,7 @@
 import { AxesHelper, Color, PerspectiveCamera, Plane, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
-import { summarizeEnergy, summarizeSpacetime, type SpacetimeSample } from '../engine/cpu/energy';
+import { summarizeEnergy, summarizeMomentum, summarizeSpacetime, type MomentumSample, type SpacetimeSample } from '../engine/cpu/energy';
 import {
   DEFAULT_PROBE, fieldGrid, fieldReference, fieldView, validateColumns, validateProbe, type FieldProbe,
 } from '../engine/field';
@@ -58,7 +58,7 @@ export const DEFAULT_GENERATOR: GeneratorTemplate = {
   charge2: 0, spin: [0, 0, 0], isospin: 0, parity: 1, nuclearCharge: 0, color: [0, 0, 0], speed: 0, fixed: false,
 };
 
-export interface PhysicsSample {
+export interface PhysicsSample extends MomentumSample {
   time: number;
   kinetic: number;
   potential: number;
@@ -105,7 +105,7 @@ export interface FieldInfo {
   reference: number;
 }
 
-/** What diagnostics() reports (the recorder writes it for the first and last frames). */
+/** What diagnostics() reports (the recorder writes it for every frame). */
 export interface Diagnostics {
   time: number;
   particles: number;
@@ -116,7 +116,10 @@ export interface Diagnostics {
   potentialLeavesOut: string[];
   /** Set when the potential pass failed to compile (potential and total are then NaN). */
   energyError?: string;
+  /** Σ m·u over the dynamic particles (γmv under Minkowski). */
   momentum: Vec3;
+  /** Σ m·(r × u) about the origin; about Q it is L − Q × P. */
+  angularMomentum: Vec3;
   temperature: number;
   meanSpeed: number;
   maxSpeed: number;
@@ -167,6 +170,8 @@ export interface AppState {
   /** Lorentz factors and clock spread from the once-per-second sample. */
   spacetime: SpacetimeSample;
   physicsHistory: PhysicsSample[];
+  /** The point Statistics measures the angular momentum about; back to the origin with every new world. */
+  angularPivot: Vec3;
   performanceHistory: PerformanceSample[];
   /** Enabled forces written as F(r): their energy is not in the potential total. */
   energyMissing: string[];
@@ -282,7 +287,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', snapshotFile: undefined, settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
-      colorMode: 'charge', particleStyle: 'spherow', sizeByMass: false, fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
+      colorMode: 'charge', particleStyle: 'spherow', sizeByMass: false, fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], angularPivot: [0, 0, 0], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldErrorLog: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -371,7 +376,7 @@ export class SimulationController {
     // Notices name a bundled scenario as the list does, in the interface language.
     const shownName = scenarioId === '' ? scenario.name : localizeScenario(scenario, this.state.locale).name;
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0, shownName);
-    this.store.set({ scenarioId, snapshotFile: undefined, scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
+    this.store.set({ scenarioId, snapshotFile: undefined, angularPivot: [0, 0, 0], scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.setSizeByMass(scenario.sizeByMass);
     this.resetCamera(scenario.cameraDistance * linearScale);
@@ -470,7 +475,7 @@ export class SimulationController {
     const snapshot = readSnapshot(value);
     const load = () => {
       this.replaceWorld(snapshot.name, snapshot.settings, snapshot.forces, snapshot.particles, snapshot.time);
-      this.store.set({ scenarioId: '', snapshotFile: fileName, scenarioSource: undefined, seed: undefined, description: '' });
+      this.store.set({ scenarioId: '', snapshotFile: fileName, angularPivot: [0, 0, 0], scenarioSource: undefined, seed: undefined, description: '' });
       // A snapshot has no view.field: like a scenario without one, it ends a scenario's hold on the field.
       this.showScenarioField(undefined);
     };
@@ -738,8 +743,8 @@ export class SimulationController {
   }
 
   /**
-   * Energy, momentum and temperature now: a readback and, for potential-mode forces, the potential
-   * pass (for scripts such as the recorder, not per frame). Momentum is Σ m·u (relativistic under Minkowski).
+   * Energy, momentum, angular momentum and temperature now: a readback and, for potential-mode forces, the
+   * potential pass (the recorder calls it every frame). Momentum is Σ m·u (relativistic under Minkowski).
    */
   diagnostics(): Diagnostics {
     this.syncFromGpu();
@@ -754,15 +759,10 @@ export class SimulationController {
       potentials.fill(NaN);
     }
     const energy = summarizeEnergy(this.set, this.set.velocity, potentials, this.compiled, settings.mode2D);
-    const momentum: Vec3 = [0, 0, 0];
-    for (let k = 0; k < this.set.count; k++) {
-      const o = k * TEXEL;
-      if (this.set.position[o + 3] === ParticleKind.fixed) continue;
-      for (let c = 0; c < 3; c++) momentum[c] = momentum[c]! + this.set.attributes[o]! * this.set.velocity[o + c]!;
-    }
+    const { momentum, angularMomentum } = summarizeMomentum(this.set, this.set.position, this.set.velocity);
     return {
       time, particles: this.set.count, kinetic: energy.kinetic, potential: energy.potential, total: energy.kinetic + energy.potential,
-      potentialLeavesOut: energy.missing, momentum, temperature: energy.temperature, meanSpeed: energy.meanSpeed, maxSpeed: energy.maxSpeed,
+      potentialLeavesOut: energy.missing, momentum, angularMomentum, temperature: energy.temperature, meanSpeed: energy.meanSpeed, maxSpeed: energy.maxSpeed,
       ...(energyError ? { energyError } : {}),
     };
   }
@@ -852,6 +852,11 @@ export class SimulationController {
   setParticleStyle(particleStyle: ParticleStyle): void {
     this.points.setStyle(particleStyle);
     this.store.set({ particleStyle });
+  }
+
+  setAngularPivot(angularPivot: Vec3): void {
+    if (!angularPivot.every(Number.isFinite)) throw new Error(`the angular momentum point must be finite, got ${JSON.stringify(angularPivot)}`);
+    this.store.set({ angularPivot: [...angularPivot] });
   }
 
   setSizeByMass(sizeByMass: boolean): void {
@@ -1511,21 +1516,23 @@ export class SimulationController {
   }
 
   /**
-   * Once-per-second velocity readback that feeds the speed palette, as v1 did. It stalls the
-   * pipeline briefly; a GPU reduction is tracked in tasks/inbox/benchmark-script.md.
+   * Once-per-second velocity readback that feeds the speed palette, as v1 did, and, while Statistics is
+   * open, positions too (angular momentum) and the potential pass. It stalls the pipeline briefly; a GPU
+   * reduction is tracked in tasks/inbox/benchmark-script.md.
    */
   private sampleState(): void {
     const { time, settings, physicsHistory } = this.state;
     const advanced = physicsHistory.length === 0 || physicsHistory[physicsHistory.length - 1]!.time !== time;
-    // Retarded forces under Minkowski need the positions too (their reach warning follows the particles):
-    // then one full readback serves both.
+    // Retarded forces under Minkowski (their reach warning follows the particles) and Statistics (angular
+    // momentum) need the positions too: then one full readback serves both.
     const retarded = settings.metric === 'minkowski' && this.compiled.some((f) => f.retarded);
-    if (retarded) this.syncFromGpu();
-    const velocity = retarded ? this.set.velocity : this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
+    const charted = advanced && this.statsActive;
+    if (retarded || charted) this.syncFromGpu();
+    const velocity = retarded || charted ? this.set.velocity : this.set.count > 0 ? this.gpu.readVelocities() : new Float32Array();
     // The potential pass is a full O(N²) sweep plus a readback, so it only runs while someone is looking.
     let potentials: Float32Array = new Float32Array(this.set.count);
     let energyErrorLog: string | undefined;
-    if (advanced && this.statsActive && this.set.count > 0) {
+    if (charted && this.set.count > 0) {
       try {
         potentials = this.gpu.readPotentials(time);
       } catch (error) {
@@ -1541,10 +1548,12 @@ export class SimulationController {
     this.points.setClockRange(spacetime.clockMin, spacetime.clockMax, time);
     this.store.set({ averageSpeed: energy.meanSpeed, energyMissing: energy.missing, spacetime });
     if (retarded) this.refreshForceWarnings();
-    if (!advanced || !this.statsActive) return;
+    if (!charted) return;
     const { kinetic, potential, meanSpeed, maxSpeed, temperature } = energy;
     this.store.set({
-      physicsHistory: appendBounded(physicsHistory, { time, kinetic, potential, total: kinetic + potential, meanSpeed, maxSpeed, temperature }),
+      physicsHistory: appendBounded(physicsHistory, {
+        time, kinetic, potential, total: kinetic + potential, meanSpeed, maxSpeed, temperature, ...summarizeMomentum(this.set, this.set.position, velocity),
+      }),
     });
   }
 }

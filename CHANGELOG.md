@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Angular momentum: Statistics charts the momentum P and the angular momentum L = Σ m·(r − Q) × u about a
+  chosen point Q, and the recorder's metadata has per-frame `series` (energies, P, L) to plot beside a
+  video.
 - *Size by mass* (Controls, `view.sizeByMass`, display option `sizeByMass`): each particle ∛m times the
   radius.
 

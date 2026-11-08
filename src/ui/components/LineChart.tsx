@@ -15,6 +15,11 @@ interface Props {
   series: readonly Series[];
   /** Start the y axis at zero (for quantities that cannot be negative). */
   zeroBased?: boolean;
+  /**
+   * Smallest y span, in the values' units: a conserved quantity draws as a flat line instead of its rounding
+   * noise blown up to the chart's height (P and L pass a fraction of the system's own scale).
+   */
+  minSpan?: number;
   note?: string;
 }
 
@@ -29,7 +34,16 @@ export function formatValue(value: number): string {
   return magnitude >= 1e5 || magnitude < 1e-2 ? value.toExponential(2) : value.toPrecision(4);
 }
 
-export function LineChart({ title, x, xLabel, series, zeroBased = false, note }: Props) {
+/** The y range before padding: the values' extent, from zero when `zeroBased`, at least `minSpan` wide around its middle. */
+export function valueRange(values: readonly number[], zeroBased: boolean, minSpan: number): [number, number] {
+  let lo = zeroBased ? Math.min(0, ...values) : Math.min(...values);
+  let hi = Math.max(...values);
+  if (hi - lo < minSpan) [lo, hi] = [(lo + hi) / 2 - minSpan / 2, (lo + hi) / 2 + minSpan / 2];
+  if (hi === lo) [lo, hi] = [lo - 1, hi + 1];
+  return [lo, hi];
+}
+
+export function LineChart({ title, x, xLabel, series, zeroBased = false, minSpan = 0, note }: Props) {
   const t = useMessages();
   const [hover, setHover] = useState<number>();
   const count = x.length;
@@ -44,9 +58,7 @@ export function LineChart({ title, x, xLabel, series, zeroBased = false, note }:
     );
   }
 
-  let lo = zeroBased ? Math.min(0, ...values) : Math.min(...values);
-  let hi = Math.max(...values);
-  if (hi === lo) [lo, hi] = [lo - 1, hi + 1];
+  let [lo, hi] = valueRange(values, zeroBased, minSpan);
   const padding = (hi - lo) * 0.05;
   if (!(zeroBased && lo === 0)) lo -= padding;
   hi += padding;

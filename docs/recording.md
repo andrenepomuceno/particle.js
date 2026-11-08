@@ -88,9 +88,14 @@ particle count, capacity and every simulation setting (dt, integrator, metric, �
 warm-up, fps, size, display options and caption language (`lang`); the simulation time of every frame (`frameTimes`) and the
 SHA-256 of every frame's PNG (`frameHashes`), and `hash`, a digest of them all that two runs of the
 same command share; timeline changes by frame (`eventsFired`, caption); diagnostics of the first and
-last frame (kinetic, potential and total energy, momentum Σ m·u, temperature, mean and maximum speed;
-`potentialLeavesOut` names force-mode forces the potential cannot include); `--verify` results;
-timing; and any notice or console problem.
+last frame (kinetic, potential and total energy, momentum Σ m·u, angular momentum Σ m·r × u about the
+origin, temperature, mean and maximum speed; `potentialLeavesOut` names force-mode forces the potential
+cannot include); `--verify` results; timing; and any notice or console problem.
+
+`series` holds, per frame and aligned with `frameTimes`, the `kinetic`, `potential` and `total` energy
+and the `momentum` P and `angularMomentum` L (about the origin) of the dynamic particles, to plot the
+conserved quantities beside the picture. L about another point Q is L − Q × P (in 2D:
+L_z − (Q_x·P_y − Q_y·P_x)).
 
 ## Cost and limits
 
@@ -104,10 +109,11 @@ Measured on an RTX 5060 Ti through WSL2 (galaxy, 3001 particles, `--speed 2`):
 
 A run also spends a few seconds starting the dev server, Chromium and ffmpeg.
 
-Simulating and rendering a frame takes ~2 ms here; the rest is PNG encoding in the page (~24 ms at
+Simulating and rendering a frame takes ~2 ms here, and the per-frame `series` (a readback and the
+potential pass) adds little (galaxy measured ~45 ms per frame in total with it, at 1080x1920); the rest is PNG encoding in the page (~24 ms at
 1080x1920, ~85 ms at 2160x3840) and VP9 encoding, which overlaps the capture through a queue of up to
 256 MB of frames. `--speed 0` is ~3× slower to encode for ~20 % fewer bytes at the same PSNR.
 4320x7680 is the largest canvas Chromium gives on this machine; past it the browser shrinks the
 drawing buffer, and the recorder fails instead of recording a smaller video. Scenarios with heavy
 forces or the field add their own cost (dipole-antenna with field arrows and a 2048-step history:
-~100 ms per frame at 1080x1920).
+~90 ms per frame at 1080x1920).

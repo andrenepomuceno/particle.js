@@ -1,6 +1,6 @@
 import type { CompiledForce } from '../forces/compile';
 import { kineticEnergy, lorentzFactor } from '../metric';
-import { ParticleKind, TEXEL, type ParticleSet } from '../particles';
+import { ParticleKind, TEXEL, type ParticleSet, type Vec3 } from '../particles';
 import { pairPotential, pairScope } from './pairs';
 
 export interface EnergySample {
@@ -53,6 +53,45 @@ export function summarizeEnergy(
     maxSpeed,
     temperature: dynamic ? kinetic / dynamic / (mode2D ? 1 : 1.5) : 0,
   };
+}
+
+/** Total momentum and angular momentum of the dynamic particles (fixed ones are outside the system). */
+export interface MomentumSample {
+  /** P = Σ m·u: the relativistic momentum γmv under Minkowski, m·v when Galilean. */
+  momentum: Vec3;
+  /** L = Σ m·(r × u) about the origin; about a point Q it is L − Q × P (see angularMomentumAbout). */
+  angularMomentum: Vec3;
+  /** Σ m·|u| and Σ m·|r|·|u|: the sizes P and L could reach, the scale their changes are judged against. */
+  momentumScale: number;
+  angularScale: number;
+}
+
+/** Sums P and L from positions and stored velocities laid out as the textures (four floats per particle). */
+export function summarizeMomentum(set: ParticleSet, position: Float32Array, velocity: Float32Array): MomentumSample {
+  let px = 0, py = 0, pz = 0, lx = 0, ly = 0, lz = 0, momentumScale = 0, angularScale = 0;
+  for (let k = 0; k < set.count; k++) {
+    const o = k * TEXEL;
+    if (set.position[o + 3] === ParticleKind.fixed) continue;
+    const m = set.attributes[o]!;
+    const x = position[o]!, y = position[o + 1]!, z = position[o + 2]!;
+    const ux = m * velocity[o]!, uy = m * velocity[o + 1]!, uz = m * velocity[o + 2]!;
+    px += ux;
+    py += uy;
+    pz += uz;
+    lx += y * uz - z * uy;
+    ly += z * ux - x * uz;
+    lz += x * uy - y * ux;
+    const size = Math.hypot(ux, uy, uz);
+    momentumScale += size;
+    angularScale += size * Math.hypot(x, y, z);
+  }
+  return { momentum: [px, py, pz], angularMomentum: [lx, ly, lz], momentumScale, angularScale };
+}
+
+/** Angular momentum about `point` from the one about the origin: L_Q = L_O − Q × P. */
+export function angularMomentumAbout(sample: MomentumSample, point: Vec3): Vec3 {
+  const [p, l, q] = [sample.momentum, sample.angularMomentum, point];
+  return [l[0] - (q[1] * p[2] - q[2] * p[1]), l[1] - (q[2] * p[0] - q[0] * p[2]), l[2] - (q[0] * p[1] - q[1] * p[0])];
 }
 
 export interface SpacetimeSample {

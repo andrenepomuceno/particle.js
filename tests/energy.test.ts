@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { referencePotentials, summarizeEnergy } from '../src/engine/cpu/energy';
+import { angularMomentumAbout, referencePotentials, summarizeEnergy, summarizeMomentum } from '../src/engine/cpu/energy';
 import { referenceStep } from '../src/engine/cpu/referenceStep';
 import { compileForce } from '../src/engine/forces/compile';
 import { defaultParticle, ParticleKind, ParticleSet } from '../src/engine/particles';
@@ -49,5 +49,20 @@ describe('energy', () => {
     const end = energy(set);
     const total = (e: typeof start) => e.kinetic + e.potential;
     expect(Math.abs(total(end) - total(start))).toBeLessThan(1e-3 * Math.abs(total(start)));
+  });
+
+  it('sums momentum and angular momentum of the dynamic particles, about the origin and any point', () => {
+    const set = new ParticleSet(4);
+    set.addAll([
+      defaultParticle({ mass: 2, position: [1, 0, 0], velocity: [0, 3, 0] }),
+      defaultParticle({ mass: 1, position: [0, 2, 0], velocity: [1, 0, 0] }),
+      defaultParticle({ kind: ParticleKind.fixed, mass: 50, position: [5, 5, 0] }),
+    ]);
+    const sample = summarizeMomentum(set, set.position, set.velocity);
+    expect(sample.momentum).toEqual([1, 6, 0]);
+    // L = 2·(1, 0, 0) × (0, 3, 0) + 1·(0, 2, 0) × (1, 0, 0) = (0, 0, 6) + (0, 0, −2).
+    expect(sample.angularMomentum).toEqual([0, 0, 4]);
+    // About Q = (1, 0, 0): the first particle sits on Q; the second is at (−1, 2, 0) from it.
+    expect(angularMomentumAbout(sample, [1, 0, 0])).toEqual([0, 0, -2]);
   });
 });

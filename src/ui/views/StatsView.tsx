@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { angularMomentumAbout } from '../../engine/cpu/energy';
 import { ParticleKind } from '../../engine/particles';
+import { Vec3Field } from '../components/fields';
 import type { ParticleGroup } from '../../engine/particleGroups';
 import { LineChart } from '../components/LineChart';
 import { useAppState, useController, useMessages } from '../context';
@@ -7,6 +9,10 @@ import type { Messages } from '../../i18n';
 import { Tabs } from '../components/Tabs';
 
 const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'] as const;
+
+const AXES = ['x', 'y', 'z'] as const;
+/** P and L charts span at least this share of the system's scale (Σ m·|u|, Σ m·|r|·|u|). */
+const CONSERVED_SPAN = 0.01;
 
 const TABS = ['charts', 'particles'] as const;
 type Tab = (typeof TABS)[number];
@@ -31,6 +37,7 @@ export function StatsView() {
 
 function ChartsTab() {
   const controller = useController();
+  const pivot = useAppState((s) => s.angularPivot);
   const { stats: t } = useMessages();
   const physics = useAppState((s) => s.physicsHistory);
   const performance = useAppState((s) => s.performanceHistory);
@@ -40,6 +47,14 @@ function ChartsTab() {
   const time = physics.map((p) => p.time);
   const wall = performance.map((p) => p.wall - (performance[0]?.wall ?? 0));
   const last = performance[performance.length - 1];
+  // In 2D the motion stays in the plane: P has x and y, L only z.
+  const [momentumAxes, angularAxes] = mode2D ? [[0, 1], [2]] : [[0, 1, 2], [0, 1, 2]];
+  // L about Q comes from each sample (L − Q × P), so moving Q redraws the whole history.
+  const angular = physics.map((p) => angularMomentumAbout(p, pivot));
+  // A conserved P or L draws flat: the axes span at least a share of what P and L could reach (Σ m·|u|,
+  // Σ m·|r − Q|·|u| ≤ Σ m·|r|·|u| + |Q|·Σ m·|u|), not the float32 noise around their value.
+  const momentumSpan = CONSERVED_SPAN * Math.max(0, ...physics.map((p) => p.momentumScale));
+  const angularSpan = CONSERVED_SPAN * Math.max(0, ...physics.map((p) => p.angularScale + Math.hypot(...pivot) * p.momentumScale));
 
   return (
     <div className="stack">
@@ -65,6 +80,25 @@ function ChartsTab() {
           { label: t.max, color: SERIES[1], values: physics.map((p) => p.maxSpeed) },
         ]}
       />
+      <LineChart
+        title={t.momentum}
+        x={time}
+        xLabel="t"
+        minSpan={momentumSpan}
+        series={momentumAxes.map((c, k) => ({ label: t.momentumComponent(AXES[c]!), color: SERIES[k]!, values: physics.map((p) => p.momentum[c]!) }))}
+        note={t.momentumNote}
+      />
+      <LineChart
+        title={t.angularMomentum}
+        x={time}
+        xLabel="t"
+        minSpan={angularSpan}
+        series={angularAxes.map((c, k) => ({ label: t.angularMomentumComponent(AXES[c]!), color: SERIES[k]!, values: angular.map((l) => l[c]!) }))}
+        note={t.angularMomentumNote}
+      />
+      <div className="grid">
+        <Vec3Field label={t.pivot} value={pivot} onCommit={(point) => controller.setAngularPivot(point)} />
+      </div>
       <LineChart
         title={t.temperature}
         x={time}

@@ -185,7 +185,9 @@ async function capture(page, encoder) {
   const hashes = [];
   const timeline = [];
   const states = new Map();
+  const series = { kinetic: [], potential: [], total: [], momentum: [], angularMomentum: [] };
   let diagnosticsFirst;
+  let diagnosticsLast;
   let previous = { fired: undefined, caption: undefined };
   const started = performance.now();
   for (let frame = 0; frame < frames; frame++) {
@@ -194,8 +196,10 @@ async function capture(page, encoder) {
       const c = globalThis.particleController;
       c.captureFrame(steps, seconds);
       const { time, timeline, caption } = c.state;
+      // The picture first: diagnostics render the potential pass offscreen.
+      const png = c.renderer.domElement.toDataURL('image/png');
       return {
-        png: c.renderer.domElement.toDataURL('image/png'), time, fired: timeline.fired, caption: caption ?? null,
+        png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(),
         particles: keep ? JSON.stringify(c.readParticles()) : undefined,
       };
     }, { steps: frame === 0 ? 0 : stepsPerFrame, seconds: frame === 0 ? 0 : 1 / fps, keep: verify.includes(frame) });
@@ -203,19 +207,21 @@ async function capture(page, encoder) {
     times.push(grab.time);
     hashes.push(sha256(png));
     if (grab.particles !== undefined) states.set(frame, grab.particles);
+    const d = grab.diagnostics;
+    for (const key of Object.keys(series)) series[key].push(d[key]);
+    if (frame === 0) diagnosticsFirst = d;
+    diagnosticsLast = d;
     if (grab.fired !== previous.fired || grab.caption !== previous.caption) {
       timeline.push({ frame, time: grab.time, eventsFired: grab.fired, caption: grab.caption });
       previous = grab;
     }
     if (encoder) await encoder.write(png);
     if (values.png) await writeFile(path.join(framesDir, `${String(frame).padStart(5, '0')}.png`), png);
-    if (frame === 0) diagnosticsFirst = await page.evaluate(() => globalThis.particleController.diagnostics());
     if (frame % fps === 0) process.stdout.write(`\rrecord: frame ${frame + 1}/${frames}`);
   }
   const msPerFrame = (performance.now() - started) / frames;
-  const diagnosticsLast = await page.evaluate(() => globalThis.particleController.diagnostics());
   process.stdout.write('\n');
-  return { times, hashes, timeline, states, diagnosticsFirst, diagnosticsLast, msPerFrame };
+  return { times, hashes, timeline, states, series, diagnosticsFirst, diagnosticsLast, msPerFrame };
 }
 
 /** Replays each verified frame in a fresh page straight to its step, with the recording's seed, and compares the particles. */
@@ -280,6 +286,8 @@ const metadata = {
   frameHashes: report.hashes,
   timeline: report.timeline,
   diagnostics: { first: report.diagnosticsFirst, last: report.diagnosticsLast },
+  // Per frame, aligned with frameTimes: energies, P and L about the origin (about Q: L − Q × P).
+  series: report.series,
   verify: report.checks,
   // msPerFrame: the capture loop (simulation, render, PNG); totalMs also holds setup, verification and the encoder's tail.
   timing: { setupMs: Math.round(report.setupMs), msPerFrame: Math.round(report.msPerFrame * 10) / 10, totalMs: Math.round(performance.now() - scriptStarted) },

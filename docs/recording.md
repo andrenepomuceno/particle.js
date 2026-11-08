@@ -30,7 +30,7 @@ timeline has captions, `reports/videos/galaxy.vtt`.
 | `--png` | off | also write every frame as a lossless PNG in `<out>-frames/` (frames of an earlier run there are removed first) |
 | `--no-video` | off | PNG frames only (needs `--png`; no ffmpeg needed) |
 | `--crf n`, `--speed n` | 24, 2 | VP9 quality (lower is better) and libvpx `-cpu-used` (0–8, higher is faster) |
-| `--supersample s` | 1 | renders each frame at s× the size (1–4) and averages it down, for clean edges on discs, spheres and arrows; the picture is otherwise the same (point sizes follow the drawing buffer). The canvas limit below applies to the s× size |
+| `--supersample s` | 1 | renders each frame at s× the size (2 or 4) and averages each s × s block down (exact halvings), for clean edges on discs, spheres and arrows; particle sizes and their pixel floors follow the drawing buffer, so the picture is otherwise the same, except 1-pixel lines (trail, boundary, axes), which come out thinner. The canvas limit below applies to the s× size |
 | `--verify k,…` | none | replays those frames' steps in a fresh page and checks the particles are identical; the script fails otherwise |
 
 `ffmpeg` with `libvpx-vp9` must be on the `PATH` for video output; it, `git` (for the commit in the metadata)
@@ -117,10 +117,11 @@ Measured on an RTX 5060 Ti through WSL2 (galaxy, 3001 particles, `--speed 2`):
 
 A run also spends a few seconds starting the dev server, Chromium and ffmpeg.
 
-The looks cost mostly PNG encoding, which grows as fewer pixels are black (hadrons, 1920x1080, ms per
-frame in total): plain ~30; `fog` ~32; `--supersample 2` ~50; `glow: 0.5` ~50; a gradient `background`
-~60 (every pixel non-black); glow, gradient and `--supersample 2` together ~90. The gradient has 8-bit
-steps, which a dark one shows as faint rings (VP9 keeps them).
+The looks cost mostly PNG encoding, which grows as fewer pixels are black. Measured on hadrons at
+1920x1080, ms per frame in total (runs vary by up to ±50 % here): plain 30–45; `fog` about the same;
+`glow: 0.5` +10; `--supersample 2` +0–20; a gradient `background` about doubles it (every pixel
+non-black); glow, gradient and `--supersample 2` together 100–200. The gradient has 8-bit steps, which a
+dark one shows as faint rings (VP9 keeps them).
 
 Simulating and rendering a frame takes ~2 ms here, and the per-frame `series` (a readback and the
 potential pass) adds little (galaxy measured ~45 ms per frame in total with it, at 1080x1920); the rest is PNG encoding in the page (~24 ms at

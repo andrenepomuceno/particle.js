@@ -2,7 +2,7 @@ import { readProbe, validateColumns, type FieldProbe } from '../engine/field';
 import { JsonReader } from '../engine/json';
 import type { Vec3 } from '../engine/particles';
 import type { RadialBackground } from '../engine/render/background';
-import { COLOR_MODES, PARTICLE_STYLES, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { COLOR_MODES, fractionProblem, PARTICLE_STYLES, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import type { SimulationController } from './SimulationController';
 
 /**
@@ -40,7 +40,11 @@ function hexColor(json: JsonReader, value: unknown, path: string): string {
   return color;
 }
 
-function gradient(json: JsonReader, value: unknown): RadialBackground {
+function background(json: JsonReader, value: unknown): string | RadialBackground {
+  if (typeof value === 'string') return hexColor(json, value, 'background');
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    json.fail('background', `expected a #rrggbb colour or { "center", "edge" }, got ${JSON.stringify(value)}`);
+  }
   const o = json.object(value, 'background');
   json.onlyKeys(o, ['center', 'edge'], 'background');
   return { center: hexColor(json, o.center, 'background.center'), edge: hexColor(json, o.edge, 'background.edge') };
@@ -69,11 +73,12 @@ export function readDisplayOptions(value: unknown, source = 'display options'): 
   if (o.sizeByMass !== undefined) options.sizeByMass = json.boolean(o.sizeByMass, 'sizeByMass');
   for (const key of ['glow', 'fog'] as const) {
     if (o[key] === undefined) continue;
-    const value = json.finite(o[key], key);
-    if (!(value >= 0 && value <= 1)) json.fail(key, `must be within [0, 1], got ${value}`);
-    options[key] = value;
+    const amount = json.finite(o[key], key);
+    const problem = fractionProblem(amount);
+    if (problem) json.fail(key, problem);
+    options[key] = amount;
   }
-  if (o.background !== undefined) options.background = typeof o.background === 'string' ? hexColor(json, o.background, 'background') : gradient(json, o.background);
+  if (o.background !== undefined) options.background = background(json, o.background);
   if (o.axes !== undefined) options.axes = json.boolean(o.axes, 'axes');
   if (o.boundary !== undefined) options.boundary = json.boolean(o.boundary, 'boundary');
   if (o.field !== undefined) {

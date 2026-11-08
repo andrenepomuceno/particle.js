@@ -90,9 +90,12 @@ speed palette: hue from red to magenta up to 16× the mean speed, white beyond. 
 speed is sampled once per second. Controls → Particle style switches to flat discs, which
 are cheaper. Controls → *Size by mass* draws each particle ∛m times the particle radius (a ball of
 constant density; mass 1 keeps the radius, clamped to 0.5–8×), so a heavy sun stands out among
-planets; scenarios can turn it on (`view.sizeByMass`). *Glow* (0–1) adds a soft halo in each particle's
-color behind it, so clusters read as light; *Depth fog* (0–1) darkens particles farther than the
-camera's orbit target, as (target distance / distance)^(4·fog), a depth cue for 3D scenes. Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate
+planets; scenarios can turn it on (`view.sizeByMass`). *Glow* (0–1) adds a soft halo five times the
+core wide in each particle's color, so clusters read as light (halos are point sprites: one vanishes
+when its particle's center leaves the view, and the GPU caps their size up close); *Depth fog* (0–1)
+fades particles farther from the camera than its orbit target toward the background, keeping
+(target distance / distance)^(4·fog) of their color, a depth cue for 3D scenes. Scenarios can set both
+(`view.glow`, `view.fog`). Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate
 (no software cap, e.g. 144 fps on a 144 Hz screen). Browsers never present frames faster
 than the display refreshes, so there is no higher setting.
 

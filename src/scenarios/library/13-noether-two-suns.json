@@ -10,7 +10,8 @@
     "cameraDistance": 700,
     "particleRadius": 5,
     "colorMode": "speed",
-    "sizeByMass": true
+    "sizeByMass": true,
+    "glow": 0.4
   },
   "settings": {
     "timeStep": 0.25,

@@ -37,6 +37,9 @@ export interface Scenario {
   colorMode: ColorMode;
   /** Draws particles ∛(mass) times the radius while the scenario runs (until the user changes it). */
   sizeByMass: boolean;
+  /** Glow and depth fog while the scenario runs, 0 (off) to 1 (until the user changes them). */
+  glow: number;
+  fog: number;
   /** Shows the force field when the scenario starts (until a scenario without one). */
   field: ScenarioField | undefined;
   /** Scripted events in time order (v1's actions); empty for unscripted scenarios. */

@@ -10,7 +10,7 @@ import type { ForceDefinition } from '../engine/forces/types';
 import { JsonReader } from '../engine/json';
 import { ParticleKind, type Particle, type Vec3 } from '../engine/particles';
 import { inDisk, inSphere, onSphere, pick, uniform, type Rng } from '../engine/random';
-import { COLOR_MODES } from '../engine/render/ParticlePoints';
+import { COLOR_MODES, fractionProblem } from '../engine/render/ParticlePoints';
 import { DEFAULT_SETTINGS, readSettings } from '../engine/settings';
 import type { Scenario, ScenarioField } from './types';
 
@@ -65,6 +65,13 @@ const TOP_KEYS = ['$schema', 'format', 'version', 'id', 'name', 'folder', 'added
 
 /** ISO 8601 date, optionally with a time and an offset: "2026-10-30" or "2026-10-30T17:18:57-03:00". */
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?$/;
+
+function fraction(json: JsonReader, value: unknown, path: string): number {
+  const amount = json.finite(value, path);
+  const problem = fractionProblem(amount);
+  if (problem) json.fail(path, problem);
+  return amount;
+}
 
 /** `view.field`: true, or { columns, logScale, probe } with the test particle's fields over the default. */
 function readField(json: JsonReader, value: unknown): ScenarioField {
@@ -389,7 +396,7 @@ export function parseScenario(text: string, file: string): Scenario {
   const version = json.oneOf(o.version, [1, SCENARIO_VERSION] as const, 'version');
 
   const view = o.view === undefined ? {} : json.object(o.view, 'view');
-  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode', 'sizeByMass', 'field'], 'view');
+  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode', 'sizeByMass', 'glow', 'fog', 'field'], 'view');
   const settings = o.settings === undefined ? { ...DEFAULT_SETTINGS } : readSettings(json, o.settings, 'settings', { ...DEFAULT_SETTINGS });
   const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
   const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
@@ -418,6 +425,8 @@ export function parseScenario(text: string, file: string): Scenario {
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),
     colorMode: view.colorMode === undefined ? 'charge' : json.oneOf(view.colorMode, COLOR_MODES, 'view.colorMode'),
     sizeByMass: view.sizeByMass === undefined ? false : json.boolean(view.sizeByMass, 'view.sizeByMass'),
+    glow: view.glow === undefined ? 0 : fraction(json, view.glow, 'view.glow'),
+    fog: view.fog === undefined ? 0 : fraction(json, view.fog, 'view.fog'),
     field: view.field === undefined ? undefined : readField(json, view.field),
     timeline,
   };

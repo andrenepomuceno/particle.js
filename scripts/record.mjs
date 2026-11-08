@@ -3,7 +3,7 @@
 // written as PNGs, with a JSON of metadata and the timeline captions as WebVTT beside it. See docs/recording.md.
 // Usage: node scripts/record.mjs --scenario id [--seconds 10] [--fps 60] [--steps-per-frame 1] [--size 1080x1920]
 //   [--particles n] [--seed s] [--warmup-steps n] [--display file.json|'{...}'] [--out reports/videos/<id>.webm]
-//   [--png] [--no-video] [--crf 24] [--speed 2] [--capacity n] [--verify k,k,...]
+//   [--png] [--no-video] [--crf 24] [--speed 2] [--supersample 1|2|4] [--lang en|pt-BR] [--capacity n] [--verify k,k,...]
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
@@ -60,6 +60,7 @@ const crf = integer('crf', 0, 63);
 const speed = integer('speed', 0, 8);
 // Renders at s× the size and averages down to it: cleaner edges for s² the pixels.
 const supersample = integer('supersample', 1, 4);
+if (![1, 2, 4].includes(supersample)) fail(`--supersample must be 1, 2 or 4 (averaged by exact halvings), got ${supersample}`);
 const particles = optionalInteger('particles', 1);
 // createRng takes a 32-bit seed.
 const seed = optionalInteger('seed', 0, 0xffffffff);
@@ -201,14 +202,19 @@ async function capture(page, encoder) {
       const { time, timeline, caption } = c.state;
       // The picture first: diagnostics render the potential pass offscreen.
       let picture = c.renderer.domElement;
-      if (factor > 1) {
-        // Supersampled: the browser's high-quality resampling averages the frame down to the output size.
-        const small = globalThis.recorderCanvas ??= Object.assign(globalThis.document.createElement('canvas'), { width: picture.width / factor, height: picture.height / factor });
-        const context = small.getContext('2d');
+      // Supersampled: exact halvings, each a bilinear draw at half size, so every output pixel is the
+      // average of its factor × factor block.
+      for (let f = factor; f > 1; f /= 2) {
+        const halves = (globalThis.recorderHalves ??= new Map());
+        if (!halves.has(picture.width)) {
+          halves.set(picture.width, Object.assign(globalThis.document.createElement('canvas'), { width: picture.width / 2, height: picture.height / 2 }));
+        }
+        const half = halves.get(picture.width);
+        const context = half.getContext('2d');
         context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = 'high';
-        context.drawImage(picture, 0, 0, small.width, small.height);
-        picture = small;
+        context.imageSmoothingQuality = 'low';
+        context.drawImage(picture, 0, 0, half.width, half.height);
+        picture = half;
       }
       const png = picture.toDataURL('image/png');
       return {

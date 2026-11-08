@@ -247,6 +247,26 @@ await withBrowser(async ({ browser, base, glMode }) => {
   });
   check('Restore puts the loaded settings and forces back', JSON.stringify(restored.loaded) === JSON.stringify(restored.now), restored);
 
+  // The looks compile only when shown: turn them on, render, and look for shader or page errors.
+  const looksBefore = errors.length;
+  const looks = await page.evaluate(() => {
+    const c = globalThis.particleController;
+    c.setGlow(0.5);
+    c.setFog(0.5);
+    c.setSizeByMass(true);
+    c.setBackground({ center: '#101820', edge: '#000000' });
+    return { glow: c.state.glow, fog: c.state.fog };
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    const c = globalThis.particleController;
+    c.setGlow(0);
+    c.setFog(0);
+    c.setSizeByMass(false);
+    c.setBackground('#000000');
+  });
+  check('Glow, depth fog, size by mass and a gradient background render', looks.glow === 0.5 && looks.fog === 0.5 && errors.length === looksBefore, { looks, errors: errors.slice(looksBefore) });
+
   await page.keyboard.press('?');
   check('? opens shortcuts', await page.locator('[data-dialog="help"]').count() === 1);
   // Every dialog renders: a view that throws takes the whole UI down (Expressions once did, on a variable

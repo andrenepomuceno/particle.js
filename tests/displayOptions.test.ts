@@ -27,6 +27,7 @@ describe('display options', () => {
     [{ glow: 1.5 }, /at 'glow': must be within \[0, 1\], got 1.5/],
     [{ fog: -0.1 }, /at 'fog': must be within \[0, 1\]/],
     [{ background: { center: '#000000' } }, /at 'background.edge'/],
+    [{ background: 5 }, /at 'background': expected a #rrggbb colour or \{ "center", "edge" \}, got 5/],
     [{ background: { center: '#000000', edge: '#ffffff', angle: 3 } }, /unknown key/],
     [{ field: { columns: 1 } }, /at 'field.enabled'/],
     [{ field: { enabled: true, columns: 1 } }, /at 'field.columns': field grid columns must be an integer/],

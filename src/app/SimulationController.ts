@@ -15,7 +15,7 @@ import { assertStorableParticle, ParticleKind, ParticleSet, TEXEL, type Particle
 import { createRng, inSphere, inDisk } from '../engine/random';
 import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
-import { MASS_SIZE_RANGE, ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { fractionProblem, MASS_SIZE_RANGE, ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
 import { perspectiveScale } from '../engine/render/shared';
 import { radialBackgroundTexture, type RadialBackground } from '../engine/render/background';
 import { ParticleTrail } from '../engine/render/ParticleTrail';
@@ -274,6 +274,8 @@ export class SimulationController {
   private cameraMove: { from: [Vector3, Vector3]; to: [Vector3, Vector3]; start: number; duration: number } | undefined;
   /** A gradient background (setBackground), released when replaced. */
   private backgroundTexture: CanvasTexture | undefined;
+  /** What depth fog fades particles to: the background colour. */
+  private readonly fogColor = new Color(0, 0, 0);
   /** Set while an offline recorder drives the frames (beginCapture): its video clock, in milliseconds. */
   private capture: { clock: number; sampledAt: number } | undefined;
   private restart: () => void = () => {
@@ -387,6 +389,8 @@ export class SimulationController {
     this.store.set({ scenarioId, snapshotFile: undefined, angularPivot: [0, 0, 0], scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
     this.setSizeByMass(scenario.sizeByMass);
+    this.setGlow(scenario.glow);
+    this.setFog(scenario.fog);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
     this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
@@ -521,7 +525,7 @@ export class SimulationController {
     this.points.setColorMode(this.state.colorMode);
     this.points.setSizeByMass(this.state.sizeByMass);
     this.points.setGlow(this.state.glow);
-    this.points.setFog(this.state.fog);
+    this.points.setFog(this.state.fog, this.fogColor);
     this.scene.add(this.points.object);
     this.compiledKey = '';
     this.cpuStale = false;
@@ -751,6 +755,9 @@ export class SimulationController {
   setBackground(background: string | RadialBackground): void {
     this.backgroundTexture?.dispose();
     this.backgroundTexture = undefined;
+    // Far particles fade into the background: its colour, or a gradient's centre, where the action usually is.
+    this.fogColor.set(typeof background === 'string' ? background : background.center);
+    this.points.setFog(this.state.fog, this.fogColor);
     if (typeof background === 'string') {
       this.scene.background = null;
       this.renderer.setClearColor(new Color(background));
@@ -878,14 +885,16 @@ export class SimulationController {
   }
 
   setGlow(glow: number): void {
-    if (!(glow >= 0 && glow <= 1)) throw new Error(`glow must be within [0, 1], got ${glow}`);
+    const problem = fractionProblem(glow);
+    if (problem) throw new Error(`glow ${problem}`);
     this.points.setGlow(glow);
     this.store.set({ glow });
   }
 
   setFog(fog: number): void {
-    if (!(fog >= 0 && fog <= 1)) throw new Error(`fog must be within [0, 1], got ${fog}`);
-    this.points.setFog(fog);
+    const problem = fractionProblem(fog);
+    if (problem) throw new Error(`fog ${problem}`);
+    this.points.setFog(fog, this.fogColor);
     this.store.set({ fog });
   }
 
@@ -1421,7 +1430,7 @@ export class SimulationController {
 
   private applyRadius(): void {
     const height = this.renderer.domElement.height;
-    this.points.setRadius(this.state.particleRadius, height, this.camera.fov);
+    this.points.setRadius(this.state.particleRadius, height, this.camera.fov, this.renderer.getPixelRatio());
     this.arrows.setViewport(this.renderer.domElement.width, height, this.camera.fov);
   }
 
@@ -1429,8 +1438,8 @@ export class SimulationController {
    * Near and far planes follow the orbit distance (scenes span 10 to 1e6 units): a fixed far plane
    * clipped zoomed-out worlds, and a fixed huge range would waste depth precision.
    */
-  private fitDepthRange(): void {
-    const distance = Math.max(this.camera.position.distanceTo(this.controls.target), 1e-6);
+  private fitDepthRange(orbitDistance: number): void {
+    const distance = Math.max(orbitDistance, 1e-6);
     const near = distance * DEPTH_NEAR;
     const far = distance * DEPTH_FAR;
     if (near === this.camera.near && far === this.camera.far) return;
@@ -1440,9 +1449,10 @@ export class SimulationController {
   }
 
     private render(): void {
-    this.fitDepthRange();
+    const orbitDistance = this.camera.position.distanceTo(this.controls.target);
+    this.fitDepthRange(orbitDistance);
     this.points.setTime(this.state.time);
-    this.points.setFocus(this.camera.position.distanceTo(this.controls.target));
+    this.points.setFocus(orbitDistance);
     this.points.bind({
       position: this.gpu.positionTexture,
       velocity: this.gpu.velocityTexture,

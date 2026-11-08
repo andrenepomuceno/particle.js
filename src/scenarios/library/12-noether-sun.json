@@ -1,0 +1,63 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "noether-sun",
+  "name": "Cluster and a sun",
+  "folder": "Noether",
+  "added": "2026-11-08",
+  "description": "The free cluster with a fixed sun at the center (mass 300, as much as the whole cluster). Space is no longer the same everywhere, so the bodies' total momentum P changes as the sun pulls them; but every direction around the sun is still alike, so the angular momentum about the sun (the origin) stays constant. About any other point it changes: move Statistics' point Q off the sun to see it. The energy still holds.",
+  "view": {
+    "cameraDistance": 700,
+    "particleRadius": 5,
+    "colorMode": "speed",
+    "sizeByMass": true
+  },
+  "settings": {
+    "timeStep": 0.25,
+    "mode2D": true
+  },
+  "forces": [
+    {
+      "name": "Gravity",
+      "mode": "potential",
+      "range": "long",
+      "softening": 8,
+      "expression": "-G * m_i * m_j / r",
+      "params": [
+        {
+          "name": "G",
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "count": 300,
+      "mass": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 300
+      },
+      "velocity": {
+        "type": "random",
+        "speed": {
+          "min": 0,
+          "max": 0.6
+        }
+      }
+    },
+    {
+      "count": 1,
+      "kind": "fixed",
+      "mass": 300,
+      "shape": {
+        "type": "point"
+      },
+      "scale": false
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "noether-growing-gravity",
+  "name": "Gravity that grows",
+  "folder": "Noether",
+  "added": "2026-11-08",
+  "description": "The free cluster under a gravity that strengthens with time, G(t) = G·(1 + time/tau): G doubles by t = 600. The laws now differ from one moment to the next, so the energy is no longer conserved (it falls as the pull grows), while space is still the same everywhere and in every direction: the momentum P and the angular momentum L stay constant.",
+  "view": {
+    "cameraDistance": 700,
+    "particleRadius": 5,
+    "colorMode": "speed",
+    "sizeByMass": true
+  },
+  "settings": {
+    "timeStep": 0.25,
+    "mode2D": true
+  },
+  "forces": [
+    {
+      "name": "Gravity",
+      "mode": "potential",
+      "range": "long",
+      "softening": 8,
+      "expression": "-G * (1 + time / tau) * m_i * m_j / r",
+      "params": [
+        {
+          "name": "G",
+          "value": 1
+        },
+        {
+          "name": "tau",
+          "value": 600
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "count": 300,
+      "mass": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 300
+      },
+      "velocity": {
+        "type": "random",
+        "speed": {
+          "min": 0,
+          "max": 0.6
+        }
+      }
+    }
+  ]
+}

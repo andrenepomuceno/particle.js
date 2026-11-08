@@ -76,6 +76,7 @@ you can also load your own with <kbd>I</kbd>.
 | Scenario | Forces | What to look for |
 | --- | --- | --- |
 | Galaxy disk | gravity | a fixed core with 3000 bodies on near-circular orbits |
+| Free cluster, Cluster and a sun, Cluster and two suns, Gravity that grows *(Noether)* | gravity as a potential (G growing in time in the last) | Noether's theorem: the same cluster keeps momentum, angular momentum and energy; a fixed sun breaks translation (P changes), two suns rotation too (L), a G growing in time the time symmetry (E); Statistics charts them |
 | Neutral plasma | Coulomb + weak gravity | ± charges in a reflecting sphere |
 | Nuclear clusters | short-range sine + Coulomb | v1's nuclear force, nucleons clumping in 2D |
 | Lennard-Jones crystal | LJ potential | a cooling gas condensing into a lattice |

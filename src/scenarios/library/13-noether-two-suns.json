@@ -1,0 +1,82 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "noether-two-suns",
+  "name": "Cluster and two suns",
+  "folder": "Noether",
+  "added": "2026-11-08",
+  "description": "The free cluster between two fixed suns (mass 150 each, at x = ±150). No point is a center of symmetry any more: the momentum P changes, and so does the angular momentum about the origin and about either sun (set Statistics' point Q to (150, 0, 0) or (−150, 0, 0)). Time symmetry is untouched, so the energy still holds.",
+  "view": {
+    "cameraDistance": 700,
+    "particleRadius": 5,
+    "colorMode": "speed",
+    "sizeByMass": true
+  },
+  "settings": {
+    "timeStep": 0.25,
+    "mode2D": true
+  },
+  "forces": [
+    {
+      "name": "Gravity",
+      "mode": "potential",
+      "range": "long",
+      "softening": 8,
+      "expression": "-G * m_i * m_j / r",
+      "params": [
+        {
+          "name": "G",
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "count": 300,
+      "mass": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 300
+      },
+      "velocity": {
+        "type": "random",
+        "speed": {
+          "min": 0,
+          "max": 0.6
+        }
+      }
+    },
+    {
+      "count": 1,
+      "kind": "fixed",
+      "mass": 150,
+      "shape": {
+        "type": "point",
+        "center": [
+          -150,
+          0,
+          0
+        ]
+      },
+      "scale": false
+    },
+    {
+      "count": 1,
+      "kind": "fixed",
+      "mass": 150,
+      "shape": {
+        "type": "point",
+        "center": [
+          150,
+          0,
+          0
+        ]
+      },
+      "scale": false
+    }
+  ]
+}

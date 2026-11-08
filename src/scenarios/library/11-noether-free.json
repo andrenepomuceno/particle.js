@@ -1,0 +1,54 @@
+{
+  "format": "particle.js-v2/scenario",
+  "version": 2,
+  "id": "noether-free",
+  "name": "Free cluster",
+  "folder": "Noether",
+  "added": "2026-11-08",
+  "description": "Noether's theorem, translation and rotation: 300 bodies under pairwise gravity in empty space (written as a potential, so Statistics measures the energy too). Every pair pulls equally and oppositely along the line between them, and the laws are the same everywhere and in every direction: the cluster collapses and churns, yet its total momentum P and its angular momentum L stay constant (Statistics: Momentum and Angular momentum), and the energy holds within the integrator's error. Compare Cluster and a sun (translation broken), Cluster and two suns (rotation too) and Gravity that grows (time).",
+  "view": {
+    "cameraDistance": 700,
+    "particleRadius": 5,
+    "colorMode": "speed",
+    "sizeByMass": true
+  },
+  "settings": {
+    "timeStep": 0.25,
+    "mode2D": true
+  },
+  "forces": [
+    {
+      "name": "Gravity",
+      "mode": "potential",
+      "range": "long",
+      "softening": 8,
+      "expression": "-G * m_i * m_j / r",
+      "params": [
+        {
+          "name": "G",
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "count": 300,
+      "mass": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "shape": {
+        "type": "disk",
+        "radius": 300
+      },
+      "velocity": {
+        "type": "random",
+        "speed": {
+          "min": 0,
+          "max": 0.6
+        }
+      }
+    }
+  ]
+}

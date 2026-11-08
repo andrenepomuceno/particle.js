@@ -95,7 +95,12 @@ cannot include); `--verify` results; timing; and any notice or console problem.
 `series` holds, per frame and aligned with `frameTimes`, the `kinetic`, `potential` and `total` energy
 and the `momentum` P and `angularMomentum` L (about the origin) of the dynamic particles, to plot the
 conserved quantities beside the picture. L about another point Q is L − Q × P (in 2D:
-L_z − (Q_x·P_y − Q_y·P_x)).
+L_z − (Q_x·P_y − Q_y·P_x)). The *Noether* scenarios are made for this: recorded with `--seed 7` for
+40 s at 60 fps, 4 steps per frame (t = 0 to 2399), on an RTX 5060 Ti: the free cluster keeps E, P and
+L within 1e-4 of their start (float32 GPU arithmetic); with a sun at the origin P swings from (2.3, −1.8)
+to (−58, −7) and on, while L about the sun stays within 3e-5 of 654.06 and E within 1e-3; with two suns
+L goes from 654 to −3859; with the growing gravity E falls from −208 to −3370 while P and L stay within
+1e-4.
 
 ## Cost and limits
 

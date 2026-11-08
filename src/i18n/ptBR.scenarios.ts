@@ -8,6 +8,7 @@ import type { ScenarioTexts } from './scenarios';
 export const PT_BR_SCENARIOS: ScenarioTexts = {
   folders: {
     Gravity: 'Gravidade',
+    Noether: 'Noether',
     Electromagnetism: 'Eletromagnetismo',
     'Short range': 'Curto alcance',
     Stochastic: 'Estocástico',
@@ -35,6 +36,30 @@ export const PT_BR_SCENARIOS: ScenarioTexts = {
       source: '9a68b4e5',
       name: 'Disco galáctico',
       description: 'Um núcleo fixo e massivo com um disco giratório de corpos leves em órbitas quase circulares.',
+    },
+    'noether-free': {
+      source: 'daef9b87',
+      name: 'Aglomerado livre',
+      description:
+        'Teorema de Noether, translação e rotação: 300 corpos sob gravidade entre pares no espaço vazio (escrita como potencial, para que Estatísticas meça também a energia). Cada par se puxa com forças iguais e opostas ao longo da linha entre eles, e as leis são as mesmas em todo lugar e em toda direção: o aglomerado colapsa e se agita, mas seu momento linear total P e seu momento angular L ficam constantes (Estatísticas: Momento linear e Momento angular), e a energia se mantém dentro do erro do integrador. Compare com Aglomerado e um sol (sem translação), Aglomerado e dois sóis (sem rotação também) e Gravidade que cresce (sem simetria no tempo).',
+    },
+    'noether-sun': {
+      source: '73593471',
+      name: 'Aglomerado e um sol',
+      description:
+        'O aglomerado livre com um sol fixo no centro (massa 300, tanto quanto o aglomerado inteiro). O espaço deixa de ser igual em todo lugar, então o momento linear total P dos corpos muda conforme o sol os puxa; mas todas as direções em torno do sol continuam iguais, então o momento angular em torno do sol (a origem) fica constante. Em torno de qualquer outro ponto ele muda: tire o ponto Q de Estatísticas de cima do sol para ver. A energia continua se mantendo.',
+    },
+    'noether-two-suns': {
+      source: 'ffed70e1',
+      name: 'Aglomerado e dois sóis',
+      description:
+        'O aglomerado livre entre dois sóis fixos (massa 150 cada, em x = ±150). Nenhum ponto é mais um centro de simetria: o momento linear P muda, e também o momento angular em torno da origem e de qualquer um dos sóis (ponha o ponto Q de Estatísticas em (150, 0, 0) ou (−150, 0, 0)). A simetria no tempo continua intacta, então a energia se mantém.',
+    },
+    'noether-growing-gravity': {
+      source: '3e0bb4d8',
+      name: 'Gravidade que cresce',
+      description:
+        'O aglomerado livre sob uma gravidade que se fortalece com o tempo, G(t) = G·(1 + time/tau): G dobra até t = 600. Agora as leis mudam de um instante para o outro, então a energia deixa de se conservar (cai à medida que a atração cresce), enquanto o espaço continua igual em todo lugar e em toda direção: o momento linear P e o momento angular L ficam constantes.',
     },
     plasma: {
       source: '9b2d0c28',

@@ -5,6 +5,9 @@
 - Angular momentum: Statistics charts the momentum P and the angular momentum L = Σ m·(r − Q) × u about a
   chosen point Q, and the recorder's metadata has per-frame `series` (energies, P, L) to plot beside a
   video.
+- *Noether* scenarios: the same 300-body cluster under pairwise gravity, free (P, L and E kept), with a
+  fixed sun (P changes, L about the sun kept), with two suns (L changes too) and with a gravity growing in
+  time (E changes, P and L kept); tests measure each on the reference integrator.
 - *Size by mass* (Controls, `view.sizeByMass`, display option `sizeByMass`): each particle ∛m times the
   radius.
 

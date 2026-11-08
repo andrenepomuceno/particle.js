@@ -72,6 +72,7 @@ describe('parseScenario', () => {
     [{ groups: [{ count: 1, shape: { type: 'point' }, charge: { min: 2, max: 1 } }] }, /min 2 is greater than max 1/],
     [{ groups: [{ count: 1, shape: { type: 'point' }, color: { cycle: [] } }] }, /color.cycle': must not be empty/],
     [{ view: { colorMode: 'neon' } }, /at 'view.colorMode'/],
+    [{ view: { sizeByMass: 1 } }, /at 'view.sizeByMass'/],
     [{ groups: null }, /at 'groups': expected an array/],
     [{ seed: 1.5 }, /at 'seed': must be an integer >= 0, got 1.5/],
     [{ forces: [{ name: 'x', mode: 'force', range: 'short', expression: 'x' }] }, /at 'forces\[0\].cutoff': expected a finite number/],

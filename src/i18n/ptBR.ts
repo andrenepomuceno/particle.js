@@ -203,6 +203,7 @@ export const ptBR: Messages = {
     particleStyle: 'Estilo das partículas',
     colorBy: 'Cor por',
     particleRadius: 'Raio das partículas',
+    sizeByMass: 'Tamanho pela massa (∛m)',
   },
   parameters: {
     integrator: 'Integrador',

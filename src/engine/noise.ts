@@ -1,3 +1,5 @@
+import { glslFloat } from './glsl';
+
 /**
  * Random numbers of force expressions (`rand`, `randn`, `randv`). Each value is a pure function of
  * the unordered pair {i, j}, the evaluation time as float32 bits and a stream number, so the GPU and
@@ -87,7 +89,6 @@ export function hashNormal(seed: number, stream: number): number {
 }
 
 /** A float literal GLSL ES accepts (it has no implicit int to float conversion). */
-const glslFloat = (x: number): string => (Number.isInteger(x) ? x.toFixed(1) : String(x));
 
 const glslHorner = (coefficients: readonly number[]): string =>
   coefficients.reduceRight((inner, c, k) => (k === coefficients.length - 1 ? glslFloat(c) : `${glslFloat(c)} + z * (${inner})`), '');

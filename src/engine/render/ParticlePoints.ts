@@ -3,12 +3,15 @@ import {
   type Texture,
 } from 'three';
 import { GLSL_METRIC } from '../metric';
+import { glslFloat } from '../glsl';
 import { perspectiveScale, V1_PALETTE_GLSL } from './shared';
 
 export const COLOR_MODES = ['charge', 'color', 'speed', 'mass', 'spin', 'parity', 'nuclear', 'isospin', 'clock'] as const;
 export type ColorMode = (typeof COLOR_MODES)[number];
 
 export const PARTICLE_STYLES = ['spherow', 'flat'] as const;
+/** Size by mass scales the radius by ∛m, clamped to this range (an electron and a galaxy core both stay visible). */
+export const MASS_SIZE_RANGE = [0.5, 8] as const;
 export type ParticleStyle = (typeof PARTICLE_STYLES)[number];
 
 /** Sphere radius inside the raymarched sprite, as a fraction of the sprite's half-size. */
@@ -35,6 +38,7 @@ uniform sampler2D uSpin;
 uniform int uWidth;
 uniform int uColorMode;
 uniform int uStyle;
+uniform bool uSizeByMass;
 uniform float uRadius;
 uniform float uScale;
 uniform float uAverageSpeed;
@@ -112,6 +116,8 @@ void main() {
   vec4 mvPosition = modelViewMatrix * vec4(pos.xyz, 1.0);
   gl_Position = projectionMatrix * mvPosition;
   float diameter = 2.0 * uRadius * uScale / -mvPosition.z;
+  // Size by mass: a ball of constant density, ∛m times the radius (mass 1 = the set radius).
+  if (uSizeByMass) diameter *= clamp(pow(attr.x, 1.0 / 3.0), ${glslFloat(MASS_SIZE_RANGE[0])}, ${glslFloat(MASS_SIZE_RANGE[1])});
   if (uStyle == 0) diameter /= ${SPHERE_FRACTION};
   gl_PointSize = max(diameter * (vHighlight > 0.0 ? 1.6 : 1.0), 2.0);
   vPixels = max(diameter, 2.0);
@@ -275,6 +281,7 @@ export class ParticlePoints {
         uWidth: { value: width },
         uColorMode: { value: 0 },
         uStyle: { value: 0 },
+        uSizeByMass: { value: false },
         uRadius: { value: 3 },
         uScale: { value: 400 },
         uAverageSpeed: { value: 1 },
@@ -304,6 +311,11 @@ export class ParticlePoints {
 
   setColorMode(mode: ColorMode): void {
     this.material.uniforms.uColorMode!.value = COLOR_MODES.indexOf(mode);
+  }
+
+  /** Draws each particle ∛(mass) times the radius, within MASS_SIZE_RANGE. */
+  setSizeByMass(enabled: boolean): void {
+    this.material.uniforms.uSizeByMass!.value = enabled;
   }
 
   setStyle(style: ParticleStyle): void {

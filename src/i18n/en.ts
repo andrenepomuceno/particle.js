@@ -210,6 +210,7 @@ export const en = {
     particleStyle: 'Particle style',
     colorBy: 'Color by',
     particleRadius: 'Particle radius',
+    sizeByMass: 'Size by mass (∛m)',
   },
   parameters: {
     integrator: 'Integrator',

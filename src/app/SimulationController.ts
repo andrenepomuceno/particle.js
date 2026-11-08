@@ -15,7 +15,8 @@ import { assertStorableParticle, ParticleKind, ParticleSet, TEXEL, type Particle
 import { createRng, inSphere, inDisk } from '../engine/random';
 import { BoundaryLines } from '../engine/render/BoundaryLines';
 import { FieldArrows } from '../engine/render/FieldArrows';
-import { ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { MASS_SIZE_RANGE, ParticlePoints, type ColorMode, type ParticleStyle } from '../engine/render/ParticlePoints';
+import { perspectiveScale } from '../engine/render/shared';
 import { ParticleTrail } from '../engine/render/ParticleTrail';
 import { inverseLightSpeed2 } from '../engine/metric';
 import { DEFAULT_SETTINGS, HISTORY_DEPTH_RANGE, validateSettings, type SimulationSettings } from '../engine/settings';
@@ -159,6 +160,8 @@ export interface AppState {
   scenariosByFolder: boolean;
   colorMode: ColorMode;
   particleStyle: ParticleStyle;
+  /** Draw each particle ∛(mass) times the radius (a sun stands out among planets). */
+  sizeByMass: boolean;
   fpsLimit: FpsLimit;
   averageSpeed: number;
   /** Lorentz factors and clock spread from the once-per-second sample. */
@@ -279,7 +282,7 @@ export class SimulationController {
     this.store = new Store<AppState>({
       locale: 'en', scenarioId: '', scenarioSource: undefined, seed: undefined, description: '', name: '', snapshotFile: undefined, settings: { ...DEFAULT_SETTINGS }, forces: [], compiledForces: [], forceErrors: {}, forceWarnings: {},
       shaderError: undefined, paused: false, time: 0, particleCount: 0, particlesVersion: 0, capacity: this.set.capacity, particleTarget: undefined, scenarioOrder: 'suggested', scenariosByFolder: true,
-      colorMode: 'charge', particleStyle: 'spherow', fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
+      colorMode: 'charge', particleStyle: 'spherow', sizeByMass: false, fpsLimit: 60, averageSpeed: 0, spacetime: { maxGamma: 1, clockMin: 0, clockMax: 0 }, physicsHistory: [], performanceHistory: [], energyMissing: [], energyErrorLog: undefined, particleRadius: 3, showAxes: true, showBoundary: true, inspected: undefined, followInspected: false, showTrail: false,
       selection: [], clipboard: [], generator: { ...DEFAULT_GENERATOR }, field: { ...DEFAULT_FIELD },
       fieldInfo: undefined, fieldErrorLog: undefined, fps: 0, recording: false, notices: [],
       caption: undefined, timeline: { fired: 0, total: 0, nextAt: undefined },
@@ -370,6 +373,7 @@ export class SimulationController {
     this.replaceWorld(scenario.name, settings, scenario.forces(), particles, 0, shownName);
     this.store.set({ scenarioId, snapshotFile: undefined, scenarioSource: source, seed: { value: seed, fixed: forcedSeed !== undefined || scenario.seed !== undefined }, description: scenario.description, particleRadius: scenario.particleRadius });
     this.setColorMode(scenario.colorMode);
+    this.setSizeByMass(scenario.sizeByMass);
     this.resetCamera(scenario.cameraDistance * linearScale);
     this.applyRadius();
     this.timelineEvents = scaleTimeline(scenario.timeline, linearScale);
@@ -502,6 +506,7 @@ export class SimulationController {
     this.points = points;
     this.points.setStyle(this.state.particleStyle);
     this.points.setColorMode(this.state.colorMode);
+    this.points.setSizeByMass(this.state.sizeByMass);
     this.scene.add(this.points.object);
     this.compiledKey = '';
     this.cpuStale = false;
@@ -849,6 +854,11 @@ export class SimulationController {
     this.store.set({ particleStyle });
   }
 
+  setSizeByMass(sizeByMass: boolean): void {
+    this.points.setSizeByMass(sizeByMass);
+    this.store.set({ sizeByMass });
+  }
+
   setParticleRadius(particleRadius: number): void {
     if (!(particleRadius > 0)) throw new Error(`particle radius must be > 0, got ${particleRadius}`);
     this.store.set({ particleRadius });
@@ -1139,24 +1149,37 @@ export class SimulationController {
 
   /** Returns the particle drawn closest to a canvas pixel, within a pick radius. */
   /** Visits every particle in front of the camera with its client-space pixel position. */
-  private forEachOnScreen(visit: (index: number, x: number, y: number) => void): void {
+  /** Visits each particle in front of the camera at its screen position, with its distance along the view. */
+  private forEachOnScreen(visit: (index: number, x: number, y: number, depth: number) => void): void {
     this.syncFromGpu();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const point = new Vector3();
+    const view = new Vector3();
     for (let k = 0; k < this.set.count; k++) {
       point.fromArray(this.set.position, k * 4).project(this.camera);
       if (point.z > 1) continue;
-      visit(k, rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
+      const depth = -view.fromArray(this.set.position, k * 4).applyMatrix4(this.camera.matrixWorldInverse).z;
+      visit(k, rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height, depth);
     }
   }
 
+  /**
+   * The particle under the cursor: within `radiusPx` of its center, or inside its drawn disc when that is
+   * larger (size by mass); the one whose edge is nearest wins.
+   */
   pickAt(clientX: number, clientY: number, radiusPx = 12): number | undefined {
+    const { particleRadius, sizeByMass } = this.state;
+    const scale = perspectiveScale(this.renderer.domElement.getBoundingClientRect().height, this.camera.fov);
     let best: number | undefined;
-    let bestDistance = radiusPx;
-    this.forEachOnScreen((k, x, y) => {
+    let bestScore = Infinity;
+    this.forEachOnScreen((k, x, y, depth) => {
+      const mass = sizeByMass ? Math.min(Math.max(Math.cbrt(this.set.attributes[k * TEXEL]!), MASS_SIZE_RANGE[0]), MASS_SIZE_RANGE[1]) : 1;
+      const drawn = (particleRadius * scale * mass) / depth;
       const distance = Math.hypot(x - clientX, y - clientY);
-      if (distance < bestDistance) {
-        bestDistance = distance;
+      if (distance >= Math.max(radiusPx, drawn)) return;
+      const score = distance - drawn;
+      if (score < bestScore) {
+        bestScore = score;
         best = k;
       }
     });

@@ -35,6 +35,8 @@ export interface Scenario {
   cameraDistance: number;
   particleRadius: number;
   colorMode: ColorMode;
+  /** Draws particles ∛(mass) times the radius while the scenario runs (until the user changes it). */
+  sizeByMass: boolean;
   /** Shows the force field when the scenario starts (until a scenario without one). */
   field: ScenarioField | undefined;
   /** Scripted events in time order (v1's actions); empty for unscripted scenarios. */

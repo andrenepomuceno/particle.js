@@ -4,6 +4,7 @@ import { PAIR_VARIABLES } from '../forces/variables';
 import { HISTORY_SEARCH_STEPS } from '../cpu/history';
 import { GLSL_METRIC } from '../metric';
 import { GLSL_NOISE_HELPERS, MEAN_NOISE, NOISE_STREAMS, type PairNoise } from '../noise';
+import { glslFloat } from '../glsl';
 
 export const BOUNDARY_CODE = { none: 0, sphere: 1, box: 2 } as const;
 
@@ -188,7 +189,6 @@ function readsPotential(forces: readonly CompiledForce[], names: readonly string
   return forces.some((f) => names.some((name) => f.potentialReads.has(name)));
 }
 
-const glslFloat = (x: number) => (Number.isInteger(x) ? x.toFixed(1) : String(x));
 
 /** The pair's random numbers (`noise` = (rand, randn), `noiseVec` = randv) at their means. */
 const MEAN_NOISE_DECLARATIONS = `vec2 noise = vec2(${glslFloat(MEAN_NOISE.rand)}, ${glslFloat(MEAN_NOISE.randn)});

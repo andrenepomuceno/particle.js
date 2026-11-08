@@ -12,6 +12,8 @@ export interface DisplayOptions {
   particleStyle?: ParticleStyle;
   colorMode?: ColorMode;
   particleRadius?: number;
+  /** Each particle ∛(mass) times the radius; unset keeps the scenario's. */
+  sizeByMass?: boolean;
   /** `#rrggbb`; the app's is black. */
   background?: string;
   axes?: boolean;
@@ -25,7 +27,7 @@ export interface DisplayOptions {
   camera?: { position: Vec3; target: Vec3 };
 }
 
-const KEYS = ['particleStyle', 'colorMode', 'particleRadius', 'background', 'axes', 'boundary', 'field', 'trail', 'follow', 'camera'] as const;
+const KEYS = ['particleStyle', 'colorMode', 'particleRadius', 'sizeByMass', 'background', 'axes', 'boundary', 'field', 'trail', 'follow', 'camera'] as const;
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 function particleIndex(json: JsonReader, value: unknown, path: string): { particle: number } {
@@ -48,6 +50,7 @@ export function readDisplayOptions(value: unknown, source = 'display options'): 
     options.particleRadius = json.finite(o.particleRadius, 'particleRadius');
     if (!(options.particleRadius > 0)) json.fail('particleRadius', `must be > 0, got ${options.particleRadius}`);
   }
+  if (o.sizeByMass !== undefined) options.sizeByMass = json.boolean(o.sizeByMass, 'sizeByMass');
   if (o.background !== undefined) {
     options.background = json.string(o.background, 'background');
     if (!HEX_COLOR.test(options.background)) json.fail('background', `expected a #rrggbb colour, got ${JSON.stringify(options.background)}`);
@@ -92,6 +95,7 @@ export function applyDisplayOptions(controller: SimulationController, options: D
   if (options.particleStyle !== undefined) controller.setParticleStyle(options.particleStyle);
   if (options.colorMode !== undefined) controller.setColorMode(options.colorMode);
   if (options.particleRadius !== undefined) controller.setParticleRadius(options.particleRadius);
+  if (options.sizeByMass !== undefined) controller.setSizeByMass(options.sizeByMass);
   if (options.background !== undefined) controller.setBackground(options.background);
   if ((options.axes ?? false) !== state.showAxes) controller.toggleAxes();
   if (options.boundary !== undefined && options.boundary !== controller.state.showBoundary) controller.toggleBoundary();

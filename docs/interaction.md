@@ -88,7 +88,9 @@ color mode; in `charge` mode it is v1's meaningful color (positive blue, negativ
 neutral gray, tinted by color charge, green tint for negative nuclear charge or negative parity). The arrow uses v1's
 speed palette: hue from red to magenta up to 16× the mean speed, white beyond. The mean
 speed is sampled once per second. Controls → Particle style switches to flat discs, which
-are cheaper. Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate
+are cheaper. Controls → *Size by mass* draws each particle ∛m times the particle radius (a ball of
+constant density; mass 1 keeps the radius, clamped to 0.5–8×), so a heavy sun stands out among
+planets; scenarios can turn it on (`view.sizeByMass`). Controls → FPS limit caps rendering (and stepping) at 30, 60 (default) or the display rate
 (no software cap, e.g. 144 fps on a 144 Hz screen). Browsers never present frames faster
 than the display refreshes, so there is no higher setting.
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- *Size by mass* (Controls, `view.sizeByMass`, display option `sizeByMass`): each particle ∛m times the
+  radius.
+
 ## 2.3.0 — 2026-11-03
 
 ### Physics

@@ -389,7 +389,7 @@ export function parseScenario(text: string, file: string): Scenario {
   const version = json.oneOf(o.version, [1, SCENARIO_VERSION] as const, 'version');
 
   const view = o.view === undefined ? {} : json.object(o.view, 'view');
-  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode', 'field'], 'view');
+  json.onlyKeys(view, ['cameraDistance', 'particleRadius', 'colorMode', 'sizeByMass', 'field'], 'view');
   const settings = o.settings === undefined ? { ...DEFAULT_SETTINGS } : readSettings(json, o.settings, 'settings', { ...DEFAULT_SETTINGS });
   const forceSpecs = o.forces === undefined ? [] : json.array(o.forces, 'forces');
   const forces = forceSpecs.map((f, k) => readForce(json, version === 1 ? migrateScalarSpin(f) : f, `forces[${k}]`, false));
@@ -417,6 +417,7 @@ export function parseScenario(text: string, file: string): Scenario {
     cameraDistance: view.cameraDistance === undefined ? 1000 : json.positive(view.cameraDistance, 'view.cameraDistance'),
     particleRadius: view.particleRadius === undefined ? 3 : json.positive(view.particleRadius, 'view.particleRadius'),
     colorMode: view.colorMode === undefined ? 'charge' : json.oneOf(view.colorMode, COLOR_MODES, 'view.colorMode'),
+    sizeByMass: view.sizeByMass === undefined ? false : json.boolean(view.sizeByMass, 'view.sizeByMass'),
     field: view.field === undefined ? undefined : readField(json, view.field),
     timeline,
   };

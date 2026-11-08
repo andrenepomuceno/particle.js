@@ -285,6 +285,7 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
   const colorMode = useAppState((s) => s.colorMode);
   const radius = useAppState((s) => s.particleRadius);
   const style = useAppState((s) => s.particleStyle);
+  const sizeByMass = useAppState((s) => s.sizeByMass);
   const fpsLimit = useAppState((s) => s.fpsLimit);
   return (
     <div>
@@ -300,6 +301,7 @@ export function ControlsView({ ctx }: { ctx: ActionContext }) {
         <SelectField label={t.controls.particleStyle} value={style} options={PARTICLE_STYLES} optionLabel={(s) => t.options.particleStyle[s]} onChange={(s) => controller.setParticleStyle(s)} />
         <SelectField label={t.controls.colorBy} value={colorMode} options={COLOR_MODES} optionLabel={(m) => t.options.colorMode[m]} onChange={(m) => controller.setColorMode(m)} />
         <NumberField label={t.controls.particleRadius} value={radius} validate={positive} onCommit={(r) => controller.setParticleRadius(r)} />
+        <CheckField label={t.controls.sizeByMass} checked={sizeByMass} onChange={(on) => controller.setSizeByMass(on)} />
       </div>
     </div>
   );

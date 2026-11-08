@@ -46,6 +46,7 @@ Unknown keys and invalid values fail with their path.
   "particleStyle": "flat",
   "colorMode": "speed",
   "particleRadius": 2,
+  "sizeByMass": true,
   "background": "#05070a",
   "axes": false,
   "boundary": true,
@@ -58,7 +59,7 @@ Unknown keys and invalid values fail with their path.
 
 | Key | Values |
 | --- | --- |
-| `particleStyle`, `colorMode`, `particleRadius` | as in the View dialog |
+| `particleStyle`, `colorMode`, `particleRadius`, `sizeByMass` | as in the Controls dialog |
 | `background` | `#rrggbb` |
 | `axes`, `boundary` | show the axes, the boundary |
 | `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md); the fields given replace the scenario's, the others stay) |

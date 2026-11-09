@@ -1,20 +1,32 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 — 2026-11-09
 
-- Angular momentum: Statistics charts the momentum P and the angular momentum L = Σ m·(r − Q) × u about a
-  chosen point Q, and the recorder's metadata has per-frame `series` (energies, P, L) to plot beside a
-  video.
-- *Noether* scenarios: the same 300-body cluster under pairwise gravity, free (P, L and E kept), with a
-  fixed sun (P changes, L about the sun kept), with two suns (L changes too) and with a gravity growing in
-  time (E changes, P and L kept); tests measure each on the reference integrator.
-- Looks for recordings, all off by default: *Glow* (a soft halo in each particle's color) and *Depth fog*
-  (fading far particles into the background) in Controls, as display options `glow`, `fog` and as
-  scenario `view.glow`, `view.fog` (the Noether scenarios glow); a radial gradient
-  `background: { center, edge }` (display option); and `npm run record -- --supersample 2` (or 4: render
-  at s× and average each block down).
-- *Size by mass* (Controls, `view.sizeByMass`, display option `sizeByMass`): each particle ∛m times the
-  radius.
+### Physics
+
+- Angular momentum: Statistics charts the momentum P = Σ m·u and the angular momentum L = Σ m·(r − Q) × u
+  of the dynamic particles about a chosen point Q (relativistic under Minkowski; back to the origin with
+  every new world). Their axes span at least 1 % of what they could reach, so a conserved quantity draws
+  flat instead of as float32 noise.
+- New folder *Noether*: the same 300-body cluster under pairwise gravity, free (momentum, angular momentum
+  and energy kept), with a fixed sun (momentum changes, angular momentum about the sun kept), with two suns
+  (angular momentum changes too) and with a gravity growing in time (energy changes, momentum and angular
+  momentum kept). Tests measure each on the reference integrator.
+
+### Interface
+
+- *Size by mass* (Controls): each particle ∛m times the radius, so a heavy sun stands out; a click
+  anywhere on a particle's drawn disc picks it.
+- *Glow* (a soft halo in each particle's color, five cores wide) and *Depth fog* (far particles fade into
+  the background) in Controls, both off by default.
+- Scenario `view` gains `sizeByMass`, `glow` and `fog`; the Noether scenarios use them.
+
+### Recording
+
+- The metadata has per-frame `series`: kinetic, potential and total energy, momentum and angular momentum
+  (about the origin; about Q it is L − Q × P), to plot beside the video.
+- `--supersample 2` (or 4) renders at s× and averages each block down, for clean edges.
+- Display options `sizeByMass`, `glow`, `fog` and a radial gradient `background: { center, edge }`.
 
 ## 2.3.0 — 2026-11-03
 

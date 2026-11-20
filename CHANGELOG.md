@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Scenarios
+
+- *Dipole Antenna* swings in place in the dipole regime: up to 0.25 c, 2.4 units either side, every
+  T = 60 (120 steps), its radiation averaged over a period within 0.07 of Hertz's sin²θ. Its charge used to
+  walk ~0.95 units along x per period (each Euler kick reads the drive at the step's start; a start at
+  u = −F0·dt/2 cancels that), and at 0.7 c its pattern peaked near 45°, not across the axis as described.
+  The drive's source is out of view.
+- A test runs it on the reference integrator: over 40 periods the swing's mean moves less than 0.005 unit,
+  at the speed and amplitude the description states, and the pattern is measured on the Liénard–Wiechert
+  field 600 units out.
+
 ## 2.4.0 — 2026-11-09
 
 ### Physics

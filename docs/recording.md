@@ -82,6 +82,12 @@ The recorder stops the app's frame loop and drives everything from the frames:
   app samples them every wall-clock second.
 - Captions are a page overlay, not canvas pixels: they go to the `.vtt` subtitle track (one cue per
   caption, at the frames where the timeline changes it) and to the metadata.
+- A periodic scenario loops seamlessly when the warm-up and the recording are whole periods.
+  dipole-antenna repeats every 120 steps, so `--warmup-steps 600 --steps-per-frame 1 --fps 60
+  --seconds 50` records 25 periods, and the frame after the last would be frame 0 again. At 1080x1920,
+  frame 120 differed from frame 0 by 0.08 in mean pixel value,
+  neighbouring frames by 1.3, and 25 periods later the difference was still 0.006. The 600-step warm-up
+  carries the radiation 300 units out, past the corners of that view.
 
 ## Metadata
 

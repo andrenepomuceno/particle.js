@@ -9,8 +9,9 @@
   walk ~0.95 units along x per period (each Euler kick reads the drive at the step's start; a start at
   u = −F0·dt/2 cancels that), and at 0.7 c its pattern peaked near 45°, not across the axis as described.
   The drive's source is out of view.
-- A test runs it on the reference integrator: over 40 periods the swing's mean moves less than 0.005 unit,
-  at the speed and amplitude the description states, and the pattern is measured on the Liénard–Wiechert
+- New *Relativistic Antenna*: the same drive at 0.69 c, its lobes leaning toward the axis (peak about 40°).
+- Tests run both on the reference integrator: over 40 periods the swing's mean moves less than 0.005 unit,
+  at the speed and amplitude the descriptions state, and the patterns are measured on the Liénard–Wiechert
   field 600 units out.
 
 ## 2.4.0 — 2026-11-09

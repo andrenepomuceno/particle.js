@@ -8,8 +8,8 @@ import { createRng } from '../src/engine/random';
 import { DEFAULT_SETTINGS } from '../src/engine/settings';
 import { findScenario } from '../src/scenarios';
 
-// The antenna on the float64 reference: the swing stays in place for 40 periods at the speed and amplitude
-// its description states, and the time-averaged radiation far away has the pattern it describes.
+// The antennas on the float64 reference: the swing stays in place for 40 periods at the speed and amplitude
+// their descriptions state, and the time-averaged radiation far away has the pattern they describe.
 const PERIODS = 40;
 /** Observer distance of the pattern: about ten wavelengths, inside the history's reach c·(K − 1)·dt. */
 const FAR = 600;
@@ -92,8 +92,17 @@ function hertz(pattern: Map<number, number>): void {
   expect(pattern.get(90)!).toBeGreaterThan(0.98);
 }
 
+/** Lobes leaning toward the axis: the peak about 40° from it, well above the value across it. */
+function leaning(pattern: Map<number, number>): void {
+  const peak = [...pattern].find(([, value]) => value === 1)![0];
+  expect(peak).toBeGreaterThanOrEqual(35);
+  expect(peak).toBeLessThanOrEqual(45);
+  expect(pattern.get(90)!).toBeLessThan(0.9);
+}
+
 describe.each([
   { id: 'dipole-antenna', shape: "Hertz's sin²θ", check: hertz },
+  { id: 'relativistic-antenna', shape: 'lobes leaning toward the axis', check: leaning },
 ])('$id', ({ id, shape, check }) => {
   const { description } = findScenario(id);
   // One run serves all of this scenario's tests.

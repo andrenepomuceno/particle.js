@@ -29,7 +29,7 @@ Successor of [particle.js](https://github.com/andrenepomuceno/particle.js), rewr
   a chosen c: forces change the momentum γmv, speeds stay below c, and each clock shows its proper
   time (scenarios *Twin Clocks* and *Relativistic Cyclotron*). Retarded forces read their sources
   on the light cone, and the Liénard–Wiechert preset gives the full field of a moving charge,
-  radiation included (*Retarded Field*, *Dipole Antenna*).
+  radiation included (*Retarded Field*, *Dipole Antenna*, *Relativistic Antenna*).
 - **Rich particles**: position, velocity, own clock, mass, 2D charge, spin vector, isospin, parity, nuclear charge
   and a color charge modeled with three base vectors 120° apart, all usable in expressions.
 - **Statistics**: energy, momentum, angular momentum (about any point), speed, temperature and performance charts, and a table of the particles grouped by property.

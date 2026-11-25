@@ -112,6 +112,7 @@ export const en = {
     positive: 'must be > 0',
     nonNegative: 'must be >= 0',
     unitInterval: 'must be within [0, 1]',
+    quantile: 'must be within (0, 1]',
     integerAtLeast: (min: number) => `must be an integer >= ${min}`,
     integerWithin: (min: number, max: number) => `must be an integer within [${min}, ${max}]`,
   },
@@ -289,7 +290,7 @@ export const en = {
     spacing: 'Spacing',
     reference: '|F| at white',
     refit: 'Re-fit to view',
-    explanation: "Arrows show the net force the test particle would feel at each probe. Color runs red to magenta up to the reference |F|, white beyond: by default the 90th percentile of |F| over the probes (reference quantile 0.9). A lower quantile lets a weak field reach the bright colors, such as an antenna's radiation beside its charge's Coulomb core; a fixed |F| (0 = auto) keeps one scale across views. Otherwise the scale follows the field, so scaling the test particle (charge ×5, mass ×10) looks the same: lock the color scale or fix |F| to compare strengths. Sign changes and which charges it carries change the directions.",
+    explanation: "Arrows show the net force the test particle would feel at each probe. Color runs red to magenta up to the reference |F|, white beyond: by default the 90th percentile of |F| over the probes (reference quantile 0.9). A lower quantile lets a weak field reach the bright colors, such as an antenna's radiation beside its charge's Coulomb core; a fixed |F| (0 = auto) keeps one scale across views. A new quantile takes the scale again, even when locked. Otherwise the scale follows the field, so scaling the test particle (charge ×5, mass ×10) looks the same: lock the color scale or fix |F| to compare strengths. Sign changes and which charges it carries change the directions.",
   },
   help: { keyboard: 'Keyboard', mouse: 'Mouse' },
   forces: {

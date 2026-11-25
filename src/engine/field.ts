@@ -27,9 +27,15 @@ export function validateReferenceQuantile(quantile: number): string | undefined 
   return Number.isFinite(quantile) && quantile > 0 && quantile <= 1 ? undefined : `field reference quantile must be within (0, 1], got ${quantile}`;
 }
 
-/** A fixed |F| at the top of the palette: finite and >= 0, where 0 follows the field (the quantile). */
+/** The fixed |F| a float32 uniform holds without rounding to 0 or Infinity (the shader divides by it). */
+export const FIXED_REFERENCE_RANGE = [1e-30, 1e38] as const;
+
+/** A fixed |F| at the top of the palette, within FIXED_REFERENCE_RANGE, or 0 to follow the field (the quantile). */
 export function validateFixedReference(reference: number): string | undefined {
-  return Number.isFinite(reference) && reference >= 0 ? undefined : `field reference must be a finite number >= 0 (0 follows the field), got ${reference}`;
+  const [min, max] = FIXED_REFERENCE_RANGE;
+  return reference === 0 || (reference >= min && reference <= max)
+    ? undefined
+    : `field reference must be 0 (follow the field) or within [${min}, ${max}], got ${reference}`;
 }
 
 export function validateProbe(probe: FieldProbe): string[] {
@@ -165,5 +171,6 @@ export function fieldReference(magnitudes: ArrayLike<number>, quantile = FIELD_R
   }
   if (values.length === 0) return 0;
   values.sort((a, b) => a - b);
-  return values[Math.min(values.length - 1, Math.floor(quantile * values.length))]!;
+  // The epsilon keeps a quantile such as 0.29 (0.29 · 100 = 28.999…) on its own probe; 0.9 · n is never that close below.
+  return values[Math.min(values.length - 1, Math.floor(quantile * values.length + 1e-9))]!;
 }

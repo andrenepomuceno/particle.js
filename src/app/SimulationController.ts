@@ -975,10 +975,14 @@ export class SimulationController {
     this.store.set({ field, fieldErrorLog: undefined });
     this.arrows.setVisible(field.enabled);
     this.arrows.setLogScale(field.logScale);
-    if (field.referenceQuantile !== previous.referenceQuantile || field.reference !== previous.reference) this.fieldScaleStale = true;
+    // A new reference takes the scale again (past a lock), once the edit holds.
+    const scaleChanged = field.referenceQuantile !== previous.referenceQuantile || field.reference !== previous.reference;
     // The color scale is a draw-time uniform: no need to recompute the O(probes·N) field.
     const colorsOnly = { ...field, ...Object.fromEntries(FIELD_COLOR_KEYS.map((key) => [key, previous[key]])) };
-    if (JSON.stringify(colorsOnly) === JSON.stringify(previous)) return;
+    if (JSON.stringify(colorsOnly) === JSON.stringify(previous)) {
+      if (scaleChanged) this.fieldScaleStale = true;
+      return;
+    }
     if (!field.enabled) {
       this.store.set({ fieldInfo: undefined });
       return;
@@ -993,6 +997,7 @@ export class SimulationController {
         throw error;
       }
     }
+    if (scaleChanged) this.fieldScaleStale = true;
     this.fieldDirty = true;
   }
 

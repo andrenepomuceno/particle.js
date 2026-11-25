@@ -34,7 +34,7 @@ describe('display options', () => {
     [{ field: { enabled: true, probe: { mass: 0 } } }, /at 'field.probe': test particle mass must be > 0/],
     [{ field: { enabled: true, referenceQuantile: 0 } }, /at 'field.referenceQuantile': field reference quantile must be within \(0, 1\], got 0/],
     [{ field: { enabled: true, referenceQuantile: 1.5 } }, /at 'field.referenceQuantile'/],
-    [{ field: { enabled: true, reference: -1 } }, /at 'field.reference': field reference must be a finite number >= 0 \(0 follows the field\), got -1/],
+    [{ field: { enabled: true, reference: -1 } }, /at 'field.reference': field reference must be 0 \(follow the field\) or within \[1e-30, 1e\+38\], got -1/],
     [{ field: { enabled: true, reference: 'auto' } }, /at 'field.reference'/],
     [{ trail: { particle: -1 } }, /at 'trail.particle': must be a particle index/],
     [{ trail: { particle: 3 }, follow: { particle: 0 } }, /at 'trail.particle': must be the followed particle \(follow.particle = 0\), got 3/],

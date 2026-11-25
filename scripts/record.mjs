@@ -219,7 +219,7 @@ async function capture(page, encoder) {
       }
       const png = picture.toDataURL('image/png');
       return {
-        png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(), fieldReference: c.state.fieldInfo?.reference ?? null,
+        png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(), fieldReference: c.state.fieldInfo?.reference || null,
         particles: keep ? JSON.stringify(c.readParticles()) : undefined,
       };
     }, { steps: frame === 0 ? 0 : stepsPerFrame, seconds: frame === 0 ? 0 : 1 / fps, keep: verify.includes(frame), factor: supersample });
@@ -308,8 +308,8 @@ const metadata = {
   frameHashes: report.hashes,
   timeline: report.timeline,
   diagnostics: { first: report.diagnosticsFirst, last: report.diagnosticsLast },
-  // The field's |F| at white on the first and last frame (null without the field): another take with
-  // field.reference set to it shares the colour scale.
+  // The field's |F| at white on the first and last frame (null without the field, or while no probe feels a
+  // force): another take with field.reference set to it shares the colour scale.
   fieldReference: report.fieldReference,
   // Per frame, aligned with frameTimes: energies, P and L about the origin (about Q: L − Q × P).
   series: report.series,

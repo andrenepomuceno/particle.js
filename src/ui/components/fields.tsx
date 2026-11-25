@@ -89,7 +89,7 @@ type Validator = (value: number) => string | undefined;
 
 /** The common number checks, with their messages in the interface language. */
 export function useValidators(): {
-  positive: Validator; nonNegative: Validator; unitInterval: Validator;
+  positive: Validator; nonNegative: Validator; unitInterval: Validator; quantile: Validator;
   integerAtLeast: (min: number) => Validator; integerWithin: (min: number, max: number) => Validator;
 } {
   const { validation: m } = useMessages();
@@ -97,6 +97,7 @@ export function useValidators(): {
     positive: (v) => (v > 0 ? undefined : m.positive),
     nonNegative: (v) => (v >= 0 ? undefined : m.nonNegative),
     unitInterval: (v) => (v >= 0 && v <= 1 ? undefined : m.unitInterval),
+    quantile: (v) => (v > 0 && v <= 1 ? undefined : m.quantile),
     integerAtLeast: (min) => (v) => (Number.isInteger(v) && v >= min ? undefined : m.integerAtLeast(min)),
     integerWithin: (min, max) => (v) => (Number.isInteger(v) && v >= min && v <= max ? undefined : m.integerWithin(min, max)),
   }), [m]);

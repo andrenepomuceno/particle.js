@@ -231,10 +231,11 @@ await withBrowser(async ({ browser, base, glMode }) => {
     const after = { reference: c.state.fieldInfo.reference, max: Math.max(...c.gpu.readFieldMagnitudes()) };
     // A new quantile takes the scale again though it is locked and paused, from the field already computed;
     // a fixed |F| replaces it, and 0 goes back to the quantile.
-    const sorted = Array.from(c.gpu.readFieldMagnitudes()).filter((m) => m > 0).sort((x, y) => x - y);
+    const sorted = Array.from(c.gpu.readFieldMagnitudes()).filter((m) => Number.isFinite(m) && m > 0).sort((x, y) => x - y);
+    const computedAt = c.fieldComputedAt;
     c.setField({ referenceQuantile: 0.5 });
     await wait();
-    const median = { reference: c.state.fieldInfo.reference, expected: sorted[Math.floor(0.5 * sorted.length)], max: Math.max(...c.gpu.readFieldMagnitudes()) };
+    const median = { reference: c.state.fieldInfo.reference, expected: sorted[Math.floor(0.5 * sorted.length)], recomputed: c.fieldComputedAt !== computedAt };
     c.setField({ reference: 1e-3 });
     await wait();
     const fixed = c.state.fieldInfo.reference;
@@ -247,7 +248,7 @@ await withBrowser(async ({ browser, base, glMode }) => {
   check('Locked color scale keeps its reference while the test particle changes the field',
     locked.after.reference === locked.before.reference && Math.abs(locked.after.max / locked.before.max - 5) < 1e-3, locked);
   check('Reference quantile and fixed |F| set the color scale without recomputing the field',
-    Math.abs(locked.median.reference / locked.median.expected - 1) < 1e-6 && locked.median.max === locked.after.max
+    Math.abs(locked.median.reference / locked.median.expected - 1) < 1e-6 && !locked.median.recomputed
     && locked.fixed === 1e-3 && locked.followed === locked.median.reference, locked);
 
   // Restore buttons: settings and forces return to what the world was loaded with.

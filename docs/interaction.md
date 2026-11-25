@@ -157,7 +157,8 @@ screen; *Lock color scale* freezes it so such changes show as brighter or dimmer
 *Reference quantile* (0.9) picks which quantile of |F| over the probes reaches white: a lower one lets a
 weak far field into the bright colors beside a strong core, such as an antenna's radiation beside its
 charge's Coulomb field. *Fixed |F| at white* pins the reference to a value instead (0 = follow the field),
-the same scale across views and recordings; it overrides the quantile and the lock.
+the same scale across views and recordings; it overrides the quantile and the lock. A new quantile,
+or a fixed |F| set back to 0, takes the scale again even when it is locked.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
 total), momentum P = Σ m·u and angular momentum L = Σ m·(r − Q) × u of the dynamic particles

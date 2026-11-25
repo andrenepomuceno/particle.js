@@ -105,6 +105,7 @@ export const ptBR: Messages = {
     positive: 'deve ser > 0',
     nonNegative: 'deve ser >= 0',
     unitInterval: 'deve estar em [0, 1]',
+    quantile: 'deve estar em (0, 1]',
     integerAtLeast: (min) => `deve ser um inteiro >= ${min}`,
     integerWithin: (min, max) => `deve ser um inteiro em [${min}, ${max}]`,
   },
@@ -282,7 +283,7 @@ export const ptBR: Messages = {
     spacing: 'Espaçamento',
     reference: '|F| no branco',
     refit: 'Reajustar à vista',
-    explanation: 'As setas mostram a força resultante que a partícula de teste sentiria em cada sonda. A cor vai do vermelho ao magenta até o |F| de referência, e é branca acima dele: por padrão o percentil 90 de |F| nas sondas (quantil da referência 0.9). Um quantil menor deixa um campo fraco chegar às cores claras, como a radiação de uma antena ao lado do núcleo de Coulomb da sua carga; um |F| fixo (0 = automático) mantém uma só escala entre vistas. Fora isso a escala acompanha o campo, então escalar a partícula de teste (carga ×5, massa ×10) não muda a imagem: trave a escala de cores ou fixe o |F| para comparar intensidades. Trocar sinais, e quais cargas ela carrega, muda as direções.',
+    explanation: 'As setas mostram a força resultante que a partícula de teste sentiria em cada sonda. A cor vai do vermelho ao magenta até o |F| de referência, e é branca acima dele: por padrão o percentil 90 de |F| nas sondas (quantil da referência 0.9). Um quantil menor deixa um campo fraco chegar às cores claras, como a radiação de uma antena ao lado do núcleo de Coulomb da sua carga; um |F| fixo (0 = automático) mantém uma só escala entre vistas. Um quantil novo refaz a escala, mesmo travada. Fora isso a escala acompanha o campo, então escalar a partícula de teste (carga ×5, massa ×10) não muda a imagem: trave a escala de cores ou fixe o |F| para comparar intensidades. Trocar sinais, e quais cargas ela carrega, muda as direções.',
   },
   help: { keyboard: 'Teclado', mouse: 'Mouse' },
   forces: {

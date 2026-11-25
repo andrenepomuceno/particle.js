@@ -116,8 +116,8 @@ same command share; timeline changes by frame (`eventsFired`, caption); diagnost
 last frame (kinetic, potential and total energy, momentum Σ m·u, angular momentum Σ m·r × u about the
 origin, temperature, mean and maximum speed; `potentialLeavesOut` names force-mode forces the potential
 cannot include); the force field's |F| at white on the first and last frame (`fieldReference`, null
-without the field; equal with `lockScale` or a fixed `reference`); `--verify` results; timing; and any
-notice or console problem.
+without the field or while no probe feels a force; with `lockScale` or a fixed `reference` both are the
+same once frame 0 has a field); `--verify` results; timing; and any notice or console problem.
 
 `series` holds, per frame and aligned with `frameTimes`, the `kinetic`, `potential` and `total` energy
 and the `momentum` P and `angularMomentum` L (about the origin) of the dynamic particles, to plot the

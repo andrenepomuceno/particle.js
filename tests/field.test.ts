@@ -137,6 +137,8 @@ describe('fieldReference', () => {
     expect(fieldReference(magnitudes, FIELD_REFERENCE_QUANTILE)).toBe(fieldReference(magnitudes));
     expect(fieldReference(magnitudes, 0.5)).toBe(51);
     expect(fieldReference(magnitudes, 0.01)).toBe(2);
+    expect(fieldReference(magnitudes, 0.29)).toBe(30);
+    expect(fieldReference(magnitudes, 0.57)).toBe(58);
     expect(fieldReference(magnitudes, 1)).toBe(100);
   });
 
@@ -158,10 +160,12 @@ describe('fieldReference', () => {
 });
 
 describe('validateFixedReference', () => {
-  it('accepts 0 (follow the field) and any finite positive |F|', () => {
+  it('accepts 0 (follow the field) and any |F| a float32 uniform holds', () => {
     expect(validateFixedReference(0)).toBeUndefined();
     expect(validateFixedReference(3e-4)).toBeUndefined();
-    expect(validateFixedReference(-1)).toBe('field reference must be a finite number >= 0 (0 follows the field), got -1');
+    expect(validateFixedReference(-1)).toBe('field reference must be 0 (follow the field) or within [1e-30, 1e+38], got -1');
+    expect(validateFixedReference(1e39)).toMatch(/got 1e\+39/);
+    expect(validateFixedReference(1e-35)).toMatch(/got 1e-35/);
     expect(validateFixedReference(Infinity)).toMatch(/got Infinity/);
   });
 });

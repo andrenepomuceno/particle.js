@@ -497,7 +497,7 @@ export function FieldView() {
   const controller = useController();
   const messages = useMessages();
   const { field: t } = messages;
-  const { integerWithin, positive, unitInterval, nonNegative } = useValidators();
+  const { integerWithin, quantile, nonNegative } = useValidators();
   const field = useAppState((s) => s.field);
   const info = useAppState((s) => s.fieldInfo);
   const errorLog = useAppState((s) => s.fieldErrorLog);
@@ -511,10 +511,7 @@ export function FieldView() {
         <CheckField label={t.autoRefresh} checked={field.autoRefresh} onChange={(autoRefresh) => set({ autoRefresh })} />
         <CheckField label={t.logScale} checked={field.logScale} onChange={(logScale) => set({ logScale })} />
         <CheckField label={t.lockScale} checked={field.lockScale} onChange={(lockScale) => set({ lockScale })} />
-        <NumberField
-          label={t.referenceQuantile} value={field.referenceQuantile} validate={(v) => positive(v) ?? unitInterval(v)}
-          onCommit={(referenceQuantile) => set({ referenceQuantile })}
-        />
+        <NumberField label={t.referenceQuantile} value={field.referenceQuantile} validate={quantile} onCommit={(referenceQuantile) => set({ referenceQuantile })} />
         <NumberField label={t.fixedReference} value={field.reference} validate={nonNegative} onCommit={(reference) => set({ reference })} />
         <NumberField label={t.columns} value={field.columns} validate={integerWithin(FIELD_COLUMNS_MIN, FIELD_COLUMNS_MAX)} onCommit={(columns) => set({ columns })} />
       </div>

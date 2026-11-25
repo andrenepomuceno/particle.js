@@ -192,6 +192,7 @@ async function capture(page, encoder) {
   const series = { kinetic: [], potential: [], total: [], momentum: [], angularMomentum: [] };
   let diagnosticsFirst;
   let diagnosticsLast;
+  const fieldReference = { first: null, last: null };
   let previous = { fired: undefined, caption: undefined };
   const started = performance.now();
   for (let frame = 0; frame < frames; frame++) {
@@ -218,7 +219,7 @@ async function capture(page, encoder) {
       }
       const png = picture.toDataURL('image/png');
       return {
-        png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(),
+        png, time, fired: timeline.fired, caption: caption ?? null, diagnostics: c.diagnostics(), fieldReference: c.state.fieldInfo?.reference ?? null,
         particles: keep ? JSON.stringify(c.readParticles()) : undefined,
       };
     }, { steps: frame === 0 ? 0 : stepsPerFrame, seconds: frame === 0 ? 0 : 1 / fps, keep: verify.includes(frame), factor: supersample });
@@ -230,6 +231,8 @@ async function capture(page, encoder) {
     for (const key of Object.keys(series)) series[key].push(d[key]);
     if (frame === 0) diagnosticsFirst = d;
     diagnosticsLast = d;
+    if (frame === 0) fieldReference.first = grab.fieldReference;
+    fieldReference.last = grab.fieldReference;
     if (grab.fired !== previous.fired || grab.caption !== previous.caption) {
       timeline.push({ frame, time: grab.time, eventsFired: grab.fired, caption: grab.caption });
       previous = grab;
@@ -240,7 +243,7 @@ async function capture(page, encoder) {
   }
   const msPerFrame = (performance.now() - started) / frames;
   process.stdout.write('\n');
-  return { times, hashes, timeline, states, series, diagnosticsFirst, diagnosticsLast, msPerFrame };
+  return { times, hashes, timeline, states, series, diagnosticsFirst, diagnosticsLast, fieldReference, msPerFrame };
 }
 
 /** Replays each verified frame in a fresh page straight to its step, with the recording's seed, and compares the particles. */
@@ -305,6 +308,9 @@ const metadata = {
   frameHashes: report.hashes,
   timeline: report.timeline,
   diagnostics: { first: report.diagnosticsFirst, last: report.diagnosticsLast },
+  // The field's |F| at white on the first and last frame (null without the field): another take with
+  // field.reference set to it shares the colour scale.
+  fieldReference: report.fieldReference,
   // Per frame, aligned with frameTimes: energies, P and L about the origin (about Q: L − Q × P).
   series: report.series,
   verify: report.checks,

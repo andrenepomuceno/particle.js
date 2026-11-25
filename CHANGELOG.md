@@ -26,6 +26,8 @@
 
 - Display options `field.referenceQuantile` and `field.reference`. They change only colours: without them
   a recording keeps the same frame hashes.
+- The metadata has `fieldReference`, the |F| at white on the first and last frame: passed as
+  `field.reference`, it gives another take the same colour scale.
 
 ## 2.4.0 — 2026-11-09
 

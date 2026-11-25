@@ -82,8 +82,8 @@ arrows (hue/0.833, white counted as 1.2) were then, on frames 0 and 60 alike:
 | 10th–90th percentile, 0.8 | 0.63–white | 0.52–0.97 | 0.42–0.88 | 0.49–0.83 |
 
 At 0.8 the crests run from blue to magenta, with white only on the nearest ones, and the troughs from
-green to cyan. Passing that |F| as `reference` gives another take (another camera, another length) the
-same scale.
+green to cyan. The metadata's `fieldReference` holds that |F|; passing it as `reference` gives another
+take (another camera, another length) the same scale.
 
 ## Time
 
@@ -115,7 +115,9 @@ SHA-256 of every frame's PNG (`frameHashes`), and `hash`, a digest of them all t
 same command share; timeline changes by frame (`eventsFired`, caption); diagnostics of the first and
 last frame (kinetic, potential and total energy, momentum Σ m·u, angular momentum Σ m·r × u about the
 origin, temperature, mean and maximum speed; `potentialLeavesOut` names force-mode forces the potential
-cannot include); `--verify` results; timing; and any notice or console problem.
+cannot include); the force field's |F| at white on the first and last frame (`fieldReference`, null
+without the field; equal with `lockScale` or a fixed `reference`); `--verify` results; timing; and any
+notice or console problem.
 
 `series` holds, per frame and aligned with `frameTimes`, the `kinetic`, `potential` and `total` energy
 and the `momentum` P and `angularMomentum` L (about the origin) of the dynamic particles, to plot the

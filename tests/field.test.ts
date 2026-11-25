@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { referenceField } from '../src/engine/cpu/field';
 import { referenceStep } from '../src/engine/cpu/referenceStep';
 import {
-  DEFAULT_PROBE, fieldGrid, fieldReference, fieldView, validateColumns, validateProbe, type CameraPose, type FieldProbe,
+  DEFAULT_PROBE, FIELD_REFERENCE_QUANTILE, fieldGrid, fieldReference, fieldView, validateColumns, validateFixedReference, validateProbe,
+  validateReferenceQuantile, type CameraPose, type FieldProbe,
 } from '../src/engine/field';
 import { compileForce } from '../src/engine/forces/compile';
 import { defaultParticle, ParticleSet, type Particle } from '../src/engine/particles';
@@ -129,6 +130,39 @@ describe('fieldReference', () => {
   it('is 0 when no probe feels a force', () => {
     expect(fieldReference([0, 0, NaN])).toBe(0);
     expect(fieldReference([])).toBe(0);
+  });
+
+  it('takes another quantile when asked, from the weakest probe to the strongest', () => {
+    const magnitudes = Array.from({ length: 100 }, (_, k) => k + 1);
+    expect(fieldReference(magnitudes, FIELD_REFERENCE_QUANTILE)).toBe(fieldReference(magnitudes));
+    expect(fieldReference(magnitudes, 0.5)).toBe(51);
+    expect(fieldReference(magnitudes, 0.01)).toBe(2);
+    expect(fieldReference(magnitudes, 1)).toBe(100);
+  });
+
+  it('lets a weak far field reach the top of the palette beside a strong core', () => {
+    // A strong 1/r² core on a fifth of the probes over a weak 1/r tail, as an antenna's Coulomb field beside its
+    // radiation: the default quantile sits in the core, so the whole tail is in the bottom of the palette; the median
+    // sits in the tail.
+    const r = Array.from({ length: 1000 }, (_, k) => 1 + k);
+    const magnitudes = r.map((d) => (d < 200 ? 1e4 / d ** 2 : 1 / d));
+    expect(fieldReference(magnitudes)).toBeGreaterThan(100 * (1 / 200));
+    expect(fieldReference(magnitudes, 0.5)).toBe(1 / 500);
+  });
+
+  it('rejects a quantile outside (0, 1]', () => {
+    expect(() => fieldReference([1, 2], 0)).toThrow('field reference quantile must be within (0, 1], got 0');
+    expect(() => fieldReference([1, 2], 1.1)).toThrow(/within \(0, 1\]/);
+    expect(validateReferenceQuantile(NaN)).toMatch(/got NaN/);
+  });
+});
+
+describe('validateFixedReference', () => {
+  it('accepts 0 (follow the field) and any finite positive |F|', () => {
+    expect(validateFixedReference(0)).toBeUndefined();
+    expect(validateFixedReference(3e-4)).toBeUndefined();
+    expect(validateFixedReference(-1)).toBe('field reference must be a finite number >= 0 (0 follows the field), got -1');
+    expect(validateFixedReference(Infinity)).toMatch(/got Infinity/);
   });
 });
 

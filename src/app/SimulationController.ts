@@ -3,7 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { compileForce, ForceValidationError, type CompiledForce } from '../engine/forces/compile';
 import { summarizeEnergy, summarizeMomentum, summarizeSpacetime, type MomentumSample, type SpacetimeSample } from '../engine/cpu/energy';
 import {
-  DEFAULT_PROBE, fieldGrid, fieldReference, fieldView, validateColumns, validateProbe, type FieldProbe,
+  DEFAULT_PROBE, FIELD_REFERENCE_QUANTILE, fieldGrid, fieldReference, fieldView, validateColumns, validateFixedReference, validateProbe,
+  validateReferenceQuantile, type FieldProbe,
 } from '../engine/field';
 import { inactiveCouplings } from '../engine/forces/couplings';
 import { forceFromPreset, type ForcePresetId } from '../engine/forces/presets';
@@ -92,10 +93,23 @@ export interface FieldSettings {
    * makes a scaled test particle (charge ×5, mass ×10) look identical, so comparisons need a lock.
    */
   lockScale: boolean;
+  /**
+   * Quantile of |F| over the probes at the top of the palette (0.9: the strongest tenth is white). A lower one
+   * lets a weak far field, such as an antenna's radiation beside its charge's Coulomb core, reach the bright colors.
+   */
+  referenceQuantile: number;
+  /** A fixed |F| at the top of the palette, for the same scale across views and takes; 0 follows the field. */
+  reference: number;
   probe: FieldProbe;
 }
 
-export const DEFAULT_FIELD: FieldSettings = { enabled: false, columns: 48, autoRefresh: true, logScale: false, lockScale: false, probe: DEFAULT_PROBE };
+export const DEFAULT_FIELD: FieldSettings = {
+  enabled: false, columns: 48, autoRefresh: true, logScale: false, lockScale: false, referenceQuantile: FIELD_REFERENCE_QUANTILE, reference: 0,
+  probe: DEFAULT_PROBE,
+};
+
+/** The field settings that only change the arrows' colors, not the field computed. */
+const FIELD_COLOR_KEYS = ['logScale', 'lockScale', 'referenceQuantile', 'reference'] as const;
 
 export interface FieldInfo {
   columns: number;
@@ -248,6 +262,8 @@ export class SimulationController {
   private fieldTime = NaN;
   private fieldComputedAt = 0;
   private fieldReferenceAt = 0;
+  /** A new reference quantile or fixed reference: the next frame takes the scale again, even if it is locked. */
+  private fieldScaleStale = false;
   private fieldFollowFitAt = 0;
   private compiled: CompiledForce[] = [];
   private compiledKey = '';
@@ -409,7 +425,9 @@ export class SimulationController {
         const before = this.fieldBeforeScenario ?? this.state.field;
         this.applyField({
           ...before, enabled: true, lockScale: false,
-          columns: field.columns ?? DEFAULT_FIELD.columns, logScale: field.logScale ?? DEFAULT_FIELD.logScale, probe: field.probe ?? DEFAULT_PROBE,
+          columns: field.columns ?? DEFAULT_FIELD.columns, logScale: field.logScale ?? DEFAULT_FIELD.logScale,
+          referenceQuantile: field.referenceQuantile ?? DEFAULT_FIELD.referenceQuantile, reference: field.reference ?? DEFAULT_FIELD.reference,
+          probe: field.probe ?? DEFAULT_PROBE,
         });
         this.fieldBeforeScenario = before;
       } else if (this.fieldBeforeScenario) {
@@ -949,15 +967,18 @@ export class SimulationController {
 
   private applyField(patch: Partial<FieldSettings>): void {
     const field = { ...this.state.field, ...patch };
-    const problems = [validateColumns(field.columns), ...validateProbe(field.probe)].filter((p) => p !== undefined);
+    const problems = [
+      validateColumns(field.columns), validateReferenceQuantile(field.referenceQuantile), validateFixedReference(field.reference), ...validateProbe(field.probe),
+    ].filter((p) => p !== undefined);
     if (problems.length > 0) throw new Error(problems.join('; '));
     const previous = this.state.field;
     this.store.set({ field, fieldErrorLog: undefined });
     this.arrows.setVisible(field.enabled);
     this.arrows.setLogScale(field.logScale);
+    if (field.referenceQuantile !== previous.referenceQuantile || field.reference !== previous.reference) this.fieldScaleStale = true;
     // The color scale is a draw-time uniform: no need to recompute the O(probes·N) field.
-    const onlyColors = JSON.stringify({ ...field, logScale: previous.logScale, lockScale: previous.lockScale }) === JSON.stringify(previous);
-    if (onlyColors) return;
+    const colorsOnly = { ...field, ...Object.fromEntries(FIELD_COLOR_KEYS.map((key) => [key, previous[key]])) };
+    if (JSON.stringify(colorsOnly) === JSON.stringify(previous)) return;
     if (!field.enabled) {
       this.store.set({ fieldInfo: undefined });
       return;
@@ -1026,25 +1047,42 @@ export class SimulationController {
     const { field, fieldInfo, time } = this.state;
     if (!field.enabled || !fieldInfo) return;
     const due = time !== this.fieldTime && now - this.fieldComputedAt >= FIELD_INTERVAL_MS;
-    if (!this.fieldDirty && !due) return;
+    const compute = this.fieldDirty || due;
+    if (!compute && !this.fieldScaleStale) return;
     try {
-      this.gpu.computeField(time, field.probe);
-      const refresh = this.fieldDirty || now - this.fieldReferenceAt >= FIELD_REFERENCE_INTERVAL_MS;
-      if (refresh && !(field.lockScale && fieldInfo.reference > 0)) {
-        const reference = fieldReference(this.gpu.readFieldMagnitudes());
-        this.arrows.setReference(reference);
-        this.fieldReferenceAt = now;
-        if (reference !== fieldInfo.reference) this.store.set({ fieldInfo: { ...fieldInfo, reference } });
-      }
+      if (compute) this.gpu.computeField(time, field.probe);
+      this.updateFieldScale(now);
     } catch (error) {
       if (!(error instanceof ShaderCompileError)) throw error;
       this.setField({ enabled: false });
       this.store.set({ fieldErrorLog: error.log });
       this.notify(this.messages.notices.fieldCompileFailed(error.log), 'error');
     }
+    if (!compute) return;
     this.fieldDirty = false;
     this.fieldTime = time;
     this.fieldComputedAt = now;
+  }
+
+  /**
+   * The |F| at the top of the palette: the fixed reference when one is set; otherwise the reference quantile
+   * of the field, taken again when the field changed or on FIELD_REFERENCE_INTERVAL_MS, unless the scale is
+   * locked (a new quantile or a cleared fixed reference takes it once more).
+   */
+  private updateFieldScale(now: number): void {
+    const { field, fieldInfo } = this.state;
+    if (!fieldInfo) return;
+    const stale = this.fieldScaleStale;
+    this.fieldScaleStale = false;
+    let reference = field.reference;
+    if (reference === 0) {
+      const refresh = stale || this.fieldDirty || now - this.fieldReferenceAt >= FIELD_REFERENCE_INTERVAL_MS;
+      if (!refresh || (field.lockScale && fieldInfo.reference > 0 && !stale)) return;
+      reference = fieldReference(this.gpu.readFieldMagnitudes(), field.referenceQuantile);
+      this.fieldReferenceAt = now;
+    }
+    this.arrows.setReference(reference);
+    if (reference !== fieldInfo.reference) this.store.set({ fieldInfo: { ...fieldInfo, reference } });
   }
 
   /* Particles */

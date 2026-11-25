@@ -145,7 +145,7 @@ particle would feel there, using the enabled forces exactly as the integrator do
 lies in z = 0 in 2D mode and on the plane through the orbit target facing the camera in 3D;
 cells are square, *Grid columns* across (2 to 256). Arrows point along the force (a component
 toward the camera shortens them) and are colored like the speed palette: red to magenta up to
-the 90th percentile of |F| over the probes, white beyond (the dialog shows that |F|). The test
+a reference |F|, by default the 90th percentile of |F| over the probes, white beyond (the dialog shows that |F|). The test
 particle's mass, 2D charge, spin vector, isospin, parity, nuclear charge and color are editable (default: mass 1,
 charge 1, parity 1, the rest 0; its clock is 0). <kbd>F</kbd> re-fits the grid to the view;
 with *Re-fit after camera moves* on (default) that happens after every orbit, pan, zoom,
@@ -154,6 +154,10 @@ Probes are not particles: they never move, count, get selected or saved. *Logari
 fields spanning many decades (e.g. near Lennard-Jones cores) from saturating to white. The color
 scale follows the field, so scaling the test particle (charge ×5, mass ×10) changes nothing on
 screen; *Lock color scale* freezes it so such changes show as brighter or dimmer arrows.
+*Reference quantile* (0.9) picks which quantile of |F| over the probes reaches white: a lower one lets a
+weak far field into the bright colors beside a strong core, such as an antenna's radiation beside its
+charge's Coulomb field. *Fixed |F| at white* pins the reference to a value instead (0 = follow the field),
+the same scale across views and recordings; it overrides the quantile and the lock.
 
 **Statistics** charts, once per second and up to 10 minutes back: energy (kinetic, potential,
 total), momentum P = Σ m·u and angular momentum L = Σ m·(r − Q) × u of the dynamic particles

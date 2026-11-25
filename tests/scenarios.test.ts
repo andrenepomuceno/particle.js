@@ -95,7 +95,10 @@ describe('parseScenario', () => {
     expect(parse({ view: { field: { columns: 32, logScale: true, probe: { charge: -1, spin: [0, 0, 1] } } } }).field).toEqual({
       columns: 32, logScale: true, probe: { ...DEFAULT_PROBE, charge: -1, spin: [0, 0, 1] },
     });
+    expect(parse({ view: { field: { referenceQuantile: 0.6, reference: 0 } } }).field).toEqual({ referenceQuantile: 0.6, reference: 0 });
     expect(() => parse({ view: { field: { columns: 1 } } })).toThrow(/view.field.columns': field grid columns must be an integer in \[2, 256\]/);
+    expect(() => parse({ view: { field: { referenceQuantile: 0 } } })).toThrow(/view.field.referenceQuantile': field reference quantile must be within \(0, 1\]/);
+    expect(() => parse({ view: { field: { reference: -2 } } })).toThrow(/view.field.reference': field reference must be a finite number >= 0/);
     expect(() => parse({ view: { field: { probe: { mass: 0 } } } })).toThrow(/view.field.probe': test particle mass must be > 0/);
     expect(() => parse({ view: { field: { probe: { velocity: [1, 0, 0] } } } })).toThrow(/view.field.probe/);
     expect(() => parse({ view: { field: false } })).toThrow(/view.field/);

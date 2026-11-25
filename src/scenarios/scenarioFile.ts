@@ -1,4 +1,4 @@
-import { readProbe, validateColumns } from '../engine/field';
+import { readFieldScale, readProbe, validateColumns } from '../engine/field';
 import { newForceId } from '../engine/forces/presets';
 import { migrateScalarSpin } from '../engine/forces/migrate';
 import { readForce } from '../engine/forces/readForce';
@@ -73,12 +73,12 @@ function fraction(json: JsonReader, value: unknown, path: string): number {
   return amount;
 }
 
-/** `view.field`: true, or { columns, logScale, probe } with the test particle's fields over the default. */
+/** `view.field`: true, or { columns, logScale, referenceQuantile, reference, probe } with the test particle's fields over the default. */
 function readField(json: JsonReader, value: unknown): ScenarioField {
   if (value === true) return {};
   const o = json.object(value, 'view.field');
-  json.onlyKeys(o, ['columns', 'logScale', 'probe'], 'view.field');
-  const field: ScenarioField = {};
+  json.onlyKeys(o, ['columns', 'logScale', 'referenceQuantile', 'reference', 'probe'], 'view.field');
+  const field: ScenarioField = readFieldScale(json, o, 'view.field');
   if (o.columns !== undefined) {
     field.columns = json.finite(o.columns, 'view.field.columns');
     const problem = validateColumns(field.columns);

@@ -10,6 +10,9 @@ import type { SimulationSettings } from '../engine/settings';
 export interface ScenarioField {
   columns?: number;
   logScale?: boolean;
+  /** The palette's top: a quantile of |F| over the probes, or a fixed |F| (0 follows the field). */
+  referenceQuantile?: number;
+  reference?: number;
   probe?: FieldProbe;
 }
 

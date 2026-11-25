@@ -9,10 +9,23 @@
   walk ~0.95 units along x per period (each Euler kick reads the drive at the step's start; a start at
   u = −F0·dt/2 cancels that), and at 0.7 c its pattern peaked near 45°, not across the axis as described.
   The drive's source is out of view.
-- New *Relativistic Antenna*: the same drive at 0.69 c, its lobes leaning toward the axis (peak about 40°).
+- New *Relativistic Antenna*: the same drive at 0.69 c, its lobes leaning toward the axis (peak about 40°);
+  its field colors reach white at the 75th percentile of |F|, so the far bands stay bright.
 - Tests run both on the reference integrator: over 40 periods the swing's mean moves less than 0.005 unit,
   at the speed and amplitude the descriptions state, and the patterns are measured on the Liénard–Wiechert
   field 600 units out.
+
+### Interface
+
+- Field dialog: *Reference quantile* picks the quantile of |F| over the probes that reaches white (0.9, as
+  before, by default). A lower one lets a weak far field into the bright colors beside a strong core, such
+  as an antenna's radiation beside its charge's Coulomb field. *Fixed |F| at white* pins the scale to a
+  value (0 = follow the field). Scenario `view.field` takes both as `referenceQuantile` and `reference`.
+
+### Recording
+
+- Display options `field.referenceQuantile` and `field.reference`. They change only colours: without them
+  a recording keeps the same frame hashes.
 
 ## 2.4.0 — 2026-11-09
 

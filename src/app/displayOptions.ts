@@ -1,4 +1,4 @@
-import { readProbe, validateColumns, type FieldProbe } from '../engine/field';
+import { readFieldScale, readProbe, validateColumns, type FieldProbe } from '../engine/field';
 import { JsonReader } from '../engine/json';
 import type { Vec3 } from '../engine/particles';
 import type { RadialBackground } from '../engine/render/background';
@@ -23,7 +23,10 @@ export interface DisplayOptions {
   axes?: boolean;
   boundary?: boolean;
   /** `probe` holds only the fields given; the others keep the scenario's test particle. */
-  field?: { enabled: boolean; columns?: number; logScale?: boolean; lockScale?: boolean; probe?: Partial<FieldProbe> };
+  field?: {
+    enabled: boolean; columns?: number; logScale?: boolean; lockScale?: boolean; referenceQuantile?: number; reference?: number;
+    probe?: Partial<FieldProbe>;
+  };
   /** Inspect this particle and draw its trail, or follow it with the camera (both name the same particle). */
   trail?: { particle: number };
   follow?: { particle: number };
@@ -83,8 +86,8 @@ export function readDisplayOptions(value: unknown, source = 'display options'): 
   if (o.boundary !== undefined) options.boundary = json.boolean(o.boundary, 'boundary');
   if (o.field !== undefined) {
     const f = json.object(o.field, 'field');
-    json.onlyKeys(f, ['enabled', 'columns', 'logScale', 'lockScale', 'probe'], 'field');
-    const field: NonNullable<DisplayOptions['field']> = { enabled: json.boolean(f.enabled, 'field.enabled') };
+    json.onlyKeys(f, ['enabled', 'columns', 'logScale', 'lockScale', 'referenceQuantile', 'reference', 'probe'], 'field');
+    const field: NonNullable<DisplayOptions['field']> = { enabled: json.boolean(f.enabled, 'field.enabled'), ...readFieldScale(json, f, 'field') };
     if (f.columns !== undefined) {
       field.columns = json.finite(f.columns, 'field.columns');
       const problem = validateColumns(field.columns);

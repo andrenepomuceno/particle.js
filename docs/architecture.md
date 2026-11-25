@@ -80,8 +80,8 @@ particle's attributes from uniforms and clock 0. Probes live in their own textur
 not move, count, get picked or end up in snapshots. The program shares the force uniforms,
 is built lazily and rebuilt after a force recompile, like the energy pass. `FieldArrows`
 (`src/engine/render/`) draws one point sprite per probe straight from those two textures;
-the CPU only reads |F| back to pick the color reference (`fieldReference`, the 90th
-percentile). The controller lays the grid with `fieldGrid(fieldView(camera))` and reruns the
+the CPU only reads |F| back to pick the color reference (`fieldReference`: the field settings'
+reference quantile, 0.9 by default; a fixed reference skips the readback). The controller lays the grid with `fieldGrid(fieldView(camera))` and reruns the
 pass at most every 100 ms while time advances, or right after an edit. `src/engine/cpu/field.ts`
 is its float64 mirror; `npm run parity` compares the two.
 

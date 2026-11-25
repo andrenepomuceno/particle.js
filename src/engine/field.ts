@@ -19,8 +19,18 @@ export const DEFAULT_PROBE: FieldProbe = { mass: 1, charge: 1, charge2: 0, spin:
 export const FIELD_COLUMNS_MIN = 2;
 export const FIELD_COLUMNS_MAX = 256;
 
-/** Quantile of the probe magnitudes that maps to the top of the palette (white beyond it). */
+/** Quantile of the probe magnitudes that maps to the top of the palette (white beyond it), unless a view sets another. */
 export const FIELD_REFERENCE_QUANTILE = 0.9;
+
+/** A reference quantile: within (0, 1]; lower ones let a weak far field reach the top of the palette. */
+export function validateReferenceQuantile(quantile: number): string | undefined {
+  return Number.isFinite(quantile) && quantile > 0 && quantile <= 1 ? undefined : `field reference quantile must be within (0, 1], got ${quantile}`;
+}
+
+/** A fixed |F| at the top of the palette: finite and >= 0, where 0 follows the field (the quantile). */
+export function validateFixedReference(reference: number): string | undefined {
+  return Number.isFinite(reference) && reference >= 0 ? undefined : `field reference must be a finite number >= 0 (0 follows the field), got ${reference}`;
+}
 
 export function validateProbe(probe: FieldProbe): string[] {
   const problems: string[] = [];
@@ -51,6 +61,24 @@ export function readProbe(json: JsonReader, value: unknown, path: string): Field
   const problems = validateProbe(probe);
   if (problems.length > 0) json.fail(path, problems.join('; '));
   return probe;
+}
+
+export interface FieldScale {
+  referenceQuantile?: number;
+  reference?: number;
+}
+
+/** `referenceQuantile` and `reference` of a field in JSON (scenario views, recordings), validated when given. */
+export function readFieldScale(json: JsonReader, o: Record<string, unknown>, path: string): FieldScale {
+  const scale: FieldScale = {};
+  for (const [key, validate] of [['referenceQuantile', validateReferenceQuantile], ['reference', validateFixedReference]] as const) {
+    if (o[key] === undefined) continue;
+    const value = json.finite(o[key], `${path}.${key}`);
+    const problem = validate(value);
+    if (problem) json.fail(`${path}.${key}`, problem);
+    scale[key] = value;
+  }
+  return scale;
 }
 
 export function validateColumns(columns: number): string | undefined {
@@ -128,6 +156,8 @@ export function fieldGrid(view: FieldView, columns: number): FieldGrid {
  * Returns 0 when no probe feels a finite, non-zero force.
  */
 export function fieldReference(magnitudes: ArrayLike<number>, quantile = FIELD_REFERENCE_QUANTILE): number {
+  const problem = validateReferenceQuantile(quantile);
+  if (problem) throw new Error(problem);
   const values: number[] = [];
   for (let k = 0; k < magnitudes.length; k++) {
     const m = magnitudes[k]!;

@@ -53,7 +53,7 @@ Unknown keys and invalid values fail with their path.
   "background": { "center": "#0d1424", "edge": "#000000" },
   "axes": false,
   "boundary": true,
-  "field": { "enabled": true, "columns": 64, "logScale": true, "lockScale": false, "probe": { "charge": -1 } },
+  "field": { "enabled": true, "columns": 64, "logScale": true, "lockScale": false, "referenceQuantile": 0.8, "reference": 0, "probe": { "charge": -1 } },
   "trail": { "particle": 0 },
   "follow": { "particle": 0 },
   "camera": { "position": [0, 0, 1500], "target": [0, 0, 0] }
@@ -65,9 +65,25 @@ Unknown keys and invalid values fail with their path.
 | `particleStyle`, `colorMode`, `particleRadius`, `sizeByMass`, `glow`, `fog` | as in the Controls dialog |
 | `background` | `#rrggbb`, or `{ "center", "edge" }` (both `#rrggbb`) for a radial gradient from the middle of the view to its corners |
 | `axes`, `boundary` | show the axes, the boundary |
-| `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale) and the test particle `probe` (as in [scenarios.md](scenarios.md); the fields given replace the scenario's, the others stay) |
+| `field` | the force field: `enabled`, grid `columns`, `logScale`, `lockScale` (keep the first frame's colour scale), `referenceQuantile` (the quantile of \|F\| over the probes that reaches white, within (0, 1], default 0.9), `reference` (a fixed \|F\| at white, the same across takes; 0, the default, follows the field) and the test particle `probe` (as in [scenarios.md](scenarios.md); the fields given replace the scenario's, the others stay). The colour keys change only colours: arrow directions, particles and frame times stay the same |
 | `trail`, `follow` | inspect that particle and draw its trail (a point per step, as in the app), or follow it with the camera; both must name the same particle |
 | `camera` | the initial camera; a timeline camera move at t = 0 starts from it |
+
+A weak far field beside a strong core sits low in the palette at the default quantile. In
+dipole-antenna the charge's Coulomb field is white out to ~60 units at camera 420, and its radiation
+bands are blue and green. With `"referenceQuantile": 0.8` and `lockScale` (1080x1920, camera
+`[0, 0, 420]`, 64 columns, log scale, warm-up 960), |F| at white is 1.95e-4. The palette levels of the
+arrows (hue/0.833, white counted as 1.2) were then, on frames 0 and 60 alike:
+
+| Distance from the charge | 80–120 | 120–160 | 160–200 | 200–240 |
+| --- | --- | --- | --- | --- |
+| median, 0.9 (default) | 0.75 | 0.64 | 0.58 | 0.58 |
+| median, 0.8 | 0.92 | 0.80 | 0.71 | 0.74 |
+| 10th–90th percentile, 0.8 | 0.63–white | 0.52–0.97 | 0.42–0.88 | 0.49–0.83 |
+
+At 0.8 the crests run from blue to magenta, with white only on the nearest ones, and the troughs from
+green to cyan. Passing that |F| as `reference` gives another take (another camera, another length) the
+same scale.
 
 ## Time
 
